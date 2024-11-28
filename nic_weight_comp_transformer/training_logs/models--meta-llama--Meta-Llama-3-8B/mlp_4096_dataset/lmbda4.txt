@@ -1,0 +1,42 @@
+08:24:10 INFO - logger_setup: /workspace/jgryu/Weight_compression/nic_weight_comp_transformer/utils/util.py
+08:24:10 INFO - ddp_or_single_process: find checkpoint...
+08:24:10 INFO - ddp_or_single_process: no checkpoint is here
+08:24:10 INFO - ddp_or_single_process: seed : 100.0
+08:24:10 INFO - ddp_or_single_process: exp name : exp_NIC_Fair_model_TCM_lmbda_4.0_seed_100.0_batch_size_16_radius_denominator_8_total_iter_1000000
+08:24:10 INFO - ddp_or_single_process: opts: Namespace(dist_port=4587, iter=1000000, model_name='TCM', learning_rate=0.0001, num_workers=2, batch_size=16, aux_learning_rate=0.001, seed=100.0, clip_max_norm=1.0, slurm=False, radius_denominator=8, dataset_dir='./dataset_wp_one_row/models--meta-llama--Meta-Llama-3-8B/mlp_4096_dataset.pt', data_dim=512, length=8, lmbda=4.0, checkpoint='None', save_path='./checkpoint/models--meta-llama--Meta-Llama-3-8B/mlp_4096_dataset.pt/lmbda4.0_batch_size16_total_iter1000000_seed100.0', **{'dev.num_gpus': 4, 'ddp.world_size': 4})
+[W socket.cpp:436] [c10d] The server socket has failed to bind to [::]:4587 (errno: 98 - Address already in use).
+[W socket.cpp:436] [c10d] The server socket has failed to bind to 0.0.0.0:4587 (errno: 98 - Address already in use).
+[E socket.cpp:472] [c10d] The server socket has failed to listen on any local network address.
+distributed init (rank 0): tcp://d941ff0a1a1f:4587
+distributed init (rank 1): tcp://d941ff0a1a1f:4587
+Traceback (most recent call last):
+  File "/workspace/jgryu/Weight_compression/nic_weight_comp_transformer/train.py", line 620, in <module>
+    ddp_or_single_process(sys.argv[1:])    
+  File "/workspace/jgryu/Weight_compression/nic_weight_comp_transformer/train.py", line 609, in ddp_or_single_process
+    torch.multiprocessing.spawn(
+  File "/opt/conda/lib/python3.10/site-packages/torch/multiprocessing/spawn.py", line 246, in spawn
+    return start_processes(fn, args, nprocs, join, daemon, start_method="spawn")
+  File "/opt/conda/lib/python3.10/site-packages/torch/multiprocessing/spawn.py", line 202, in start_processes
+    while not context.join():
+  File "/opt/conda/lib/python3.10/site-packages/torch/multiprocessing/spawn.py", line 163, in join
+    raise ProcessRaisedException(msg, error_index, failed_process.pid)
+torch.multiprocessing.spawn.ProcessRaisedException: 
+
+-- Process 0 terminated with the following error:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/site-packages/torch/multiprocessing/spawn.py", line 74, in _wrap
+    fn(i, *args)
+  File "/workspace/jgryu/Weight_compression/nic_weight_comp_transformer/train.py", line 562, in distributed_worker
+    node_rank = distributed_init(opts)
+  File "/workspace/jgryu/Weight_compression/nic_weight_comp_transformer/train.py", line 539, in distributed_init
+    dist.init_process_group(
+  File "/opt/conda/lib/python3.10/site-packages/torch/distributed/c10d_logger.py", line 74, in wrapper
+    func_return = func(*args, **kwargs)
+  File "/opt/conda/lib/python3.10/site-packages/torch/distributed/distributed_c10d.py", line 1141, in init_process_group
+    store, rank, world_size = next(rendezvous_iterator)
+  File "/opt/conda/lib/python3.10/site-packages/torch/distributed/rendezvous.py", line 196, in _tcp_rendezvous_handler
+    store = _create_c10d_store(result.hostname, result.port, rank, world_size, timeout)
+  File "/opt/conda/lib/python3.10/site-packages/torch/distributed/rendezvous.py", line 172, in _create_c10d_store
+    return TCPStore(
+RuntimeError: The server socket has failed to listen on any local network address. The server socket has failed to bind to [::]:4587 (errno: 98 - Address already in use). The server socket has failed to bind to 0.0.0.0:4587 (errno: 98 - Address already in use).
+

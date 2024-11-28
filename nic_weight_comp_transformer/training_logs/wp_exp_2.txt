@@ -1,0 +1,52 @@
+/opt/conda/lib/python3.10/site-packages/timm/models/layers/__init__.py:48: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+14:18:07 INFO - logger_setup: /workspace/jgryu/Weight_compression/nic_weight_comp/utils/util.py
+14:18:07 INFO - ddp_or_single_process: find checkpoint...
+14:18:07 INFO - ddp_or_single_process: no checkpoint is here
+14:18:07 INFO - ddp_or_single_process: seed : 100.0
+14:18:07 INFO - ddp_or_single_process: exp name : exp_NIC_Fair_model_TCM_image_quality_2_seed_100.0_batch_size_8_radius_denominator_8_total_iter_2000000
+14:18:07 INFO - ddp_or_single_process: opts: Namespace(dist_port=6044, iter=2000000, model_name='TCM', learning_rate=0.0001, num_workers=2, image_quality=2, batch_size=8, aux_learning_rate=0.001, patch_size=(256, 256), seed=100.0, clip_max_norm=1.0, slurm=False, radius_denominator=8, dataset_dir='../Wparam_dataset', checkpoint='None', lmbda=0.0035, save_path='./checkpoint/exp2_NIC_Fair_model_TCM_image_quality_2_seed_100.0_batch_size_8_radius_denominator_8_total_iter_2000000', **{'dev.num_gpus': 4, 'ddp.world_size': 4})
+/opt/conda/lib/python3.10/site-packages/timm/models/layers/__init__.py:48: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+/opt/conda/lib/python3.10/site-packages/timm/models/layers/__init__.py:48: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+/opt/conda/lib/python3.10/site-packages/timm/models/layers/__init__.py:48: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+/opt/conda/lib/python3.10/site-packages/timm/models/layers/__init__.py:48: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+14:18:12 INFO - logger_setup: /workspace/jgryu/Weight_compression/nic_weight_comp/utils/util.py
+14:18:12 INFO - logger_setup: /workspace/jgryu/Weight_compression/nic_weight_comp/utils/util.py
+14:18:12 INFO - main: Create experiment save folder
+14:18:12 INFO - logger_setup: /workspace/jgryu/Weight_compression/nic_weight_comp/utils/util.py
+14:18:12 INFO - logger_setup: /workspace/jgryu/Weight_compression/nic_weight_comp/utils/util.py
+distributed init (rank 1): tcp://d941ff0a1a1f:6044
+distributed init (rank 0): tcp://d941ff0a1a1f:6044
+distributed init (rank 3): tcp://d941ff0a1a1f:6044
+distributed init (rank 2): tcp://d941ff0a1a1f:6044
+Traceback (most recent call last):
+  File "/workspace/jgryu/Weight_compression/nic_weight_comp/train.py", line 794, in <module>
+    ddp_or_single_process(sys.argv[1:])
+  File "/workspace/jgryu/Weight_compression/nic_weight_comp/train.py", line 783, in ddp_or_single_process
+    torch.multiprocessing.spawn(
+  File "/opt/conda/lib/python3.10/site-packages/torch/multiprocessing/spawn.py", line 246, in spawn
+    return start_processes(fn, args, nprocs, join, daemon, start_method="spawn")
+  File "/opt/conda/lib/python3.10/site-packages/torch/multiprocessing/spawn.py", line 202, in start_processes
+    while not context.join():
+  File "/opt/conda/lib/python3.10/site-packages/torch/multiprocessing/spawn.py", line 163, in join
+    raise ProcessRaisedException(msg, error_index, failed_process.pid)
+torch.multiprocessing.spawn.ProcessRaisedException: 
+
+-- Process 1 terminated with the following error:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/site-packages/torch/multiprocessing/spawn.py", line 74, in _wrap
+    fn(i, *args)
+  File "/workspace/jgryu/Weight_compression/nic_weight_comp/train.py", line 698, in distributed_worker
+    main(opts)
+  File "/workspace/jgryu/Weight_compression/nic_weight_comp/train.py", line 172, in main
+    train_dataset = WParam_dataset(dataset_folder= opts.dataset_dir, split='train', param_type = 'attn', image_size = opts.patch_size, seed = opts.seed, slurm=opts.slurm)
+  File "/workspace/jgryu/Weight_compression/nic_weight_comp/datasets_WeightParam.py", line 30, in __init__
+    np.save(path, t[i])
+  File "/opt/conda/lib/python3.10/site-packages/numpy/lib/npyio.py", line 542, in save
+    file_ctx = open(file, "wb")
+OSError: [Errno 28] No space left on device: '../Wparam_dataset/tmp/train/attn_tensor_path_train/425516.npy'
+

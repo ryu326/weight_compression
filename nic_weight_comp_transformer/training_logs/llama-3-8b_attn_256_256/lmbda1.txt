@@ -1,0 +1,1354 @@
+08:19:28 INFO - logger_setup: /workspace/jgryu/Weight_compression/nic_weight_comp_transformer/utils/util.py
+08:19:28 INFO - ddp_or_single_process: find checkpoint...
+08:19:28 INFO - ddp_or_single_process: no checkpoint is here
+08:19:28 INFO - ddp_or_single_process: seed : 100.0
+08:19:28 INFO - ddp_or_single_process: exp name : exp_NIC_Fair_model_TCM_image_quality_2_seed_100.0_batch_size_8_radius_denominator_8_total_iter_500000
+08:19:28 INFO - ddp_or_single_process: opts: Namespace(dist_port=4587, iter=500000, model_name='TCM', learning_rate=0.0001, num_workers=2, image_quality=2, batch_size=8, aux_learning_rate=0.001, patch_size=(256, 256), seed=100.0, clip_max_norm=1.0, slurm=False, radius_denominator=8, dataset_dir='../Wparam_dataset/image_shape_wp/meta-llama-3-8b_attn_train_json/256_256', data_dim=256, length=256, lmbda=1.0, checkpoint='None', save_path='./checkpoint/exp2_NIC_Fair_model_TCM_image_quality_2_seed_100.0_batch_size_8_radius_denominator_8_total_iter_500000', **{'dev.num_gpus': 4, 'ddp.world_size': 4})
+wandb: Using wandb-core as the SDK backend.  Please refer to https://wandb.me/wandb-core for more information.
+wandb: Using wandb-core as the SDK backend.  Please refer to https://wandb.me/wandb-core for more information.
+wandb: Using wandb-core as the SDK backend.  Please refer to https://wandb.me/wandb-core for more information.
+wandb: Using wandb-core as the SDK backend.  Please refer to https://wandb.me/wandb-core for more information.
+wandb: W&B API key is configured. Use `wandb login --relogin` to force relogin
+wandb: W&B API key is configured. Use `wandb login --relogin` to force relogin
+wandb: W&B API key is configured. Use `wandb login --relogin` to force relogin
+wandb: W&B API key is configured. Use `wandb login --relogin` to force relogin
+wandb: Tracking run with wandb version 0.18.6
+wandb: Run data is saved locally in /workspace/jgryu/Weight_compression/nic_weight_comp_transformer/wandb/run-20241117_081939-a2rfkakr
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run tr_nwc
+wandb: ⭐️ View project at https://wandb.ai/maskedkd/Neural%20Weight%20Compression
+wandb: 🚀 View run at https://wandb.ai/maskedkd/Neural%20Weight%20Compression/runs/a2rfkakr
+wandb: Tracking run with wandb version 0.18.6
+wandb: Run data is saved locally in /workspace/jgryu/Weight_compression/nic_weight_comp_transformer/wandb/run-20241117_081939-buzxpp2y
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run tr_nwc
+wandb: ⭐️ View project at https://wandb.ai/maskedkd/Neural%20Weight%20Compression
+wandb: 🚀 View run at https://wandb.ai/maskedkd/Neural%20Weight%20Compression/runs/buzxpp2y
+wandb: Tracking run with wandb version 0.18.6
+wandb: Run data is saved locally in /workspace/jgryu/Weight_compression/nic_weight_comp_transformer/wandb/run-20241117_081939-4n63315s
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run tr_nwc
+wandb: ⭐️ View project at https://wandb.ai/maskedkd/Neural%20Weight%20Compression
+wandb: 🚀 View run at https://wandb.ai/maskedkd/Neural%20Weight%20Compression/runs/4n63315s
+wandb: Tracking run with wandb version 0.18.6
+wandb: Run data is saved locally in /workspace/jgryu/Weight_compression/nic_weight_comp_transformer/wandb/run-20241117_081939-rm1xmbnd
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run tr_nwc
+wandb: ⭐️ View project at https://wandb.ai/maskedkd/Neural%20Weight%20Compression
+wandb: 🚀 View run at https://wandb.ai/maskedkd/Neural%20Weight%20Compression/runs/rm1xmbnd
+08:19:40 INFO - logger_setup: /workspace/jgryu/Weight_compression/nic_weight_comp_transformer/utils/util.py
+08:19:40 INFO - logger_setup: /workspace/jgryu/Weight_compression/nic_weight_comp_transformer/utils/util.py
+08:19:40 INFO - logger_setup: /workspace/jgryu/Weight_compression/nic_weight_comp_transformer/utils/util.py
+08:19:40 INFO - logger_setup: /workspace/jgryu/Weight_compression/nic_weight_comp_transformer/utils/util.py
+08:19:40 INFO - main: Create experiment save folder
+08:19:40 INFO - main: Training mode : scratch!
+08:19:40 INFO - main: image quality : 2
+08:19:40 INFO - main: batch_size : 8
+08:19:40 INFO - main: num of gpus: 4
+distributed init (rank 3): tcp://d941ff0a1a1f:4587
+['../Wparam_dataset/image_shape_wp/meta-llama-3-8b_attn_train_json/256_256/Meta-Llama-3-8B']
+16896
+{'module.entropy_bottleneck.quantiles'}
+['../Wparam_dataset/image_shape_wp/meta-llama-3-8b_attn_val_json/256_256/Meta-Llama-3-8B']
+3584
+distributed init (rank 2): tcp://d941ff0a1a1f:4587
+['../Wparam_dataset/image_shape_wp/meta-llama-3-8b_attn_train_json/256_256/Meta-Llama-3-8B']
+16896
+{'module.entropy_bottleneck.quantiles'}
+['../Wparam_dataset/image_shape_wp/meta-llama-3-8b_attn_val_json/256_256/Meta-Llama-3-8B']
+3584
+distributed init (rank 1): tcp://d941ff0a1a1f:4587
+['../Wparam_dataset/image_shape_wp/meta-llama-3-8b_attn_train_json/256_256/Meta-Llama-3-8B']
+16896
+{'module.entropy_bottleneck.quantiles'}
+['../Wparam_dataset/image_shape_wp/meta-llama-3-8b_attn_val_json/256_256/Meta-Llama-3-8B']
+3584
+distributed init (rank 0): tcp://d941ff0a1a1f:4587
+['../Wparam_dataset/image_shape_wp/meta-llama-3-8b_attn_train_json/256_256/Meta-Llama-3-8B']
+16896
+{'module.entropy_bottleneck.quantiles'}
+['../Wparam_dataset/image_shape_wp/meta-llama-3-8b_attn_val_json/256_256/Meta-Llama-3-8B']
+3584
+/workspace/jgryu/Weight_compression/nic_weight_comp_transformer/train.py:281: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+/workspace/jgryu/Weight_compression/nic_weight_comp_transformer/train.py:281: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+/workspace/jgryu/Weight_compression/nic_weight_comp_transformer/train.py:281: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+/workspace/jgryu/Weight_compression/nic_weight_comp_transformer/train.py:281: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+08:19:49 INFO - main: Train iter. 4/500000 (0.0008%): 	Loss: 72.507004 |	MSE loss: 1.224174 |	Bpp loss: 71.28 |	Aux loss: 2640.00
+08:19:50 INFO - test: Test total_iter: 4, File name: 0, MSE: 1.3039040565490723, BPP: 2348.375
+08:19:51 INFO - test: Test total_iter: 4, File name: 1, MSE: 0.6575647592544556, BPP: 2372.125
+08:19:51 INFO - test: Test total_iter: 4, File name: 2, MSE: 0.6860301494598389, BPP: 2360.125
+08:19:52 INFO - test: Test total_iter: 4, File name: 3, MSE: 1.983687162399292, BPP: 2341.875
+08:19:52 INFO - test: Test total_iter: 4, File name: 4, MSE: 0.5136949419975281, BPP: 2363.25
+08:19:52 INFO - test: Test total_iter: 4, File name: 5, MSE: 0.36505115032196045, BPP: 2385.75
+08:19:53 INFO - test: Test total_iter: 4, File name: 6, MSE: 0.6910183429718018, BPP: 2367.75
+08:19:53 INFO - test: Test total_iter: 4, File name: 7, MSE: 1.3394701480865479, BPP: 2323.25
+08:19:54 INFO - test: Test total_iter: 4, File name: 8, MSE: 2.655613422393799, BPP: 2353.625
+08:19:54 INFO - test: Test total_iter: 4, File name: 9, MSE: 0.6892105937004089, BPP: 2369.625
+08:19:55 INFO - test: Test total_iter: 4, File name: 10, MSE: 1.2370548248291016, BPP: 2360.875
+08:19:55 INFO - test: Test total_iter: 4, File name: 11, MSE: 2.8456318378448486, BPP: 2371.75
+08:19:55 INFO - test: Test total_iter: 4, File name: 12, MSE: 1.1370203495025635, BPP: 2323.0
+08:19:55 INFO - test: Test total_iter: 4, File name: 13, MSE: 1.0592553615570068, BPP: 2370.875
+08:19:55 INFO - test: Test total_iter: 4, File name: 14, MSE: 1.1159169673919678, BPP: 2355.25
+08:19:55 INFO - test: Test total_iter: 4, File name: 15, MSE: 1.2485227584838867, BPP: 2382.875
+08:19:56 INFO - test: Test total_iter: 4, File name: 16, MSE: 1.1975681781768799, BPP: 2339.375
+08:19:56 INFO - test: Test total_iter: 4, File name: 17, MSE: 0.6648321151733398, BPP: 2417.5
+08:19:56 INFO - test: Test total_iter: 4, File name: 18, MSE: 0.6271743774414062, BPP: 2396.125
+08:19:56 INFO - test: Test total_iter: 4, File name: 19, MSE: 0.5804401636123657, BPP: 2354.25
+08:19:57 INFO - test: Test total_iter: 4, File name: 20, MSE: 0.8725656270980835, BPP: 2330.75
+08:19:57 INFO - test: Test total_iter: 4, File name: 21, MSE: 0.8621668815612793, BPP: 2368.125
+08:19:57 INFO - test: Test total_iter: 4, File name: 22, MSE: 1.7759404182434082, BPP: 2342.0
+08:19:58 INFO - test: Test total_iter: 4, File name: 23, MSE: 4.216256141662598, BPP: 2360.625
+08:19:58 INFO - test: Test total_iter: 4, File name: 24, MSE: 1.0496808290481567, BPP: 2353.125
+08:19:59 INFO - test: Test total_iter: 4, File name: 25, MSE: 2.6750266551971436, BPP: 2345.5
+08:19:59 INFO - test: Test total_iter: 4, File name: 26, MSE: 1.180297613143921, BPP: 2355.5
+08:20:00 INFO - test: Test total_iter: 4, File name: 27, MSE: 1.3567843437194824, BPP: 2373.625
+08:20:00 INFO - test: Test total_iter: 4, File name: 28, MSE: 2.3499655723571777, BPP: 2330.0
+08:20:01 INFO - test: Test total_iter: 4, File name: 29, MSE: 0.5526131391525269, BPP: 2391.125
+08:20:01 INFO - test: Test total_iter: 4, File name: 30, MSE: 1.8603317737579346, BPP: 2367.0
+08:20:01 INFO - test: Test total_iter: 4, File name: 31, MSE: 0.4980315566062927, BPP: 2404.25
+08:20:01 INFO - test: Test total_iter: 4, File name: 32, MSE: 4.747602939605713, BPP: 2339.625
+08:20:01 INFO - test: Test total_iter: 4, File name: 33, MSE: 0.5911275744438171, BPP: 2351.625
+08:20:02 INFO - test: Test total_iter: 4, File name: 34, MSE: 0.5030894875526428, BPP: 2361.875
+08:20:02 INFO - test: Test total_iter: 4, File name: 35, MSE: 0.6919046640396118, BPP: 2371.25
+08:20:02 INFO - test: Test total_iter: 4, File name: 36, MSE: 2.8927195072174072, BPP: 2373.875
+08:20:03 INFO - test: Test total_iter: 4, File name: 37, MSE: 4.2878923416137695, BPP: 2389.25
+08:20:03 INFO - test: Test total_iter: 4, File name: 38, MSE: 0.683293342590332, BPP: 2359.25
+08:20:04 INFO - test: Test total_iter: 4, File name: 39, MSE: 0.6829933524131775, BPP: 2365.125
+08:20:04 INFO - test: Test total_iter: 4, File name: 40, MSE: 2.2943766117095947, BPP: 2325.625
+08:20:04 INFO - test: Test total_iter: 4, File name: 41, MSE: 0.6326910853385925, BPP: 2372.875
+08:20:05 INFO - test: Test total_iter: 4, File name: 42, MSE: 0.5322603583335876, BPP: 2377.625
+08:20:05 INFO - test: Test total_iter: 4, File name: 43, MSE: 0.7896002531051636, BPP: 2371.375
+08:20:05 INFO - test: Test total_iter: 4, File name: 44, MSE: 0.6788541674613953, BPP: 2360.125
+08:20:05 INFO - test: Test total_iter: 4, File name: 45, MSE: 0.756258487701416, BPP: 2329.625
+08:20:06 INFO - test: Test total_iter: 4, File name: 46, MSE: 2.0165414810180664, BPP: 2380.25
+08:20:06 INFO - test: Test total_iter: 4, File name: 47, MSE: 0.8566983938217163, BPP: 2360.375
+08:20:07 INFO - test: Test total_iter: 4, File name: 48, MSE: 0.5069291591644287, BPP: 2379.0
+08:20:07 INFO - test: Test total_iter: 4, File name: 49, MSE: 0.9319643974304199, BPP: 2340.125
+08:20:07 INFO - test: Test total_iter: 4, File name: 50, MSE: 0.5982827544212341, BPP: 2348.5
+08:20:08 INFO - test: Test total_iter: 4, File name: 51, MSE: 1.091849446296692, BPP: 2393.75
+08:20:08 INFO - test: Test total_iter: 4, File name: 52, MSE: 1.6732852458953857, BPP: 2325.75
+08:20:09 INFO - test: Test total_iter: 4, File name: 53, MSE: 0.6811698079109192, BPP: 2392.875
+08:20:09 INFO - test: Test total_iter: 4, File name: 54, MSE: 0.8082288503646851, BPP: 2338.375
+08:20:10 INFO - test: Test total_iter: 4, File name: 55, MSE: 1.0057140588760376, BPP: 2352.5
+08:20:10 INFO - test: Test total_iter: 4, File name: 56, MSE: 1.0789886713027954, BPP: 2377.0
+08:20:11 INFO - test: Test total_iter: 4, File name: 57, MSE: 1.1884419918060303, BPP: 2354.25
+08:20:12 INFO - test: Test total_iter: 4, File name: 58, MSE: 0.7372146248817444, BPP: 2383.5
+08:20:12 INFO - test: Test total_iter: 4, File name: 59, MSE: 0.5309523344039917, BPP: 2361.0
+08:20:12 INFO - test: Test total_iter: 4, File name: 60, MSE: 0.5815838575363159, BPP: 2345.875
+08:20:13 INFO - test: Test total_iter: 4, File name: 61, MSE: 1.8442295789718628, BPP: 2324.25
+08:20:13 INFO - test: Test total_iter: 4, File name: 62, MSE: 1.575859785079956, BPP: 2380.375
+08:20:14 INFO - test: Test total_iter: 4, File name: 63, MSE: 0.8652476072311401, BPP: 2323.625
+08:20:14 INFO - test: Test total_iter: 4, File name: 64, MSE: 0.6367759704589844, BPP: 2339.75
+08:20:15 INFO - test: Test total_iter: 4, File name: 65, MSE: 0.6811009645462036, BPP: 2353.125
+08:20:15 INFO - test: Test total_iter: 4, File name: 66, MSE: 1.0408852100372314, BPP: 2337.75
+08:20:16 INFO - test: Test total_iter: 4, File name: 67, MSE: 0.5026707649230957, BPP: 2369.25
+08:20:16 INFO - test: Test total_iter: 4, File name: 68, MSE: 0.6931865811347961, BPP: 2360.875
+08:20:16 INFO - test: Test total_iter: 4, File name: 69, MSE: 0.9985896348953247, BPP: 2372.25
+08:20:17 INFO - test: Test total_iter: 4, File name: 70, MSE: 1.5686273574829102, BPP: 2355.125
+08:20:17 INFO - test: Test total_iter: 4, File name: 71, MSE: 0.6786431670188904, BPP: 2350.625
+08:20:17 INFO - test: Test total_iter: 4, File name: 72, MSE: 1.2709779739379883, BPP: 2386.75
+08:20:18 INFO - test: Test total_iter: 4, File name: 73, MSE: 0.4397270679473877, BPP: 2411.75
+08:20:18 INFO - test: Test total_iter: 4, File name: 74, MSE: 1.368143916130066, BPP: 2353.25
+08:20:19 INFO - test: Test total_iter: 4, File name: 75, MSE: 0.6745271682739258, BPP: 2360.875
+08:20:19 INFO - test: Test total_iter: 4, File name: 76, MSE: 0.37014657258987427, BPP: 2397.25
+08:20:19 INFO - test: Test total_iter: 4, File name: 77, MSE: 1.0267728567123413, BPP: 2342.125
+08:20:19 INFO - test: Test total_iter: 4, File name: 78, MSE: 0.9054406881332397, BPP: 2343.75
+08:20:19 INFO - test: Test total_iter: 4, File name: 79, MSE: 0.8817117214202881, BPP: 2376.375
+08:20:19 INFO - test: Test total_iter: 4, File name: 80, MSE: 0.4779980182647705, BPP: 2343.125
+08:20:20 INFO - test: Test total_iter: 4, File name: 81, MSE: 0.6698503494262695, BPP: 2338.375
+08:20:20 INFO - test: Test total_iter: 4, File name: 82, MSE: 0.8459129333496094, BPP: 2390.875
+08:20:20 INFO - test: Test total_iter: 4, File name: 83, MSE: 1.5846740007400513, BPP: 2369.0
+08:20:20 INFO - test: Test total_iter: 4, File name: 84, MSE: 1.9165973663330078, BPP: 2333.25
+08:20:20 INFO - test: Test total_iter: 4, File name: 85, MSE: 2.7119569778442383, BPP: 2307.75
+08:20:20 INFO - test: Test total_iter: 4, File name: 86, MSE: 0.8678510785102844, BPP: 2302.375
+08:20:20 INFO - test: Test total_iter: 4, File name: 87, MSE: 4.115109443664551, BPP: 2358.375
+08:20:20 INFO - test: Test total_iter: 4, File name: 88, MSE: 0.904960572719574, BPP: 2321.25
+08:20:21 INFO - test: Test total_iter: 4, File name: 89, MSE: 2.623433828353882, BPP: 2303.0
+08:20:21 INFO - test: Test total_iter: 4, File name: 90, MSE: 0.7762762904167175, BPP: 2337.5
+08:20:21 INFO - test: Test total_iter: 4, File name: 91, MSE: 0.6670963168144226, BPP: 2351.875
+08:20:21 INFO - test: Test total_iter: 4, File name: 92, MSE: 0.6808674335479736, BPP: 2339.0
+08:20:21 INFO - test: Test total_iter: 4, File name: 93, MSE: 1.1627873182296753, BPP: 2341.5
+08:20:21 INFO - test: Test total_iter: 4, File name: 94, MSE: 0.8450931310653687, BPP: 2325.0
+08:20:21 INFO - test: Test total_iter: 4, File name: 95, MSE: 0.6989409923553467, BPP: 2370.125
+08:20:21 INFO - test: Test total_iter: 4, File name: 96, MSE: 0.5590924024581909, BPP: 2381.5
+08:20:21 INFO - test: Test total_iter: 4, File name: 97, MSE: 1.9062089920043945, BPP: 2359.875
+08:20:22 INFO - test: Test total_iter: 4, File name: 98, MSE: 0.8591428995132446, BPP: 2335.125
+08:20:22 INFO - test: Test total_iter: 4, File name: 99, MSE: 0.696501612663269, BPP: 2353.75
+08:20:22 INFO - test: Average_MSE: 1.2049444801, Average_Bit-rate: 2357.6325 bpp
+08:20:22 INFO - main: can not find prev_bpp_best_model!
+08:20:22 INFO - main: can not find prev_bpp_best_model!
+08:20:22 INFO - main: can not find recent_saved_model!
+08:31:27 INFO - main: Train iter. 5000/500000 (1.0000%): 	Loss: 10.039709 |	MSE loss: 1.421282 |	Bpp loss: 8.62 |	Aux loss: 2353.52
+08:42:33 INFO - main: Train iter. 10000/500000 (2.0000%): 	Loss: 7.249535 |	MSE loss: 1.207149 |	Bpp loss: 6.04 |	Aux loss: 1939.59
+08:53:48 INFO - main: Train iter. 15000/500000 (3.0000%): 	Loss: 4.854641 |	MSE loss: 0.728500 |	Bpp loss: 4.13 |	Aux loss: 1317.79
+09:04:52 INFO - main: Train iter. 20000/500000 (4.0000%): 	Loss: 3.914102 |	MSE loss: 0.932523 |	Bpp loss: 2.98 |	Aux loss: 456.35
+09:15:58 INFO - main: Train iter. 25000/500000 (5.0000%): 	Loss: 3.666889 |	MSE loss: 1.258339 |	Bpp loss: 2.41 |	Aux loss: 401.32
+09:27:14 INFO - main: Train iter. 30000/500000 (6.0000%): 	Loss: 2.574564 |	MSE loss: 0.483904 |	Bpp loss: 2.09 |	Aux loss: 1145.29
+09:38:23 INFO - main: Train iter. 35000/500000 (7.0000%): 	Loss: 2.565323 |	MSE loss: 0.662619 |	Bpp loss: 1.90 |	Aux loss: 1960.42
+09:49:33 INFO - main: Train iter. 40000/500000 (8.0000%): 	Loss: 2.507750 |	MSE loss: 0.733104 |	Bpp loss: 1.77 |	Aux loss: 2861.21
+10:00:47 INFO - main: Train iter. 45000/500000 (9.0000%): 	Loss: 2.382811 |	MSE loss: 0.689482 |	Bpp loss: 1.69 |	Aux loss: 3835.14
+10:11:53 INFO - main: Train iter. 50000/500000 (10.0000%): 	Loss: 2.306974 |	MSE loss: 0.669916 |	Bpp loss: 1.64 |	Aux loss: 4842.78
+10:11:54 INFO - test: Test total_iter: 50000, File name: 0, MSE: 1.0249228477478027, BPP: 0.5
+10:11:55 INFO - test: Test total_iter: 50000, File name: 1, MSE: 0.37552410364151, BPP: 0.5
+10:11:55 INFO - test: Test total_iter: 50000, File name: 2, MSE: 0.4020608365535736, BPP: 0.5
+10:11:55 INFO - test: Test total_iter: 50000, File name: 3, MSE: 1.6915286779403687, BPP: 0.5
+10:11:55 INFO - test: Test total_iter: 50000, File name: 4, MSE: 0.22655433416366577, BPP: 0.5
+10:11:55 INFO - test: Test total_iter: 50000, File name: 5, MSE: 0.08645346760749817, BPP: 0.5
+10:11:55 INFO - test: Test total_iter: 50000, File name: 6, MSE: 0.4040701985359192, BPP: 0.5
+10:11:56 INFO - test: Test total_iter: 50000, File name: 7, MSE: 1.045250654220581, BPP: 0.5
+10:11:56 INFO - test: Test total_iter: 50000, File name: 8, MSE: 2.374791145324707, BPP: 0.5
+10:11:56 INFO - test: Test total_iter: 50000, File name: 9, MSE: 0.40971803665161133, BPP: 0.5
+10:11:57 INFO - test: Test total_iter: 50000, File name: 10, MSE: 0.9542009830474854, BPP: 0.5
+10:11:57 INFO - test: Test total_iter: 50000, File name: 11, MSE: 2.561091423034668, BPP: 0.5
+10:11:57 INFO - test: Test total_iter: 50000, File name: 12, MSE: 0.8515777587890625, BPP: 0.5
+10:11:57 INFO - test: Test total_iter: 50000, File name: 13, MSE: 0.7753828763961792, BPP: 0.5
+10:11:57 INFO - test: Test total_iter: 50000, File name: 14, MSE: 0.826856255531311, BPP: 0.5
+10:11:57 INFO - test: Test total_iter: 50000, File name: 15, MSE: 0.9613415598869324, BPP: 0.5
+10:11:57 INFO - test: Test total_iter: 50000, File name: 16, MSE: 0.9145363569259644, BPP: 0.5
+10:11:57 INFO - test: Test total_iter: 50000, File name: 17, MSE: 0.3855646252632141, BPP: 0.5
+10:11:58 INFO - test: Test total_iter: 50000, File name: 18, MSE: 0.34526920318603516, BPP: 0.5
+10:11:58 INFO - test: Test total_iter: 50000, File name: 19, MSE: 0.29679012298583984, BPP: 0.5
+10:11:58 INFO - test: Test total_iter: 50000, File name: 20, MSE: 0.5858609080314636, BPP: 0.5
+10:11:59 INFO - test: Test total_iter: 50000, File name: 21, MSE: 0.5813472270965576, BPP: 0.5
+10:11:59 INFO - test: Test total_iter: 50000, File name: 22, MSE: 1.5000576972961426, BPP: 0.5
+10:12:00 INFO - test: Test total_iter: 50000, File name: 23, MSE: 3.9165284633636475, BPP: 0.5
+10:12:00 INFO - test: Test total_iter: 50000, File name: 24, MSE: 0.7711188197135925, BPP: 0.5
+10:12:01 INFO - test: Test total_iter: 50000, File name: 25, MSE: 2.3964648246765137, BPP: 0.5
+10:12:01 INFO - test: Test total_iter: 50000, File name: 26, MSE: 0.9063482880592346, BPP: 0.5
+10:12:02 INFO - test: Test total_iter: 50000, File name: 27, MSE: 1.0777184963226318, BPP: 0.5
+10:12:02 INFO - test: Test total_iter: 50000, File name: 28, MSE: 2.0701041221618652, BPP: 0.5
+10:12:02 INFO - test: Test total_iter: 50000, File name: 29, MSE: 0.2685164511203766, BPP: 0.5
+10:12:03 INFO - test: Test total_iter: 50000, File name: 30, MSE: 1.5776394605636597, BPP: 0.5
+10:12:03 INFO - test: Test total_iter: 50000, File name: 31, MSE: 0.22316506505012512, BPP: 0.5
+10:12:04 INFO - test: Test total_iter: 50000, File name: 32, MSE: 4.456135272979736, BPP: 0.5
+10:12:04 INFO - test: Test total_iter: 50000, File name: 33, MSE: 0.3105021119117737, BPP: 0.5
+10:12:05 INFO - test: Test total_iter: 50000, File name: 34, MSE: 0.2227168083190918, BPP: 0.5
+10:12:06 INFO - test: Test total_iter: 50000, File name: 35, MSE: 0.40820491313934326, BPP: 0.5
+10:12:06 INFO - test: Test total_iter: 50000, File name: 36, MSE: 2.6001930236816406, BPP: 0.5
+10:12:07 INFO - test: Test total_iter: 50000, File name: 37, MSE: 4.003507614135742, BPP: 0.5
+10:12:07 INFO - test: Test total_iter: 50000, File name: 38, MSE: 0.40148842334747314, BPP: 0.5
+10:12:07 INFO - test: Test total_iter: 50000, File name: 39, MSE: 0.39922285079956055, BPP: 0.5
+10:12:07 INFO - test: Test total_iter: 50000, File name: 40, MSE: 2.0114083290100098, BPP: 0.5
+10:12:08 INFO - test: Test total_iter: 50000, File name: 41, MSE: 0.35319867730140686, BPP: 0.5
+10:12:09 INFO - test: Test total_iter: 50000, File name: 42, MSE: 0.24729514122009277, BPP: 0.5
+10:12:09 INFO - test: Test total_iter: 50000, File name: 43, MSE: 0.5029169321060181, BPP: 0.5
+10:12:10 INFO - test: Test total_iter: 50000, File name: 44, MSE: 0.39377233386039734, BPP: 0.5
+10:12:10 INFO - test: Test total_iter: 50000, File name: 45, MSE: 0.4706171154975891, BPP: 0.5
+10:12:11 INFO - test: Test total_iter: 50000, File name: 46, MSE: 1.732947826385498, BPP: 0.5
+10:12:11 INFO - test: Test total_iter: 50000, File name: 47, MSE: 0.574079155921936, BPP: 0.5
+10:12:12 INFO - test: Test total_iter: 50000, File name: 48, MSE: 0.22928935289382935, BPP: 0.5
+10:12:12 INFO - test: Test total_iter: 50000, File name: 49, MSE: 0.6452667117118835, BPP: 0.5
+10:12:13 INFO - test: Test total_iter: 50000, File name: 50, MSE: 0.3187444508075714, BPP: 0.5
+10:12:14 INFO - test: Test total_iter: 50000, File name: 51, MSE: 0.8166178464889526, BPP: 0.5
+10:12:14 INFO - test: Test total_iter: 50000, File name: 52, MSE: 1.3774501085281372, BPP: 0.5
+10:12:14 INFO - test: Test total_iter: 50000, File name: 53, MSE: 0.4052863121032715, BPP: 0.5
+10:12:15 INFO - test: Test total_iter: 50000, File name: 54, MSE: 0.5174199938774109, BPP: 0.5
+10:12:15 INFO - test: Test total_iter: 50000, File name: 55, MSE: 0.7269885540008545, BPP: 0.5
+10:12:15 INFO - test: Test total_iter: 50000, File name: 56, MSE: 0.7857359051704407, BPP: 0.5
+10:12:16 INFO - test: Test total_iter: 50000, File name: 57, MSE: 0.9077290296554565, BPP: 0.5
+10:12:16 INFO - test: Test total_iter: 50000, File name: 58, MSE: 0.455058217048645, BPP: 0.5
+10:12:16 INFO - test: Test total_iter: 50000, File name: 59, MSE: 0.2483247071504593, BPP: 0.5
+10:12:17 INFO - test: Test total_iter: 50000, File name: 60, MSE: 0.3036019802093506, BPP: 0.5
+10:12:17 INFO - test: Test total_iter: 50000, File name: 61, MSE: 1.5622917413711548, BPP: 0.5
+10:12:17 INFO - test: Test total_iter: 50000, File name: 62, MSE: 1.3005938529968262, BPP: 0.5
+10:12:18 INFO - test: Test total_iter: 50000, File name: 63, MSE: 0.5780493021011353, BPP: 0.5
+10:12:18 INFO - test: Test total_iter: 50000, File name: 64, MSE: 0.3554941415786743, BPP: 0.5
+10:12:18 INFO - test: Test total_iter: 50000, File name: 65, MSE: 0.40081125497817993, BPP: 0.5
+10:12:18 INFO - test: Test total_iter: 50000, File name: 66, MSE: 0.7506386041641235, BPP: 0.5
+10:12:18 INFO - test: Test total_iter: 50000, File name: 67, MSE: 0.2253296971321106, BPP: 0.5
+10:12:18 INFO - test: Test total_iter: 50000, File name: 68, MSE: 0.4127081036567688, BPP: 0.5
+10:12:19 INFO - test: Test total_iter: 50000, File name: 69, MSE: 0.7117080688476562, BPP: 0.5
+10:12:19 INFO - test: Test total_iter: 50000, File name: 70, MSE: 1.2821720838546753, BPP: 0.5
+10:12:19 INFO - test: Test total_iter: 50000, File name: 71, MSE: 0.39719158411026, BPP: 0.5
+10:12:19 INFO - test: Test total_iter: 50000, File name: 72, MSE: 0.9880654811859131, BPP: 0.5
+10:12:19 INFO - test: Test total_iter: 50000, File name: 73, MSE: 0.16354718804359436, BPP: 0.5
+10:12:19 INFO - test: Test total_iter: 50000, File name: 74, MSE: 1.0892421007156372, BPP: 0.5
+10:12:20 INFO - test: Test total_iter: 50000, File name: 75, MSE: 0.3939458131790161, BPP: 0.5
+10:12:20 INFO - test: Test total_iter: 50000, File name: 76, MSE: 0.09388385713100433, BPP: 0.5
+10:12:20 INFO - test: Test total_iter: 50000, File name: 77, MSE: 0.7453289031982422, BPP: 0.5
+10:12:20 INFO - test: Test total_iter: 50000, File name: 78, MSE: 0.6178238391876221, BPP: 0.5
+10:12:20 INFO - test: Test total_iter: 50000, File name: 79, MSE: 0.6003954410552979, BPP: 0.5
+10:12:20 INFO - test: Test total_iter: 50000, File name: 80, MSE: 0.19346952438354492, BPP: 0.5
+10:12:20 INFO - test: Test total_iter: 50000, File name: 81, MSE: 0.3882843255996704, BPP: 0.5
+10:12:20 INFO - test: Test total_iter: 50000, File name: 82, MSE: 0.5622609853744507, BPP: 0.5
+10:12:21 INFO - test: Test total_iter: 50000, File name: 83, MSE: 1.3089447021484375, BPP: 0.5
+10:12:21 INFO - test: Test total_iter: 50000, File name: 84, MSE: 1.6339348554611206, BPP: 0.5
+10:12:21 INFO - test: Test total_iter: 50000, File name: 85, MSE: 2.4278922080993652, BPP: 0.5
+10:12:21 INFO - test: Test total_iter: 50000, File name: 86, MSE: 0.5743485689163208, BPP: 0.5
+10:12:21 INFO - test: Test total_iter: 50000, File name: 87, MSE: 3.8310413360595703, BPP: 0.5
+10:12:21 INFO - test: Test total_iter: 50000, File name: 88, MSE: 0.6168926954269409, BPP: 0.5
+10:12:21 INFO - test: Test total_iter: 50000, File name: 89, MSE: 2.3452043533325195, BPP: 0.5
+10:12:21 INFO - test: Test total_iter: 50000, File name: 90, MSE: 0.4905547499656677, BPP: 0.5
+10:12:21 INFO - test: Test total_iter: 50000, File name: 91, MSE: 0.38568729162216187, BPP: 0.5
+10:12:22 INFO - test: Test total_iter: 50000, File name: 92, MSE: 0.40023505687713623, BPP: 0.5
+10:12:22 INFO - test: Test total_iter: 50000, File name: 93, MSE: 0.8763821125030518, BPP: 0.5
+10:12:22 INFO - test: Test total_iter: 50000, File name: 94, MSE: 0.5707570314407349, BPP: 0.5
+10:12:22 INFO - test: Test total_iter: 50000, File name: 95, MSE: 0.42055827379226685, BPP: 0.5
+10:12:22 INFO - test: Test total_iter: 50000, File name: 96, MSE: 0.2734394073486328, BPP: 0.5
+10:12:22 INFO - test: Test total_iter: 50000, File name: 97, MSE: 1.6187498569488525, BPP: 0.5
+10:12:22 INFO - test: Test total_iter: 50000, File name: 98, MSE: 0.5756959319114685, BPP: 0.5
+10:12:22 INFO - test: Test total_iter: 50000, File name: 99, MSE: 0.4109151363372803, BPP: 0.5
+10:12:22 INFO - test: Average_MSE: 0.9218854445, Average_Bit-rate: 0.5000 bpp
+10:23:40 INFO - main: Train iter. 55000/500000 (11.0000%): 	Loss: 3.096836 |	MSE loss: 1.493819 |	Bpp loss: 1.60 |	Aux loss: 5805.54
+10:34:48 INFO - main: Train iter. 60000/500000 (12.0000%): 	Loss: 2.592877 |	MSE loss: 1.007778 |	Bpp loss: 1.59 |	Aux loss: 6603.09
+10:45:58 INFO - main: Train iter. 65000/500000 (13.0000%): 	Loss: 2.699991 |	MSE loss: 1.137927 |	Bpp loss: 1.56 |	Aux loss: 7022.89
+10:57:06 INFO - main: Train iter. 70000/500000 (14.0000%): 	Loss: 2.472354 |	MSE loss: 0.918021 |	Bpp loss: 1.55 |	Aux loss: 6558.07
+11:08:14 INFO - main: Train iter. 75000/500000 (15.0000%): 	Loss: 2.297700 |	MSE loss: 0.752730 |	Bpp loss: 1.54 |	Aux loss: 3256.59
+11:19:17 INFO - main: Train iter. 80000/500000 (16.0000%): 	Loss: 2.036353 |	MSE loss: 0.497377 |	Bpp loss: 1.54 |	Aux loss: 31.31
+11:30:30 INFO - main: Train iter. 85000/500000 (17.0000%): 	Loss: 2.829228 |	MSE loss: 1.294361 |	Bpp loss: 1.53 |	Aux loss: 5.99
+11:41:35 INFO - main: Train iter. 90000/500000 (18.0000%): 	Loss: 2.464958 |	MSE loss: 0.933854 |	Bpp loss: 1.53 |	Aux loss: 7.55
+11:52:40 INFO - main: Train iter. 95000/500000 (19.0000%): 	Loss: 2.298358 |	MSE loss: 0.763877 |	Bpp loss: 1.53 |	Aux loss: 9.57
+12:03:44 INFO - main: Train iter. 100000/500000 (20.0000%): 	Loss: 2.791639 |	MSE loss: 1.264306 |	Bpp loss: 1.53 |	Aux loss: 10.80
+12:03:46 INFO - test: Test total_iter: 100000, File name: 0, MSE: 1.0249335765838623, BPP: 0.5
+12:03:46 INFO - test: Test total_iter: 100000, File name: 1, MSE: 0.37555110454559326, BPP: 0.5
+12:03:47 INFO - test: Test total_iter: 100000, File name: 2, MSE: 0.4020761251449585, BPP: 0.5
+12:03:47 INFO - test: Test total_iter: 100000, File name: 3, MSE: 1.69146728515625, BPP: 0.5
+12:03:48 INFO - test: Test total_iter: 100000, File name: 4, MSE: 0.22649811208248138, BPP: 0.5
+12:03:48 INFO - test: Test total_iter: 100000, File name: 5, MSE: 0.08645041286945343, BPP: 0.5
+12:03:48 INFO - test: Test total_iter: 100000, File name: 6, MSE: 0.4040437340736389, BPP: 0.5
+12:03:48 INFO - test: Test total_iter: 100000, File name: 7, MSE: 1.045269250869751, BPP: 0.5
+12:03:48 INFO - test: Test total_iter: 100000, File name: 8, MSE: 2.374762535095215, BPP: 0.5
+12:03:49 INFO - test: Test total_iter: 100000, File name: 9, MSE: 0.4097205698490143, BPP: 0.5
+12:03:49 INFO - test: Test total_iter: 100000, File name: 10, MSE: 0.9541934728622437, BPP: 0.5
+12:03:50 INFO - test: Test total_iter: 100000, File name: 11, MSE: 2.561131000518799, BPP: 0.5
+12:03:51 INFO - test: Test total_iter: 100000, File name: 12, MSE: 0.8515485525131226, BPP: 0.5
+12:03:51 INFO - test: Test total_iter: 100000, File name: 13, MSE: 0.7753113508224487, BPP: 0.5
+12:03:52 INFO - test: Test total_iter: 100000, File name: 14, MSE: 0.8268331289291382, BPP: 0.5
+12:03:52 INFO - test: Test total_iter: 100000, File name: 15, MSE: 0.9613662362098694, BPP: 0.5
+12:03:53 INFO - test: Test total_iter: 100000, File name: 16, MSE: 0.9145208597183228, BPP: 0.5
+12:03:53 INFO - test: Test total_iter: 100000, File name: 17, MSE: 0.385540246963501, BPP: 0.5
+12:03:53 INFO - test: Test total_iter: 100000, File name: 18, MSE: 0.3452392816543579, BPP: 0.5
+12:03:54 INFO - test: Test total_iter: 100000, File name: 19, MSE: 0.29682010412216187, BPP: 0.5
+12:03:54 INFO - test: Test total_iter: 100000, File name: 20, MSE: 0.5858234167098999, BPP: 0.5
+12:03:55 INFO - test: Test total_iter: 100000, File name: 21, MSE: 0.5812338590621948, BPP: 0.5
+12:03:55 INFO - test: Test total_iter: 100000, File name: 22, MSE: 1.4999785423278809, BPP: 0.5
+12:03:56 INFO - test: Test total_iter: 100000, File name: 23, MSE: 3.916618824005127, BPP: 0.5
+12:03:56 INFO - test: Test total_iter: 100000, File name: 24, MSE: 0.7710381150245667, BPP: 0.5
+12:03:56 INFO - test: Test total_iter: 100000, File name: 25, MSE: 2.39642596244812, BPP: 0.5
+12:03:57 INFO - test: Test total_iter: 100000, File name: 26, MSE: 0.9064088463783264, BPP: 0.5
+12:03:58 INFO - test: Test total_iter: 100000, File name: 27, MSE: 1.0777111053466797, BPP: 0.5
+12:03:58 INFO - test: Test total_iter: 100000, File name: 28, MSE: 2.0701327323913574, BPP: 0.5
+12:03:58 INFO - test: Test total_iter: 100000, File name: 29, MSE: 0.26850682497024536, BPP: 0.5
+12:03:59 INFO - test: Test total_iter: 100000, File name: 30, MSE: 1.577664852142334, BPP: 0.5
+12:03:59 INFO - test: Test total_iter: 100000, File name: 31, MSE: 0.22313526272773743, BPP: 0.5
+12:04:00 INFO - test: Test total_iter: 100000, File name: 32, MSE: 4.456096649169922, BPP: 0.5
+12:04:00 INFO - test: Test total_iter: 100000, File name: 33, MSE: 0.31047680974006653, BPP: 0.5
+12:04:01 INFO - test: Test total_iter: 100000, File name: 34, MSE: 0.22267597913742065, BPP: 0.5
+12:04:01 INFO - test: Test total_iter: 100000, File name: 35, MSE: 0.40813541412353516, BPP: 0.5
+12:04:01 INFO - test: Test total_iter: 100000, File name: 36, MSE: 2.6001977920532227, BPP: 0.5
+12:04:02 INFO - test: Test total_iter: 100000, File name: 37, MSE: 4.00368595123291, BPP: 0.5
+12:04:02 INFO - test: Test total_iter: 100000, File name: 38, MSE: 0.4014745056629181, BPP: 0.5
+12:04:03 INFO - test: Test total_iter: 100000, File name: 39, MSE: 0.3991541862487793, BPP: 0.5
+12:04:03 INFO - test: Test total_iter: 100000, File name: 40, MSE: 2.011457920074463, BPP: 0.5
+12:04:03 INFO - test: Test total_iter: 100000, File name: 41, MSE: 0.3531700372695923, BPP: 0.5
+12:04:04 INFO - test: Test total_iter: 100000, File name: 42, MSE: 0.24729706346988678, BPP: 0.5
+12:04:04 INFO - test: Test total_iter: 100000, File name: 43, MSE: 0.502959668636322, BPP: 0.5
+12:04:05 INFO - test: Test total_iter: 100000, File name: 44, MSE: 0.3937866687774658, BPP: 0.5
+12:04:05 INFO - test: Test total_iter: 100000, File name: 45, MSE: 0.4705764651298523, BPP: 0.5
+12:04:06 INFO - test: Test total_iter: 100000, File name: 46, MSE: 1.7329151630401611, BPP: 0.5
+12:04:06 INFO - test: Test total_iter: 100000, File name: 47, MSE: 0.5740512609481812, BPP: 0.5
+12:04:07 INFO - test: Test total_iter: 100000, File name: 48, MSE: 0.22925032675266266, BPP: 0.5
+12:04:07 INFO - test: Test total_iter: 100000, File name: 49, MSE: 0.6452153325080872, BPP: 0.5
+12:04:08 INFO - test: Test total_iter: 100000, File name: 50, MSE: 0.3187315762042999, BPP: 0.5
+12:04:08 INFO - test: Test total_iter: 100000, File name: 51, MSE: 0.8165785074234009, BPP: 0.5
+12:04:09 INFO - test: Test total_iter: 100000, File name: 52, MSE: 1.3774561882019043, BPP: 0.5
+12:04:09 INFO - test: Test total_iter: 100000, File name: 53, MSE: 0.40523838996887207, BPP: 0.5
+12:04:10 INFO - test: Test total_iter: 100000, File name: 54, MSE: 0.5173507928848267, BPP: 0.5
+12:04:10 INFO - test: Test total_iter: 100000, File name: 55, MSE: 0.7269939184188843, BPP: 0.5
+12:04:10 INFO - test: Test total_iter: 100000, File name: 56, MSE: 0.7857462763786316, BPP: 0.5
+12:04:11 INFO - test: Test total_iter: 100000, File name: 57, MSE: 0.9077460765838623, BPP: 0.5
+12:04:11 INFO - test: Test total_iter: 100000, File name: 58, MSE: 0.4551175534725189, BPP: 0.5
+12:04:12 INFO - test: Test total_iter: 100000, File name: 59, MSE: 0.24825416505336761, BPP: 0.5
+12:04:12 INFO - test: Test total_iter: 100000, File name: 60, MSE: 0.3035987615585327, BPP: 0.5
+12:04:13 INFO - test: Test total_iter: 100000, File name: 61, MSE: 1.5622708797454834, BPP: 0.5
+12:04:13 INFO - test: Test total_iter: 100000, File name: 62, MSE: 1.3006274700164795, BPP: 0.5
+12:04:13 INFO - test: Test total_iter: 100000, File name: 63, MSE: 0.5780731439590454, BPP: 0.5
+12:04:13 INFO - test: Test total_iter: 100000, File name: 64, MSE: 0.35541650652885437, BPP: 0.5
+12:04:13 INFO - test: Test total_iter: 100000, File name: 65, MSE: 0.40080904960632324, BPP: 0.5
+12:04:14 INFO - test: Test total_iter: 100000, File name: 66, MSE: 0.7506186962127686, BPP: 0.5
+12:04:14 INFO - test: Test total_iter: 100000, File name: 67, MSE: 0.22528234124183655, BPP: 0.5
+12:04:14 INFO - test: Test total_iter: 100000, File name: 68, MSE: 0.41262590885162354, BPP: 0.5
+12:04:14 INFO - test: Test total_iter: 100000, File name: 69, MSE: 0.7116221785545349, BPP: 0.5
+12:04:15 INFO - test: Test total_iter: 100000, File name: 70, MSE: 1.282228946685791, BPP: 0.5
+12:04:15 INFO - test: Test total_iter: 100000, File name: 71, MSE: 0.3972085416316986, BPP: 0.5
+12:04:15 INFO - test: Test total_iter: 100000, File name: 72, MSE: 0.9880039691925049, BPP: 0.5
+12:04:15 INFO - test: Test total_iter: 100000, File name: 73, MSE: 0.16354283690452576, BPP: 0.5
+12:04:15 INFO - test: Test total_iter: 100000, File name: 74, MSE: 1.089207649230957, BPP: 0.5
+12:04:15 INFO - test: Test total_iter: 100000, File name: 75, MSE: 0.39390337467193604, BPP: 0.5
+12:04:16 INFO - test: Test total_iter: 100000, File name: 76, MSE: 0.09388677030801773, BPP: 0.5
+12:04:16 INFO - test: Test total_iter: 100000, File name: 77, MSE: 0.7453764081001282, BPP: 0.5
+12:04:16 INFO - test: Test total_iter: 100000, File name: 78, MSE: 0.6177646517753601, BPP: 0.5
+12:04:16 INFO - test: Test total_iter: 100000, File name: 79, MSE: 0.6003780364990234, BPP: 0.5
+12:04:16 INFO - test: Test total_iter: 100000, File name: 80, MSE: 0.19346380233764648, BPP: 0.5
+12:04:16 INFO - test: Test total_iter: 100000, File name: 81, MSE: 0.38827723264694214, BPP: 0.5
+12:04:16 INFO - test: Test total_iter: 100000, File name: 82, MSE: 0.5622003078460693, BPP: 0.5
+12:04:16 INFO - test: Test total_iter: 100000, File name: 83, MSE: 1.30900239944458, BPP: 0.5
+12:04:17 INFO - test: Test total_iter: 100000, File name: 84, MSE: 1.633862018585205, BPP: 0.5
+12:04:17 INFO - test: Test total_iter: 100000, File name: 85, MSE: 2.4277796745300293, BPP: 0.5
+12:04:17 INFO - test: Test total_iter: 100000, File name: 86, MSE: 0.5742945671081543, BPP: 0.5
+12:04:17 INFO - test: Test total_iter: 100000, File name: 87, MSE: 3.8309783935546875, BPP: 0.5
+12:04:17 INFO - test: Test total_iter: 100000, File name: 88, MSE: 0.6168756484985352, BPP: 0.5
+12:04:17 INFO - test: Test total_iter: 100000, File name: 89, MSE: 2.3452539443969727, BPP: 0.5
+12:04:17 INFO - test: Test total_iter: 100000, File name: 90, MSE: 0.49051791429519653, BPP: 0.5
+12:04:18 INFO - test: Test total_iter: 100000, File name: 91, MSE: 0.38567596673965454, BPP: 0.5
+12:04:18 INFO - test: Test total_iter: 100000, File name: 92, MSE: 0.4002071022987366, BPP: 0.5
+12:04:18 INFO - test: Test total_iter: 100000, File name: 93, MSE: 0.8763678073883057, BPP: 0.5
+12:04:18 INFO - test: Test total_iter: 100000, File name: 94, MSE: 0.5706613063812256, BPP: 0.5
+12:04:18 INFO - test: Test total_iter: 100000, File name: 95, MSE: 0.4206008017063141, BPP: 0.5
+12:04:18 INFO - test: Test total_iter: 100000, File name: 96, MSE: 0.27340197563171387, BPP: 0.5
+12:04:18 INFO - test: Test total_iter: 100000, File name: 97, MSE: 1.6187069416046143, BPP: 0.5
+12:04:18 INFO - test: Test total_iter: 100000, File name: 98, MSE: 0.5756836533546448, BPP: 0.5
+12:04:18 INFO - test: Test total_iter: 100000, File name: 99, MSE: 0.4108847975730896, BPP: 0.5
+12:04:18 INFO - test: Average_MSE: 0.9218688830, Average_Bit-rate: 0.5000 bpp
+12:15:06 INFO - main: Train iter. 105000/500000 (21.0000%): 	Loss: 2.555365 |	MSE loss: 1.031654 |	Bpp loss: 1.52 |	Aux loss: 14.07
+12:25:51 INFO - main: Train iter. 110000/500000 (22.0000%): 	Loss: 2.559521 |	MSE loss: 1.033448 |	Bpp loss: 1.53 |	Aux loss: 17.58
+12:36:27 INFO - main: Train iter. 115000/500000 (23.0000%): 	Loss: 2.796787 |	MSE loss: 1.267652 |	Bpp loss: 1.53 |	Aux loss: 18.47
+12:47:05 INFO - main: Train iter. 120000/500000 (24.0000%): 	Loss: 2.513099 |	MSE loss: 0.984235 |	Bpp loss: 1.53 |	Aux loss: 18.73
+12:57:48 INFO - main: Train iter. 125000/500000 (25.0000%): 	Loss: 2.193995 |	MSE loss: 0.667034 |	Bpp loss: 1.53 |	Aux loss: 24.08
+13:08:25 INFO - main: Train iter. 130000/500000 (26.0000%): 	Loss: 2.927607 |	MSE loss: 1.403727 |	Bpp loss: 1.52 |	Aux loss: 23.97
+13:19:02 INFO - main: Train iter. 135000/500000 (27.0000%): 	Loss: 2.759479 |	MSE loss: 1.235886 |	Bpp loss: 1.52 |	Aux loss: 26.33
+13:29:47 INFO - main: Train iter. 140000/500000 (28.0000%): 	Loss: 2.191153 |	MSE loss: 0.672028 |	Bpp loss: 1.52 |	Aux loss: 31.04
+13:40:25 INFO - main: Train iter. 145000/500000 (29.0000%): 	Loss: 2.570601 |	MSE loss: 1.045491 |	Bpp loss: 1.53 |	Aux loss: 33.11
+13:51:11 INFO - main: Train iter. 150000/500000 (30.0000%): 	Loss: 2.534485 |	MSE loss: 1.007435 |	Bpp loss: 1.53 |	Aux loss: 32.72
+13:51:11 INFO - test: Test total_iter: 150000, File name: 0, MSE: 1.024976372718811, BPP: 0.5
+13:51:11 INFO - test: Test total_iter: 150000, File name: 1, MSE: 0.3755236566066742, BPP: 0.5
+13:51:11 INFO - test: Test total_iter: 150000, File name: 2, MSE: 0.40207773447036743, BPP: 0.5
+13:51:12 INFO - test: Test total_iter: 150000, File name: 3, MSE: 1.6914231777191162, BPP: 0.5
+13:51:12 INFO - test: Test total_iter: 150000, File name: 4, MSE: 0.22655555605888367, BPP: 0.5
+13:51:13 INFO - test: Test total_iter: 150000, File name: 5, MSE: 0.08644235134124756, BPP: 0.5
+13:51:13 INFO - test: Test total_iter: 150000, File name: 6, MSE: 0.40401917695999146, BPP: 0.5
+13:51:13 INFO - test: Test total_iter: 150000, File name: 7, MSE: 1.0451875925064087, BPP: 0.5
+13:51:13 INFO - test: Test total_iter: 150000, File name: 8, MSE: 2.3748598098754883, BPP: 0.5
+13:51:13 INFO - test: Test total_iter: 150000, File name: 9, MSE: 0.4097519814968109, BPP: 0.5
+13:51:13 INFO - test: Test total_iter: 150000, File name: 10, MSE: 0.9541418552398682, BPP: 0.5
+13:51:13 INFO - test: Test total_iter: 150000, File name: 11, MSE: 2.5609779357910156, BPP: 0.5
+13:51:14 INFO - test: Test total_iter: 150000, File name: 12, MSE: 0.8515477180480957, BPP: 0.5
+13:51:14 INFO - test: Test total_iter: 150000, File name: 13, MSE: 0.7753362655639648, BPP: 0.5
+13:51:15 INFO - test: Test total_iter: 150000, File name: 14, MSE: 0.826837420463562, BPP: 0.5
+13:51:15 INFO - test: Test total_iter: 150000, File name: 15, MSE: 0.9613685607910156, BPP: 0.5
+13:51:16 INFO - test: Test total_iter: 150000, File name: 16, MSE: 0.914654016494751, BPP: 0.5
+13:51:16 INFO - test: Test total_iter: 150000, File name: 17, MSE: 0.38554221391677856, BPP: 0.5
+13:51:17 INFO - test: Test total_iter: 150000, File name: 18, MSE: 0.3452221751213074, BPP: 0.5
+13:51:17 INFO - test: Test total_iter: 150000, File name: 19, MSE: 0.2967686653137207, BPP: 0.5
+13:51:18 INFO - test: Test total_iter: 150000, File name: 20, MSE: 0.5858058929443359, BPP: 0.5
+13:51:18 INFO - test: Test total_iter: 150000, File name: 21, MSE: 0.5813106894493103, BPP: 0.5
+13:51:19 INFO - test: Test total_iter: 150000, File name: 22, MSE: 1.4999566078186035, BPP: 0.5
+13:51:19 INFO - test: Test total_iter: 150000, File name: 23, MSE: 3.916395664215088, BPP: 0.5
+13:51:20 INFO - test: Test total_iter: 150000, File name: 24, MSE: 0.7710837721824646, BPP: 0.5
+13:51:20 INFO - test: Test total_iter: 150000, File name: 25, MSE: 2.3964505195617676, BPP: 0.5
+13:51:21 INFO - test: Test total_iter: 150000, File name: 26, MSE: 0.9065136909484863, BPP: 0.5
+13:51:21 INFO - test: Test total_iter: 150000, File name: 27, MSE: 1.0777502059936523, BPP: 0.5
+13:51:22 INFO - test: Test total_iter: 150000, File name: 28, MSE: 2.0701351165771484, BPP: 0.5
+13:51:22 INFO - test: Test total_iter: 150000, File name: 29, MSE: 0.2685052156448364, BPP: 0.5
+13:51:23 INFO - test: Test total_iter: 150000, File name: 30, MSE: 1.577532172203064, BPP: 0.5
+13:51:23 INFO - test: Test total_iter: 150000, File name: 31, MSE: 0.2231493890285492, BPP: 0.5
+13:51:23 INFO - test: Test total_iter: 150000, File name: 32, MSE: 4.456289291381836, BPP: 0.5
+13:51:24 INFO - test: Test total_iter: 150000, File name: 33, MSE: 0.310507595539093, BPP: 0.5
+13:51:24 INFO - test: Test total_iter: 150000, File name: 34, MSE: 0.22269782423973083, BPP: 0.5
+13:51:24 INFO - test: Test total_iter: 150000, File name: 35, MSE: 0.40816137194633484, BPP: 0.5
+13:51:25 INFO - test: Test total_iter: 150000, File name: 36, MSE: 2.6004207134246826, BPP: 0.5
+13:51:25 INFO - test: Test total_iter: 150000, File name: 37, MSE: 4.003537178039551, BPP: 0.5
+13:51:25 INFO - test: Test total_iter: 150000, File name: 38, MSE: 0.40144479274749756, BPP: 0.5
+13:51:25 INFO - test: Test total_iter: 150000, File name: 39, MSE: 0.39919668436050415, BPP: 0.5
+13:51:26 INFO - test: Test total_iter: 150000, File name: 40, MSE: 2.011427402496338, BPP: 0.5
+13:51:26 INFO - test: Test total_iter: 150000, File name: 41, MSE: 0.35314270853996277, BPP: 0.5
+13:51:27 INFO - test: Test total_iter: 150000, File name: 42, MSE: 0.24727293848991394, BPP: 0.5
+13:51:27 INFO - test: Test total_iter: 150000, File name: 43, MSE: 0.50291508436203, BPP: 0.5
+13:51:28 INFO - test: Test total_iter: 150000, File name: 44, MSE: 0.3937329649925232, BPP: 0.5
+13:51:29 INFO - test: Test total_iter: 150000, File name: 45, MSE: 0.47054576873779297, BPP: 0.5
+13:51:29 INFO - test: Test total_iter: 150000, File name: 46, MSE: 1.7329857349395752, BPP: 0.5
+13:51:30 INFO - test: Test total_iter: 150000, File name: 47, MSE: 0.5740504264831543, BPP: 0.5
+13:51:30 INFO - test: Test total_iter: 150000, File name: 48, MSE: 0.22924646735191345, BPP: 0.5
+13:51:30 INFO - test: Test total_iter: 150000, File name: 49, MSE: 0.6452243328094482, BPP: 0.5
+13:51:31 INFO - test: Test total_iter: 150000, File name: 50, MSE: 0.3187667727470398, BPP: 0.5
+13:51:31 INFO - test: Test total_iter: 150000, File name: 51, MSE: 0.8166343569755554, BPP: 0.5
+13:51:32 INFO - test: Test total_iter: 150000, File name: 52, MSE: 1.3773784637451172, BPP: 0.5
+13:51:32 INFO - test: Test total_iter: 150000, File name: 53, MSE: 0.40527427196502686, BPP: 0.5
+13:51:32 INFO - test: Test total_iter: 150000, File name: 54, MSE: 0.517366886138916, BPP: 0.5
+13:51:33 INFO - test: Test total_iter: 150000, File name: 55, MSE: 0.7270633578300476, BPP: 0.5
+13:51:33 INFO - test: Test total_iter: 150000, File name: 56, MSE: 0.7857571840286255, BPP: 0.5
+13:51:33 INFO - test: Test total_iter: 150000, File name: 57, MSE: 0.907752275466919, BPP: 0.5
+13:51:34 INFO - test: Test total_iter: 150000, File name: 58, MSE: 0.4550970792770386, BPP: 0.5
+13:51:34 INFO - test: Test total_iter: 150000, File name: 59, MSE: 0.24831900000572205, BPP: 0.5
+13:51:35 INFO - test: Test total_iter: 150000, File name: 60, MSE: 0.30359458923339844, BPP: 0.5
+13:51:35 INFO - test: Test total_iter: 150000, File name: 61, MSE: 1.5622695684432983, BPP: 0.5
+13:51:36 INFO - test: Test total_iter: 150000, File name: 62, MSE: 1.3005869388580322, BPP: 0.5
+13:51:36 INFO - test: Test total_iter: 150000, File name: 63, MSE: 0.5780833959579468, BPP: 0.5
+13:51:36 INFO - test: Test total_iter: 150000, File name: 64, MSE: 0.3554645776748657, BPP: 0.5
+13:51:37 INFO - test: Test total_iter: 150000, File name: 65, MSE: 0.400797575712204, BPP: 0.5
+13:51:37 INFO - test: Test total_iter: 150000, File name: 66, MSE: 0.7506121397018433, BPP: 0.5
+13:51:37 INFO - test: Test total_iter: 150000, File name: 67, MSE: 0.22532972693443298, BPP: 0.5
+13:51:37 INFO - test: Test total_iter: 150000, File name: 68, MSE: 0.4126582145690918, BPP: 0.5
+13:51:38 INFO - test: Test total_iter: 150000, File name: 69, MSE: 0.7116599082946777, BPP: 0.5
+13:51:38 INFO - test: Test total_iter: 150000, File name: 70, MSE: 1.2822023630142212, BPP: 0.5
+13:51:38 INFO - test: Test total_iter: 150000, File name: 71, MSE: 0.3972465395927429, BPP: 0.5
+13:51:38 INFO - test: Test total_iter: 150000, File name: 72, MSE: 0.9881314039230347, BPP: 0.5
+13:51:38 INFO - test: Test total_iter: 150000, File name: 73, MSE: 0.1635236144065857, BPP: 0.5
+13:51:38 INFO - test: Test total_iter: 150000, File name: 74, MSE: 1.0892571210861206, BPP: 0.5
+13:51:39 INFO - test: Test total_iter: 150000, File name: 75, MSE: 0.3939378261566162, BPP: 0.5
+13:51:39 INFO - test: Test total_iter: 150000, File name: 76, MSE: 0.09388040006160736, BPP: 0.5
+13:51:39 INFO - test: Test total_iter: 150000, File name: 77, MSE: 0.7453988194465637, BPP: 0.5
+13:51:39 INFO - test: Test total_iter: 150000, File name: 78, MSE: 0.6177622079849243, BPP: 0.5
+13:51:39 INFO - test: Test total_iter: 150000, File name: 79, MSE: 0.6003741025924683, BPP: 0.5
+13:51:39 INFO - test: Test total_iter: 150000, File name: 80, MSE: 0.19343224167823792, BPP: 0.5
+13:51:39 INFO - test: Test total_iter: 150000, File name: 81, MSE: 0.3882819414138794, BPP: 0.5
+13:51:39 INFO - test: Test total_iter: 150000, File name: 82, MSE: 0.5621916651725769, BPP: 0.5
+13:51:40 INFO - test: Test total_iter: 150000, File name: 83, MSE: 1.3089923858642578, BPP: 0.5
+13:51:40 INFO - test: Test total_iter: 150000, File name: 84, MSE: 1.6339044570922852, BPP: 0.5
+13:51:40 INFO - test: Test total_iter: 150000, File name: 85, MSE: 2.4279110431671143, BPP: 0.5
+13:51:40 INFO - test: Test total_iter: 150000, File name: 86, MSE: 0.5742824077606201, BPP: 0.5
+13:51:40 INFO - test: Test total_iter: 150000, File name: 87, MSE: 3.8309638500213623, BPP: 0.5
+13:51:40 INFO - test: Test total_iter: 150000, File name: 88, MSE: 0.6168215870857239, BPP: 0.5
+13:51:41 INFO - test: Test total_iter: 150000, File name: 89, MSE: 2.345071792602539, BPP: 0.5
+13:51:41 INFO - test: Test total_iter: 150000, File name: 90, MSE: 0.4905732274055481, BPP: 0.5
+13:51:41 INFO - test: Test total_iter: 150000, File name: 91, MSE: 0.38565099239349365, BPP: 0.5
+13:51:41 INFO - test: Test total_iter: 150000, File name: 92, MSE: 0.4002072811126709, BPP: 0.5
+13:51:41 INFO - test: Test total_iter: 150000, File name: 93, MSE: 0.8763184547424316, BPP: 0.5
+13:51:41 INFO - test: Test total_iter: 150000, File name: 94, MSE: 0.5706535577774048, BPP: 0.5
+13:51:41 INFO - test: Test total_iter: 150000, File name: 95, MSE: 0.4205006957054138, BPP: 0.5
+13:51:42 INFO - test: Test total_iter: 150000, File name: 96, MSE: 0.2734256386756897, BPP: 0.5
+13:51:42 INFO - test: Test total_iter: 150000, File name: 97, MSE: 1.6187219619750977, BPP: 0.5
+13:51:42 INFO - test: Test total_iter: 150000, File name: 98, MSE: 0.5757155418395996, BPP: 0.5
+13:51:42 INFO - test: Test total_iter: 150000, File name: 99, MSE: 0.4109455645084381, BPP: 0.5
+13:51:42 INFO - test: Average_MSE: 0.9218734942, Average_Bit-rate: 0.5000 bpp
+14:02:32 INFO - main: Train iter. 155000/500000 (31.0000%): 	Loss: 2.392565 |	MSE loss: 0.867925 |	Bpp loss: 1.52 |	Aux loss: 35.20
+14:13:10 INFO - main: Train iter. 160000/500000 (32.0000%): 	Loss: 2.397943 |	MSE loss: 0.879287 |	Bpp loss: 1.52 |	Aux loss: 38.87
+14:23:59 INFO - main: Train iter. 165000/500000 (33.0000%): 	Loss: 2.633455 |	MSE loss: 1.115443 |	Bpp loss: 1.52 |	Aux loss: 39.54
+14:35:18 INFO - main: Train iter. 170000/500000 (34.0000%): 	Loss: 2.459519 |	MSE loss: 0.939619 |	Bpp loss: 1.52 |	Aux loss: 38.29
+14:46:31 INFO - main: Train iter. 175000/500000 (35.0000%): 	Loss: 2.080244 |	MSE loss: 0.556509 |	Bpp loss: 1.52 |	Aux loss: 36.18
+14:57:49 INFO - main: Train iter. 180000/500000 (36.0000%): 	Loss: 2.319082 |	MSE loss: 0.801033 |	Bpp loss: 1.52 |	Aux loss: 45.62
+15:08:55 INFO - main: Train iter. 185000/500000 (37.0000%): 	Loss: 3.203296 |	MSE loss: 1.686868 |	Bpp loss: 1.52 |	Aux loss: 40.37
+15:19:44 INFO - main: Train iter. 190000/500000 (38.0000%): 	Loss: 2.339413 |	MSE loss: 0.820390 |	Bpp loss: 1.52 |	Aux loss: 46.54
+15:30:33 INFO - main: Train iter. 195000/500000 (39.0000%): 	Loss: 2.634466 |	MSE loss: 1.115649 |	Bpp loss: 1.52 |	Aux loss: 44.64
+15:41:13 INFO - main: Train iter. 200000/500000 (40.0000%): 	Loss: 2.075279 |	MSE loss: 0.555148 |	Bpp loss: 1.52 |	Aux loss: 45.63
+15:41:14 INFO - test: Test total_iter: 200000, File name: 0, MSE: 1.024929404258728, BPP: 0.5
+15:41:14 INFO - test: Test total_iter: 200000, File name: 1, MSE: 0.37551945447921753, BPP: 0.5
+15:41:14 INFO - test: Test total_iter: 200000, File name: 2, MSE: 0.4020484685897827, BPP: 0.5
+15:41:14 INFO - test: Test total_iter: 200000, File name: 3, MSE: 1.6914314031600952, BPP: 0.5
+15:41:14 INFO - test: Test total_iter: 200000, File name: 4, MSE: 0.22651684284210205, BPP: 0.5
+15:41:15 INFO - test: Test total_iter: 200000, File name: 5, MSE: 0.0864587277173996, BPP: 0.5
+15:41:15 INFO - test: Test total_iter: 200000, File name: 6, MSE: 0.4040444791316986, BPP: 0.5
+15:41:15 INFO - test: Test total_iter: 200000, File name: 7, MSE: 1.0452439785003662, BPP: 0.5
+15:41:15 INFO - test: Test total_iter: 200000, File name: 8, MSE: 2.374802589416504, BPP: 0.5
+15:41:15 INFO - test: Test total_iter: 200000, File name: 9, MSE: 0.40971946716308594, BPP: 0.5
+15:41:15 INFO - test: Test total_iter: 200000, File name: 10, MSE: 0.9542622566223145, BPP: 0.5
+15:41:15 INFO - test: Test total_iter: 200000, File name: 11, MSE: 2.5610876083374023, BPP: 0.5
+15:41:15 INFO - test: Test total_iter: 200000, File name: 12, MSE: 0.8515146970748901, BPP: 0.5
+15:41:16 INFO - test: Test total_iter: 200000, File name: 13, MSE: 0.7752999067306519, BPP: 0.5
+15:41:16 INFO - test: Test total_iter: 200000, File name: 14, MSE: 0.8268488645553589, BPP: 0.5
+15:41:16 INFO - test: Test total_iter: 200000, File name: 15, MSE: 0.9613544940948486, BPP: 0.5
+15:41:16 INFO - test: Test total_iter: 200000, File name: 16, MSE: 0.9145050048828125, BPP: 0.5
+15:41:16 INFO - test: Test total_iter: 200000, File name: 17, MSE: 0.3855615258216858, BPP: 0.5
+15:41:16 INFO - test: Test total_iter: 200000, File name: 18, MSE: 0.3452708125114441, BPP: 0.5
+15:41:16 INFO - test: Test total_iter: 200000, File name: 19, MSE: 0.29681283235549927, BPP: 0.5
+15:41:16 INFO - test: Test total_iter: 200000, File name: 20, MSE: 0.5857808589935303, BPP: 0.5
+15:41:17 INFO - test: Test total_iter: 200000, File name: 21, MSE: 0.5813319087028503, BPP: 0.5
+15:41:17 INFO - test: Test total_iter: 200000, File name: 22, MSE: 1.4999756813049316, BPP: 0.5
+15:41:17 INFO - test: Test total_iter: 200000, File name: 23, MSE: 3.916574001312256, BPP: 0.5
+15:41:17 INFO - test: Test total_iter: 200000, File name: 24, MSE: 0.770970344543457, BPP: 0.5
+15:41:17 INFO - test: Test total_iter: 200000, File name: 25, MSE: 2.3964359760284424, BPP: 0.5
+15:41:18 INFO - test: Test total_iter: 200000, File name: 26, MSE: 0.906441330909729, BPP: 0.5
+15:41:18 INFO - test: Test total_iter: 200000, File name: 27, MSE: 1.0776926279067993, BPP: 0.5
+15:41:18 INFO - test: Test total_iter: 200000, File name: 28, MSE: 2.07003116607666, BPP: 0.5
+15:41:18 INFO - test: Test total_iter: 200000, File name: 29, MSE: 0.2685215473175049, BPP: 0.5
+15:41:18 INFO - test: Test total_iter: 200000, File name: 30, MSE: 1.577620267868042, BPP: 0.5
+15:41:18 INFO - test: Test total_iter: 200000, File name: 31, MSE: 0.2231311798095703, BPP: 0.5
+15:41:19 INFO - test: Test total_iter: 200000, File name: 32, MSE: 4.456207275390625, BPP: 0.5
+15:41:19 INFO - test: Test total_iter: 200000, File name: 33, MSE: 0.31046658754348755, BPP: 0.5
+15:41:20 INFO - test: Test total_iter: 200000, File name: 34, MSE: 0.222683846950531, BPP: 0.5
+15:41:20 INFO - test: Test total_iter: 200000, File name: 35, MSE: 0.40821075439453125, BPP: 0.5
+15:41:20 INFO - test: Test total_iter: 200000, File name: 36, MSE: 2.600261926651001, BPP: 0.5
+15:41:20 INFO - test: Test total_iter: 200000, File name: 37, MSE: 4.003541946411133, BPP: 0.5
+15:41:20 INFO - test: Test total_iter: 200000, File name: 38, MSE: 0.40148434042930603, BPP: 0.5
+15:41:20 INFO - test: Test total_iter: 200000, File name: 39, MSE: 0.39917370676994324, BPP: 0.5
+15:41:21 INFO - test: Test total_iter: 200000, File name: 40, MSE: 2.0113778114318848, BPP: 0.5
+15:41:21 INFO - test: Test total_iter: 200000, File name: 41, MSE: 0.3531603217124939, BPP: 0.5
+15:41:21 INFO - test: Test total_iter: 200000, File name: 42, MSE: 0.24731269478797913, BPP: 0.5
+15:41:21 INFO - test: Test total_iter: 200000, File name: 43, MSE: 0.5029438734054565, BPP: 0.5
+15:41:22 INFO - test: Test total_iter: 200000, File name: 44, MSE: 0.39373964071273804, BPP: 0.5
+15:41:22 INFO - test: Test total_iter: 200000, File name: 45, MSE: 0.47062307596206665, BPP: 0.5
+15:41:22 INFO - test: Test total_iter: 200000, File name: 46, MSE: 1.7328922748565674, BPP: 0.5
+15:41:22 INFO - test: Test total_iter: 200000, File name: 47, MSE: 0.5740882158279419, BPP: 0.5
+15:41:22 INFO - test: Test total_iter: 200000, File name: 48, MSE: 0.22923648357391357, BPP: 0.5
+15:41:22 INFO - test: Test total_iter: 200000, File name: 49, MSE: 0.6452645063400269, BPP: 0.5
+15:41:22 INFO - test: Test total_iter: 200000, File name: 50, MSE: 0.31874799728393555, BPP: 0.5
+15:41:23 INFO - test: Test total_iter: 200000, File name: 51, MSE: 0.8165683746337891, BPP: 0.5
+15:41:23 INFO - test: Test total_iter: 200000, File name: 52, MSE: 1.377387285232544, BPP: 0.5
+15:41:23 INFO - test: Test total_iter: 200000, File name: 53, MSE: 0.4052303433418274, BPP: 0.5
+15:41:23 INFO - test: Test total_iter: 200000, File name: 54, MSE: 0.517359733581543, BPP: 0.5
+15:41:24 INFO - test: Test total_iter: 200000, File name: 55, MSE: 0.726939857006073, BPP: 0.5
+15:41:24 INFO - test: Test total_iter: 200000, File name: 56, MSE: 0.7857789993286133, BPP: 0.5
+15:41:24 INFO - test: Test total_iter: 200000, File name: 57, MSE: 0.9077228307723999, BPP: 0.5
+15:41:24 INFO - test: Test total_iter: 200000, File name: 58, MSE: 0.4550691545009613, BPP: 0.5
+15:41:25 INFO - test: Test total_iter: 200000, File name: 59, MSE: 0.24826297163963318, BPP: 0.5
+15:41:25 INFO - test: Test total_iter: 200000, File name: 60, MSE: 0.3036273121833801, BPP: 0.5
+15:41:25 INFO - test: Test total_iter: 200000, File name: 61, MSE: 1.5622773170471191, BPP: 0.5
+15:41:26 INFO - test: Test total_iter: 200000, File name: 62, MSE: 1.3006033897399902, BPP: 0.5
+15:41:26 INFO - test: Test total_iter: 200000, File name: 63, MSE: 0.5781044960021973, BPP: 0.5
+15:41:26 INFO - test: Test total_iter: 200000, File name: 64, MSE: 0.35547882318496704, BPP: 0.5
+15:41:26 INFO - test: Test total_iter: 200000, File name: 65, MSE: 0.4007885158061981, BPP: 0.5
+15:41:26 INFO - test: Test total_iter: 200000, File name: 66, MSE: 0.7505824565887451, BPP: 0.5
+15:41:27 INFO - test: Test total_iter: 200000, File name: 67, MSE: 0.2252618819475174, BPP: 0.5
+15:41:27 INFO - test: Test total_iter: 200000, File name: 68, MSE: 0.41261330246925354, BPP: 0.5
+15:41:27 INFO - test: Test total_iter: 200000, File name: 69, MSE: 0.7115688323974609, BPP: 0.5
+15:41:27 INFO - test: Test total_iter: 200000, File name: 70, MSE: 1.2821710109710693, BPP: 0.5
+15:41:27 INFO - test: Test total_iter: 200000, File name: 71, MSE: 0.3971996307373047, BPP: 0.5
+15:41:28 INFO - test: Test total_iter: 200000, File name: 72, MSE: 0.9880876541137695, BPP: 0.5
+15:41:28 INFO - test: Test total_iter: 200000, File name: 73, MSE: 0.16351911425590515, BPP: 0.5
+15:41:28 INFO - test: Test total_iter: 200000, File name: 74, MSE: 1.0892468690872192, BPP: 0.5
+15:41:29 INFO - test: Test total_iter: 200000, File name: 75, MSE: 0.39391931891441345, BPP: 0.5
+15:41:29 INFO - test: Test total_iter: 200000, File name: 76, MSE: 0.09389708936214447, BPP: 0.5
+15:41:29 INFO - test: Test total_iter: 200000, File name: 77, MSE: 0.7454304099082947, BPP: 0.5
+15:41:30 INFO - test: Test total_iter: 200000, File name: 78, MSE: 0.6177924275398254, BPP: 0.5
+15:41:30 INFO - test: Test total_iter: 200000, File name: 79, MSE: 0.6003863215446472, BPP: 0.5
+15:41:30 INFO - test: Test total_iter: 200000, File name: 80, MSE: 0.19344742596149445, BPP: 0.5
+15:41:30 INFO - test: Test total_iter: 200000, File name: 81, MSE: 0.38830098509788513, BPP: 0.5
+15:41:30 INFO - test: Test total_iter: 200000, File name: 82, MSE: 0.5621874332427979, BPP: 0.5
+15:41:31 INFO - test: Test total_iter: 200000, File name: 83, MSE: 1.3089854717254639, BPP: 0.5
+15:41:31 INFO - test: Test total_iter: 200000, File name: 84, MSE: 1.6337940692901611, BPP: 0.5
+15:41:31 INFO - test: Test total_iter: 200000, File name: 85, MSE: 2.427957534790039, BPP: 0.5
+15:41:31 INFO - test: Test total_iter: 200000, File name: 86, MSE: 0.5743304491043091, BPP: 0.5
+15:41:31 INFO - test: Test total_iter: 200000, File name: 87, MSE: 3.8308675289154053, BPP: 0.5
+15:41:31 INFO - test: Test total_iter: 200000, File name: 88, MSE: 0.6168873310089111, BPP: 0.5
+15:41:32 INFO - test: Test total_iter: 200000, File name: 89, MSE: 2.345086097717285, BPP: 0.5
+15:41:32 INFO - test: Test total_iter: 200000, File name: 90, MSE: 0.49055808782577515, BPP: 0.5
+15:41:32 INFO - test: Test total_iter: 200000, File name: 91, MSE: 0.3856751322746277, BPP: 0.5
+15:41:32 INFO - test: Test total_iter: 200000, File name: 92, MSE: 0.40020036697387695, BPP: 0.5
+15:41:33 INFO - test: Test total_iter: 200000, File name: 93, MSE: 0.8763010501861572, BPP: 0.5
+15:41:33 INFO - test: Test total_iter: 200000, File name: 94, MSE: 0.5706595778465271, BPP: 0.5
+15:41:33 INFO - test: Test total_iter: 200000, File name: 95, MSE: 0.42057234048843384, BPP: 0.5
+15:41:34 INFO - test: Test total_iter: 200000, File name: 96, MSE: 0.27336549758911133, BPP: 0.5
+15:41:34 INFO - test: Test total_iter: 200000, File name: 97, MSE: 1.6187827587127686, BPP: 0.5
+15:41:34 INFO - test: Test total_iter: 200000, File name: 98, MSE: 0.5757049322128296, BPP: 0.5
+15:41:34 INFO - test: Test total_iter: 200000, File name: 99, MSE: 0.41091805696487427, BPP: 0.5
+15:41:34 INFO - test: Average_MSE: 0.9218661484, Average_Bit-rate: 0.5000 bpp
+15:52:32 INFO - main: Train iter. 205000/500000 (41.0000%): 	Loss: 2.105088 |	MSE loss: 0.582437 |	Bpp loss: 1.52 |	Aux loss: 49.21
+16:03:13 INFO - main: Train iter. 210000/500000 (42.0000%): 	Loss: 2.743665 |	MSE loss: 1.222996 |	Bpp loss: 1.52 |	Aux loss: 48.74
+16:13:53 INFO - main: Train iter. 215000/500000 (43.0000%): 	Loss: 2.088707 |	MSE loss: 0.569920 |	Bpp loss: 1.52 |	Aux loss: 49.05
+16:24:40 INFO - main: Train iter. 220000/500000 (44.0000%): 	Loss: 2.371559 |	MSE loss: 0.854706 |	Bpp loss: 1.52 |	Aux loss: 46.33
+16:35:20 INFO - main: Train iter. 225000/500000 (45.0000%): 	Loss: 2.361900 |	MSE loss: 0.844468 |	Bpp loss: 1.52 |	Aux loss: 46.66
+16:46:00 INFO - main: Train iter. 230000/500000 (46.0000%): 	Loss: 2.487466 |	MSE loss: 0.967878 |	Bpp loss: 1.52 |	Aux loss: 46.77
+16:56:46 INFO - main: Train iter. 235000/500000 (47.0000%): 	Loss: 2.425472 |	MSE loss: 0.910324 |	Bpp loss: 1.52 |	Aux loss: 47.07
+17:07:26 INFO - main: Train iter. 240000/500000 (48.0000%): 	Loss: 2.193138 |	MSE loss: 0.675360 |	Bpp loss: 1.52 |	Aux loss: 44.22
+17:18:13 INFO - main: Train iter. 245000/500000 (49.0000%): 	Loss: 2.436845 |	MSE loss: 0.918028 |	Bpp loss: 1.52 |	Aux loss: 58.62
+17:28:54 INFO - main: Train iter. 250000/500000 (50.0000%): 	Loss: 2.669133 |	MSE loss: 1.149110 |	Bpp loss: 1.52 |	Aux loss: 48.94
+17:28:55 INFO - test: Test total_iter: 250000, File name: 0, MSE: 1.0248943567276, BPP: 0.5
+17:28:55 INFO - test: Test total_iter: 250000, File name: 1, MSE: 0.3755148649215698, BPP: 0.5
+17:28:56 INFO - test: Test total_iter: 250000, File name: 2, MSE: 0.4020935893058777, BPP: 0.5
+17:28:56 INFO - test: Test total_iter: 250000, File name: 3, MSE: 1.6914386749267578, BPP: 0.5
+17:28:56 INFO - test: Test total_iter: 250000, File name: 4, MSE: 0.22657328844070435, BPP: 0.5
+17:28:57 INFO - test: Test total_iter: 250000, File name: 5, MSE: 0.08646196871995926, BPP: 0.5
+17:28:57 INFO - test: Test total_iter: 250000, File name: 6, MSE: 0.4039895534515381, BPP: 0.5
+17:28:57 INFO - test: Test total_iter: 250000, File name: 7, MSE: 1.045201301574707, BPP: 0.5
+17:28:57 INFO - test: Test total_iter: 250000, File name: 8, MSE: 2.3747262954711914, BPP: 0.5
+17:28:57 INFO - test: Test total_iter: 250000, File name: 9, MSE: 0.409710168838501, BPP: 0.5
+17:28:57 INFO - test: Test total_iter: 250000, File name: 10, MSE: 0.9541732668876648, BPP: 0.5
+17:28:58 INFO - test: Test total_iter: 250000, File name: 11, MSE: 2.5610427856445312, BPP: 0.5
+17:28:58 INFO - test: Test total_iter: 250000, File name: 12, MSE: 0.8515630960464478, BPP: 0.5
+17:28:58 INFO - test: Test total_iter: 250000, File name: 13, MSE: 0.7753036022186279, BPP: 0.5
+17:28:58 INFO - test: Test total_iter: 250000, File name: 14, MSE: 0.8268290758132935, BPP: 0.5
+17:28:58 INFO - test: Test total_iter: 250000, File name: 15, MSE: 0.9613831639289856, BPP: 0.5
+17:28:58 INFO - test: Test total_iter: 250000, File name: 16, MSE: 0.9146031737327576, BPP: 0.5
+17:28:58 INFO - test: Test total_iter: 250000, File name: 17, MSE: 0.38553160429000854, BPP: 0.5
+17:28:59 INFO - test: Test total_iter: 250000, File name: 18, MSE: 0.3452534079551697, BPP: 0.5
+17:28:59 INFO - test: Test total_iter: 250000, File name: 19, MSE: 0.2967875003814697, BPP: 0.5
+17:28:59 INFO - test: Test total_iter: 250000, File name: 20, MSE: 0.585788369178772, BPP: 0.5
+17:28:59 INFO - test: Test total_iter: 250000, File name: 21, MSE: 0.5813395977020264, BPP: 0.5
+17:28:59 INFO - test: Test total_iter: 250000, File name: 22, MSE: 1.499953031539917, BPP: 0.5
+17:29:00 INFO - test: Test total_iter: 250000, File name: 23, MSE: 3.9165873527526855, BPP: 0.5
+17:29:00 INFO - test: Test total_iter: 250000, File name: 24, MSE: 0.7710395455360413, BPP: 0.5
+17:29:00 INFO - test: Test total_iter: 250000, File name: 25, MSE: 2.3964920043945312, BPP: 0.5
+17:29:00 INFO - test: Test total_iter: 250000, File name: 26, MSE: 0.9064340591430664, BPP: 0.5
+17:29:00 INFO - test: Test total_iter: 250000, File name: 27, MSE: 1.0775716304779053, BPP: 0.5
+17:29:00 INFO - test: Test total_iter: 250000, File name: 28, MSE: 2.0701241493225098, BPP: 0.5
+17:29:01 INFO - test: Test total_iter: 250000, File name: 29, MSE: 0.2685237526893616, BPP: 0.5
+17:29:01 INFO - test: Test total_iter: 250000, File name: 30, MSE: 1.5776472091674805, BPP: 0.5
+17:29:02 INFO - test: Test total_iter: 250000, File name: 31, MSE: 0.22312957048416138, BPP: 0.5
+17:29:02 INFO - test: Test total_iter: 250000, File name: 32, MSE: 4.456212043762207, BPP: 0.5
+17:29:02 INFO - test: Test total_iter: 250000, File name: 33, MSE: 0.31048303842544556, BPP: 0.5
+17:29:03 INFO - test: Test total_iter: 250000, File name: 34, MSE: 0.2226756066083908, BPP: 0.5
+17:29:03 INFO - test: Test total_iter: 250000, File name: 35, MSE: 0.4081358313560486, BPP: 0.5
+17:29:04 INFO - test: Test total_iter: 250000, File name: 36, MSE: 2.600261926651001, BPP: 0.5
+17:29:04 INFO - test: Test total_iter: 250000, File name: 37, MSE: 4.00350284576416, BPP: 0.5
+17:29:04 INFO - test: Test total_iter: 250000, File name: 38, MSE: 0.401472270488739, BPP: 0.5
+17:29:04 INFO - test: Test total_iter: 250000, File name: 39, MSE: 0.3992097079753876, BPP: 0.5
+17:29:05 INFO - test: Test total_iter: 250000, File name: 40, MSE: 2.0114474296569824, BPP: 0.5
+17:29:05 INFO - test: Test total_iter: 250000, File name: 41, MSE: 0.3531567454338074, BPP: 0.5
+17:29:05 INFO - test: Test total_iter: 250000, File name: 42, MSE: 0.2472917139530182, BPP: 0.5
+17:29:06 INFO - test: Test total_iter: 250000, File name: 43, MSE: 0.5029035806655884, BPP: 0.5
+17:29:06 INFO - test: Test total_iter: 250000, File name: 44, MSE: 0.39377495646476746, BPP: 0.5
+17:29:06 INFO - test: Test total_iter: 250000, File name: 45, MSE: 0.4705764651298523, BPP: 0.5
+17:29:06 INFO - test: Test total_iter: 250000, File name: 46, MSE: 1.7329435348510742, BPP: 0.5
+17:29:06 INFO - test: Test total_iter: 250000, File name: 47, MSE: 0.5740250945091248, BPP: 0.5
+17:29:06 INFO - test: Test total_iter: 250000, File name: 48, MSE: 0.22922587394714355, BPP: 0.5
+17:29:07 INFO - test: Test total_iter: 250000, File name: 49, MSE: 0.6452639698982239, BPP: 0.5
+17:29:07 INFO - test: Test total_iter: 250000, File name: 50, MSE: 0.3187359869480133, BPP: 0.5
+17:29:07 INFO - test: Test total_iter: 250000, File name: 51, MSE: 0.8165798783302307, BPP: 0.5
+17:29:08 INFO - test: Test total_iter: 250000, File name: 52, MSE: 1.3775018453598022, BPP: 0.5
+17:29:08 INFO - test: Test total_iter: 250000, File name: 53, MSE: 0.40526536107063293, BPP: 0.5
+17:29:08 INFO - test: Test total_iter: 250000, File name: 54, MSE: 0.5173622369766235, BPP: 0.5
+17:29:09 INFO - test: Test total_iter: 250000, File name: 55, MSE: 0.7271027565002441, BPP: 0.5
+17:29:09 INFO - test: Test total_iter: 250000, File name: 56, MSE: 0.7857812643051147, BPP: 0.5
+17:29:09 INFO - test: Test total_iter: 250000, File name: 57, MSE: 0.9077284932136536, BPP: 0.5
+17:29:10 INFO - test: Test total_iter: 250000, File name: 58, MSE: 0.45505836606025696, BPP: 0.5
+17:29:10 INFO - test: Test total_iter: 250000, File name: 59, MSE: 0.24831804633140564, BPP: 0.5
+17:29:11 INFO - test: Test total_iter: 250000, File name: 60, MSE: 0.30360984802246094, BPP: 0.5
+17:29:11 INFO - test: Test total_iter: 250000, File name: 61, MSE: 1.562271237373352, BPP: 0.5
+17:29:11 INFO - test: Test total_iter: 250000, File name: 62, MSE: 1.300616979598999, BPP: 0.5
+17:29:12 INFO - test: Test total_iter: 250000, File name: 63, MSE: 0.5780867338180542, BPP: 0.5
+17:29:12 INFO - test: Test total_iter: 250000, File name: 64, MSE: 0.3554558753967285, BPP: 0.5
+17:29:12 INFO - test: Test total_iter: 250000, File name: 65, MSE: 0.400804340839386, BPP: 0.5
+17:29:12 INFO - test: Test total_iter: 250000, File name: 66, MSE: 0.7506053447723389, BPP: 0.5
+17:29:12 INFO - test: Test total_iter: 250000, File name: 67, MSE: 0.22532683610916138, BPP: 0.5
+17:29:13 INFO - test: Test total_iter: 250000, File name: 68, MSE: 0.4126710295677185, BPP: 0.5
+17:29:13 INFO - test: Test total_iter: 250000, File name: 69, MSE: 0.7115969061851501, BPP: 0.5
+17:29:14 INFO - test: Test total_iter: 250000, File name: 70, MSE: 1.2822338342666626, BPP: 0.5
+17:29:14 INFO - test: Test total_iter: 250000, File name: 71, MSE: 0.397197961807251, BPP: 0.5
+17:29:15 INFO - test: Test total_iter: 250000, File name: 72, MSE: 0.9881770610809326, BPP: 0.5
+17:29:15 INFO - test: Test total_iter: 250000, File name: 73, MSE: 0.16351953148841858, BPP: 0.5
+17:29:15 INFO - test: Test total_iter: 250000, File name: 74, MSE: 1.0893487930297852, BPP: 0.5
+17:29:16 INFO - test: Test total_iter: 250000, File name: 75, MSE: 0.3939279615879059, BPP: 0.5
+17:29:16 INFO - test: Test total_iter: 250000, File name: 76, MSE: 0.09389076381921768, BPP: 0.5
+17:29:16 INFO - test: Test total_iter: 250000, File name: 77, MSE: 0.7453523874282837, BPP: 0.5
+17:29:17 INFO - test: Test total_iter: 250000, File name: 78, MSE: 0.6178114414215088, BPP: 0.5
+17:29:17 INFO - test: Test total_iter: 250000, File name: 79, MSE: 0.6003338098526001, BPP: 0.5
+17:29:17 INFO - test: Test total_iter: 250000, File name: 80, MSE: 0.19345614314079285, BPP: 0.5
+17:29:18 INFO - test: Test total_iter: 250000, File name: 81, MSE: 0.38826799392700195, BPP: 0.5
+17:29:18 INFO - test: Test total_iter: 250000, File name: 82, MSE: 0.5621989965438843, BPP: 0.5
+17:29:18 INFO - test: Test total_iter: 250000, File name: 83, MSE: 1.3090872764587402, BPP: 0.5
+17:29:19 INFO - test: Test total_iter: 250000, File name: 84, MSE: 1.6338329315185547, BPP: 0.5
+17:29:19 INFO - test: Test total_iter: 250000, File name: 85, MSE: 2.427913188934326, BPP: 0.5
+17:29:19 INFO - test: Test total_iter: 250000, File name: 86, MSE: 0.5743060111999512, BPP: 0.5
+17:29:20 INFO - test: Test total_iter: 250000, File name: 87, MSE: 3.8309590816497803, BPP: 0.5
+17:29:20 INFO - test: Test total_iter: 250000, File name: 88, MSE: 0.6168308258056641, BPP: 0.5
+17:29:20 INFO - test: Test total_iter: 250000, File name: 89, MSE: 2.345109224319458, BPP: 0.5
+17:29:21 INFO - test: Test total_iter: 250000, File name: 90, MSE: 0.4905697703361511, BPP: 0.5
+17:29:21 INFO - test: Test total_iter: 250000, File name: 91, MSE: 0.3856661319732666, BPP: 0.5
+17:29:21 INFO - test: Test total_iter: 250000, File name: 92, MSE: 0.4001905918121338, BPP: 0.5
+17:29:21 INFO - test: Test total_iter: 250000, File name: 93, MSE: 0.8763157725334167, BPP: 0.5
+17:29:21 INFO - test: Test total_iter: 250000, File name: 94, MSE: 0.5706896781921387, BPP: 0.5
+17:29:21 INFO - test: Test total_iter: 250000, File name: 95, MSE: 0.42057493329048157, BPP: 0.5
+17:29:22 INFO - test: Test total_iter: 250000, File name: 96, MSE: 0.2734054625034332, BPP: 0.5
+17:29:22 INFO - test: Test total_iter: 250000, File name: 97, MSE: 1.6187800168991089, BPP: 0.5
+17:29:22 INFO - test: Test total_iter: 250000, File name: 98, MSE: 0.5756494998931885, BPP: 0.5
+17:29:22 INFO - test: Test total_iter: 250000, File name: 99, MSE: 0.4108903408050537, BPP: 0.5
+17:29:22 INFO - test: Average_MSE: 0.9218723443, Average_Bit-rate: 0.5000 bpp
+17:40:17 INFO - main: Train iter. 255000/500000 (51.0000%): 	Loss: 2.239227 |	MSE loss: 0.716100 |	Bpp loss: 1.52 |	Aux loss: 50.40
+17:51:31 INFO - main: Train iter. 260000/500000 (52.0000%): 	Loss: 3.058495 |	MSE loss: 1.542047 |	Bpp loss: 1.52 |	Aux loss: 57.44
+18:02:52 INFO - main: Train iter. 265000/500000 (53.0000%): 	Loss: 2.351768 |	MSE loss: 0.830054 |	Bpp loss: 1.52 |	Aux loss: 57.38
+18:14:08 INFO - main: Train iter. 270000/500000 (54.0000%): 	Loss: 2.707694 |	MSE loss: 1.185797 |	Bpp loss: 1.52 |	Aux loss: 51.73
+18:25:30 INFO - main: Train iter. 275000/500000 (55.0000%): 	Loss: 2.267837 |	MSE loss: 0.743755 |	Bpp loss: 1.52 |	Aux loss: 56.25
+18:36:46 INFO - main: Train iter. 280000/500000 (56.0000%): 	Loss: 2.169075 |	MSE loss: 0.648368 |	Bpp loss: 1.52 |	Aux loss: 57.07
+18:47:57 INFO - main: Train iter. 285000/500000 (57.0000%): 	Loss: 2.766053 |	MSE loss: 1.241566 |	Bpp loss: 1.52 |	Aux loss: 54.04
+18:59:20 INFO - main: Train iter. 290000/500000 (58.0000%): 	Loss: 2.612418 |	MSE loss: 1.093312 |	Bpp loss: 1.52 |	Aux loss: 55.45
+19:10:39 INFO - main: Train iter. 295000/500000 (59.0000%): 	Loss: 2.620878 |	MSE loss: 1.104866 |	Bpp loss: 1.52 |	Aux loss: 55.26
+19:22:04 INFO - main: Train iter. 300000/500000 (60.0000%): 	Loss: 2.421227 |	MSE loss: 0.899107 |	Bpp loss: 1.52 |	Aux loss: 54.36
+19:22:07 INFO - test: Test total_iter: 300000, File name: 0, MSE: 1.024983286857605, BPP: 0.5
+19:22:07 INFO - test: Test total_iter: 300000, File name: 1, MSE: 0.37551796436309814, BPP: 0.5
+19:22:08 INFO - test: Test total_iter: 300000, File name: 2, MSE: 0.4020419120788574, BPP: 0.5
+19:22:08 INFO - test: Test total_iter: 300000, File name: 3, MSE: 1.6914194822311401, BPP: 0.5
+19:22:09 INFO - test: Test total_iter: 300000, File name: 4, MSE: 0.22653961181640625, BPP: 0.5
+19:22:09 INFO - test: Test total_iter: 300000, File name: 5, MSE: 0.0864354819059372, BPP: 0.5
+19:22:09 INFO - test: Test total_iter: 300000, File name: 6, MSE: 0.40405967831611633, BPP: 0.5
+19:22:09 INFO - test: Test total_iter: 300000, File name: 7, MSE: 1.0452344417572021, BPP: 0.5
+19:22:09 INFO - test: Test total_iter: 300000, File name: 8, MSE: 2.374812602996826, BPP: 0.5
+19:22:10 INFO - test: Test total_iter: 300000, File name: 9, MSE: 0.4097062349319458, BPP: 0.5
+19:22:11 INFO - test: Test total_iter: 300000, File name: 10, MSE: 0.9541245698928833, BPP: 0.5
+19:22:11 INFO - test: Test total_iter: 300000, File name: 11, MSE: 2.5610508918762207, BPP: 0.5
+19:22:11 INFO - test: Test total_iter: 300000, File name: 12, MSE: 0.8515158891677856, BPP: 0.5
+19:22:11 INFO - test: Test total_iter: 300000, File name: 13, MSE: 0.7753340005874634, BPP: 0.5
+19:22:11 INFO - test: Test total_iter: 300000, File name: 14, MSE: 0.8268305063247681, BPP: 0.5
+19:22:12 INFO - test: Test total_iter: 300000, File name: 15, MSE: 0.961298942565918, BPP: 0.5
+19:22:12 INFO - test: Test total_iter: 300000, File name: 16, MSE: 0.914537250995636, BPP: 0.5
+19:22:13 INFO - test: Test total_iter: 300000, File name: 17, MSE: 0.38556331396102905, BPP: 0.5
+19:22:13 INFO - test: Test total_iter: 300000, File name: 18, MSE: 0.3452550768852234, BPP: 0.5
+19:22:14 INFO - test: Test total_iter: 300000, File name: 19, MSE: 0.2967883348464966, BPP: 0.5
+19:22:14 INFO - test: Test total_iter: 300000, File name: 20, MSE: 0.5857981443405151, BPP: 0.5
+19:22:15 INFO - test: Test total_iter: 300000, File name: 21, MSE: 0.5813135504722595, BPP: 0.5
+19:22:15 INFO - test: Test total_iter: 300000, File name: 22, MSE: 1.499974250793457, BPP: 0.5
+19:22:16 INFO - test: Test total_iter: 300000, File name: 23, MSE: 3.9165775775909424, BPP: 0.5
+19:22:16 INFO - test: Test total_iter: 300000, File name: 24, MSE: 0.7710224390029907, BPP: 0.5
+19:22:17 INFO - test: Test total_iter: 300000, File name: 25, MSE: 2.396416664123535, BPP: 0.5
+19:22:17 INFO - test: Test total_iter: 300000, File name: 26, MSE: 0.9064642190933228, BPP: 0.5
+19:22:18 INFO - test: Test total_iter: 300000, File name: 27, MSE: 1.0776488780975342, BPP: 0.5
+19:22:18 INFO - test: Test total_iter: 300000, File name: 28, MSE: 2.0701160430908203, BPP: 0.5
+19:22:19 INFO - test: Test total_iter: 300000, File name: 29, MSE: 0.2685251235961914, BPP: 0.5
+19:22:20 INFO - test: Test total_iter: 300000, File name: 30, MSE: 1.5775976181030273, BPP: 0.5
+19:22:20 INFO - test: Test total_iter: 300000, File name: 31, MSE: 0.22311627864837646, BPP: 0.5
+19:22:21 INFO - test: Test total_iter: 300000, File name: 32, MSE: 4.456254959106445, BPP: 0.5
+19:22:22 INFO - test: Test total_iter: 300000, File name: 33, MSE: 0.3105330467224121, BPP: 0.5
+19:22:22 INFO - test: Test total_iter: 300000, File name: 34, MSE: 0.22267888486385345, BPP: 0.5
+19:22:23 INFO - test: Test total_iter: 300000, File name: 35, MSE: 0.40814870595932007, BPP: 0.5
+19:22:23 INFO - test: Test total_iter: 300000, File name: 36, MSE: 2.600241184234619, BPP: 0.5
+19:22:24 INFO - test: Test total_iter: 300000, File name: 37, MSE: 4.0035295486450195, BPP: 0.5
+19:22:24 INFO - test: Test total_iter: 300000, File name: 38, MSE: 0.40147027373313904, BPP: 0.5
+19:22:25 INFO - test: Test total_iter: 300000, File name: 39, MSE: 0.39919835329055786, BPP: 0.5
+19:22:25 INFO - test: Test total_iter: 300000, File name: 40, MSE: 2.011460304260254, BPP: 0.5
+19:22:26 INFO - test: Test total_iter: 300000, File name: 41, MSE: 0.35315176844596863, BPP: 0.5
+19:22:26 INFO - test: Test total_iter: 300000, File name: 42, MSE: 0.24729770421981812, BPP: 0.5
+19:22:27 INFO - test: Test total_iter: 300000, File name: 43, MSE: 0.5029369592666626, BPP: 0.5
+19:22:28 INFO - test: Test total_iter: 300000, File name: 44, MSE: 0.39374294877052307, BPP: 0.5
+19:22:28 INFO - test: Test total_iter: 300000, File name: 45, MSE: 0.47058436274528503, BPP: 0.5
+19:22:28 INFO - test: Test total_iter: 300000, File name: 46, MSE: 1.7330102920532227, BPP: 0.5
+19:22:29 INFO - test: Test total_iter: 300000, File name: 47, MSE: 0.5740361213684082, BPP: 0.5
+19:22:29 INFO - test: Test total_iter: 300000, File name: 48, MSE: 0.2292340099811554, BPP: 0.5
+19:22:30 INFO - test: Test total_iter: 300000, File name: 49, MSE: 0.6452975869178772, BPP: 0.5
+19:22:30 INFO - test: Test total_iter: 300000, File name: 50, MSE: 0.3187313675880432, BPP: 0.5
+19:22:31 INFO - test: Test total_iter: 300000, File name: 51, MSE: 0.8166163563728333, BPP: 0.5
+19:22:31 INFO - test: Test total_iter: 300000, File name: 52, MSE: 1.3773839473724365, BPP: 0.5
+19:22:32 INFO - test: Test total_iter: 300000, File name: 53, MSE: 0.4052414894104004, BPP: 0.5
+19:22:32 INFO - test: Test total_iter: 300000, File name: 54, MSE: 0.5173370838165283, BPP: 0.5
+19:22:33 INFO - test: Test total_iter: 300000, File name: 55, MSE: 0.7270166873931885, BPP: 0.5
+19:22:34 INFO - test: Test total_iter: 300000, File name: 56, MSE: 0.7857568264007568, BPP: 0.5
+19:22:34 INFO - test: Test total_iter: 300000, File name: 57, MSE: 0.9076985716819763, BPP: 0.5
+19:22:35 INFO - test: Test total_iter: 300000, File name: 58, MSE: 0.4550487995147705, BPP: 0.5
+19:22:35 INFO - test: Test total_iter: 300000, File name: 59, MSE: 0.24828028678894043, BPP: 0.5
+19:22:36 INFO - test: Test total_iter: 300000, File name: 60, MSE: 0.30358558893203735, BPP: 0.5
+19:22:36 INFO - test: Test total_iter: 300000, File name: 61, MSE: 1.5622282028198242, BPP: 0.5
+19:22:37 INFO - test: Test total_iter: 300000, File name: 62, MSE: 1.3005897998809814, BPP: 0.5
+19:22:37 INFO - test: Test total_iter: 300000, File name: 63, MSE: 0.5780516266822815, BPP: 0.5
+19:22:38 INFO - test: Test total_iter: 300000, File name: 64, MSE: 0.3554190397262573, BPP: 0.5
+19:22:39 INFO - test: Test total_iter: 300000, File name: 65, MSE: 0.4008091986179352, BPP: 0.5
+19:22:39 INFO - test: Test total_iter: 300000, File name: 66, MSE: 0.7506092190742493, BPP: 0.5
+19:22:40 INFO - test: Test total_iter: 300000, File name: 67, MSE: 0.22530797123908997, BPP: 0.5
+19:22:41 INFO - test: Test total_iter: 300000, File name: 68, MSE: 0.4126470983028412, BPP: 0.5
+19:22:41 INFO - test: Test total_iter: 300000, File name: 69, MSE: 0.7116323709487915, BPP: 0.5
+19:22:42 INFO - test: Test total_iter: 300000, File name: 70, MSE: 1.2821359634399414, BPP: 0.5
+19:22:42 INFO - test: Test total_iter: 300000, File name: 71, MSE: 0.3972190022468567, BPP: 0.5
+19:22:42 INFO - test: Test total_iter: 300000, File name: 72, MSE: 0.9880992770195007, BPP: 0.5
+19:22:43 INFO - test: Test total_iter: 300000, File name: 73, MSE: 0.16352467238903046, BPP: 0.5
+19:22:43 INFO - test: Test total_iter: 300000, File name: 74, MSE: 1.089282751083374, BPP: 0.5
+19:22:44 INFO - test: Test total_iter: 300000, File name: 75, MSE: 0.39390718936920166, BPP: 0.5
+19:22:44 INFO - test: Test total_iter: 300000, File name: 76, MSE: 0.09386025369167328, BPP: 0.5
+19:22:45 INFO - test: Test total_iter: 300000, File name: 77, MSE: 0.7453787326812744, BPP: 0.5
+19:22:45 INFO - test: Test total_iter: 300000, File name: 78, MSE: 0.617781400680542, BPP: 0.5
+19:22:46 INFO - test: Test total_iter: 300000, File name: 79, MSE: 0.6003478765487671, BPP: 0.5
+19:22:46 INFO - test: Test total_iter: 300000, File name: 80, MSE: 0.1934232860803604, BPP: 0.5
+19:22:47 INFO - test: Test total_iter: 300000, File name: 81, MSE: 0.3882784843444824, BPP: 0.5
+19:22:47 INFO - test: Test total_iter: 300000, File name: 82, MSE: 0.5621696710586548, BPP: 0.5
+19:22:47 INFO - test: Test total_iter: 300000, File name: 83, MSE: 1.3090295791625977, BPP: 0.5
+19:22:48 INFO - test: Test total_iter: 300000, File name: 84, MSE: 1.6338629722595215, BPP: 0.5
+19:22:48 INFO - test: Test total_iter: 300000, File name: 85, MSE: 2.4277360439300537, BPP: 0.5
+19:22:48 INFO - test: Test total_iter: 300000, File name: 86, MSE: 0.5742515921592712, BPP: 0.5
+19:22:49 INFO - test: Test total_iter: 300000, File name: 87, MSE: 3.8309483528137207, BPP: 0.5
+19:22:49 INFO - test: Test total_iter: 300000, File name: 88, MSE: 0.6168795824050903, BPP: 0.5
+19:22:50 INFO - test: Test total_iter: 300000, File name: 89, MSE: 2.3451194763183594, BPP: 0.5
+19:22:50 INFO - test: Test total_iter: 300000, File name: 90, MSE: 0.4905253052711487, BPP: 0.5
+19:22:50 INFO - test: Test total_iter: 300000, File name: 91, MSE: 0.3856532871723175, BPP: 0.5
+19:22:50 INFO - test: Test total_iter: 300000, File name: 92, MSE: 0.40020933747291565, BPP: 0.5
+19:22:50 INFO - test: Test total_iter: 300000, File name: 93, MSE: 0.8763030171394348, BPP: 0.5
+19:22:51 INFO - test: Test total_iter: 300000, File name: 94, MSE: 0.5706825256347656, BPP: 0.5
+19:22:51 INFO - test: Test total_iter: 300000, File name: 95, MSE: 0.42054545879364014, BPP: 0.5
+19:22:51 INFO - test: Test total_iter: 300000, File name: 96, MSE: 0.27337175607681274, BPP: 0.5
+19:22:51 INFO - test: Test total_iter: 300000, File name: 97, MSE: 1.6187400817871094, BPP: 0.5
+19:22:51 INFO - test: Test total_iter: 300000, File name: 98, MSE: 0.5757116079330444, BPP: 0.5
+19:22:51 INFO - test: Test total_iter: 300000, File name: 99, MSE: 0.41088271141052246, BPP: 0.5
+19:22:51 INFO - test: Average_MSE: 0.9218628006, Average_Bit-rate: 0.5000 bpp
+19:34:08 INFO - main: Train iter. 305000/500000 (61.0000%): 	Loss: 3.081986 |	MSE loss: 1.563512 |	Bpp loss: 1.52 |	Aux loss: 57.15
+19:45:26 INFO - main: Train iter. 310000/500000 (62.0000%): 	Loss: 2.571977 |	MSE loss: 1.046988 |	Bpp loss: 1.52 |	Aux loss: 60.86
+19:56:56 INFO - main: Train iter. 315000/500000 (63.0000%): 	Loss: 2.277868 |	MSE loss: 0.761873 |	Bpp loss: 1.52 |	Aux loss: 55.55
+20:08:27 INFO - main: Train iter. 320000/500000 (64.0000%): 	Loss: 2.426180 |	MSE loss: 0.902066 |	Bpp loss: 1.52 |	Aux loss: 60.76
+20:19:56 INFO - main: Train iter. 325000/500000 (65.0000%): 	Loss: 2.503615 |	MSE loss: 0.986082 |	Bpp loss: 1.52 |	Aux loss: 64.34
+20:31:27 INFO - main: Train iter. 330000/500000 (66.0000%): 	Loss: 2.430377 |	MSE loss: 0.904028 |	Bpp loss: 1.53 |	Aux loss: 56.47
+20:42:53 INFO - main: Train iter. 335000/500000 (67.0000%): 	Loss: 2.833744 |	MSE loss: 1.313148 |	Bpp loss: 1.52 |	Aux loss: 67.49
+20:54:24 INFO - main: Train iter. 340000/500000 (68.0000%): 	Loss: 2.637124 |	MSE loss: 1.112901 |	Bpp loss: 1.52 |	Aux loss: 57.40
+21:06:00 INFO - main: Train iter. 345000/500000 (69.0000%): 	Loss: 2.292727 |	MSE loss: 0.772165 |	Bpp loss: 1.52 |	Aux loss: 58.05
+21:17:29 INFO - main: Train iter. 350000/500000 (70.0000%): 	Loss: 2.879250 |	MSE loss: 1.356122 |	Bpp loss: 1.52 |	Aux loss: 61.52
+21:17:30 INFO - test: Test total_iter: 350000, File name: 0, MSE: 1.024946689605713, BPP: 0.5
+21:17:30 INFO - test: Test total_iter: 350000, File name: 1, MSE: 0.3754936456680298, BPP: 0.5
+21:17:31 INFO - test: Test total_iter: 350000, File name: 2, MSE: 0.4020220637321472, BPP: 0.5
+21:17:31 INFO - test: Test total_iter: 350000, File name: 3, MSE: 1.691422700881958, BPP: 0.5
+21:17:31 INFO - test: Test total_iter: 350000, File name: 4, MSE: 0.22653315961360931, BPP: 0.5
+21:17:32 INFO - test: Test total_iter: 350000, File name: 5, MSE: 0.08642870932817459, BPP: 0.5
+21:17:32 INFO - test: Test total_iter: 350000, File name: 6, MSE: 0.4040522575378418, BPP: 0.5
+21:17:33 INFO - test: Test total_iter: 350000, File name: 7, MSE: 1.0452687740325928, BPP: 0.5
+21:17:33 INFO - test: Test total_iter: 350000, File name: 8, MSE: 2.374791383743286, BPP: 0.5
+21:17:34 INFO - test: Test total_iter: 350000, File name: 9, MSE: 0.4097455143928528, BPP: 0.5
+21:17:35 INFO - test: Test total_iter: 350000, File name: 10, MSE: 0.9541918039321899, BPP: 0.5
+21:17:35 INFO - test: Test total_iter: 350000, File name: 11, MSE: 2.5611062049865723, BPP: 0.5
+21:17:36 INFO - test: Test total_iter: 350000, File name: 12, MSE: 0.851542592048645, BPP: 0.5
+21:17:36 INFO - test: Test total_iter: 350000, File name: 13, MSE: 0.7753249406814575, BPP: 0.5
+21:17:37 INFO - test: Test total_iter: 350000, File name: 14, MSE: 0.8268035650253296, BPP: 0.5
+21:17:37 INFO - test: Test total_iter: 350000, File name: 15, MSE: 0.9613445997238159, BPP: 0.5
+21:17:38 INFO - test: Test total_iter: 350000, File name: 16, MSE: 0.9145437479019165, BPP: 0.5
+21:17:38 INFO - test: Test total_iter: 350000, File name: 17, MSE: 0.3855460286140442, BPP: 0.5
+21:17:39 INFO - test: Test total_iter: 350000, File name: 18, MSE: 0.3452455401420593, BPP: 0.5
+21:17:39 INFO - test: Test total_iter: 350000, File name: 19, MSE: 0.29679858684539795, BPP: 0.5
+21:17:40 INFO - test: Test total_iter: 350000, File name: 20, MSE: 0.585803747177124, BPP: 0.5
+21:17:40 INFO - test: Test total_iter: 350000, File name: 21, MSE: 0.5813178420066833, BPP: 0.5
+21:17:40 INFO - test: Test total_iter: 350000, File name: 22, MSE: 1.499924659729004, BPP: 0.5
+21:17:41 INFO - test: Test total_iter: 350000, File name: 23, MSE: 3.916497230529785, BPP: 0.5
+21:17:41 INFO - test: Test total_iter: 350000, File name: 24, MSE: 0.771079421043396, BPP: 0.5
+21:17:42 INFO - test: Test total_iter: 350000, File name: 25, MSE: 2.396301031112671, BPP: 0.5
+21:17:42 INFO - test: Test total_iter: 350000, File name: 26, MSE: 0.9064121842384338, BPP: 0.5
+21:17:42 INFO - test: Test total_iter: 350000, File name: 27, MSE: 1.0776255130767822, BPP: 0.5
+21:17:43 INFO - test: Test total_iter: 350000, File name: 28, MSE: 2.0700016021728516, BPP: 0.5
+21:17:43 INFO - test: Test total_iter: 350000, File name: 29, MSE: 0.26850426197052, BPP: 0.5
+21:17:43 INFO - test: Test total_iter: 350000, File name: 30, MSE: 1.5776546001434326, BPP: 0.5
+21:17:44 INFO - test: Test total_iter: 350000, File name: 31, MSE: 0.22311457991600037, BPP: 0.5
+21:17:44 INFO - test: Test total_iter: 350000, File name: 32, MSE: 4.4561896324157715, BPP: 0.5
+21:17:44 INFO - test: Test total_iter: 350000, File name: 33, MSE: 0.3105197548866272, BPP: 0.5
+21:17:45 INFO - test: Test total_iter: 350000, File name: 34, MSE: 0.22266432642936707, BPP: 0.5
+21:17:45 INFO - test: Test total_iter: 350000, File name: 35, MSE: 0.4081614911556244, BPP: 0.5
+21:17:46 INFO - test: Test total_iter: 350000, File name: 36, MSE: 2.6002190113067627, BPP: 0.5
+21:17:46 INFO - test: Test total_iter: 350000, File name: 37, MSE: 4.003596305847168, BPP: 0.5
+21:17:46 INFO - test: Test total_iter: 350000, File name: 38, MSE: 0.40144941210746765, BPP: 0.5
+21:17:46 INFO - test: Test total_iter: 350000, File name: 39, MSE: 0.399170458316803, BPP: 0.5
+21:17:47 INFO - test: Test total_iter: 350000, File name: 40, MSE: 2.011420726776123, BPP: 0.5
+21:17:47 INFO - test: Test total_iter: 350000, File name: 41, MSE: 0.35314735770225525, BPP: 0.5
+21:17:48 INFO - test: Test total_iter: 350000, File name: 42, MSE: 0.247288778424263, BPP: 0.5
+21:17:48 INFO - test: Test total_iter: 350000, File name: 43, MSE: 0.5029404163360596, BPP: 0.5
+21:17:49 INFO - test: Test total_iter: 350000, File name: 44, MSE: 0.39375847578048706, BPP: 0.5
+21:17:49 INFO - test: Test total_iter: 350000, File name: 45, MSE: 0.4705839157104492, BPP: 0.5
+21:17:50 INFO - test: Test total_iter: 350000, File name: 46, MSE: 1.7329609394073486, BPP: 0.5
+21:17:51 INFO - test: Test total_iter: 350000, File name: 47, MSE: 0.5740514993667603, BPP: 0.5
+21:17:52 INFO - test: Test total_iter: 350000, File name: 48, MSE: 0.2292155623435974, BPP: 0.5
+21:17:52 INFO - test: Test total_iter: 350000, File name: 49, MSE: 0.6452395915985107, BPP: 0.5
+21:17:53 INFO - test: Test total_iter: 350000, File name: 50, MSE: 0.3187140226364136, BPP: 0.5
+21:17:53 INFO - test: Test total_iter: 350000, File name: 51, MSE: 0.8166115283966064, BPP: 0.5
+21:17:53 INFO - test: Test total_iter: 350000, File name: 52, MSE: 1.3773761987686157, BPP: 0.5
+21:17:54 INFO - test: Test total_iter: 350000, File name: 53, MSE: 0.4052397608757019, BPP: 0.5
+21:17:55 INFO - test: Test total_iter: 350000, File name: 54, MSE: 0.517380952835083, BPP: 0.5
+21:17:55 INFO - test: Test total_iter: 350000, File name: 55, MSE: 0.7270238995552063, BPP: 0.5
+21:17:56 INFO - test: Test total_iter: 350000, File name: 56, MSE: 0.7857546806335449, BPP: 0.5
+21:17:56 INFO - test: Test total_iter: 350000, File name: 57, MSE: 0.9077102541923523, BPP: 0.5
+21:17:57 INFO - test: Test total_iter: 350000, File name: 58, MSE: 0.4550919532775879, BPP: 0.5
+21:17:57 INFO - test: Test total_iter: 350000, File name: 59, MSE: 0.24828095734119415, BPP: 0.5
+21:17:58 INFO - test: Test total_iter: 350000, File name: 60, MSE: 0.30359339714050293, BPP: 0.5
+21:17:58 INFO - test: Test total_iter: 350000, File name: 61, MSE: 1.5622892379760742, BPP: 0.5
+21:17:59 INFO - test: Test total_iter: 350000, File name: 62, MSE: 1.3006305694580078, BPP: 0.5
+21:17:59 INFO - test: Test total_iter: 350000, File name: 63, MSE: 0.578087568283081, BPP: 0.5
+21:18:00 INFO - test: Test total_iter: 350000, File name: 64, MSE: 0.3554387390613556, BPP: 0.5
+21:18:00 INFO - test: Test total_iter: 350000, File name: 65, MSE: 0.40078508853912354, BPP: 0.5
+21:18:01 INFO - test: Test total_iter: 350000, File name: 66, MSE: 0.7506030797958374, BPP: 0.5
+21:18:01 INFO - test: Test total_iter: 350000, File name: 67, MSE: 0.2252722978591919, BPP: 0.5
+21:18:02 INFO - test: Test total_iter: 350000, File name: 68, MSE: 0.4126228988170624, BPP: 0.5
+21:18:02 INFO - test: Test total_iter: 350000, File name: 69, MSE: 0.7116162180900574, BPP: 0.5
+21:18:03 INFO - test: Test total_iter: 350000, File name: 70, MSE: 1.282145380973816, BPP: 0.5
+21:18:03 INFO - test: Test total_iter: 350000, File name: 71, MSE: 0.39719313383102417, BPP: 0.5
+21:18:04 INFO - test: Test total_iter: 350000, File name: 72, MSE: 0.9881037473678589, BPP: 0.5
+21:18:04 INFO - test: Test total_iter: 350000, File name: 73, MSE: 0.16352152824401855, BPP: 0.5
+21:18:04 INFO - test: Test total_iter: 350000, File name: 74, MSE: 1.089289665222168, BPP: 0.5
+21:18:04 INFO - test: Test total_iter: 350000, File name: 75, MSE: 0.39394283294677734, BPP: 0.5
+21:18:05 INFO - test: Test total_iter: 350000, File name: 76, MSE: 0.09387993067502975, BPP: 0.5
+21:18:05 INFO - test: Test total_iter: 350000, File name: 77, MSE: 0.7454054355621338, BPP: 0.5
+21:18:06 INFO - test: Test total_iter: 350000, File name: 78, MSE: 0.6177629828453064, BPP: 0.5
+21:18:06 INFO - test: Test total_iter: 350000, File name: 79, MSE: 0.6003726124763489, BPP: 0.5
+21:18:07 INFO - test: Test total_iter: 350000, File name: 80, MSE: 0.19344836473464966, BPP: 0.5
+21:18:07 INFO - test: Test total_iter: 350000, File name: 81, MSE: 0.3882787823677063, BPP: 0.5
+21:18:07 INFO - test: Test total_iter: 350000, File name: 82, MSE: 0.5621638298034668, BPP: 0.5
+21:18:07 INFO - test: Test total_iter: 350000, File name: 83, MSE: 1.309034824371338, BPP: 0.5
+21:18:07 INFO - test: Test total_iter: 350000, File name: 84, MSE: 1.6338162422180176, BPP: 0.5
+21:18:08 INFO - test: Test total_iter: 350000, File name: 85, MSE: 2.4278721809387207, BPP: 0.5
+21:18:08 INFO - test: Test total_iter: 350000, File name: 86, MSE: 0.574327826499939, BPP: 0.5
+21:18:09 INFO - test: Test total_iter: 350000, File name: 87, MSE: 3.8308868408203125, BPP: 0.5
+21:18:09 INFO - test: Test total_iter: 350000, File name: 88, MSE: 0.6168434619903564, BPP: 0.5
+21:18:10 INFO - test: Test total_iter: 350000, File name: 89, MSE: 2.34515380859375, BPP: 0.5
+21:18:10 INFO - test: Test total_iter: 350000, File name: 90, MSE: 0.49054422974586487, BPP: 0.5
+21:18:11 INFO - test: Test total_iter: 350000, File name: 91, MSE: 0.38567662239074707, BPP: 0.5
+21:18:12 INFO - test: Test total_iter: 350000, File name: 92, MSE: 0.40019673109054565, BPP: 0.5
+21:18:12 INFO - test: Test total_iter: 350000, File name: 93, MSE: 0.8763004541397095, BPP: 0.5
+21:18:12 INFO - test: Test total_iter: 350000, File name: 94, MSE: 0.570682168006897, BPP: 0.5
+21:18:12 INFO - test: Test total_iter: 350000, File name: 95, MSE: 0.42059090733528137, BPP: 0.5
+21:18:12 INFO - test: Test total_iter: 350000, File name: 96, MSE: 0.27339377999305725, BPP: 0.5
+21:18:13 INFO - test: Test total_iter: 350000, File name: 97, MSE: 1.618741512298584, BPP: 0.5
+21:18:13 INFO - test: Test total_iter: 350000, File name: 98, MSE: 0.5756711363792419, BPP: 0.5
+21:18:13 INFO - test: Test total_iter: 350000, File name: 99, MSE: 0.41087910532951355, BPP: 0.5
+21:18:13 INFO - test: Average_MSE: 0.9218621020, Average_Bit-rate: 0.5000 bpp
+21:29:42 INFO - main: Train iter. 355000/500000 (71.0000%): 	Loss: 2.440044 |	MSE loss: 0.922063 |	Bpp loss: 1.52 |	Aux loss: 61.16
+21:40:58 INFO - main: Train iter. 360000/500000 (72.0000%): 	Loss: 2.259489 |	MSE loss: 0.738380 |	Bpp loss: 1.52 |	Aux loss: 67.35
+21:52:26 INFO - main: Train iter. 365000/500000 (73.0000%): 	Loss: 2.867364 |	MSE loss: 1.351694 |	Bpp loss: 1.52 |	Aux loss: 69.45
+22:03:55 INFO - main: Train iter. 370000/500000 (74.0000%): 	Loss: 2.269067 |	MSE loss: 0.747833 |	Bpp loss: 1.52 |	Aux loss: 63.89
+22:15:06 INFO - main: Train iter. 375000/500000 (75.0000%): 	Loss: 2.860110 |	MSE loss: 1.343993 |	Bpp loss: 1.52 |	Aux loss: 62.93
+22:26:16 INFO - main: Train iter. 380000/500000 (76.0000%): 	Loss: 2.446813 |	MSE loss: 0.922553 |	Bpp loss: 1.52 |	Aux loss: 63.99
+22:37:35 INFO - main: Train iter. 385000/500000 (77.0000%): 	Loss: 3.871290 |	MSE loss: 2.352375 |	Bpp loss: 1.52 |	Aux loss: 63.95
+22:48:49 INFO - main: Train iter. 390000/500000 (78.0000%): 	Loss: 2.342348 |	MSE loss: 0.819208 |	Bpp loss: 1.52 |	Aux loss: 59.31
+23:00:06 INFO - main: Train iter. 395000/500000 (79.0000%): 	Loss: 2.240233 |	MSE loss: 0.719946 |	Bpp loss: 1.52 |	Aux loss: 69.73
+23:11:17 INFO - main: Train iter. 400000/500000 (80.0000%): 	Loss: 2.069129 |	MSE loss: 0.552557 |	Bpp loss: 1.52 |	Aux loss: 62.47
+23:11:19 INFO - test: Test total_iter: 400000, File name: 0, MSE: 1.024966835975647, BPP: 0.5
+23:11:19 INFO - test: Test total_iter: 400000, File name: 1, MSE: 0.37550854682922363, BPP: 0.5
+23:11:20 INFO - test: Test total_iter: 400000, File name: 2, MSE: 0.402052640914917, BPP: 0.5
+23:11:20 INFO - test: Test total_iter: 400000, File name: 3, MSE: 1.6913917064666748, BPP: 0.5
+23:11:21 INFO - test: Test total_iter: 400000, File name: 4, MSE: 0.22652234137058258, BPP: 0.5
+23:11:22 INFO - test: Test total_iter: 400000, File name: 5, MSE: 0.08641955256462097, BPP: 0.5
+23:11:22 INFO - test: Test total_iter: 400000, File name: 6, MSE: 0.4040526747703552, BPP: 0.5
+23:11:23 INFO - test: Test total_iter: 400000, File name: 7, MSE: 1.0452725887298584, BPP: 0.5
+23:11:23 INFO - test: Test total_iter: 400000, File name: 8, MSE: 2.374774217605591, BPP: 0.5
+23:11:24 INFO - test: Test total_iter: 400000, File name: 9, MSE: 0.40972790122032166, BPP: 0.5
+23:11:25 INFO - test: Test total_iter: 400000, File name: 10, MSE: 0.9541616439819336, BPP: 0.5
+23:11:25 INFO - test: Test total_iter: 400000, File name: 11, MSE: 2.561075210571289, BPP: 0.5
+23:11:26 INFO - test: Test total_iter: 400000, File name: 12, MSE: 0.8515301942825317, BPP: 0.5
+23:11:26 INFO - test: Test total_iter: 400000, File name: 13, MSE: 0.7753021121025085, BPP: 0.5
+23:11:26 INFO - test: Test total_iter: 400000, File name: 14, MSE: 0.8268076181411743, BPP: 0.5
+23:11:27 INFO - test: Test total_iter: 400000, File name: 15, MSE: 0.9612928032875061, BPP: 0.5
+23:11:27 INFO - test: Test total_iter: 400000, File name: 16, MSE: 0.9144864678382874, BPP: 0.5
+23:11:27 INFO - test: Test total_iter: 400000, File name: 17, MSE: 0.38558176159858704, BPP: 0.5
+23:11:27 INFO - test: Test total_iter: 400000, File name: 18, MSE: 0.34527555108070374, BPP: 0.5
+23:11:28 INFO - test: Test total_iter: 400000, File name: 19, MSE: 0.29676109552383423, BPP: 0.5
+23:11:28 INFO - test: Test total_iter: 400000, File name: 20, MSE: 0.585813045501709, BPP: 0.5
+23:11:28 INFO - test: Test total_iter: 400000, File name: 21, MSE: 0.5812922716140747, BPP: 0.5
+23:11:28 INFO - test: Test total_iter: 400000, File name: 22, MSE: 1.5000805854797363, BPP: 0.5
+23:11:28 INFO - test: Test total_iter: 400000, File name: 23, MSE: 3.9165725708007812, BPP: 0.5
+23:11:29 INFO - test: Test total_iter: 400000, File name: 24, MSE: 0.7710226774215698, BPP: 0.5
+23:11:29 INFO - test: Test total_iter: 400000, File name: 25, MSE: 2.3964412212371826, BPP: 0.5
+23:11:29 INFO - test: Test total_iter: 400000, File name: 26, MSE: 0.9064016342163086, BPP: 0.5
+23:11:29 INFO - test: Test total_iter: 400000, File name: 27, MSE: 1.0776852369308472, BPP: 0.5
+23:11:29 INFO - test: Test total_iter: 400000, File name: 28, MSE: 2.0701022148132324, BPP: 0.5
+23:11:29 INFO - test: Test total_iter: 400000, File name: 29, MSE: 0.26853522658348083, BPP: 0.5
+23:11:30 INFO - test: Test total_iter: 400000, File name: 30, MSE: 1.5776573419570923, BPP: 0.5
+23:11:30 INFO - test: Test total_iter: 400000, File name: 31, MSE: 0.22310760617256165, BPP: 0.5
+23:11:30 INFO - test: Test total_iter: 400000, File name: 32, MSE: 4.456192970275879, BPP: 0.5
+23:11:31 INFO - test: Test total_iter: 400000, File name: 33, MSE: 0.31047767400741577, BPP: 0.5
+23:11:31 INFO - test: Test total_iter: 400000, File name: 34, MSE: 0.22266334295272827, BPP: 0.5
+23:11:31 INFO - test: Test total_iter: 400000, File name: 35, MSE: 0.40815049409866333, BPP: 0.5
+23:11:32 INFO - test: Test total_iter: 400000, File name: 36, MSE: 2.6003785133361816, BPP: 0.5
+23:11:32 INFO - test: Test total_iter: 400000, File name: 37, MSE: 4.003537178039551, BPP: 0.5
+23:11:32 INFO - test: Test total_iter: 400000, File name: 38, MSE: 0.4014620780944824, BPP: 0.5
+23:11:32 INFO - test: Test total_iter: 400000, File name: 39, MSE: 0.3992018699645996, BPP: 0.5
+23:11:32 INFO - test: Test total_iter: 400000, File name: 40, MSE: 2.0114619731903076, BPP: 0.5
+23:11:33 INFO - test: Test total_iter: 400000, File name: 41, MSE: 0.3531593084335327, BPP: 0.5
+23:11:33 INFO - test: Test total_iter: 400000, File name: 42, MSE: 0.24727219343185425, BPP: 0.5
+23:11:33 INFO - test: Test total_iter: 400000, File name: 43, MSE: 0.5029336810112, BPP: 0.5
+23:11:33 INFO - test: Test total_iter: 400000, File name: 44, MSE: 0.39378345012664795, BPP: 0.5
+23:11:34 INFO - test: Test total_iter: 400000, File name: 45, MSE: 0.47060292959213257, BPP: 0.5
+23:11:35 INFO - test: Test total_iter: 400000, File name: 46, MSE: 1.732966661453247, BPP: 0.5
+23:11:35 INFO - test: Test total_iter: 400000, File name: 47, MSE: 0.57405686378479, BPP: 0.5
+23:11:36 INFO - test: Test total_iter: 400000, File name: 48, MSE: 0.22926172614097595, BPP: 0.5
+23:11:36 INFO - test: Test total_iter: 400000, File name: 49, MSE: 0.6452795267105103, BPP: 0.5
+23:11:37 INFO - test: Test total_iter: 400000, File name: 50, MSE: 0.3187364935874939, BPP: 0.5
+23:11:37 INFO - test: Test total_iter: 400000, File name: 51, MSE: 0.8166025876998901, BPP: 0.5
+23:11:38 INFO - test: Test total_iter: 400000, File name: 52, MSE: 1.3774181604385376, BPP: 0.5
+23:11:38 INFO - test: Test total_iter: 400000, File name: 53, MSE: 0.40523868799209595, BPP: 0.5
+23:11:39 INFO - test: Test total_iter: 400000, File name: 54, MSE: 0.5173481702804565, BPP: 0.5
+23:11:40 INFO - test: Test total_iter: 400000, File name: 55, MSE: 0.7270075678825378, BPP: 0.5
+23:11:40 INFO - test: Test total_iter: 400000, File name: 56, MSE: 0.7857033014297485, BPP: 0.5
+23:11:40 INFO - test: Test total_iter: 400000, File name: 57, MSE: 0.9077366590499878, BPP: 0.5
+23:11:40 INFO - test: Test total_iter: 400000, File name: 58, MSE: 0.45505058765411377, BPP: 0.5
+23:11:40 INFO - test: Test total_iter: 400000, File name: 59, MSE: 0.24833081662654877, BPP: 0.5
+23:11:40 INFO - test: Test total_iter: 400000, File name: 60, MSE: 0.30357295274734497, BPP: 0.5
+23:11:40 INFO - test: Test total_iter: 400000, File name: 61, MSE: 1.5622217655181885, BPP: 0.5
+23:11:41 INFO - test: Test total_iter: 400000, File name: 62, MSE: 1.3006138801574707, BPP: 0.5
+23:11:41 INFO - test: Test total_iter: 400000, File name: 63, MSE: 0.5780916213989258, BPP: 0.5
+23:11:41 INFO - test: Test total_iter: 400000, File name: 64, MSE: 0.3554173707962036, BPP: 0.5
+23:11:41 INFO - test: Test total_iter: 400000, File name: 65, MSE: 0.40079265832901, BPP: 0.5
+23:11:42 INFO - test: Test total_iter: 400000, File name: 66, MSE: 0.7506194114685059, BPP: 0.5
+23:11:43 INFO - test: Test total_iter: 400000, File name: 67, MSE: 0.22528105974197388, BPP: 0.5
+23:11:43 INFO - test: Test total_iter: 400000, File name: 68, MSE: 0.4126437306404114, BPP: 0.5
+23:11:44 INFO - test: Test total_iter: 400000, File name: 69, MSE: 0.7116581201553345, BPP: 0.5
+23:11:45 INFO - test: Test total_iter: 400000, File name: 70, MSE: 1.2821818590164185, BPP: 0.5
+23:11:45 INFO - test: Test total_iter: 400000, File name: 71, MSE: 0.3972397744655609, BPP: 0.5
+23:11:46 INFO - test: Test total_iter: 400000, File name: 72, MSE: 0.9880947470664978, BPP: 0.5
+23:11:46 INFO - test: Test total_iter: 400000, File name: 73, MSE: 0.16355055570602417, BPP: 0.5
+23:11:46 INFO - test: Test total_iter: 400000, File name: 74, MSE: 1.0892560482025146, BPP: 0.5
+23:11:47 INFO - test: Test total_iter: 400000, File name: 75, MSE: 0.39390280842781067, BPP: 0.5
+23:11:47 INFO - test: Test total_iter: 400000, File name: 76, MSE: 0.09388796985149384, BPP: 0.5
+23:11:47 INFO - test: Test total_iter: 400000, File name: 77, MSE: 0.7453286647796631, BPP: 0.5
+23:11:48 INFO - test: Test total_iter: 400000, File name: 78, MSE: 0.6177965402603149, BPP: 0.5
+23:11:48 INFO - test: Test total_iter: 400000, File name: 79, MSE: 0.600315511226654, BPP: 0.5
+23:11:49 INFO - test: Test total_iter: 400000, File name: 80, MSE: 0.19343721866607666, BPP: 0.5
+23:11:49 INFO - test: Test total_iter: 400000, File name: 81, MSE: 0.38827189803123474, BPP: 0.5
+23:11:50 INFO - test: Test total_iter: 400000, File name: 82, MSE: 0.5622268319129944, BPP: 0.5
+23:11:51 INFO - test: Test total_iter: 400000, File name: 83, MSE: 1.3090474605560303, BPP: 0.5
+23:11:51 INFO - test: Test total_iter: 400000, File name: 84, MSE: 1.6338942050933838, BPP: 0.5
+23:11:52 INFO - test: Test total_iter: 400000, File name: 85, MSE: 2.427926540374756, BPP: 0.5
+23:11:52 INFO - test: Test total_iter: 400000, File name: 86, MSE: 0.5742626190185547, BPP: 0.5
+23:11:53 INFO - test: Test total_iter: 400000, File name: 87, MSE: 3.830946207046509, BPP: 0.5
+23:11:54 INFO - test: Test total_iter: 400000, File name: 88, MSE: 0.6168490052223206, BPP: 0.5
+23:11:54 INFO - test: Test total_iter: 400000, File name: 89, MSE: 2.345057725906372, BPP: 0.5
+23:11:55 INFO - test: Test total_iter: 400000, File name: 90, MSE: 0.4905649721622467, BPP: 0.5
+23:11:56 INFO - test: Test total_iter: 400000, File name: 91, MSE: 0.38567402958869934, BPP: 0.5
+23:11:56 INFO - test: Test total_iter: 400000, File name: 92, MSE: 0.400227427482605, BPP: 0.5
+23:11:57 INFO - test: Test total_iter: 400000, File name: 93, MSE: 0.8763297200202942, BPP: 0.5
+23:11:58 INFO - test: Test total_iter: 400000, File name: 94, MSE: 0.5706448554992676, BPP: 0.5
+23:11:58 INFO - test: Test total_iter: 400000, File name: 95, MSE: 0.4205554723739624, BPP: 0.5
+23:11:59 INFO - test: Test total_iter: 400000, File name: 96, MSE: 0.27337080240249634, BPP: 0.5
+23:11:59 INFO - test: Test total_iter: 400000, File name: 97, MSE: 1.6187090873718262, BPP: 0.5
+23:12:00 INFO - test: Test total_iter: 400000, File name: 98, MSE: 0.5757126808166504, BPP: 0.5
+23:12:00 INFO - test: Test total_iter: 400000, File name: 99, MSE: 0.41090279817581177, BPP: 0.5
+23:12:00 INFO - test: Average_MSE: 0.9218676917, Average_Bit-rate: 0.5000 bpp
+23:23:17 INFO - main: Train iter. 405000/500000 (81.0000%): 	Loss: 2.594511 |	MSE loss: 1.073553 |	Bpp loss: 1.52 |	Aux loss: 66.45
+23:34:39 INFO - main: Train iter. 410000/500000 (82.0000%): 	Loss: 2.232672 |	MSE loss: 0.712040 |	Bpp loss: 1.52 |	Aux loss: 64.50
+23:45:51 INFO - main: Train iter. 415000/500000 (83.0000%): 	Loss: 2.343363 |	MSE loss: 0.823403 |	Bpp loss: 1.52 |	Aux loss: 65.71
+23:56:55 INFO - main: Train iter. 420000/500000 (84.0000%): 	Loss: 2.336065 |	MSE loss: 0.814479 |	Bpp loss: 1.52 |	Aux loss: 63.99
+00:08:07 INFO - main: Train iter. 425000/500000 (85.0000%): 	Loss: 2.587610 |	MSE loss: 1.066668 |	Bpp loss: 1.52 |	Aux loss: 64.65
+00:19:11 INFO - main: Train iter. 430000/500000 (86.0000%): 	Loss: 2.521442 |	MSE loss: 0.998957 |	Bpp loss: 1.52 |	Aux loss: 66.34
+00:30:15 INFO - main: Train iter. 435000/500000 (87.0000%): 	Loss: 3.063601 |	MSE loss: 1.541470 |	Bpp loss: 1.52 |	Aux loss: 68.14
+00:41:26 INFO - main: Train iter. 440000/500000 (88.0000%): 	Loss: 3.118162 |	MSE loss: 1.595056 |	Bpp loss: 1.52 |	Aux loss: 71.24
+00:52:41 INFO - main: Train iter. 445000/500000 (89.0000%): 	Loss: 2.233345 |	MSE loss: 0.713664 |	Bpp loss: 1.52 |	Aux loss: 61.17
+01:04:02 INFO - main: Train iter. 450000/500000 (90.0000%): 	Loss: 2.849980 |	MSE loss: 1.331645 |	Bpp loss: 1.52 |	Aux loss: 60.48
+01:04:03 INFO - test: Test total_iter: 450000, File name: 0, MSE: 1.0249600410461426, BPP: 0.5
+01:04:04 INFO - test: Test total_iter: 450000, File name: 1, MSE: 0.3755401372909546, BPP: 0.5
+01:04:04 INFO - test: Test total_iter: 450000, File name: 2, MSE: 0.4020799994468689, BPP: 0.5
+01:04:05 INFO - test: Test total_iter: 450000, File name: 3, MSE: 1.6913933753967285, BPP: 0.5
+01:04:05 INFO - test: Test total_iter: 450000, File name: 4, MSE: 0.22653990983963013, BPP: 0.5
+01:04:06 INFO - test: Test total_iter: 450000, File name: 5, MSE: 0.0864086002111435, BPP: 0.5
+01:04:06 INFO - test: Test total_iter: 450000, File name: 6, MSE: 0.4040646553039551, BPP: 0.5
+01:04:07 INFO - test: Test total_iter: 450000, File name: 7, MSE: 1.045293927192688, BPP: 0.5
+01:04:07 INFO - test: Test total_iter: 450000, File name: 8, MSE: 2.374746799468994, BPP: 0.5
+01:04:08 INFO - test: Test total_iter: 450000, File name: 9, MSE: 0.4097052216529846, BPP: 0.5
+01:04:09 INFO - test: Test total_iter: 450000, File name: 10, MSE: 0.9541459679603577, BPP: 0.5
+01:04:09 INFO - test: Test total_iter: 450000, File name: 11, MSE: 2.5609920024871826, BPP: 0.5
+01:04:10 INFO - test: Test total_iter: 450000, File name: 12, MSE: 0.8515698313713074, BPP: 0.5
+01:04:10 INFO - test: Test total_iter: 450000, File name: 13, MSE: 0.7753350734710693, BPP: 0.5
+01:04:10 INFO - test: Test total_iter: 450000, File name: 14, MSE: 0.8267727494239807, BPP: 0.5
+01:04:11 INFO - test: Test total_iter: 450000, File name: 15, MSE: 0.9612712860107422, BPP: 0.5
+01:04:12 INFO - test: Test total_iter: 450000, File name: 16, MSE: 0.9145041704177856, BPP: 0.5
+01:04:12 INFO - test: Test total_iter: 450000, File name: 17, MSE: 0.38556206226348877, BPP: 0.5
+01:04:13 INFO - test: Test total_iter: 450000, File name: 18, MSE: 0.3452548384666443, BPP: 0.5
+01:04:13 INFO - test: Test total_iter: 450000, File name: 19, MSE: 0.2967786490917206, BPP: 0.5
+01:04:14 INFO - test: Test total_iter: 450000, File name: 20, MSE: 0.5858191251754761, BPP: 0.5
+01:04:14 INFO - test: Test total_iter: 450000, File name: 21, MSE: 0.5812934637069702, BPP: 0.5
+01:04:15 INFO - test: Test total_iter: 450000, File name: 22, MSE: 1.4999643564224243, BPP: 0.5
+01:04:16 INFO - test: Test total_iter: 450000, File name: 23, MSE: 3.916578769683838, BPP: 0.5
+01:04:16 INFO - test: Test total_iter: 450000, File name: 24, MSE: 0.7710443735122681, BPP: 0.5
+01:04:17 INFO - test: Test total_iter: 450000, File name: 25, MSE: 2.3964266777038574, BPP: 0.5
+01:04:17 INFO - test: Test total_iter: 450000, File name: 26, MSE: 0.9064093828201294, BPP: 0.5
+01:04:17 INFO - test: Test total_iter: 450000, File name: 27, MSE: 1.0777337551116943, BPP: 0.5
+01:04:18 INFO - test: Test total_iter: 450000, File name: 28, MSE: 2.070122241973877, BPP: 0.5
+01:04:18 INFO - test: Test total_iter: 450000, File name: 29, MSE: 0.26851943135261536, BPP: 0.5
+01:04:18 INFO - test: Test total_iter: 450000, File name: 30, MSE: 1.5775703191757202, BPP: 0.5
+01:04:19 INFO - test: Test total_iter: 450000, File name: 31, MSE: 0.22310771048069, BPP: 0.5
+01:04:19 INFO - test: Test total_iter: 450000, File name: 32, MSE: 4.456160068511963, BPP: 0.5
+01:04:19 INFO - test: Test total_iter: 450000, File name: 33, MSE: 0.31050196290016174, BPP: 0.5
+01:04:19 INFO - test: Test total_iter: 450000, File name: 34, MSE: 0.2226693034172058, BPP: 0.5
+01:04:20 INFO - test: Test total_iter: 450000, File name: 35, MSE: 0.4081194996833801, BPP: 0.5
+01:04:20 INFO - test: Test total_iter: 450000, File name: 36, MSE: 2.6002590656280518, BPP: 0.5
+01:04:20 INFO - test: Test total_iter: 450000, File name: 37, MSE: 4.003461837768555, BPP: 0.5
+01:04:20 INFO - test: Test total_iter: 450000, File name: 38, MSE: 0.4014630913734436, BPP: 0.5
+01:04:20 INFO - test: Test total_iter: 450000, File name: 39, MSE: 0.39920294284820557, BPP: 0.5
+01:04:20 INFO - test: Test total_iter: 450000, File name: 40, MSE: 2.0114879608154297, BPP: 0.5
+01:04:21 INFO - test: Test total_iter: 450000, File name: 41, MSE: 0.35316652059555054, BPP: 0.5
+01:04:21 INFO - test: Test total_iter: 450000, File name: 42, MSE: 0.24728840589523315, BPP: 0.5
+01:04:21 INFO - test: Test total_iter: 450000, File name: 43, MSE: 0.5029255151748657, BPP: 0.5
+01:04:21 INFO - test: Test total_iter: 450000, File name: 44, MSE: 0.39375755190849304, BPP: 0.5
+01:04:21 INFO - test: Test total_iter: 450000, File name: 45, MSE: 0.4705924391746521, BPP: 0.5
+01:04:21 INFO - test: Test total_iter: 450000, File name: 46, MSE: 1.7328953742980957, BPP: 0.5
+01:04:22 INFO - test: Test total_iter: 450000, File name: 47, MSE: 0.5740693807601929, BPP: 0.5
+01:04:22 INFO - test: Test total_iter: 450000, File name: 48, MSE: 0.2292253077030182, BPP: 0.5
+01:04:23 INFO - test: Test total_iter: 450000, File name: 49, MSE: 0.6452701687812805, BPP: 0.5
+01:04:23 INFO - test: Test total_iter: 450000, File name: 50, MSE: 0.31873494386672974, BPP: 0.5
+01:04:24 INFO - test: Test total_iter: 450000, File name: 51, MSE: 0.8165560364723206, BPP: 0.5
+01:04:24 INFO - test: Test total_iter: 450000, File name: 52, MSE: 1.3774631023406982, BPP: 0.5
+01:04:24 INFO - test: Test total_iter: 450000, File name: 53, MSE: 0.40525346994400024, BPP: 0.5
+01:04:25 INFO - test: Test total_iter: 450000, File name: 54, MSE: 0.5173698663711548, BPP: 0.5
+01:04:26 INFO - test: Test total_iter: 450000, File name: 55, MSE: 0.7269573211669922, BPP: 0.5
+01:04:26 INFO - test: Test total_iter: 450000, File name: 56, MSE: 0.785739004611969, BPP: 0.5
+01:04:26 INFO - test: Test total_iter: 450000, File name: 57, MSE: 0.9076690673828125, BPP: 0.5
+01:04:27 INFO - test: Test total_iter: 450000, File name: 58, MSE: 0.4550398588180542, BPP: 0.5
+01:04:27 INFO - test: Test total_iter: 450000, File name: 59, MSE: 0.24830274283885956, BPP: 0.5
+01:04:28 INFO - test: Test total_iter: 450000, File name: 60, MSE: 0.30357858538627625, BPP: 0.5
+01:04:28 INFO - test: Test total_iter: 450000, File name: 61, MSE: 1.5622012615203857, BPP: 0.5
+01:04:28 INFO - test: Test total_iter: 450000, File name: 62, MSE: 1.300628900527954, BPP: 0.5
+01:04:29 INFO - test: Test total_iter: 450000, File name: 63, MSE: 0.5780597925186157, BPP: 0.5
+01:04:29 INFO - test: Test total_iter: 450000, File name: 64, MSE: 0.3554128408432007, BPP: 0.5
+01:04:29 INFO - test: Test total_iter: 450000, File name: 65, MSE: 0.4008021950721741, BPP: 0.5
+01:04:29 INFO - test: Test total_iter: 450000, File name: 66, MSE: 0.7506301403045654, BPP: 0.5
+01:04:29 INFO - test: Test total_iter: 450000, File name: 67, MSE: 0.22527268528938293, BPP: 0.5
+01:04:29 INFO - test: Test total_iter: 450000, File name: 68, MSE: 0.4126323461532593, BPP: 0.5
+01:04:30 INFO - test: Test total_iter: 450000, File name: 69, MSE: 0.7116022109985352, BPP: 0.5
+01:04:30 INFO - test: Test total_iter: 450000, File name: 70, MSE: 1.2821390628814697, BPP: 0.5
+01:04:30 INFO - test: Test total_iter: 450000, File name: 71, MSE: 0.3971957564353943, BPP: 0.5
+01:04:30 INFO - test: Test total_iter: 450000, File name: 72, MSE: 0.9880510568618774, BPP: 0.5
+01:04:30 INFO - test: Test total_iter: 450000, File name: 73, MSE: 0.16352957487106323, BPP: 0.5
+01:04:31 INFO - test: Test total_iter: 450000, File name: 74, MSE: 1.0892412662506104, BPP: 0.5
+01:04:31 INFO - test: Test total_iter: 450000, File name: 75, MSE: 0.3938997983932495, BPP: 0.5
+01:04:32 INFO - test: Test total_iter: 450000, File name: 76, MSE: 0.09387487173080444, BPP: 0.5
+01:04:33 INFO - test: Test total_iter: 450000, File name: 77, MSE: 0.7453827857971191, BPP: 0.5
+01:04:33 INFO - test: Test total_iter: 450000, File name: 78, MSE: 0.6178004741668701, BPP: 0.5
+01:04:34 INFO - test: Test total_iter: 450000, File name: 79, MSE: 0.6003257036209106, BPP: 0.5
+01:04:35 INFO - test: Test total_iter: 450000, File name: 80, MSE: 0.1934349089860916, BPP: 0.5
+01:04:35 INFO - test: Test total_iter: 450000, File name: 81, MSE: 0.3882656693458557, BPP: 0.5
+01:04:36 INFO - test: Test total_iter: 450000, File name: 82, MSE: 0.5621731281280518, BPP: 0.5
+01:04:37 INFO - test: Test total_iter: 450000, File name: 83, MSE: 1.3090410232543945, BPP: 0.5
+01:04:37 INFO - test: Test total_iter: 450000, File name: 84, MSE: 1.633821964263916, BPP: 0.5
+01:04:37 INFO - test: Test total_iter: 450000, File name: 85, MSE: 2.427849769592285, BPP: 0.5
+01:04:37 INFO - test: Test total_iter: 450000, File name: 86, MSE: 0.5742812156677246, BPP: 0.5
+01:04:38 INFO - test: Test total_iter: 450000, File name: 87, MSE: 3.8309550285339355, BPP: 0.5
+01:04:39 INFO - test: Test total_iter: 450000, File name: 88, MSE: 0.6168699860572815, BPP: 0.5
+01:04:39 INFO - test: Test total_iter: 450000, File name: 89, MSE: 2.345156192779541, BPP: 0.5
+01:04:40 INFO - test: Test total_iter: 450000, File name: 90, MSE: 0.49056190252304077, BPP: 0.5
+01:04:40 INFO - test: Test total_iter: 450000, File name: 91, MSE: 0.3856685757637024, BPP: 0.5
+01:04:41 INFO - test: Test total_iter: 450000, File name: 92, MSE: 0.40021440386772156, BPP: 0.5
+01:04:41 INFO - test: Test total_iter: 450000, File name: 93, MSE: 0.8763236999511719, BPP: 0.5
+01:04:42 INFO - test: Test total_iter: 450000, File name: 94, MSE: 0.5706978440284729, BPP: 0.5
+01:04:42 INFO - test: Test total_iter: 450000, File name: 95, MSE: 0.42058801651000977, BPP: 0.5
+01:04:43 INFO - test: Test total_iter: 450000, File name: 96, MSE: 0.2734113037586212, BPP: 0.5
+01:04:43 INFO - test: Test total_iter: 450000, File name: 97, MSE: 1.6187384128570557, BPP: 0.5
+01:04:44 INFO - test: Test total_iter: 450000, File name: 98, MSE: 0.5756599307060242, BPP: 0.5
+01:04:45 INFO - test: Test total_iter: 450000, File name: 99, MSE: 0.4108724892139435, BPP: 0.5
+01:04:45 INFO - test: Average_MSE: 0.9218595749, Average_Bit-rate: 0.5000 bpp
+01:15:57 INFO - main: Train iter. 455000/500000 (91.0000%): 	Loss: 2.370777 |	MSE loss: 0.855291 |	Bpp loss: 1.52 |	Aux loss: 50.22
+01:27:08 INFO - main: Train iter. 460000/500000 (92.0000%): 	Loss: 2.102969 |	MSE loss: 0.583718 |	Bpp loss: 1.52 |	Aux loss: 47.56
+01:38:23 INFO - main: Train iter. 465000/500000 (93.0000%): 	Loss: 3.263128 |	MSE loss: 1.742517 |	Bpp loss: 1.52 |	Aux loss: 52.26
+01:49:30 INFO - main: Train iter. 470000/500000 (94.0000%): 	Loss: 2.302654 |	MSE loss: 0.786840 |	Bpp loss: 1.52 |	Aux loss: 54.76
+02:00:39 INFO - main: Train iter. 475000/500000 (95.0000%): 	Loss: 2.060995 |	MSE loss: 0.543537 |	Bpp loss: 1.52 |	Aux loss: 57.50
+02:11:56 INFO - main: Train iter. 480000/500000 (96.0000%): 	Loss: 2.287989 |	MSE loss: 0.770918 |	Bpp loss: 1.52 |	Aux loss: 52.72
+02:23:06 INFO - main: Train iter. 485000/500000 (97.0000%): 	Loss: 3.200102 |	MSE loss: 1.680578 |	Bpp loss: 1.52 |	Aux loss: 51.39
+02:34:24 INFO - main: Train iter. 490000/500000 (98.0000%): 	Loss: 2.263382 |	MSE loss: 0.745122 |	Bpp loss: 1.52 |	Aux loss: 59.07
+02:45:33 INFO - main: Train iter. 495000/500000 (99.0000%): 	Loss: 2.218619 |	MSE loss: 0.697944 |	Bpp loss: 1.52 |	Aux loss: 54.51
+02:56:43 INFO - main: Train iter. 500000/500000 (100.0000%): 	Loss: 2.442145 |	MSE loss: 0.926384 |	Bpp loss: 1.52 |	Aux loss: 59.44
+02:56:45 INFO - test: Test total_iter: 500000, File name: 0, MSE: 1.0249266624450684, BPP: 0.5
+02:56:46 INFO - test: Test total_iter: 500000, File name: 1, MSE: 0.3755056858062744, BPP: 0.5
+02:56:47 INFO - test: Test total_iter: 500000, File name: 2, MSE: 0.4020519554615021, BPP: 0.5
+02:56:47 INFO - test: Test total_iter: 500000, File name: 3, MSE: 1.6914029121398926, BPP: 0.5
+02:56:48 INFO - test: Test total_iter: 500000, File name: 4, MSE: 0.2265089452266693, BPP: 0.5
+02:56:48 INFO - test: Test total_iter: 500000, File name: 5, MSE: 0.08641912043094635, BPP: 0.5
+02:56:49 INFO - test: Test total_iter: 500000, File name: 6, MSE: 0.404020220041275, BPP: 0.5
+02:56:49 INFO - test: Test total_iter: 500000, File name: 7, MSE: 1.0452375411987305, BPP: 0.5
+02:56:50 INFO - test: Test total_iter: 500000, File name: 8, MSE: 2.3747682571411133, BPP: 0.5
+02:56:50 INFO - test: Test total_iter: 500000, File name: 9, MSE: 0.4097048044204712, BPP: 0.5
+02:56:51 INFO - test: Test total_iter: 500000, File name: 10, MSE: 0.9541361927986145, BPP: 0.5
+02:56:51 INFO - test: Test total_iter: 500000, File name: 11, MSE: 2.561044931411743, BPP: 0.5
+02:56:52 INFO - test: Test total_iter: 500000, File name: 12, MSE: 0.8515282869338989, BPP: 0.5
+02:56:52 INFO - test: Test total_iter: 500000, File name: 13, MSE: 0.7753244638442993, BPP: 0.5
+02:56:53 INFO - test: Test total_iter: 500000, File name: 14, MSE: 0.8267886638641357, BPP: 0.5
+02:56:53 INFO - test: Test total_iter: 500000, File name: 15, MSE: 0.961324155330658, BPP: 0.5
+02:56:53 INFO - test: Test total_iter: 500000, File name: 16, MSE: 0.9145029783248901, BPP: 0.5
+02:56:53 INFO - test: Test total_iter: 500000, File name: 17, MSE: 0.38553470373153687, BPP: 0.5
+02:56:54 INFO - test: Test total_iter: 500000, File name: 18, MSE: 0.3452327847480774, BPP: 0.5
+02:56:54 INFO - test: Test total_iter: 500000, File name: 19, MSE: 0.2967682480812073, BPP: 0.5
+02:56:55 INFO - test: Test total_iter: 500000, File name: 20, MSE: 0.5857857465744019, BPP: 0.5
+02:56:55 INFO - test: Test total_iter: 500000, File name: 21, MSE: 0.5812878608703613, BPP: 0.5
+02:56:56 INFO - test: Test total_iter: 500000, File name: 22, MSE: 1.4999663829803467, BPP: 0.5
+02:56:56 INFO - test: Test total_iter: 500000, File name: 23, MSE: 3.916537046432495, BPP: 0.5
+02:56:57 INFO - test: Test total_iter: 500000, File name: 24, MSE: 0.7710171341896057, BPP: 0.5
+02:56:58 INFO - test: Test total_iter: 500000, File name: 25, MSE: 2.396406650543213, BPP: 0.5
+02:56:58 INFO - test: Test total_iter: 500000, File name: 26, MSE: 0.9064104557037354, BPP: 0.5
+02:56:59 INFO - test: Test total_iter: 500000, File name: 27, MSE: 1.077671766281128, BPP: 0.5
+02:56:59 INFO - test: Test total_iter: 500000, File name: 28, MSE: 2.0700716972351074, BPP: 0.5
+02:56:59 INFO - test: Test total_iter: 500000, File name: 29, MSE: 0.26850050687789917, BPP: 0.5
+02:57:00 INFO - test: Test total_iter: 500000, File name: 30, MSE: 1.5775799751281738, BPP: 0.5
+02:57:01 INFO - test: Test total_iter: 500000, File name: 31, MSE: 0.22311139106750488, BPP: 0.5
+02:57:01 INFO - test: Test total_iter: 500000, File name: 32, MSE: 4.456186294555664, BPP: 0.5
+02:57:02 INFO - test: Test total_iter: 500000, File name: 33, MSE: 0.31047940254211426, BPP: 0.5
+02:57:03 INFO - test: Test total_iter: 500000, File name: 34, MSE: 0.22265858948230743, BPP: 0.5
+02:57:03 INFO - test: Test total_iter: 500000, File name: 35, MSE: 0.40812456607818604, BPP: 0.5
+02:57:04 INFO - test: Test total_iter: 500000, File name: 36, MSE: 2.6002235412597656, BPP: 0.5
+02:57:04 INFO - test: Test total_iter: 500000, File name: 37, MSE: 4.003525257110596, BPP: 0.5
+02:57:05 INFO - test: Test total_iter: 500000, File name: 38, MSE: 0.40145617723464966, BPP: 0.5
+02:57:05 INFO - test: Test total_iter: 500000, File name: 39, MSE: 0.3991723656654358, BPP: 0.5
+02:57:06 INFO - test: Test total_iter: 500000, File name: 40, MSE: 2.011414051055908, BPP: 0.5
+02:57:06 INFO - test: Test total_iter: 500000, File name: 41, MSE: 0.3531469702720642, BPP: 0.5
+02:57:07 INFO - test: Test total_iter: 500000, File name: 42, MSE: 0.24726620316505432, BPP: 0.5
+02:57:08 INFO - test: Test total_iter: 500000, File name: 43, MSE: 0.5029036998748779, BPP: 0.5
+02:57:08 INFO - test: Test total_iter: 500000, File name: 44, MSE: 0.39374250173568726, BPP: 0.5
+02:57:09 INFO - test: Test total_iter: 500000, File name: 45, MSE: 0.4705747961997986, BPP: 0.5
+02:57:09 INFO - test: Test total_iter: 500000, File name: 46, MSE: 1.7329347133636475, BPP: 0.5
+02:57:10 INFO - test: Test total_iter: 500000, File name: 47, MSE: 0.57403564453125, BPP: 0.5
+02:57:11 INFO - test: Test total_iter: 500000, File name: 48, MSE: 0.22922340035438538, BPP: 0.5
+02:57:12 INFO - test: Test total_iter: 500000, File name: 49, MSE: 0.6452463865280151, BPP: 0.5
+02:57:12 INFO - test: Test total_iter: 500000, File name: 50, MSE: 0.31871113181114197, BPP: 0.5
+02:57:13 INFO - test: Test total_iter: 500000, File name: 51, MSE: 0.8165820837020874, BPP: 0.5
+02:57:13 INFO - test: Test total_iter: 500000, File name: 52, MSE: 1.3773953914642334, BPP: 0.5
+02:57:14 INFO - test: Test total_iter: 500000, File name: 53, MSE: 0.40522846579551697, BPP: 0.5
+02:57:15 INFO - test: Test total_iter: 500000, File name: 54, MSE: 0.517332136631012, BPP: 0.5
+02:57:15 INFO - test: Test total_iter: 500000, File name: 55, MSE: 0.7270063161849976, BPP: 0.5
+02:57:16 INFO - test: Test total_iter: 500000, File name: 56, MSE: 0.7857333421707153, BPP: 0.5
+02:57:17 INFO - test: Test total_iter: 500000, File name: 57, MSE: 0.9076957702636719, BPP: 0.5
+02:57:17 INFO - test: Test total_iter: 500000, File name: 58, MSE: 0.4550520181655884, BPP: 0.5
+02:57:18 INFO - test: Test total_iter: 500000, File name: 59, MSE: 0.2482876181602478, BPP: 0.5
+02:57:18 INFO - test: Test total_iter: 500000, File name: 60, MSE: 0.3035791516304016, BPP: 0.5
+02:57:19 INFO - test: Test total_iter: 500000, File name: 61, MSE: 1.5622235536575317, BPP: 0.5
+02:57:19 INFO - test: Test total_iter: 500000, File name: 62, MSE: 1.300600528717041, BPP: 0.5
+02:57:20 INFO - test: Test total_iter: 500000, File name: 63, MSE: 0.5780602097511292, BPP: 0.5
+02:57:20 INFO - test: Test total_iter: 500000, File name: 64, MSE: 0.35541391372680664, BPP: 0.5
+02:57:21 INFO - test: Test total_iter: 500000, File name: 65, MSE: 0.4007708430290222, BPP: 0.5
+02:57:21 INFO - test: Test total_iter: 500000, File name: 66, MSE: 0.7505829930305481, BPP: 0.5
+02:57:21 INFO - test: Test total_iter: 500000, File name: 67, MSE: 0.2252698540687561, BPP: 0.5
+02:57:22 INFO - test: Test total_iter: 500000, File name: 68, MSE: 0.41261330246925354, BPP: 0.5
+02:57:22 INFO - test: Test total_iter: 500000, File name: 69, MSE: 0.7116110324859619, BPP: 0.5
+02:57:22 INFO - test: Test total_iter: 500000, File name: 70, MSE: 1.2821626663208008, BPP: 0.5
+02:57:22 INFO - test: Test total_iter: 500000, File name: 71, MSE: 0.39717748761177063, BPP: 0.5
+02:57:23 INFO - test: Test total_iter: 500000, File name: 72, MSE: 0.9880512952804565, BPP: 0.5
+02:57:23 INFO - test: Test total_iter: 500000, File name: 73, MSE: 0.1635139137506485, BPP: 0.5
+02:57:23 INFO - test: Test total_iter: 500000, File name: 74, MSE: 1.089240312576294, BPP: 0.5
+02:57:23 INFO - test: Test total_iter: 500000, File name: 75, MSE: 0.3939087986946106, BPP: 0.5
+02:57:24 INFO - test: Test total_iter: 500000, File name: 76, MSE: 0.09386304765939713, BPP: 0.5
+02:57:24 INFO - test: Test total_iter: 500000, File name: 77, MSE: 0.745366632938385, BPP: 0.5
+02:57:24 INFO - test: Test total_iter: 500000, File name: 78, MSE: 0.6177586317062378, BPP: 0.5
+02:57:24 INFO - test: Test total_iter: 500000, File name: 79, MSE: 0.6003360748291016, BPP: 0.5
+02:57:24 INFO - test: Test total_iter: 500000, File name: 80, MSE: 0.19342367351055145, BPP: 0.5
+02:57:25 INFO - test: Test total_iter: 500000, File name: 81, MSE: 0.388261079788208, BPP: 0.5
+02:57:25 INFO - test: Test total_iter: 500000, File name: 82, MSE: 0.5621746182441711, BPP: 0.5
+02:57:25 INFO - test: Test total_iter: 500000, File name: 83, MSE: 1.3090074062347412, BPP: 0.5
+02:57:25 INFO - test: Test total_iter: 500000, File name: 84, MSE: 1.6338319778442383, BPP: 0.5
+02:57:25 INFO - test: Test total_iter: 500000, File name: 85, MSE: 2.4278392791748047, BPP: 0.5
+02:57:25 INFO - test: Test total_iter: 500000, File name: 86, MSE: 0.5742748975753784, BPP: 0.5
+02:57:26 INFO - test: Test total_iter: 500000, File name: 87, MSE: 3.8309645652770996, BPP: 0.5
+02:57:26 INFO - test: Test total_iter: 500000, File name: 88, MSE: 0.6168335676193237, BPP: 0.5
+02:57:26 INFO - test: Test total_iter: 500000, File name: 89, MSE: 2.3451108932495117, BPP: 0.5
+02:57:27 INFO - test: Test total_iter: 500000, File name: 90, MSE: 0.4905261695384979, BPP: 0.5
+02:57:27 INFO - test: Test total_iter: 500000, File name: 91, MSE: 0.3856562376022339, BPP: 0.5
+02:57:28 INFO - test: Test total_iter: 500000, File name: 92, MSE: 0.4001854658126831, BPP: 0.5
+02:57:28 INFO - test: Test total_iter: 500000, File name: 93, MSE: 0.876309871673584, BPP: 0.5
+02:57:28 INFO - test: Test total_iter: 500000, File name: 94, MSE: 0.5706647634506226, BPP: 0.5
+02:57:28 INFO - test: Test total_iter: 500000, File name: 95, MSE: 0.42053717374801636, BPP: 0.5
+02:57:29 INFO - test: Test total_iter: 500000, File name: 96, MSE: 0.27337846159935, BPP: 0.5
+02:57:29 INFO - test: Test total_iter: 500000, File name: 97, MSE: 1.6186981201171875, BPP: 0.5
+02:57:29 INFO - test: Test total_iter: 500000, File name: 98, MSE: 0.5756575465202332, BPP: 0.5
+02:57:29 INFO - test: Test total_iter: 500000, File name: 99, MSE: 0.41088786721229553, BPP: 0.5
+02:57:29 INFO - test: Average_MSE: 0.9218474484, Average_Bit-rate: 0.5000 bpp
+wandb: - 0.007 MB of 0.007 MB uploadedwandb: - 0.007 MB of 0.007 MB uploadedwandb: - 0.007 MB of 0.007 MB uploadedwandb: - 0.122 MB of 0.122 MB uploadedwandb: \ 0.007 MB of 0.007 MB uploadedwandb: \ 0.007 MB of 0.007 MB uploadedwandb: \ 0.007 MB of 0.007 MB uploadedwandb: \ 0.122 MB of 0.122 MB uploadedwandb: | 0.007 MB of 0.007 MB uploadedwandb: | 0.007 MB of 0.007 MB uploadedwandb:                                                                                
+wandb: | 0.007 MB of 0.007 MB uploadedwandb:                                                                                
+wandb: / 0.007 MB of 0.007 MB uploadedwandb:                                                                                
+wandb: | 0.122 MB of 0.122 MB uploadedwandb:                                                                                
+wandb: 
+wandb: Run history:
+wandb: bpp_loss █▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:     loss █▄▄▂▁▂▂▁▂▁▂▂▁▂▁▁▁▂▁▁▁▂▁▂▁▁▁▂▁▂▁▂▂▁▂▂▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb: bpp_loss 1.51576
+wandb:     loss 2.78841
+wandb: 
+wandb: 
+wandb: Run history:
+wandb: bpp_loss █▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:     loss █▃▂▂▁▁▁▁▁▁▁▁▁▁▁▁▂▁▂▁▁▁▂▁▁▁▁▁▂▁▁▁▁▁▁▁▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb: bpp_loss 1.51576
+wandb:     loss 2.54781
+wandb: 
+wandb: 🚀 View run tr_nwc at: https://wandb.ai/maskedkd/Neural%20Weight%20Compression/runs/a2rfkakr
+wandb: ⭐️ View project at: https://wandb.ai/maskedkd/Neural%20Weight%20Compression
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20241117_081939-a2rfkakr/logs
+wandb: 🚀 View run tr_nwc at: https://wandb.ai/maskedkd/Neural%20Weight%20Compression/runs/4n63315s
+wandb: ⭐️ View project at: https://wandb.ai/maskedkd/Neural%20Weight%20Compression
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20241117_081939-4n63315s/logs
+wandb: 
+wandb: Run history:
+wandb: bpp_loss █▇▇▄▄▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:     loss █▆▂▂▂▂▃▄▁▂▃▁▂▂▂▁▁▂▃▃▂▂▁▃▁▂▃▂▁▁▂▃▂▂▃▁▃▂▂▂
+wandb: 
+wandb: Run summary:
+wandb: bpp_loss 1.51576
+wandb:     loss 2.63979
+wandb: 
+wandb: 🚀 View run tr_nwc at: https://wandb.ai/maskedkd/Neural%20Weight%20Compression/runs/buzxpp2y
+wandb: ⭐️ View project at: https://wandb.ai/maskedkd/Neural%20Weight%20Compression
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20241117_081939-buzxpp2y/logs
+wandb: 
+wandb: Run history:
+wandb: Test_avg_bpp █▁▁▁▁▁▁▁▁▁▁
+wandb:    Test_loss █▁▁▁▁▁▁▁▁▁▁
+wandb:     bpp_loss █▇▄▄▃▂▁▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:         loss █▄▂▂▂▂▂▂▁▂▂▂▁▁▁▁▂▂▂▂▁▂▁▂▂▁▂▂▂▂▂▂▂▁▂▂▁▁▂▂
+wandb: 
+wandb: Run summary:
+wandb: Test_avg_bpp 0.5
+wandb:    Test_loss 0.92185
+wandb:     bpp_loss 1.51576
+wandb:         loss 2.44214
+wandb: 
+wandb: 🚀 View run tr_nwc at: https://wandb.ai/maskedkd/Neural%20Weight%20Compression/runs/rm1xmbnd
+wandb: ⭐️ View project at: https://wandb.ai/maskedkd/Neural%20Weight%20Compression
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20241117_081939-rm1xmbnd/logs

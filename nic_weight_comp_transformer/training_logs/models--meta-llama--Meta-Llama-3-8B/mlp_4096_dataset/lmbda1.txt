@@ -1,0 +1,32 @@
+08:24:36 INFO - logger_setup: /workspace/jgryu/Weight_compression/nic_weight_comp_transformer/utils/util.py
+08:24:36 INFO - ddp_or_single_process: find checkpoint...
+08:24:36 INFO - ddp_or_single_process: no checkpoint is here
+08:24:36 INFO - ddp_or_single_process: seed : 100.0
+08:24:36 INFO - ddp_or_single_process: exp name : exp_NIC_Fair_model_TCM_lmbda_1.0_seed_100.0_batch_size_16_radius_denominator_8_total_iter_1000000
+08:24:36 INFO - ddp_or_single_process: opts: Namespace(dist_port=5786, iter=1000000, model_name='TCM', learning_rate=0.0001, num_workers=2, batch_size=16, aux_learning_rate=0.001, seed=100.0, clip_max_norm=1.0, slurm=False, radius_denominator=8, dataset_dir='./dataset_wp_one_row/models--meta-llama--Meta-Llama-3-8B/mlp_4096_dataset.pt', data_dim=512, length=8, lmbda=1.0, checkpoint='None', save_path='./checkpoint/models--meta-llama--Meta-Llama-3-8B/mlp_4096_dataset.pt/lmbda1.0_batch_size16_total_iter1000000_seed100.0', **{'dev.num_gpus': 4, 'ddp.world_size': 4})
+08:24:42 INFO - logger_setup: /workspace/jgryu/Weight_compression/nic_weight_comp_transformer/utils/util.py
+08:24:42 INFO - logger_setup: /workspace/jgryu/Weight_compression/nic_weight_comp_transformer/utils/util.py
+08:24:42 INFO - main: Create experiment save folder
+08:24:42 INFO - logger_setup: /workspace/jgryu/Weight_compression/nic_weight_comp_transformer/utils/util.py
+08:24:42 INFO - logger_setup: /workspace/jgryu/Weight_compression/nic_weight_comp_transformer/utils/util.py
+08:25:05 INFO - main: Training mode : scratch!
+08:25:05 INFO - main: lmbda : 1.0
+08:25:05 INFO - main: batch_size : 16
+08:25:05 INFO - main: num of gpus: 4
+distributed init (rank 1): tcp://d941ff0a1a1f:5786
+{'module.entropy_bottleneck.quantiles'}
+distributed init (rank 0): tcp://d941ff0a1a1f:5786
+{'module.entropy_bottleneck.quantiles'}
+distributed init (rank 2): tcp://d941ff0a1a1f:5786
+{'module.entropy_bottleneck.quantiles'}
+distributed init (rank 3): tcp://d941ff0a1a1f:5786
+{'module.entropy_bottleneck.quantiles'}
+/workspace/jgryu/Weight_compression/nic_weight_comp_transformer/train.py:278: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+/workspace/jgryu/Weight_compression/nic_weight_comp_transformer/train.py:278: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+/workspace/jgryu/Weight_compression/nic_weight_comp_transformer/train.py:278: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+/workspace/jgryu/Weight_compression/nic_weight_comp_transformer/train.py:278: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+08:25:23 INFO - main: Train iter. 4/1000000 (0.0004%): 	Loss: 218.3134307861328 |	MSE loss: 1.3355295658111572 |	Bpp loss: 216.9779052734375 |	Aux loss: 10558.30859375
