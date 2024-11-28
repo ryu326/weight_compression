@@ -26,9 +26,12 @@ echo "Start"
 # echo "conda activate pytorch_p38"
 # conda activate pytorch_p38
 echo "Docker run"
-docker run -d -it --name nwc -v /home/jiyunbae/jgryu/:/workspace/jgryu/ -v /data/:/data/ --gpus all --shm-size=400G jegwangryu/nwc:latest
+docker run -d -it --name nwc_jiyunbae -v /home/jiyunbae/jgryu/:/workspace/jgryu/ -v /data/:/data/ --gpus all --shm-size=400G jegwangryu/nwc:latest
 echo "Docker exec"
-docker exec nwc bash -c "cd /workspace/jgryu/weight_compression/nic_weight_comp_transformer; bash run_lmbda1.sh"
+docker exec nwc_jiyunbae bash -c "cd /workspace/jgryu/weight_compression/nic_weight_comp_transformer; bash run_lmbda1.sh"
+echo "Docker stop"
+docker stop nwc_jiyunbae
+docker rm nwc_jiyunbae
 
 squeue--job $SLURM_JOBID
 echo  "##### END #####"

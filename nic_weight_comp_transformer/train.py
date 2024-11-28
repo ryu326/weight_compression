@@ -70,7 +70,7 @@ def test(total_iter, test_dataset, model, save_path, logger, mse_func, node_rank
     return avg_bpp, mean_MSE
 
 def main(opts):
-    wandb.init(project="Neural Weight Compression", name="tr_nwc", mode = 'disabled')
+    wandb.init(project="Neural Weight Compression_v2", name="tr_nwc")
     wandb.config.update(opts)
     
     gpu_num = getattr(opts, "dev.num_gpus")
