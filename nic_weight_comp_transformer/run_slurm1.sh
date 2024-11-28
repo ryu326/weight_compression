@@ -1,5 +1,5 @@
 #!/bin/sh
-#SBATCH -J  tr_nwc_all
+#SBATCH -J  tr_nwc_lmbda1
 #SBATCH -o  ./logs_slurm/tr_nwc_lmbda1.txt
 #SBATCH -p  3090
 #SBATCH -t 72:00:00
