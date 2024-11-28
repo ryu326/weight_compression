@@ -2,9 +2,9 @@ SLURM_SUBMIT_DIR=/home/jiyunbae/jgryu/weight_compression/nic_weight_comp_transfo
 CUDA_HOME=
 CUDA_VISIBLE_DEVICES=0,1,2,3
 CUDA_VERSION=
-0: n13.gasi-cluster
+0: n16.gasi-cluster
 0: /home/jiyunbae/jgryu/weight_compression/nic_weight_comp_transformer
-0: 2024. 11. 28. (목) 23:13:04 KST
+0: 2024. 11. 29. (금) 00:12:44 KST
 Start
 Docker run
 Unable to find image 'jegwangryu/nwc:latest' locally
@@ -20,91 +20,107 @@ afae2e58c215: Pulling fs layer
 fc5398be2cb5: Pulling fs layer
 c868322d4101: Pulling fs layer
 77c5d5a121d5: Pulling fs layer
+b08eef4b90c8: Waiting
 2fca7fd34862: Pulling fs layer
 61d106e3c1ef: Pulling fs layer
 0b645db6ee4c: Pulling fs layer
-d4b779531aed: Pulling fs layer
-9c03c3366e42: Pulling fs layer
 3288913d5f12: Waiting
-5cf87d0d2701: Pulling fs layer
-b08eef4b90c8: Waiting
-aa315b7808f0: Waiting
-61d106e3c1ef: Waiting
-52a5515aef88: Waiting
-77c5d5a121d5: Waiting
-0b645db6ee4c: Waiting
+d4b779531aed: Pulling fs layer
 afae2e58c215: Waiting
-9c03c3366e42: Waiting
-c868322d4101: Waiting
+9c03c3366e42: Pulling fs layer
+5cf87d0d2701: Pulling fs layer
+aa315b7808f0: Waiting
 2fca7fd34862: Waiting
+0b645db6ee4c: Waiting
+d4b779531aed: Waiting
+52a5515aef88: Waiting
+9c03c3366e42: Waiting
 5cf87d0d2701: Waiting
+fc5398be2cb5: Waiting
+61d106e3c1ef: Waiting
+c868322d4101: Waiting
+77c5d5a121d5: Waiting
 20d547ab5eb5: Verifying Checksum
 20d547ab5eb5: Download complete
-f0412dfb1aae: Verifying Checksum
-f0412dfb1aae: Download complete
-b08eef4b90c8: Download complete
 ece84004a3cd: Verifying Checksum
 ece84004a3cd: Download complete
+f0412dfb1aae: Verifying Checksum
+f0412dfb1aae: Download complete
+b08eef4b90c8: Verifying Checksum
+b08eef4b90c8: Download complete
 aa315b7808f0: Verifying Checksum
 aa315b7808f0: Download complete
 afae2e58c215: Verifying Checksum
 afae2e58c215: Download complete
-f0412dfb1aae: Pull complete
-52a5515aef88: Verifying Checksum
 52a5515aef88: Download complete
+f0412dfb1aae: Pull complete
 20d547ab5eb5: Pull complete
-fc5398be2cb5: Verifying Checksum
-fc5398be2cb5: Download complete
-77c5d5a121d5: Verifying Checksum
-77c5d5a121d5: Download complete
 ece84004a3cd: Pull complete
 b08eef4b90c8: Pull complete
 aa315b7808f0: Pull complete
-3288913d5f12: Verifying Checksum
-3288913d5f12: Download complete
-61d106e3c1ef: Verifying Checksum
-61d106e3c1ef: Download complete
-2fca7fd34862: Verifying Checksum
-2fca7fd34862: Download complete
-d4b779531aed: Verifying Checksum
-d4b779531aed: Download complete
-9c03c3366e42: Download complete
-3288913d5f12: Pull complete
-afae2e58c215: Pull complete
-52a5515aef88: Pull complete
-fc5398be2cb5: Pull complete
-c868322d4101: Verifying Checksum
-c868322d4101: Download complete
-0b645db6ee4c: Verifying Checksum
-0b645db6ee4c: Download complete
-c868322d4101: Pull complete
-77c5d5a121d5: Pull complete
-2fca7fd34862: Pull complete
-61d106e3c1ef: Pull complete
-5cf87d0d2701: Verifying Checksum
-5cf87d0d2701: Download complete
-0b645db6ee4c: Pull complete
-d4b779531aed: Pull complete
-9c03c3366e42: Pull complete
-5cf87d0d2701: Pull complete
-Digest: sha256:04fb8a1b8b699ba91c3be9d7c84ba206ce3abb022ae261b69d4c40f23aa41c64
-Status: Downloaded newer image for jegwangryu/nwc:latest
-45e98081313f180a1849d1d0c525738f0a3d57c23b04d342d603d6b5502dfdd3
-Docker exec
-14:19:15 INFO - logger_setup: /workspace/jgryu/weight_compression/nic_weight_comp_transformer/utils/util.py
-14:19:15 INFO - ddp_or_single_process: Create new exp folder!
-14:19:15 INFO - ddp_or_single_process: seed : 100.0
-14:19:15 INFO - ddp_or_single_process: exp name : exp_NIC_Fair_model_TCM_lmbda_1.0_seed_100.0_batch_size_16_radius_denominator_8_total_iter_1000000
-14:19:15 INFO - ddp_or_single_process: opts: Namespace(dist_port=5786, iter=1000000, model_name='TCM', learning_rate=0.0001, num_workers=2, batch_size=16, aux_learning_rate=0.001, seed=100.0, clip_max_norm=1.0, slurm=False, radius_denominator=8, dataset_dir='./dataset_wp_one_row/models--meta-llama--Meta-Llama-3-8B/mlp_4096_dataset.pt', data_dim=512, length=8, lmbda=1.0, checkpoint='None', save_path='./checkpoint/models--meta-llama--Meta-Llama-3-8B/mlp_4096_dataset.pt/lmbda1.0_batch_size16_total_iter1000000_seed100.0', **{'dev.num_gpus': 4, 'ddp.world_size': 4})
-14:19:21 INFO - logger_setup: /workspace/jgryu/weight_compression/nic_weight_comp_transformer/utils/util.py
-14:19:21 INFO - logger_setup: /workspace/jgryu/weight_compression/nic_weight_comp_transformer/utils/util.py
-14:19:21 INFO - logger_setup: /workspace/jgryu/weight_compression/nic_weight_comp_transformer/utils/util.py
-distributed init (rank 1): tcp://45e98081313f:5786
-14:19:21 INFO - main: Create experiment save folder
-14:19:21 INFO - logger_setup: /workspace/jgryu/weight_compression/nic_weight_comp_transformer/utils/util.py
-distributed init (rank 0): tcp://45e98081313f:5786
-distributed init (rank 3): tcp://45e98081313f:5786
-distributed init (rank 2): tcp://45e98081313f:5786
+ulling fs layer
+52a5515aef88: Pulling fs layer
+aa315b7808f0: Waiting
+fc5398be2cb5: Pulling fs layer
+afae2e58c215: Waiting
+c868322d4101: Pulling fs layer
+52a5515aef88: Waiting
+3288913d5f12: Waiting
+77c5d5a121d5: Pulling fs layer
+2fca7fd34862: Pulling fs layer
+fc5398be2cb5: Waiting
+c868322d4101: Waiting
+61d106e3c1ef: Pulling fs layer
+0b645db6ee4c: Pulling fs layer
+77c5d5a121d5: Waiting
+61d106e3c1ef: Waiting
+d4b779531aed: Pulling fs layer
+9c03c3366e42: Pulling fs layer
+0b645db6ee4c: Waiting
+5cf87d0d2701: Pulling fs layer
+d4b779531aed: Waiting
+5cf87d0d2701: Waiting
+s: ryu326 (maskedkd). Use `wandb login --relogin` to force relogin
+wandb: Currently logged in as: ryu326 (maskedkd). Use `wandb login --relogin` to force relogin
+wandb: Tracking run with wandb version 0.18.6
+wandb: Run data is saved locally in /workspace/jgryu/weight_compression/nic_weight_comp_transformer/wandb/run-20241128_151245-so8fgdf8
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run tr_nwc
+wandb: ⭐️ View project at https://wandb.ai/maskedkd/Neural%20Weight%20Compression_v2
+wandb: 🚀 View run at https://wandb.ai/maskedkd/Neural%20Weight%20Compression_v2/runs/so8fgdf8
+wandb: Tracking run with wandb version 0.18.6
+wandb: Run data is saved locally in /workspace/jgryu/weight_compression/nic_weight_comp_transformer/wandb/run-20241128_151245-gn9wmovm
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run tr_nwc
+wandb: ⭐️ View project at https://wandb.ai/maskedkd/Neural%20Weight%20Compression_v2
+wandb: 🚀 View run at https://wandb.ai/maskedkd/Neural%20Weight%20Compression_v2/runs/gn9wmovm
+wandb: Tracking run with wandb version 0.18.6
+wandb: Run data is saved locally in /workspace/jgryu/weight_compression/nic_weight_comp_transformer/wandb/run-20241128_151245-pidcj8o8
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run tr_nwc
+wandb: ⭐️ View project at https://wandb.ai/maskedkd/Neural%20Weight%20Compression_v2
+wandb: 🚀 View run at https://wandb.ai/maskedkd/Neural%20Weight%20Compression_v2/runs/pidcj8o8
+15:12:46 INFO - logger_setup: /workspace/jgryu/weight_compression/nic_weight_comp_transformer/utils/util.py
+distributed init (rank 3): tcp://67179d918767:5786
+15:12:46 INFO - logger_setup: /workspace/jgryu/weight_compression/nic_weight_comp_transformer/utils/util.py
+distributed init (rank 1): tcp://67179d918767:5786
+15:12:46 INFO - logger_setup: /workspace/jgryu/weight_compression/nic_weight_comp_transformer/utils/util.py
+distributed init (rank 2): tcp://67179d918767:5786
+wandb: Tracking run with wandb version 0.18.6
+wandb: Run data is saved locally in /workspace/jgryu/weight_compression/nic_weight_comp_transformer/wandb/run-20241128_151245-i52m5vuv
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run tr_nwc
+wandb: ⭐️ View project at https://wandb.ai/maskedkd/Neural%20Weight%20Compression_v2
+wandb: 🚀 View run at https://wandb.ai/maskedkd/Neural%20Weight%20Compression_v2/runs/i52m5vuv
+15:12:47 INFO - logger_setup: /workspace/jgryu/weight_compression/nic_weight_comp_transformer/utils/util.py
+15:12:47 INFO - main: Create experiment save folder
+distributed init (rank 0): tcp://67179d918767:5786
+[1;34mwandb[0m: 🚀 View run [33mtr_nwc[0m at: [34mhttps://wandb.ai/maskedkd/Neural Weight Compression_v2/runs/gn9wmovm[0m
+[1;34mwandb[0m: Find logs at: [1;35mwandb/run-20241128_151245-gn9wmovm/logs[0m
+[1;34mwandb[0m: 🚀 View run [33mtr_nwc[0m at: [34mhttps://wandb.ai/maskedkd/Neural Weight Compression_v2/runs/pidcj8o8[0m
+[1;34mwandb[0m: Find logs at: [1;35mwandb/run-20241128_151245-pidcj8o8/logs[0m
+[1;34mwandb[0m: 🚀 View run [33mtr_nwc[0m at: [34mhttps://wandb.ai/maskedkd/Neural Weight Compression_v2/runs/so8fgdf8[0m
+[1;34mwandb[0m: Find logs at: [1;35mwandb/run-20241128_151245-so8fgdf8/logs[0m
 Traceback (most recent call last):
   File "/workspace/jgryu/weight_compression/nic_weight_comp_transformer/train.py", line 620, in <module>
     ddp_or_single_process(sys.argv[1:])    
@@ -136,5 +152,244 @@ Traceback (most recent call last):
     super().__init__(open(name, mode))
 FileNotFoundError: [Errno 2] No such file or directory: './dataset_wp_one_row/models--meta-llama--Meta-Llama-3-8B/mlp_4096_dataset.pt'
 
-/var/spool/slurmctld/job436877/slurm_script: line 33: squeue--job: command not found
+Docker stop
+nwc_jiyunbae
+nwc_jiyunbae
+/var/spool/slurmctld/job436879/slurm_script: line 36: squeue--job: command not found
 ##### END #####
+ece84004a3cd: Verifying Checksum
+ece84004a3cd: Download complete
+20d547ab5eb5: Verifying Checksum
+20d547ab5eb5: Download complete
+f0412dfb1aae: Verifying Checksum
+f0412dfb1aae: Download complete
+b08eef4b90c8: Download complete
+f0412dfb1aae: Pull complete
+20d547ab5eb5: Pull complete
+ece84004a3cd: Pull complete
+b08eef4b90c8: Pull complete
+                                                                                                                                                                                                                                                                                                                                                                                                                                                            aa315b7808f0: Download complete
+afae2e58c215: Download complete
+aa315b7808f0: Pull complete
+52a5515aef88: Verifying Checksum
+52a5515aef88: Download complete
+fc5398be2cb5: Download complete
+77c5d5a121d5: Verifying Checksum
+77c5d5a121d5: Download complete
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         2fca7fd34862: Verifying Checksum
+2fca7fd34862: Download complete
+61d106e3c1ef: Verifying Checksum
+61d106e3c1ef: Download complete
+                                                                 c868322d4101: Download complete
+d4b779531aed: Verifying Checksum
+d4b779531aed: Download complete
+9c03c3366e42: Verifying Checksum
+9c03c3366e42: Download complete
+                                                                                                                                                                                                                                                  0b645db6ee4c: Verifying Checksum
+0b645db6ee4c: Download complete
+                                                                                                                                                                                                                                                                                                          5cf87d0d2701: Verifying Checksum
+5cf87d0d2701: Download complete
+3288913d5f12: Verifying Checksum
+3288913d5f12: Download complete
+3288913d5f12: Pull complete
+afae2e58c215: Pull complete
+52a5515aef88: Pull complete
+fc5398be2cb5: Pull complete
+c868322d4101: Pull complete
+77c5d5a121d5: Pull complete
+ba91c3be9d7c84ba206ce3abb022ae261b69d4c40f23aa41c64
+Status: Downloaded newer image for jegwangryu/nwc:latest
+8806582b1d70fb95e88cb84e661943e344f396ddc4d977fccf7a067141935d69
+Docker exec
+Traceback (most recent call last):
+  File "/workspace/jgryu/weight_compression/nic_weight_comp_transformer/dataset_generation_one_row.py", line 10, in <module>
+    from transformers import CLIPVisionModelWithProjection, ViTForImageClassification, AutoModelForCausalLM
+ModuleNotFoundError: No module named 'transformers'
+15:21:07 INFO - logger_setup: /workspace/jgryu/weight_compression/nic_weight_comp_transformer/utils/util.py
+15:21:07 INFO - ddp_or_single_process: find checkpoint...
+15:21:07 INFO - ddp_or_single_process: no checkpoint is here
+15:21:07 INFO - ddp_or_single_process: seed : 100.0
+15:21:07 INFO - ddp_or_single_process: exp name : exp_NIC_Fair_model_TCM_lmbda_1.0_seed_100.0_batch_size_16_radius_denominator_8_total_iter_1000000
+15:21:08 INFO - ddp_or_single_process: opts: Namespace(dist_port=5786, iter=1000000, model_name='TCM', learning_rate=0.0001, num_workers=2, batch_size=16, aux_learning_rate=0.001, seed=100.0, clip_max_norm=1.0, slurm=False, radius_denominator=8, dataset_dir='./dataset_wp_one_row/models--meta-llama--Meta-Llama-3-8B/mlp_4096_dataset.pt', data_dim=512, length=8, lmbda=1.0, checkpoint='None', save_path='./checkpoint/models--meta-llama--Meta-Llama-3-8B/mlp_4096_dataset.pt/lmbda1.0_batch_size16_total_iter1000000_seed100.0', **{'dev.num_gpus': 4, 'ddp.world_size': 4})
+wandb: Using wandb-core as the SDK backend.  Please refer to https://wandb.me/wandb-core for more information.
+wandb: Using wandb-core as the SDK backend.  Please refer to https://wandb.me/wandb-core for more information.
+wandb: Using wandb-core as the SDK backend.  Please refer to https://wandb.me/wandb-core for more information.
+wandb: Using wandb-core as the SDK backend.  Please refer to https://wandb.me/wandb-core for more information.
+wandb: Currently logged in as: ryu326 (maskedkd). Use `wandb login --relogin` to force relogin
+wandb: Currently logged in as: ryu326 (maskedkd). Use `wandb login --relogin` to force relogin
+wandb: Currently logged in as: ryu326 (maskedkd). Use `wandb login --relogin` to force relogin
+wandb: Currently logged in as: ryu326 (maskedkd). Use `wandb login --relogin` to force relogin
+wandb: Tracking run with wandb version 0.18.6
+wandb: Run data is saved locally in /workspace/jgryu/weight_compression/nic_weight_comp_transformer/wandb/run-20241128_152113-7w9ojmln
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Tracking run with wandb version 0.18.6
+wandb: Run data is saved locally in /workspace/jgryu/weight_compression/nic_weight_comp_transformer/wandb/run-20241128_152114-l1f08gda
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run tr_nwc
+wandb: ⭐️ View project at https://wandb.ai/maskedkd/Neural%20Weight%20Compression_v2
+wandb: 🚀 View run at https://wandb.ai/maskedkd/Neural%20Weight%20Compression_v2/runs/7w9ojmln
+wandb: Syncing run tr_nwc
+wandb: ⭐️ View project at https://wandb.ai/maskedkd/Neural%20Weight%20Compression_v2
+wandb: 🚀 View run at https://wandb.ai/maskedkd/Neural%20Weight%20Compression_v2/runs/l1f08gda
+wandb: Tracking run with wandb version 0.18.6
+wandb: Run data is saved locally in /workspace/jgryu/weight_compression/nic_weight_comp_transformer/wandb/run-20241128_152113-448w7ndg
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Tracking run with wandb version 0.18.6
+wandb: Syncing run tr_nwc
+wandb: ⭐️ View project at https://wandb.ai/maskedkd/Neural%20Weight%20Compression_v2
+wandb: 🚀 View run at https://wandb.ai/maskedkd/Neural%20Weight%20Compression_v2/runs/448w7ndg
+wandb: Run data is saved locally in /workspace/jgryu/weight_compression/nic_weight_comp_transformer/wandb/run-20241128_152113-nl6dqb36
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run tr_nwc
+wandb: ⭐️ View project at https://wandb.ai/maskedkd/Neural%20Weight%20Compression_v2
+wandb: 🚀 View run at https://wandb.ai/maskedkd/Neural%20Weight%20Compression_v2/runs/nl6dqb36
+15:21:15 INFO - logger_setup: /workspace/jgryu/weight_compression/nic_weight_comp_transformer/utils/util.py
+15:21:15 INFO - logger_setup: /workspace/jgryu/weight_compression/nic_weight_comp_transformer/utils/util.py
+distributed init (rank 3): tcp://8806582b1d70:5786
+distributed init (rank 2): tcp://8806582b1d70:5786
+15:21:15 INFO - logger_setup: /workspace/jgryu/weight_compression/nic_weight_comp_transformer/utils/util.py
+15:21:15 INFO - main: Create experiment save folder
+distributed init (rank 0): tcp://8806582b1d70:5786
+15:21:15 INFO - logger_setup: /workspace/jgryu/weight_compression/nic_weight_comp_transformer/utils/util.py
+distributed init (rank 1): tcp://8806582b1d70:5786
+Docker exec
+Traceback (most recent call last):
+  File "/workspace/jgryu/weight_compression/nic_weight_comp_transformer/dataset_generation_one_row.py", line 10, in <module>
+    from transformers import CLIPVisionModelWithProjection, ViTForImageClassification, AutoModelForCausalLM
+ModuleNotFoundError: No module named 'transformers'
+9ojmln[0m
+[1;34mwandb[0m: Find logs at: [1;35mwandb/run-20241128_152113-7w9ojmln/logs[0m
+[1;34mwandb[0m: 🚀 View run [33mtr_nwc[0m at: [34mhttps://wandb.ai/maskedkd/Neural Weight Compression_v2/runs/l1f08gda[0m
+[1;34mwandb[0m: Find logs at: [1;35mwandb/run-20241128_152114-l1f08gda/logs[0m
+[1;34mwandb[0m: 🚀 View run [33mtr_nwc[0m at: [34mhttps://wandb.ai/maskedkd/Neural Weight Compression_v2/runs/448w7ndg[0m
+[1;34mwandb[0m: Find logs at: [1;35mwandb/run-20241128_152113-448w7ndg/logs[0m
+Traceback (most recent call last):
+  File "/workspace/jgryu/weight_compression/nic_weight_comp_transformer/train.py", line 620, in <module>
+    ddp_or_single_process(sys.argv[1:])    
+  File "/workspace/jgryu/weight_compression/nic_weight_comp_transformer/train.py", line 609, in ddp_or_single_process
+    torch.multiprocessing.spawn(
+  File "/opt/conda/lib/python3.10/site-packages/torch/multiprocessing/spawn.py", line 246, in spawn
+    return start_processes(fn, args, nprocs, join, daemon, start_method="spawn")
+  File "/opt/conda/lib/python3.10/site-packages/torch/multiprocessing/spawn.py", line 202, in start_processes
+    while not context.join():
+  File "/opt/conda/lib/python3.10/site-packages/torch/multiprocessing/spawn.py", line 163, in join
+    raise ProcessRaisedException(msg, error_index, failed_process.pid)
+torch.multiprocessing.spawn.ProcessRaisedException: 
+
+-- Process 3 terminated with the following error:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/site-packages/torch/multiprocessing/spawn.py", line 74, in _wrap
+    fn(i, *args)
+  File "/workspace/jgryu/weight_compression/nic_weight_comp_transformer/train.py", line 564, in distributed_worker
+    main(opts)
+  File "/workspace/jgryu/weight_compression/nic_weight_comp_transformer/train.py", line 119, in main
+    train_dataset = WParam_dataset(dataset_folder= opts.dataset_dir, split='train', data_dim=opts.data_dim, length=opts.length, seed = 100)
+  File "/workspace/jgryu/weight_compression/nic_weight_comp_transformer/datasets_WeightParam.py", line 14, in __init__
+    self.dataset = torch.load(dataset_folder)[split]
+  File "/opt/conda/lib/python3.10/site-packages/torch/serialization.py", line 986, in load
+    with _open_file_like(f, 'rb') as opened_file:
+  File "/opt/conda/lib/python3.10/site-packages/torch/serialization.py", line 435, in _open_file_like
+    return _open_file(name_or_buffer, mode)
+  File "/opt/conda/lib/python3.10/site-packages/torch/serialization.py", line 416, in __init__
+    super().__init__(open(name, mode))
+FileNotFoundError: [Errno 2] No such file or directory: './dataset_wp_one_row/models--meta-llama--Meta-Llama-3-8B/mlp_4096_dataset.pt'
+
+Docker stop
+nwc_jiyunbae
+nwc_jiyunbae
+/var/spool/slurmctld/job436880/slurm_script: line 36: squeue--job: command not found
+##### END #####
+15:21:21 INFO - logger_setup: /workspace/jgryu/weight_compression/nic_weight_comp_transformer/utils/util.py
+15:21:21 INFO - ddp_or_single_process: find checkpoint...
+15:21:21 INFO - ddp_or_single_process: no checkpoint is here
+15:21:21 INFO - ddp_or_single_process: seed : 100.0
+15:21:21 INFO - ddp_or_single_process: exp name : exp_NIC_Fair_model_TCM_lmbda_1.0_seed_100.0_batch_size_16_radius_denominator_8_total_iter_1000000
+15:21:21 INFO - ddp_or_single_process: opts: Namespace(dist_port=5786, iter=1000000, model_name='TCM', learning_rate=0.0001, num_workers=2, batch_size=16, aux_learning_rate=0.001, seed=100.0, clip_max_norm=1.0, slurm=False, radius_denominator=8, dataset_dir='./dataset_wp_one_row/models--meta-llama--Meta-Llama-3-8B/mlp_4096_dataset.pt', data_dim=512, length=8, lmbda=1.0, checkpoint='None', save_path='./checkpoint/models--meta-llama--Meta-Llama-3-8B/mlp_4096_dataset.pt/lmbda1.0_batch_size16_total_iter1000000_seed100.0', **{'dev.num_gpus': 4, 'ddp.world_size': 4})
+wandb: Using wandb-core as the SDK backend.  Please refer to https://wandb.me/wandb-core for more information.
+wandb: Using wandb-core as the SDK backend.  Please refer to https://wandb.me/wandb-core for more information.
+wandb: Using wandb-core as the SDK backend.  Please refer to https://wandb.me/wandb-core for more information.
+wandb: Using wandb-core as the SDK backend.  Please refer to https://wandb.me/wandb-core for more information.
+wandb: Currently logged in as: ryu326 (maskedkd). Use `wandb login --relogin` to force relogin
+wandb: Currently logged in as: ryu326 (maskedkd). Use `wandb login --relogin` to force relogin
+wandb: Currently logged in as: ryu326 (maskedkd). Use `wandb login --relogin` to force relogin
+wandb: Currently logged in as: ryu326 (maskedkd). Use `wandb login --relogin` to force relogin
+wandb: Tracking run with wandb version 0.18.6
+wandb: Run data is saved locally in /workspace/jgryu/weight_compression/nic_weight_comp_transformer/wandb/run-20241128_152127-h9vn4x8e
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run tr_nwc
+wandb: ⭐️ View project at https://wandb.ai/maskedkd/Neural%20Weight%20Compression_v2
+wandb: 🚀 View run at https://wandb.ai/maskedkd/Neural%20Weight%20Compression_v2/runs/h9vn4x8e
+wandb: Tracking run with wandb version 0.18.6
+wandb: Run data is saved locally in /workspace/jgryu/weight_compression/nic_weight_comp_transformer/wandb/run-20241128_152127-3snhqycy
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run tr_nwc
+wandb: ⭐️ View project at https://wandb.ai/maskedkd/Neural%20Weight%20Compression_v2
+wandb: 🚀 View run at https://wandb.ai/maskedkd/Neural%20Weight%20Compression_v2/runs/3snhqycy
+15:21:27 INFO - logger_setup: /workspace/jgryu/weight_compression/nic_weight_comp_transformer/utils/util.py
+distributed init (rank 3): tcp://ec3b2e8218de:5786
+wandb: Tracking run with wandb version 0.18.6
+wandb: Run data is saved locally in /workspace/jgryu/weight_compression/nic_weight_comp_transformer/wandb/run-20241128_152127-1trvvtbx
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run tr_nwc
+wandb: ⭐️ View project at https://wandb.ai/maskedkd/Neural%20Weight%20Compression_v2
+wandb: 🚀 View run at https://wandb.ai/maskedkd/Neural%20Weight%20Compression_v2/runs/1trvvtbx
+15:21:27 INFO - logger_setup: /workspace/jgryu/weight_compression/nic_weight_comp_transformer/utils/util.py
+15:21:27 INFO - main: Create experiment save folder
+distributed init (rank 0): tcp://ec3b2e8218de:5786
+wandb: Tracking run with wandb version 0.18.6
+wandb: Run data is saved locally in /workspace/jgryu/weight_compression/nic_weight_comp_transformer/wandb/run-20241128_152127-hj54xfvb
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run tr_nwc
+wandb: ⭐️ View project at https://wandb.ai/maskedkd/Neural%20Weight%20Compression_v2
+wandb: 🚀 View run at https://wandb.ai/maskedkd/Neural%20Weight%20Compression_v2/runs/hj54xfvb
+15:21:27 INFO - logger_setup: /workspace/jgryu/weight_compression/nic_weight_comp_transformer/utils/util.py
+distributed init (rank 2): tcp://ec3b2e8218de:5786
+15:21:27 INFO - logger_setup: /workspace/jgryu/weight_compression/nic_weight_comp_transformer/utils/util.py
+distributed init (rank 1): tcp://ec3b2e8218de:5786
+[1;34mwandb[0m: 🚀 View run [33mtr_nwc[0m at: [34mhttps://wandb.ai/maskedkd/Neural Weight Compression_v2/runs/h9vn4x8e[0m
+[1;34mwandb[0m: Find logs at: [1;35mwandb/run-20241128_152127-h9vn4x8e/logs[0m
+[1;34mwandb[0m: 🚀 View run [33mtr_nwc[0m at: [34mhttps://wandb.ai/maskedkd/Neural Weight Compression_v2/runs/3snhqycy[0m
+[1;34mwandb[0m: Find logs at: [1;35mwandb/run-20241128_152127-3snhqycy/logs[0m
+[1;34mwandb[0m: 🚀 View run [33mtr_nwc[0m at: [34mhttps://wandb.ai/maskedkd/Neural Weight Compression_v2/runs/hj54xfvb[0m
+[1;34mwandb[0m: Find logs at: [1;35mwandb/run-20241128_152127-hj54xfvb/logs[0m
+[1;34mwandb[0m: 🚀 View run [33mtr_nwc[0m at: [34mhttps://wandb.ai/maskedkd/Neural Weight Compression_v2/runs/1trvvtbx[0m
+[1;34mwandb[0m: Find logs at: [1;35mwandb/run-20241128_152127-1trvvtbx/logs[0m
+Traceback (most recent call last):
+  File "/workspace/jgryu/weight_compression/nic_weight_comp_transformer/train.py", line 620, in <module>
+    ddp_or_single_process(sys.argv[1:])    
+  File "/workspace/jgryu/weight_compression/nic_weight_comp_transformer/train.py", line 609, in ddp_or_single_process
+    torch.multiprocessing.spawn(
+  File "/opt/conda/lib/python3.10/site-packages/torch/multiprocessing/spawn.py", line 246, in spawn
+    return start_processes(fn, args, nprocs, join, daemon, start_method="spawn")
+  File "/opt/conda/lib/python3.10/site-packages/torch/multiprocessing/spawn.py", line 202, in start_processes
+    while not context.join():
+  File "/opt/conda/lib/python3.10/site-packages/torch/multiprocessing/spawn.py", line 163, in join
+    raise ProcessRaisedException(msg, error_index, failed_process.pid)
+torch.multiprocessing.spawn.ProcessRaisedException: 
+
+-- Process 3 terminated with the following error:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/site-packages/torch/multiprocessing/spawn.py", line 74, in _wrap
+    fn(i, *args)
+  File "/workspace/jgryu/weight_compression/nic_weight_comp_transformer/train.py", line 564, in distributed_worker
+    main(opts)
+  File "/workspace/jgryu/weight_compression/nic_weight_comp_transformer/train.py", line 119, in main
+    train_dataset = WParam_dataset(dataset_folder= opts.dataset_dir, split='train', data_dim=opts.data_dim, length=opts.length, seed = 100)
+  File "/workspace/jgryu/weight_compression/nic_weight_comp_transformer/datasets_WeightParam.py", line 14, in __init__
+    self.dataset = torch.load(dataset_folder)[split]
+  File "/opt/conda/lib/python3.10/site-packages/torch/serialization.py", line 986, in load
+    with _open_file_like(f, 'rb') as opened_file:
+  File "/opt/conda/lib/python3.10/site-packages/torch/serialization.py", line 435, in _open_file_like
+    return _open_file(name_or_buffer, mode)
+  File "/opt/conda/lib/python3.10/site-packages/torch/serialization.py", line 416, in __init__
+    super().__init__(open(name, mode))
+FileNotFoundError: [Errno 2] No such file or directory: './dataset_wp_one_row/models--meta-llama--Meta-Llama-3-8B/mlp_4096_dataset.pt'
+
+Docker stop
+nwc_jiyunbae
+nwc_jiyunbae
+/var/spool/slurmctld/job436881/slurm_script: line 36: squeue--job: command not found
+##### END #####
+2fca7fd34862: Pull complete
+61d106e3c1ef: Pull complete
+slurmstepd: error: *** JOB 436882 ON n25 CANCELLED AT 2024-11-29T00:22:06 ***
