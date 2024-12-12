@@ -288,7 +288,7 @@ def train(args):
         optimizer=tf.keras.optimizers.Adam(learning_rate=args.lr),
     )
     print("##### Start preparing dataset #####")
-    from utils_wp import get_custom_wp_dataset, get_wp_datasets, get_wp_tfrecord
+    from utils_wp import get_wp_tfrecord # get_custom_wp_dataset, get_wp_datasets,
     # train_dataset, validation_dataset = get_datasets(args, args.dataset, args.use_wp_dataset, args.batchsize, repeat = args.repeat)
     # validation_dataset = validation_dataset.take(
     #     args.max_validation_steps)  # keras crashes without this (would be using an infinite validation set)

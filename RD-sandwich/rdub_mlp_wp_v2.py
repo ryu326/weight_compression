@@ -288,7 +288,7 @@ def train(args):
         optimizer=tf.keras.optimizers.Adam(learning_rate=args.lr),
     )
     print("##### Start preparing dataset #####")
-    from utils_wp import get_custom_wp_dataset, get_wp_datasets, get_wp_tfrecord
+    from utils_wp import get_wp_tfrecord
     # train_dataset, validation_dataset = get_datasets(args, args.dataset, args.use_wp_dataset, args.batchsize, repeat = args.repeat)
     # validation_dataset = validation_dataset.take(
     #     args.max_validation_steps)  # keras crashes without this (would be using an infinite validation set)
@@ -433,7 +433,7 @@ def parse_args(argv):
         "--lambda", type=float, dest="lmbda",
         help="Lambda for rate-distortion tradeoff.")
     parser.add_argument(
-        "--lambdas", type=lambda s: [int(i) for i in s.split(',')], default=[])
+        "--lambdas", type=lambda s: [float(i) for i in s.split(',')], default=[])
     parser.add_argument(
         "--rpd", default=False, action='store_true',
         help="Whether to normalize the rate (per sample) by the number of data dimensions; default is False, i.e., bits/nats per sample.")
@@ -507,33 +507,26 @@ def parse_args(argv):
 
 def main(args):
     
-    dataset_base = args.dataset
-    dataset_list = os.listdir(dataset_base)
-    for dataset in dataset_list:
-        print('dataset:' , dataset)
-        args.dataset = os.path.join(dataset_base, dataset, 'd16', dataset + '_d16_train_out.tfrecord')
-        args.checkpoint_dir = 'checkpoints_v3/llama3_8B_per_tensor/' + dataset + '/llama3-8B_d16_b1024_e150_lr1e-5_normalize'
-        # Invoke subcommand.
-        lambdas = args.lambdas
-        for lmbda in lambdas:
-            args.lmbda = lmbda
-            if check_no_decoder(args.decoder_units):
-                print(f'Using Z=Y; resetting latent_dim={args.latent_dim} to data_dim={args.data_dim}')
-                args.latent_dim = args.data_dim
+    lambdas = args.lambdas
+    for lmbda in lambdas:
+        args.lmbda = float(lmbda)
+        if check_no_decoder(args.decoder_units):
+            print(f'Using Z=Y; resetting latent_dim={args.latent_dim} to data_dim={args.data_dim}')
+            args.latent_dim = args.data_dim
 
-            seed = args.seed
-            np.random.seed(seed)
-            tf.random.set_seed(seed)
+        seed = args.seed
+        np.random.seed(seed)
+        tf.random.set_seed(seed)
+        
+        runname = get_runname(args)
+        # wandb.init(project="RDsandwich", config=args, name=runname, mode="disabled" if args.test else "online")
+        wandb.init(project="RDsandwich_v2", config=args, sync_tensorboard=True, name=runname, mode="disabled" if args.test else "online")
+        wandb.config.update(args)
+        
+        if args.command == "train":
+            train(args)
             
-            runname = get_runname(args)
-            # wandb.init(project="RDsandwich", config=args, name=runname, mode="disabled" if args.test else "online")
-            wandb.init(project="RDsandwich_v2", config=args, sync_tensorboard=True, name=runname, mode="disabled" if args.test else "online")
-            wandb.config.update(args)
-            
-            if args.command == "train":
-                train(args)
-                
-            wandb.finish()
+        wandb.finish()
 
 if __name__ == "__main__":
     app.run(main, flags_parser=parse_args)

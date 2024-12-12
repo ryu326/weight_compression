@@ -5,7 +5,7 @@
 from keras.callbacks import ReduceLROnPlateau
 import re
 import wandb
-
+import os
 class MyReduceLROnPlateauCallback(ReduceLROnPlateau):
     """
     Enhanced version of keras.callbacks.ReduceLROnPlateau that implements:
@@ -408,240 +408,6 @@ def read_npy_file_helper(file_name_in_bytes):
     # assert data.dtype is np.float32   # needs to match the type argument in the caller tf.data.Dataset.map
     return data
 
-
-def get_custom_dataset(split, file_glob, args):
-    """Creates input data pipeline from custom PNG images.
-    :param split:
-    :param file_glob:
-    :param args:
-    """
-    import glob
-    with tf.device("/cpu:0"):
-        files = sorted(glob.glob(file_glob))
-        if not files:
-            raise RuntimeError(f"No images found with glob '{file_glob}'.")
-        dataset = tf.data.Dataset.from_tensor_slices(files)
-        if split == 'eval':
-            drop_remainder = False
-        else:  # for train or validation
-            dataset = dataset.shuffle(len(files), reshuffle_each_iteration=True)
-            drop_remainder = True  # as set in the original tfc source code; perhaps done for optimization purposes
-
-        if split == "train":
-            dataset = dataset.repeat()
-
-        # if '.npy' in args.train_glob:  # reading numpy arrays directly instead of from images
-        #    dataset = dataset.map(  # https://stackoverflow.com/a/49459838
-        #        lambda item: tuple(tf.numpy_function(read_npy_file_helper, [item], [tf.float32, ])),
-        #        num_parallel_calls=args.preprocess_threads)
-        # else:
-        #    dataset = dataset.map(
-        #        read_png, num_parallel_calls=args.preprocess_threads)
-        # dataset = dataset.map(lambda x: crop_image(x, args.patchsize))
-        if not hasattr(args, 'patchsize'):
-            args.patchsize = None
-        if not hasattr(args, 'preprocess_threads'):
-            args.preprocess_threads = 16
-        if '.npy' in file_glob:  # reading numpy arrays directly instead of from images
-            dataset = dataset.map(  # https://stackoverflow.com/a/49459838
-                lambda file_name: tuple(tf.numpy_function(read_npy_file_helper, [file_name], [tf.float32, ])),
-                num_parallel_calls=args.preprocess_threads)
-            dataset = dataset.map(lambda x: process_image(x, args.patchsize),
-                                  num_parallel_calls=args.preprocess_threads)
-        else:
-            dataset = dataset.map(
-                lambda x: process_image(read_png(x), args.patchsize),
-                num_parallel_calls=args.preprocess_threads)
-
-        dataset = dataset.batch(args.batchsize, drop_remainder=drop_remainder)
-    return dataset
-
-def get_custom_wp_dataset(split, file_glob, args, repeat, num_data):
-    """Creates input data pipeline from custom PNG images.
-    :param split:
-    :param file_glob:
-    :param args:
-    """
-    import glob, random
-    random.seed(100)
-    with tf.device("/cpu:0"):
-        files = sorted(glob.glob(file_glob + '/**/*.npy', recursive=True))
-        # print(files)
-        print(f'length{len(files)}=======')
-        if not files:
-            raise RuntimeError(f"No images found with glob '{file_glob}'.")
-        
-        if num_data != 0:
-            sub_files = random.sample(files, num_data)
-            files = sub_files
-        dataset = tf.data.Dataset.from_tensor_slices(files)
-        if split == 'val':
-            drop_remainder = False
-        else:  # for train or validation
-            dataset = dataset.shuffle(len(files), reshuffle_each_iteration=True)
-            drop_remainder = True  # as set in the original tfc source code; perhaps done for optimization purposes
-           
-        if split == "train" and repeat:
-            dataset = dataset.repeat() 
-
-        args.patchsize = None
-        if not hasattr(args, 'preprocess_threads'):
-            args.preprocess_threads = 16
-            
-        @tf.function  # 컴파일하여 성능 향상
-        def load_and_preprocess_image(file_path):
-            # Load the numpy file
-            tensors = tf.numpy_function(np.load, [file_path], tf.float32)  # Decode bytes to string
-            # Optionally convert to float32 tensor
-            # tensors = tf.convert_to_tensor(tensors, dtype=tf.float32)
-            wp_mean = 8.708306e-07
-            wp_std = 0.023440132
-            tensors = (tensors - wp_mean) / wp_std
-            return tensors
-
-        # def read_np(filename):
-        #     # NumPy 파일을 읽고, float32로 변환한 텐서를 반환합니다.
-        #     def load_numpy_file(path):
-        #         np_data = np.load(path.numpy())  # NumPy 배열을 로드합니다.
-        #         return tf.convert_to_tensor(np_data, dtype=tf.float32)  # 텐서로 변환합니다.
-
-        #     # tf.py_function을 사용하여 파일 경로를 처리합니다.
-        #     tensor = tf.py_function(load_numpy_file, [filename], tf.float32)
-        #     return tensor
-        
-        dataset = dataset.map(
-            lambda x: tf.py_function(load_and_preprocess_image, [x], tf.float32),
-            num_parallel_calls=args.preprocess_threads
-        )
-
-        dataset = dataset.batch(args.batchsize, drop_remainder=drop_remainder)
-    return dataset.cache()
-
-# def get_custom_wp_dataset(split, file_glob, args, repeat, num_data):
-#     import glob, random
-#     random.seed(100)
-    
-#     def contains_all_substrings(string, substrings):
-#         return all(substring in string for substring in substrings)
-    
-#     # def read_np(filename):
-#     #     def load_numpy_file(path):
-#     #         np_data = np.load(path.numpy(), allow_pickle=True)  # allow_pickle이 필요할 수 있습니다.
-#     #         return tf.convert_to_tensor(np_data, dtype=tf.float32)  # 텐서로 변환합니다.
-#     # return tf.py_function(load_numpy_file, [filename], tf.float32)
-
-#     # def read_and_concat_n_files(files, attn_norm = False):
-#     #     """Reads and concatenates `dim_mul` number of npy files."""
-#     #     tensors = [tf.convert_to_tensor(np.load(f.numpy()), dtype=tf.float32) for f in files]
-#     #     tensors = tf.concat(tensors, axis=0)
-#     #     if attn_norm:
-#     #         wp_mean = 8.708306e-07
-#     #         wp_std = 0.023440132
-#     #         tensors = (tensors - wp_mean) / wp_std
-#     #     return tensors
-    
-#     @tf.function  # 컴파일하여 성능 향상
-#     def read_and_concat_n_files(files, attn_norm=False):
-#         """Reads and concatenates `dim_mul` number of npy files."""
-        
-#         # def load_and_concat_numpy_files(file_list):
-#         #     # Load and concatenate NumPy arrays from given file paths
-#         #     arrays = [np.load(f.decode('utf-8')) for f in file_list]
-#         #     concatenated = np.concatenate(arrays, axis=0).astype(np.float32)
-#         #     return concatenated
-
-#         # # Use `tf.numpy_function` for seamless integration of NumPy function
-#         # tensors = tf.numpy_function(
-#         #     load_and_concat_numpy_files,
-#         #     [files],
-#         #     tf.float32
-#         # )
-#         # if attn_norm:
-#         #     wp_mean = 8.708306e-07
-#         #     wp_std = 0.023440132
-#         #     tensors = (tensors - wp_mean) / wp_std
-        
-#         # return tensors
-    
-#         def parse_npy_file(file_path):
-#             # Read the content of the file
-#             np_data = tf.io.read_file(file_path)
-            
-#             # Decode the content using `np.load`, which reads from byte data
-#             tensor = tf.numpy_function(lambda x: np.load(x, allow_pickle=True), [np_data], tf.float32)
-#             return tf.ensure_shape(tensor, [None])
-
-#         def read_and_concat_n_files(files, attn_norm=False):
-#             """Reads and concatenates `dim_mul` number of npy files using tf.io.read_file."""
-            
-#             # Use `map_fn` to apply `parse_npy_file` to each file path
-#             tensors = tf.map_fn(
-#                 parse_npy_file,
-#                 files,
-#                 dtype=tf.float32,
-#                 parallel_iterations=4  # You can adjust this value for better performance
-#             )
-            
-#             # Concatenate the resulting tensors along axis 0
-#             tensors = tf.concat(tensors, axis=0)
-            
-#             if attn_norm:
-#                 wp_mean = 8.708306e-07
-#                 wp_std = 0.023440132
-#                 tensors = (tensors - wp_mean) / wp_std
-            
-#             return tensors
-    
-    # with tf.device("/cpu:0"):
-    #     files = sorted(glob.glob(file_glob + '/**/*.npy', recursive=True))
-    #     print(f'length{len(files)}=======')
-    #     if args.model_filter is not None:
-    #         files = [f for f in files if contains_all_substrings(f.lower(), args.model_filter)]
-    #     print(f'filtered length{len(files)}=======')
-    #     match = re.search(r'd=(\d+)', files[0])
-    #     if match:
-    #         base_data_dim = int(match.group(1))
-    #     else:
-    #         raise ValueError("No 'd=' pattern with a number was found dataset.")
-        
-    #     assert args.data_dim % base_data_dim == 0, f"data_dim, {args.data_dim} should be a multiple of {base_data_dim}"
-    #     dim_mul = int(args.data_dim / base_data_dim)
-        
-    #     print(f'length: {len(files)}')
-    #     if not files:
-    #         raise RuntimeError(f"No images found with glob '{file_glob}'.")
-        
-    #     grouped_files = [files[i:i + dim_mul] for i in range(0, len(files), dim_mul) if len(files[i:i + dim_mul]) == dim_mul]
-    #     print(f'grouped length: {len(grouped_files)}')
-
-    #     if num_data != 0 and num_data < len(grouped_files):
-    #         sub_grouped_files = random.sample(grouped_files, num_data)
-
-    #     dataset = tf.data.Dataset.from_tensor_slices(sub_grouped_files)
-        
-    #     if split == 'val':
-    #         drop_remainder = False
-    #     else:
-    #         dataset = dataset.shuffle(len(grouped_files), reshuffle_each_iteration=True)
-    #         drop_remainder = True
-            
-    #     if split == "train" and repeat:
-    #         dataset = dataset.repeat()
-
-    #     args.patchsize = None
-    #     if not hasattr(args, 'preprocess_threads'):
-    #         args.preprocess_threads = 16
-        
-    #     # Use `tf.py_function` to handle NumPy file loading and concatenation
-    #     dataset = dataset.map(
-    #         lambda file_list: tf.py_function(read_and_concat_n_files, [file_list, args.attn_norm], tf.float32),
-    #         num_parallel_calls=args.preprocess_threads
-    #     ).cache()
-
-    #     dataset = dataset.batch(args.batchsize, drop_remainder=drop_remainder)
-    # return dataset
-
-
 def get_wp_tfrecord(split, file_path, args, repeat, num_data):
     """Creates input data pipeline from custom PNG images.
     :param split:
@@ -665,12 +431,37 @@ def get_wp_tfrecord(split, file_path, args, repeat, num_data):
     
     # mean = -5.42295056421355e-06
     # std = 0.011819059083636133
-    try :
-        mean = np.load(file_path.replace('.tfrecord', '_mean.npy'))
-        std = np.load(file_path.replace('.tfrecord', '_std.npy'))
-    except :
-        mean = np.load(file_path.replace('val', 'train').replace('.tfrecord', '_mean.npy'))
-        std = np.load(file_path.replace('val', 'train').replace('.tfrecord', '_std.npy'))
+    # import ipdb; ipdb.set_trace()
+    try:
+        dataset_base = os.path.dirname(file_path)
+        dataset_list = os.listdir(dataset_base)
+        print(dataset_list)
+        matching_files = [f for f in dataset_list if 'dataset_stats' in f]
+
+        if len(matching_files) > 1:
+            raise ValueError("Multiple files with 'dataset_stats' found.")
+        elif len(matching_files) < 1:
+            raise FileNotFoundError("No file with 'dataset_stats' in the folder.")
+        
+        with open(os.path.join(dataset_base, matching_files[0]), 'r', encoding='utf-8') as file:
+            dataset_stats = json.load(file)
+        
+        ## hard coding
+        if 'inlier' in file_path:
+            mean = dataset_stats['inlier_train']['mean']
+            std = dataset_stats['inlier_train']['std']
+        elif 'outlier' in file_path:
+            mean = dataset_stats['outlier_train']['mean']
+            std = dataset_stats['outlier_train']['std']
+        else:
+            raise
+    except:
+        try :
+            mean = np.load(file_path.replace('.tfrecord', '_mean.npy'))
+            std = np.load(file_path.replace('.tfrecord', '_std.npy'))
+        except :
+            mean = np.load(file_path.replace('val', 'train').replace('.tfrecord', '_mean.npy'))
+            std = np.load(file_path.replace('val', 'train').replace('.tfrecord', '_std.npy'))
         
     print(f'mean: {mean}')
     print(f'std: {std}')
@@ -695,7 +486,7 @@ def get_wp_tfrecord(split, file_path, args, repeat, num_data):
     if split == 'val':
         drop_remainder = False
     else:  # for train or validation
-        dataset = dataset.shuffle(buffer_size=4000000, reshuffle_each_iteration=True)
+        dataset = dataset.shuffle(buffer_size=5000000, reshuffle_each_iteration=True)
         drop_remainder = True  # as set in the original tfc source code; perhaps done for optimization purposes
         
     if split == "train" and repeat:

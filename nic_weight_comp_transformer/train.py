@@ -41,7 +41,7 @@ def test(total_iter, test_dataset, model, save_path, logger, mse_func, node_rank
         out_enc = model.compress(x.to(device))
         out_dec = model.decompress(out_enc["strings"], out_enc["shape"])
         
-        num_pixels = x.size(0) * x.size(1)
+        num_pixels = x.size(1) * x.size(2)
         bpp = 0
         
         for s in out_enc["strings"]:

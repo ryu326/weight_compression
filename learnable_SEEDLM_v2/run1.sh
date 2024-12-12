@@ -1,0 +1,1 @@
+CUDA_VISIBLE_DEVICES=1 taskset -c 8-15 python -u train.py --iter 2000000 --u-length 16 --batch-size 8 --seed 100 --dist_port 6044

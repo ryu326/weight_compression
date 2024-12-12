@@ -1,0 +1,34 @@
+/home/jgryu/miniconda3/envs/nicc/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+18:45:49 INFO - logger_setup: /home/jgryu/Weight_compression/learnable_SEEDLM/utils/util.py
+18:45:49 INFO - ddp_or_single_process: find checkpoint...
+18:45:49 INFO - ddp_or_single_process: checkpoint exist, name: recent_model_MSE_17893909650.88_BPP_0.06161_total_iter_100000.pth.tar
+18:45:49 INFO - ddp_or_single_process: seed : 100.0
+18:45:49 INFO - ddp_or_single_process: exp name : models--meta-llama--Meta-Llama-3-8B/mlp_attn__512_512_dataset.pt/lmbda_100.0_u_length_4_batch_size8_total_iter2000000_seed100.0
+wandb: Using wandb-core as the SDK backend.  Please refer to https://wandb.me/wandb-core for more information.
+wandb: Currently logged in as: ryu326 (maskedkd). Use `wandb login --relogin` to force relogin
+wandb: Tracking run with wandb version 0.18.7
+wandb: Run data is saved locally in /home/jgryu/Weight_compression/learnable_SEEDLM/wandb/run-20241202_184550-lgcdwi0p
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run nn_seedlm
+wandb: ⭐️ View project at https://wandb.ai/maskedkd/NN-based%20SEEDLM
+wandb: 🚀 View run at https://wandb.ai/maskedkd/NN-based%20SEEDLM/runs/lgcdwi0p
+18:45:50 INFO - main: Create experiment save folder
+/home/jgryu/Weight_compression/learnable_SEEDLM/datasets_weight_matrix.py:34: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  data = torch.load(dataset_folder_path)
+/home/jgryu/Weight_compression/learnable_SEEDLM/datasets_weight_matrix.py:37: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  dataset_stats = torch.load(dataset_folder_path.replace('dataset.pt', 'dataset_stats.pt'))
+{'entropy_bottleneck_t.quantiles', 'entropy_bottleneck_u.quantiles'}
+18:46:02 INFO - main: Training mode : scratch!
+18:46:02 INFO - main: lmbda : 100.0
+18:46:02 INFO - main: batch_size : 8
+18:46:02 INFO - main: num of gpus: 1
+18:46:02 INFO - main: Loading ./checkpoint/models--meta-llama--Meta-Llama-3-8B/mlp_attn__512_512_dataset.pt/lmbda_100.0_u_length_4_batch_size8_total_iter2000000_seed100.0/recent_model_MSE_17893909650.88_BPP_0.06161_total_iter_100000.pth.tar
+/home/jgryu/Weight_compression/learnable_SEEDLM/train.py:192: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  checkpoint = torch.load(checkpoint)
+/home/jgryu/Weight_compression/learnable_SEEDLM/train.py:251: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+18:55:20 INFO - main: Train iter. 105000/2000000 (5.25%): 	Loss: 99.35335540771484 |	MSE loss: 0.9885156154632568 |	Bpp loss: 0.5017948150634766 |	Aux loss: 15212.4462890625
+19:04:35 INFO - main: Train iter. 110000/2000000 (5.5%): 	Loss: 90.37712097167969 |	MSE loss: 0.898750364780426 |	Bpp loss: 0.5020861029624939 |	Aux loss: 14937.8408203125
+19:13:54 INFO - main: Train iter. 115000/2000000 (5.75%): 	Loss: 85.80191040039062 |	MSE loss: 0.8530622720718384 |	Bpp loss: 0.4956795275211334 |	Aux loss: 14734.7763671875
+19:23:08 INFO - main: Train iter. 120000/2000000 (6.0%): 	Loss: 83.25957489013672 |	MSE loss: 0.8275704383850098 |	Bpp loss: 0.5025345087051392 |	Aux loss: 14539.404296875
