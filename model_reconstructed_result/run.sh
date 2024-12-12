@@ -1,42 +1,23 @@
+#!/bin/bash
 
+# Pretrained 모델 경로
+pretrain_path=/home/jgryu/Weight_compression/model_cache_reconstructed/vq_seedlm_/mlp_16_row_dataset.pt/size16_ne512_P4_batch_size512_total_iter2000000_lr0.0001_seed100/best_mse_model_MSE_0.11122_total_iter_2000000.pth.tar
+# 로그 파일 경로 설정
+log_path=${pretrain_path}_result.txt
 
-# CUDA_VISIBLE_DEVICES=1,2,3 lm_eval --model hf \
-#     --model_args pretrained=/home/jgryu/Weight_compression/model_cache/models--meta-llama--Meta-Llama-3-8B/snapshots/8cde5ca8380496c9a6cc7ef3a8b46a0372a1d920,parallelize=True \
-#     --tasks hellaswag \
-#     --batch_size 1
+# 로그 파일 디렉토리 생성
+log_dir=$(dirname $log_path)
+mkdir -p $log_dir
 
+# lm-evaluation-harness 디렉토리를 PATH에 추가 (현재 세션에만 적용)
+export PATH=$PATH:$(realpath ../lm-evaluation-harness)
+
+# 실행 명령
+# CUDA_VISIBLE_DEVICES=0,1,2,3 lm_eval --model hf \
+#     --model_args pretrained=$pretrain_path,parallelize=True \
+#     --tasks wikitext,arc_easy,arc_challenge,winogrande,boolq,hellaswag \
+#     --batch_size 1 | tee $log_path
 CUDA_VISIBLE_DEVICES=0,1,2,3 lm_eval --model hf \
-    --model_args pretrained=/home/jgryu/Weight_compression/model_cache_reconstructed/nic/meta-llama--Meta-Llama-3-8B_attn_d256_256,parallelize=True \
-    --tasks arc_easy,arc_challenge,hellaswag,winogrande,boolq \
-    --batch_size 1
-
-
-##### original
-## wikitext
-# | Tasks  |Version|Filter|n-shot|    Metric     |   |Value |   |Stderr|
-# |--------|------:|------|-----:|---------------|---|-----:|---|------|
-# |wikitext|      2|none  |     0|bits_per_byte  |↓  |0.5348|±  |   N/A|
-# |        |       |none  |     0|byte_perplexity|↓  |1.4488|±  |   N/A|
-# |        |       |none  |     0|word_perplexity|↓  |7.2602|±  |   N/A|
-
-## hellaswag
-# |  Tasks  |Version|Filter|n-shot| Metric |   |Value |   |Stderr|
-# |---------|------:|------|-----:|--------|---|-----:|---|-----:|
-# |hellaswag|      1|none  |     0|acc     |↑  |0.6017|±  |0.0049|
-# |         |       |none  |     0|acc_norm|↑  |0.7907|±  |0.0041|
-
-
-##### Reconstruncted
-## wikitext
-
-# | Tasks  |Version|Filter|n-shot|    Metric     |   |   Value    |   |Stderr|
-# |--------|------:|------|-----:|---------------|---|-----------:|---|------|
-# |wikitext|      2|none  |     0|bits_per_byte  |↓  |      4.2705|±  |   N/A|
-# |        |       |none  |     0|byte_perplexity|↓  |     19.2999|±  |   N/A|
-# |        |       |none  |     0|word_perplexity|↓  |7489308.9832|±  |   N/A|
-
-## hellaswag
-# |  Tasks  |Version|Filter|n-shot| Metric |   |Value |   |Stderr|
-# |---------|------:|------|-----:|--------|---|-----:|---|-----:|
-# |hellaswag|      1|none  |     0|acc     |↑  |0.2569|±  |0.0044|
-# |         |       |none  |     0|acc_norm|↑  |0.2660|±  |0.0044|
+    --model_args pretrained=$pretrain_path,parallelize=True \
+    --tasks arc_easy \
+    --batch_size 1 | tee $log_path
