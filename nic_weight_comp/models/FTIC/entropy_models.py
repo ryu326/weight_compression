@@ -109,9 +109,7 @@ class ContinuousIndexedGaussianConditional(EntropyModel):
         self.register_buffer("_prior_scale", torch.Tensor())
         self._prior_dtype = torch.float32
 
-    def _get_prior_params(
-        self, means_idx: Tensor, scales_idx: Tensor
-    ) -> Tuple[Tensor, Tensor]:
+    def _get_prior_params(self, means_idx: Tensor, scales_idx: Tensor) -> Tuple[Tensor, Tensor]:
         """
         Map indexes to the parameters of the gaussian prior
 
@@ -148,18 +146,13 @@ class ContinuousIndexedGaussianConditional(EntropyModel):
             return False
         device = self._indexes_table.device
 
-        indexes = [
-            torch.arange(0, r, dtype=torch.int32, device=device)
-            for r in self._index_ranges
-        ]  # [means, scales]
+        indexes = [torch.arange(0, r, dtype=torch.int32, device=device) for r in self._index_ranges]  # [means, scales]
         indexes = torch.meshgrid(*indexes, indexing="ij")
         indexes = torch.stack(indexes, dim=-1)  # [n_means, n_scales, 2]
         self._indexes_table = self._prepare_table(table=indexes).to(device)
 
         # Compute the mean and scale grids of the quantized prior
-        _prior_mean, _prior_scale = self._get_prior_params(
-            indexes[..., 0], indexes[..., 1]
-        )
+        _prior_mean, _prior_scale = self._get_prior_params(indexes[..., 0], indexes[..., 1])
         # sanity check: grids are increaing
         assert _prior_mean[:, 0].equal(torch.sort(_prior_mean[:, 0]).values)
         assert _prior_scale[0].equal(torch.sort(_prior_scale[0]).values)
@@ -195,12 +188,10 @@ class ContinuousIndexedGaussianConditional(EntropyModel):
         cdf_offset = minimas.reshape(num_pmfs)
 
         upper = self._standardized_cumulative(
-            (0.5 - (samples - self._prior_mean.numpy()).abs())
-            / self._prior_scale.numpy()
+            (0.5 - (samples - self._prior_mean.numpy()).abs()) / self._prior_scale.numpy()
         )  # [max_len, num_means, num_scales]
         lower = self._standardized_cumulative(
-            (-0.5 - (samples - self._prior_mean.numpy()).abs())
-            / self._prior_scale.numpy()
+            (-0.5 - (samples - self._prior_mean.numpy()).abs()) / self._prior_scale.numpy()
         )  # [max_len, num_means, num_scales]
         pmf = upper - lower  #
         pmf = pmf.reshape(max_length, num_pmfs).T  # [num_pmfs, max_length]
@@ -215,15 +206,15 @@ class ContinuousIndexedGaussianConditional(EntropyModel):
         self._offset = cdf_offset  # -pmf_center
         self._cdf_length = pmf_length + 2
 
-    def _likelihood(self, inputs: Tensor, scales: Tensor,means:Tensor) -> Tensor:
+    def _likelihood(self, inputs: Tensor, scales: Tensor, means: Tensor) -> Tensor:
         """
         Compute the likelihood of the convolved (Normal + Uniform noise)
         """
         half = float(0.5)
-        scales =self.lower_bound_scale(scales)
+        scales = self.lower_bound_scale(scales)
         # scales = -self.upper_bound_scale(-scales)
         values = torch.abs(inputs - means)
-        
+
         # print('means2',means[0][0],'scales',scales[0][0])
 
         upper = self._standardized_cumulative((half - values) / scales)
@@ -245,8 +236,8 @@ class ContinuousIndexedGaussianConditional(EntropyModel):
     def forward(
         self,
         inputs: Tensor,
-        scales:Tensor,
-        means:Tensor,
+        scales: Tensor,
+        means: Tensor,
         training: Optional[bool] = None,
     ) -> Tuple[Tensor, Tensor]:
         """
@@ -263,7 +254,7 @@ class ContinuousIndexedGaussianConditional(EntropyModel):
         training = self.training if training is None else training
 
         outputs = self.quantize(inputs, "noise" if training else "dequantize")
-        likelihood = self._likelihood(outputs,scales,means)
+        likelihood = self._likelihood(outputs, scales, means)
 
         if self.use_likelihood_bound:
             likelihood = self.likelihood_lower_bound(likelihood)
@@ -276,9 +267,7 @@ class ContinuousIndexedGaussianConditional(EntropyModel):
             dim=-1,
         ).indices
 
-    def indexes_to_cdf_indexes(
-        self, indexes_mean: Tensor, indexes_scale: Tensor
-    ) -> Tensor:
+    def indexes_to_cdf_indexes(self, indexes_mean: Tensor, indexes_scale: Tensor) -> Tensor:
         """
         Convert indexes to CDF table indexes
 
@@ -355,15 +344,11 @@ class GsnConditionalLocScaleShift(nn.Module):
         inputs_neg = torch.minimum(inputs, torch.zeros_like(inputs))
         return torch.where(inputs > 0, inputs_pos + 1.0, 1.0 / (1.0 - inputs_neg))
 
-    def _get_indexes(
-        self, means: Tensor, scales: Tensor, training: bool = True
-    ) -> Tensor:
+    def _get_indexes(self, means: Tensor, scales: Tensor, training: bool = True) -> Tensor:
         """
         Get indexes from means and scales
         """
-        scales_i = self._scaler.to_scale_idx(
-            self.verysoftplus(scales), training=training
-        )
+        scales_i = self._scaler.to_scale_idx(self.verysoftplus(scales), training=training)
         mean_i = (means - self._round_st(means) + 0.5) * self._num_means
         return torch.stack([mean_i, scales_i], dim=-1)
 
@@ -389,23 +374,20 @@ class GsnConditionalLocScaleShift(nn.Module):
         training = self.training if training is None else training
 
         # flaot means and scales to indexes where mean is (mean - round(mean))
-      
 
         # print('means1',means[0][0],'scales1',scales[0][0])
-        inputs = inputs 
-        
+        inputs = inputs
+
         roun_mean = self._round_st(means)
         quantized_inputs, bits = self._entropy_model(
-            inputs, scales,means, training=training
+            inputs, scales, means, training=training
         )  # noised input to get approximate rate
         if training:
             quantized_inputs = self._round_st(inputs)  # Round + STE
 
         return quantized_inputs, bits
 
-    def compress(
-        self, inputs: Tensor, scales: Tensor, means: Tensor
-    ) -> Tuple[Tensor, List[str]]:
+    def compress(self, inputs: Tensor, scales: Tensor, means: Tensor) -> Tuple[Tensor, List[str]]:
         """
         Compress `inputs` tensor to string
 

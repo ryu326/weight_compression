@@ -92,9 +92,7 @@ def sample_model_evaluation_subsampled(
     checkpoint_ref = module.model.state_dict()
 
     # get first anchor embeddings
-    logging.info(
-        f"sampling:: get first anchor embeddings from anchor_ds_path: {anchor_ds_path}"
-    )
+    logging.info(f"sampling:: get first anchor embeddings from anchor_ds_path: {anchor_ds_path}")
     anchor_z, anchor_pos, anchor_w_shape = get_anchor_embeddings(
         anchor_ds_path=anchor_ds_path,
         ae_model=ae_model,
@@ -133,18 +131,14 @@ def sample_model_evaluation_subsampled(
     logging.info("sampling:: de-normalize checkpoints")
     if norm_mode is not None:
         for idx in range(len(checkpoints)):
-            checkpoints[idx] = de_normalize_checkpoint(
-                checkpoints[idx], layers=layer_norms, mode=norm_mode
-            )
+            checkpoints[idx] = de_normalize_checkpoint(checkpoints[idx], layers=layer_norms, mode=norm_mode)
     if check_equivalence(checkpoints[0], checkpoints[-1]):
         logging.warning(f"monitoring: same checkpoints after normalization")
 
     # condition bn of checkpoints
     if bn_condition_iters > 0:
         logging.info(f"sampling: condition bn layers")
-        checkpoints = condition_checkpoints(
-            checkpoints, sample_config, bn_condition_iters
-        )
+        checkpoints = condition_checkpoints(checkpoints, sample_config, bn_condition_iters)
     if check_equivalence(checkpoints[0], checkpoints[-1]):
         logging.warning(f"monitoring: same checkpoints after conditioning")
 

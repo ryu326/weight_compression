@@ -10,12 +10,11 @@ from lm_eval import evaluator, utils
 from lm_eval.evaluator import request_caching_arg_to_dict
 from lm_eval.loggers import EvaluationTracker, WandbLogger
 from lm_eval.tasks import TaskManager
-from lm_eval.utils import handle_non_serializable, make_table, simple_parse_args_string
+from lm_eval.utils import (handle_non_serializable, make_table,
+                           simple_parse_args_string)
 
 
-def _int_or_none_list_arg_type(
-    min_len: int, max_len: int, defaults: str, value: str, split_char: str = ","
-):
+def _int_or_none_list_arg_type(min_len: int, max_len: int, defaults: str, value: str, split_char: str = ","):
     def parse_value(item):
         item = item.strip().lower()
         if item == "none":
@@ -32,18 +31,14 @@ def _int_or_none_list_arg_type(
         # Makes downstream handling the same for single and multiple values
         items = items * max_len
     elif num_items < min_len or num_items > max_len:
-        raise argparse.ArgumentTypeError(
-            f"Argument requires {max_len} integers or None, separated by '{split_char}'"
-        )
+        raise argparse.ArgumentTypeError(f"Argument requires {max_len} integers or None, separated by '{split_char}'")
     elif num_items != max_len:
         logging.warning(
             f"Argument requires {max_len} integers or None, separated by '{split_char}'. "
             "Missing values will be filled with defaults."
         )
         default_items = [parse_value(v) for v in defaults.split(split_char)]
-        items.extend(
-            default_items[num_items:]
-        )  # extend items list with missing defaults
+        items.extend(default_items[num_items:])  # extend items list with missing defaults
 
     return items
 
@@ -55,18 +50,14 @@ def check_argument_types(parser: argparse.ArgumentParser):
     for action in parser._actions:
         if action.dest != "help" and not action.const:
             if action.type is None:
-                raise ValueError(
-                    f"Argument '{action.dest}' doesn't have a type specified."
-                )
+                raise ValueError(f"Argument '{action.dest}' doesn't have a type specified.")
             else:
                 continue
 
 
 def setup_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument(
-        "--model", "-m", type=str, default="hf", help="Name of model e.g. `hf`"
-    )
+    parser.add_argument("--model", "-m", type=str, default="hf", help="Name of model e.g. `hf`")
     parser.add_argument(
         "--tasks",
         "-t",
@@ -125,8 +116,7 @@ def setup_parser() -> argparse.ArgumentParser:
         type=float,
         default=None,
         metavar="N|0<N<1",
-        help="Limit the number of examples per task. "
-        "If <1, limit is a percentage of the total number of examples.",
+        help="Limit the number of examples per task. " "If <1, limit is a percentage of the total number of examples.",
     )
     parser.add_argument(
         "--use_cache",
@@ -204,10 +194,7 @@ def setup_parser() -> argparse.ArgumentParser:
         "--gen_kwargs",
         type=str,
         default=None,
-        help=(
-            "String arguments for model generation on greedy_until tasks,"
-            " e.g. `temperature=0,top_k=0,top_p=0`."
-        ),
+        help=("String arguments for model generation on greedy_until tasks," " e.g. `temperature=0,top_k=0,top_p=0`."),
     )
     parser.add_argument(
         "--verbosity",
@@ -290,9 +277,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     if args.predict_only:
         args.log_samples = True
     if (args.log_samples or args.predict_only) and not args.output_path:
-        raise ValueError(
-            "Specify --output_path if providing --log_samples or --predict_only"
-        )
+        raise ValueError("Specify --output_path if providing --log_samples or --predict_only")
 
     if args.fewshot_as_multiturn and args.apply_chat_template is False:
         raise ValueError(
@@ -310,8 +295,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
 
     if args.limit:
         eval_logger.warning(
-            " --limit SHOULD ONLY BE USED FOR TESTING."
-            "REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
+            " --limit SHOULD ONLY BE USED FOR TESTING." "REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
         )
 
     if args.tasks is None:
@@ -375,9 +359,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
 
     eval_logger.info(f"Selected Tasks: {task_names}")
 
-    request_caching_args = request_caching_arg_to_dict(
-        cache_requests=args.cache_requests
-    )
+    request_caching_args = request_caching_arg_to_dict(cache_requests=args.cache_requests)
 
     results = evaluator.simple_evaluate(
         model=args.model,
@@ -410,9 +392,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     if results is not None:
         if args.log_samples:
             samples = results.pop("samples")
-        dumped = json.dumps(
-            results, indent=2, default=handle_non_serializable, ensure_ascii=False
-        )
+        dumped = json.dumps(results, indent=2, default=handle_non_serializable, ensure_ascii=False)
         if args.show_config:
             print(dumped)
 
@@ -428,20 +408,13 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             except Exception as e:
                 eval_logger.info(f"Logging to Weights and Biases failed due to {e}")
 
-        evaluation_tracker.save_results_aggregated(
-            results=results, samples=samples if args.log_samples else None
-        )
+        evaluation_tracker.save_results_aggregated(results=results, samples=samples if args.log_samples else None)
 
         if args.log_samples:
             for task_name, config in results["configs"].items():
-                evaluation_tracker.save_results_samples(
-                    task_name=task_name, samples=samples[task_name]
-                )
+                evaluation_tracker.save_results_samples(task_name=task_name, samples=samples[task_name])
 
-        if (
-            evaluation_tracker.push_results_to_hub
-            or evaluation_tracker.push_samples_to_hub
-        ):
+        if evaluation_tracker.push_results_to_hub or evaluation_tracker.push_samples_to_hub:
             evaluation_tracker.recreate_metadata_card()
 
         print(

@@ -1,8 +1,7 @@
 from typing import List
-from tinychat.utils.constants import (
-    LLAVA_DEFAULT_IMAGE_TOKEN,
-    LLAVA_DEFAULT_IMAGE_PATCH_TOKEN,
-)
+
+from tinychat.utils.constants import (LLAVA_DEFAULT_IMAGE_PATCH_TOKEN,
+                                      LLAVA_DEFAULT_IMAGE_TOKEN)
 
 
 def get_image_token(model, model_name):
@@ -180,9 +179,7 @@ class Llama2Prompter(OneShotBasePrompter):
                 + "Remember to tailor the activities to the birthday child's interests and preferences. Have a great celebration!"
             )
         oneshot_example = [user_example, assistant_example]
-        super().__init__(
-            oneshot_example, system_inst, role1, role2, sen_spliter, qa_spliter
-        )
+        super().__init__(oneshot_example, system_inst, role1, role2, sen_spliter, qa_spliter)
 
 
 class Llama3Prompter(BasePrompter):
@@ -203,9 +200,7 @@ class Llama3Prompter(BasePrompter):
         sen_spliter = "<|eot_id|>"
         qa_spliter = ""
         colon = ""
-        super().__init__(
-            system_inst, role1, role2, sen_spliter, qa_spliter, colon=colon
-        )
+        super().__init__(system_inst, role1, role2, sen_spliter, qa_spliter, colon=colon)
 
 
 class LlavaLlamaPrompter(BasePrompter):
@@ -240,9 +235,7 @@ class LlavaLlama3Prompter(BasePrompter):
         sen_spliter = "<|end_of_text|>"
         qa_spliter = ""
         colon = ""
-        super().__init__(
-            system_inst, role1, role2, sen_spliter, qa_spliter, colon=colon
-        )
+        super().__init__(system_inst, role1, role2, sen_spliter, qa_spliter, colon=colon)
 
 
 class FalconSimplePrompter(BasePrompter):
@@ -305,9 +298,7 @@ def get_prompter(model_type, model_path="", short_prompt=False, empty_prompt=Fal
     if model_type.lower() == "llama":
         if "vicuna" in model_path.lower():
             return VicunaPrompter()
-        elif (
-            "llama-3" in model_path.lower() or "llama3" in model_path.lower()
-        ) and "30b" not in model_path.lower():
+        elif ("llama-3" in model_path.lower() or "llama3" in model_path.lower()) and "30b" not in model_path.lower():
             if "vila" in model_path.lower():
                 # with system prompt by default
                 return LlavaLlama3Prompter()
@@ -331,9 +322,7 @@ def get_prompter(model_type, model_path="", short_prompt=False, empty_prompt=Fal
 
 def get_stop_token_ids(model_type, model_path=""):
     if model_type.lower() == "llama":
-        if (
-            "llama-3" in model_path.lower() or "llama3" in model_path.lower()
-        ) and "30b" not in model_path.lower():
+        if ("llama-3" in model_path.lower() or "llama3" in model_path.lower()) and "30b" not in model_path.lower():
             # llama3
             return [128001, 128009]
         return []

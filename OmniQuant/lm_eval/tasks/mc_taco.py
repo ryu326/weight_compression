@@ -19,6 +19,7 @@ of a question's options. See section 4 of the paper for details.
 
 Homepage: https://leaderboard.allenai.org/mctaco/submissions/public
 """
+
 import numpy as np
 from collections import defaultdict
 from lm_eval.base import rf, Task
@@ -55,10 +56,7 @@ class MCTACO(Task):
         return self.dataset["test"]
 
     def doc_to_text(self, doc):
-        return (
-            f"{doc['sentence']}\nQuestion: {doc['question']}\n"
-            f"Answer: {doc['answer']}\nPlausible:"
-        )
+        return f"{doc['sentence']}\nQuestion: {doc['question']}\n" f"Answer: {doc['answer']}\nPlausible:"
 
     def should_decontaminate(self):
         return True

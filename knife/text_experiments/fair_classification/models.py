@@ -7,7 +7,6 @@ import itertools
 from model_utils import *
 
 
-
 class VanillaSeq2seq(torch.nn.Module):
     def __init__(self, args):
         super(VanillaSeq2seq, self).__init__()
@@ -23,8 +22,9 @@ class VanillaSeq2seq(torch.nn.Module):
         encoder_hidden = self.encoder.initHidden()
         encoder_output, encoder_hidden = self.encoder(input_tensor, encoder_hidden)
 
-        decoder_input = torch.ones(self.args.batch_size, 1).to(
-            self.args.device).long() * self.args.tokenizer.sep_token_id
+        decoder_input = (
+            torch.ones(self.args.batch_size, 1).to(self.args.device).long() * self.args.tokenizer.sep_token_id
+        )
         decoded_words = [decoder_input]
         if self.args.hidden_dim != self.args.dec_hidden_dim:
             decoder_hidden = self.linear(encoder_hidden)
@@ -58,7 +58,7 @@ class VanillaSeq2seq(torch.nn.Module):
             self.encoder.zero_grad()
             self.decoder.zero_grad()
         decoded_words = torch.cat(decoded_words, dim=-1)  # memory ineficient but nicer
-        return ({'generation_loss': loss}, decoded_words)
+        return ({"generation_loss": loss}, decoded_words)
 
     def predict_latent_space(self, input_tensor):
         encoder_hidden = self.encoder.initHidden()
@@ -75,8 +75,9 @@ class VanillaSeq2seq(torch.nn.Module):
         encoder_hidden = self.encoder.initHidden()
         encoder_output, encoder_hidden = self.encoder(input_tensor, encoder_hidden)
 
-        decoder_input = torch.ones(self.args.batch_size, 1).to(
-            self.args.device).long() * self.args.tokenizer.sep_token_id
+        decoder_input = (
+            torch.ones(self.args.batch_size, 1).to(self.args.device).long() * self.args.tokenizer.sep_token_id
+        )
         decoded_words = [decoder_input]
         decoder_hidden = encoder_hidden
 
@@ -90,9 +91,7 @@ class VanillaSeq2seq(torch.nn.Module):
         loss = loss / self.args.max_length
 
         decoded_words = torch.cat(decoded_words, dim=-1)  # memory ineficient but nicer
-        return ({'generation_loss': loss}, decoded_words)
-
-
+        return ({"generation_loss": loss}, decoded_words)
 
 
 class BaselineDisentanglement(torch.nn.Module):
@@ -102,10 +101,12 @@ class BaselineDisentanglement(torch.nn.Module):
         self.encoder = EncoderRNN(args, args.number_of_tokens, args.hidden_dim, args.number_of_layers)
         self.decoder = DecoderRNN(args, args.style_dim + args.content_dim, args.number_of_tokens, args.number_of_layers)
         self.loss = torch.nn.NLLLoss(ignore_index=self.args.tokenizer.pad_token_id)
-        self.proj_style = nn.Sequential(nn.Linear(args.hidden_dim, args.hidden_dim), nn.LeakyReLU(),
-                                        nn.Linear(args.hidden_dim, args.style_dim))
-        self.proj_content = nn.Sequential(nn.Linear(args.hidden_dim, args.hidden_dim), nn.LeakyReLU(),
-                                          nn.Linear(args.hidden_dim, args.content_dim))
+        self.proj_style = nn.Sequential(
+            nn.Linear(args.hidden_dim, args.hidden_dim), nn.LeakyReLU(), nn.Linear(args.hidden_dim, args.style_dim)
+        )
+        self.proj_content = nn.Sequential(
+            nn.Linear(args.hidden_dim, args.hidden_dim), nn.LeakyReLU(), nn.Linear(args.hidden_dim, args.content_dim)
+        )
 
         # Adversarial Classifiers
         self.adv_classifier_style = Classifier(args.content_dim, args.number_of_styles)
@@ -114,7 +115,6 @@ class BaselineDisentanglement(torch.nn.Module):
         # Loss : paper multipliers
         self.mul_style = 0
         self.adv_style = self.args.adv_style
-
 
     def forward(self, input_tensor, labels, teacher_ratio):
         # Update strategy is as follow :
@@ -133,7 +133,7 @@ class BaselineDisentanglement(torch.nn.Module):
 
         golden_tensor = input_tensor.clone()
         if self.args.add_noise:
-            input_tensor = corrupt_input(self,input_tensor)
+            input_tensor = corrupt_input(self, input_tensor)
 
         encoder_hidden = self.encoder.initHidden()
         encoder_output, encoder_hidden = self.encoder(input_tensor, encoder_hidden)
@@ -170,19 +170,20 @@ class BaselineDisentanglement(torch.nn.Module):
         # Ensure Style is in style space
         style = self.proj_style(encoder_hidden)
         style_pred = self.mul_classifier_style(style)
-        loss_mul_style += self.mul_style * self.loss(style_pred, labels) # set à 0
+        loss_mul_style += self.mul_style * self.loss(style_pred, labels)  # set à 0
 
         # Ensure Style not in content space
         content = self.proj_content(encoder_hidden)
         style_content_pred = self.adv_classifier_style(content)
-        loss_adv_style += - self.adv_style * self.loss(style_content_pred, labels)
+        loss_adv_style += -self.adv_style * self.loss(style_content_pred, labels)
 
         # Concatenate style and other
         encoder_hidden = torch.cat([style, content], dim=-1)
 
         # Sentence Generation
-        decoder_input = torch.ones(self.args.batch_size, 1).to(
-            self.args.device).long() * self.args.tokenizer.sep_token_id
+        decoder_input = (
+            torch.ones(self.args.batch_size, 1).to(self.args.device).long() * self.args.tokenizer.sep_token_id
+        )
         decoder_hidden = encoder_hidden
         use_teacher_forcing = False if random.random() < teacher_ratio else False
 
@@ -219,8 +220,12 @@ class BaselineDisentanglement(torch.nn.Module):
             self.encoder.zero_grad()
             self.decoder.zero_grad()
         decoded_words = torch.cat(decoded_words, dim=-1)  # memory ineficient but nicer
-        losses_dic = {'loss_gen': loss_gen, '- loss_adv_style': loss_adv_style, 'loss_mul_style': loss_mul_style,
-                      'loss_classifier_adv_style': loss_classifier_adv_style}
+        losses_dic = {
+            "loss_gen": loss_gen,
+            "- loss_adv_style": loss_adv_style,
+            "loss_mul_style": loss_mul_style,
+            "loss_classifier_adv_style": loss_classifier_adv_style,
+        }
         return (losses_dic, decoded_words)
 
     def predict_latent_space(self, input_tensor):
@@ -251,8 +256,9 @@ class BaselineDisentanglement(torch.nn.Module):
         encoder_hidden = torch.cat([style, content], dim=-1)
 
         # Sentence Generation
-        decoder_input = torch.ones(self.args.batch_size, 1).to(
-            self.args.device).long() * self.args.tokenizer.sep_token_id
+        decoder_input = (
+            torch.ones(self.args.batch_size, 1).to(self.args.device).long() * self.args.tokenizer.sep_token_id
+        )
         decoder_hidden = encoder_hidden
 
         decoded_words = [decoder_input]
@@ -266,11 +272,8 @@ class BaselineDisentanglement(torch.nn.Module):
             loss_gen += self.loss(decoder_output.squeeze(1), input_tensor[:, di]) / self.args.max_length
 
         decoded_words = torch.cat(decoded_words, dim=-1)  # memory ineficient but nicer
-        losses_dic = {'loss_gen': loss_gen}
+        losses_dic = {"loss_gen": loss_gen}
         return (losses_dic, decoded_words)
-
-
-
 
 
 class RenySeq2Seq(torch.nn.Module):
@@ -283,31 +286,44 @@ class RenySeq2Seq(torch.nn.Module):
         self.decoder = DecoderRNN(args, args.style_dim + args.content_dim, args.number_of_tokens, args.number_of_layers)
         self.loss = torch.nn.NLLLoss(ignore_index=self.args.tokenizer.pad_token_id)
         if self.args.complex_proj_content:
-            self.proj_style = nn.Sequential(nn.Linear(args.hidden_dim, args.hidden_dim), nn.LeakyReLU(),
-                                            nn.Linear(args.hidden_dim, args.hidden_dim), nn.LeakyReLU(),
-                                            nn.Linear(args.hidden_dim, args.style_dim))
-            self.proj_content = nn.Sequential(nn.Linear(args.hidden_dim, args.hidden_dim), nn.LeakyReLU(),
-                                              nn.Linear(args.hidden_dim, args.hidden_dim), nn.LeakyReLU(),
-                                              nn.Linear(args.hidden_dim, args.content_dim))
+            self.proj_style = nn.Sequential(
+                nn.Linear(args.hidden_dim, args.hidden_dim),
+                nn.LeakyReLU(),
+                nn.Linear(args.hidden_dim, args.hidden_dim),
+                nn.LeakyReLU(),
+                nn.Linear(args.hidden_dim, args.style_dim),
+            )
+            self.proj_content = nn.Sequential(
+                nn.Linear(args.hidden_dim, args.hidden_dim),
+                nn.LeakyReLU(),
+                nn.Linear(args.hidden_dim, args.hidden_dim),
+                nn.LeakyReLU(),
+                nn.Linear(args.hidden_dim, args.content_dim),
+            )
         else:
-            self.proj_style = nn.Sequential(nn.Linear(args.hidden_dim, args.hidden_dim), nn.LeakyReLU(),
-                                            nn.Linear(args.hidden_dim, args.style_dim))
-            self.proj_content = nn.Sequential(nn.Linear(args.hidden_dim, args.hidden_dim), nn.LeakyReLU(),
-                                              nn.Linear(args.hidden_dim, args.content_dim))
+            self.proj_style = nn.Sequential(
+                nn.Linear(args.hidden_dim, args.hidden_dim), nn.LeakyReLU(), nn.Linear(args.hidden_dim, args.style_dim)
+            )
+            self.proj_content = nn.Sequential(
+                nn.Linear(args.hidden_dim, args.hidden_dim),
+                nn.LeakyReLU(),
+                nn.Linear(args.hidden_dim, args.content_dim),
+            )
 
         self.args.ema_beta = args.ema_beta
         if not self.args.not_use_ema:
-            self.ema_dict = {'ema_encoder': EMA(self.encoder, self.args, self.args.ema_beta),
-                             'ema_proj_s': EMA(self.proj_style, self.args, self.args.ema_beta),
-                             'ema_decoder': EMA(self.decoder, self.args, self.args.ema_beta),
-                             'ema_proj_c': EMA(self.proj_content, self.args, self.args.ema_beta)}
+            self.ema_dict = {
+                "ema_encoder": EMA(self.encoder, self.args, self.args.ema_beta),
+                "ema_proj_s": EMA(self.proj_style, self.args, self.args.ema_beta),
+                "ema_decoder": EMA(self.decoder, self.args, self.args.ema_beta),
+                "ema_proj_c": EMA(self.proj_content, self.args, self.args.ema_beta),
+            }
 
             for _, value in self.ema_dict.items():
                 value.register()
 
         # D_\gamma
-        self.d_gamma = ClassifierGamma(args.content_dim + args.number_of_styles,
-                                       args.number_of_styles)
+        self.d_gamma = ClassifierGamma(args.content_dim + args.number_of_styles, args.number_of_styles)
 
         # Style classifier
         self.style_classifier = Classifier(args.content_dim, args.number_of_styles)
@@ -325,21 +341,29 @@ class RenySeq2Seq(torch.nn.Module):
         ###############################
         # Update style classifier loss:
         ###############################
-        loss_gen, loss_mi, reny, loss_gamma, loss_style_classifier, loss_gen_reny = torch.tensor(0.0).to(
-            self.args.device), torch.tensor(0.0).to(self.args.device), torch.tensor(0.0).to(
-            self.args.device), torch.tensor(0.0).to(self.args.device), torch.tensor(0.0).to(
-            self.args.device), torch.tensor(0.0).to(self.args.device)
-        gradient_encoder, gradient_decoder, gradient_content_proj, gradient_style_proj, gradient_reny = torch.tensor(
-            0.0).to(self.args.device), torch.tensor(0.0).to(self.args.device), torch.tensor(0.0).to(
-            self.args.device), torch.tensor(0.0).to(self.args.device), torch.tensor(0.0).to(self.args.device)
+        loss_gen, loss_mi, reny, loss_gamma, loss_style_classifier, loss_gen_reny = (
+            torch.tensor(0.0).to(self.args.device),
+            torch.tensor(0.0).to(self.args.device),
+            torch.tensor(0.0).to(self.args.device),
+            torch.tensor(0.0).to(self.args.device),
+            torch.tensor(0.0).to(self.args.device),
+            torch.tensor(0.0).to(self.args.device),
+        )
+        gradient_encoder, gradient_decoder, gradient_content_proj, gradient_style_proj, gradient_reny = (
+            torch.tensor(0.0).to(self.args.device),
+            torch.tensor(0.0).to(self.args.device),
+            torch.tensor(0.0).to(self.args.device),
+            torch.tensor(0.0).to(self.args.device),
+            torch.tensor(0.0).to(self.args.device),
+        )
 
         # epoch_iterator = tqdm(self.reny_dataloader, desc="Reny Training")
         if self.training_all_except_encoder:
             for step, batch in enumerate(self.reny_dataloader):
                 if step == self.args.reny_training + 1:
                     break
-                inputs_reny = batch['line'].to(self.args.device)
-                labels_reny = batch['label'].to(self.args.device)
+                inputs_reny = batch["line"].to(self.args.device)
+                labels_reny = batch["label"].to(self.args.device)
                 free_params(self.style_classifier)
                 frozen_params(self.d_gamma)
                 frozen_params(self.proj_style)
@@ -379,12 +403,15 @@ class RenySeq2Seq(torch.nn.Module):
 
                 style_content_pred = self.style_classifier(content)
                 label_content_pred = style_content_pred.topk(1, dim=-1)[-1]
-                label_v = torch.tensor([[1., 0.] if el == 0 else [0., 1.] for el in label_content_pred.tolist()]).to(
-                    self.args.device)
-                label_u = torch.tensor([[1., 0.] if el == 0 else [0., 1.] for el in labels.tolist()]).to(
-                    self.args.device)
-                u = torch.cat([content, label_u.unsqueeze(0).float().repeat(4, 1, 1)],
-                              dim=-1)  # 4 is for bid + 2 layers
+                label_v = torch.tensor(
+                    [[1.0, 0.0] if el == 0 else [0.0, 1.0] for el in label_content_pred.tolist()]
+                ).to(self.args.device)
+                label_u = torch.tensor([[1.0, 0.0] if el == 0 else [0.0, 1.0] for el in labels.tolist()]).to(
+                    self.args.device
+                )
+                u = torch.cat(
+                    [content, label_u.unsqueeze(0).float().repeat(4, 1, 1)], dim=-1
+                )  # 4 is for bid + 2 layers
                 v = torch.cat([content, label_v.unsqueeze(0).float().repeat(4, 1, 1)], dim=-1)
 
                 d_gamma_content_pred_u = self.d_gamma(u)  # - log
@@ -412,7 +439,7 @@ class RenySeq2Seq(torch.nn.Module):
                 input_tensor_reny_gen_golden = inputs_reny.clone()
                 inputs_reny_gen = inputs_reny.clone()
                 if self.args.add_noise:
-                    inputs_reny_gen = corrupt_input(self,inputs_reny)
+                    inputs_reny_gen = corrupt_input(self, inputs_reny)
 
                 encoder_hidden = self.encoder.initHidden()
                 encoder_output, encoder_hidden = self.encoder(inputs_reny_gen, encoder_hidden)
@@ -427,8 +454,9 @@ class RenySeq2Seq(torch.nn.Module):
 
                 # Sentence Generation
                 loss_gen_reny = 0
-                decoder_input = torch.ones(self.args.batch_size, 1).to(
-                    self.args.device).long() * self.args.tokenizer.sep_token_id
+                decoder_input = (
+                    torch.ones(self.args.batch_size, 1).to(self.args.device).long() * self.args.tokenizer.sep_token_id
+                )
                 decoder_hidden = encoder_hidden
                 use_teacher_forcing = True if random.random() < teacher_ratio else False
 
@@ -438,8 +466,10 @@ class RenySeq2Seq(torch.nn.Module):
                     # Teacher forcing: Feed the target as the next input
                     for di in range(self.args.max_length):
                         decoder_output, decoder_hidden = self.decoder(decoder_input, decoder_hidden)
-                        loss_gen_reny += self.loss(decoder_output.squeeze(1),
-                                                   input_tensor_reny_gen_golden[:, di]) / self.args.max_length
+                        loss_gen_reny += (
+                            self.loss(decoder_output.squeeze(1), input_tensor_reny_gen_golden[:, di])
+                            / self.args.max_length
+                        )
                         decoder_input = input_tensor_reny_gen_golden[:, di].unsqueeze(-1)  # Teacher forcing
 
                 else:
@@ -449,8 +479,10 @@ class RenySeq2Seq(torch.nn.Module):
                         topv, topi = decoder_output.topk(1)
                         decoder_input = topi.squeeze().detach().unsqueeze(-1)  # detach from history as input
                         decoded_words.append(topi.squeeze(-1))
-                        loss_gen_reny += self.loss(decoder_output.squeeze(1),
-                                                   input_tensor_reny_gen_golden[:, di]) / self.args.max_length
+                        loss_gen_reny += (
+                            self.loss(decoder_output.squeeze(1), input_tensor_reny_gen_golden[:, di])
+                            / self.args.max_length
+                        )
 
                 if self.training:
                     loss_gen_reny.backward()
@@ -464,7 +496,7 @@ class RenySeq2Seq(torch.nn.Module):
         input_tensor_gen_golden = input_tensor.clone()
         input_tensor_gen = input_tensor.clone()
         if self.args.add_noise:
-            input_tensor_gen = corrupt_input(self,input_tensor_gen)
+            input_tensor_gen = corrupt_input(self, input_tensor_gen)
         input_tensor_mi = input_tensor_gen.clone()
         if self.training:
             frozen_params(self.d_gamma)
@@ -482,24 +514,29 @@ class RenySeq2Seq(torch.nn.Module):
         content_mi = self.proj_content(encoder_hidden_mi)
         style_content_pred_mi = self.style_classifier(content_mi)
         if self.args.alternative_hs:  # bad idea according to experiments
-            loss_h_s = - torch.log(torch.mean(torch.exp(style_content_pred_mi[:, 0]))) * (
-                    1 - torch.mean(labels.float()).item()) - torch.log(
-                torch.mean(torch.exp(style_content_pred_mi[:, 1]))) * torch.mean(labels.float()).item()  # we use Gibbs
+            loss_h_s = (
+                -torch.log(torch.mean(torch.exp(style_content_pred_mi[:, 0]))) * (1 - torch.mean(labels.float()).item())
+                - torch.log(torch.mean(torch.exp(style_content_pred_mi[:, 1]))) * torch.mean(labels.float()).item()
+            )  # we use Gibbs
         else:
-            loss_h_s = - torch.mean(style_content_pred_mi[:, 0]) * (1 - torch.mean(labels.float()).item()) - torch.mean(
-                style_content_pred_mi[:, 1]) * torch.mean(labels.float()).item()  # we use Jensen
+            loss_h_s = (
+                -torch.mean(style_content_pred_mi[:, 0]) * (1 - torch.mean(labels.float()).item())
+                - torch.mean(style_content_pred_mi[:, 1]) * torch.mean(labels.float()).item()
+            )  # we use Jensen
 
         # Compute Reny
         label_content_pred = style_content_pred_mi.topk(1, dim=-1)[-1]
-        label_v = torch.tensor([[1., 0.] if el == 0 else [0., 1.] for el in label_content_pred.tolist()]).to(
-            self.args.device)
-        label_u = torch.tensor([[1., 0.] if el == 0 else [0., 1.] for el in labels.tolist()]).to(self.args.device)
+        label_v = torch.tensor([[1.0, 0.0] if el == 0 else [0.0, 1.0] for el in label_content_pred.tolist()]).to(
+            self.args.device
+        )
+        label_u = torch.tensor([[1.0, 0.0] if el == 0 else [0.0, 1.0] for el in labels.tolist()]).to(self.args.device)
         u = torch.cat([content_mi, label_u.unsqueeze(0).float().repeat(4, 1, 1)], dim=-1)
         v = torch.cat([content_mi, label_v.unsqueeze(0).float().repeat(4, 1, 1)], dim=-1)
         d_gamma_content_pred_u = self.d_gamma(u)
         d_gamma_content_pred_v = self.d_gamma(v)
-        R = torch.mean((torch.exp(d_gamma_content_pred_u[:, 0]) / torch.exp(d_gamma_content_pred_v[:, 1])) ** (
-                self.args.alpha - 1))
+        R = torch.mean(
+            (torch.exp(d_gamma_content_pred_u[:, 0]) / torch.exp(d_gamma_content_pred_v[:, 1])) ** (self.args.alpha - 1)
+        )
 
         # Remove biais from gradients
         reny = torch.abs(torch.log(R) / (self.args.alpha - 1))
@@ -528,8 +565,9 @@ class RenySeq2Seq(torch.nn.Module):
 
         # Sentence Generation
         loss_gen = 0
-        decoder_input = torch.ones(self.args.batch_size, 1).to(
-            self.args.device).long() * self.args.tokenizer.sep_token_id
+        decoder_input = (
+            torch.ones(self.args.batch_size, 1).to(self.args.device).long() * self.args.tokenizer.sep_token_id
+        )
         decoder_hidden = encoder_hidden
         use_teacher_forcing = True if random.random() < teacher_ratio else False
 
@@ -558,9 +596,12 @@ class RenySeq2Seq(torch.nn.Module):
             else:
                 loss = loss_gen + loss_mi
             loss.backward()
-            gradient_encoder, gradient_decoder, gradient_content_proj, gradient_style_proj = comput_gradient_norm(
-                self.encoder), comput_gradient_norm(self.decoder), comput_gradient_norm(
-                self.proj_content), comput_gradient_norm(self.proj_style)
+            gradient_encoder, gradient_decoder, gradient_content_proj, gradient_style_proj = (
+                comput_gradient_norm(self.encoder),
+                comput_gradient_norm(self.decoder),
+                comput_gradient_norm(self.proj_content),
+                comput_gradient_norm(self.proj_style),
+            )
             torch.nn.utils.clip_grad_norm_(self.proj_style.parameters(), self.args.max_grad_norm)
             torch.nn.utils.clip_grad_norm_(self.proj_content.parameters(), self.args.max_grad_norm)
             torch.nn.utils.clip_grad_norm_(self.encoder.parameters(), self.args.max_grad_norm)
@@ -575,31 +616,48 @@ class RenySeq2Seq(torch.nn.Module):
             self.encoder.zero_grad()
 
         decoded_words = torch.cat(decoded_words, dim=-1)  # memory ineficient but nicer
-        losses_dic = {'loss_gen': loss_gen, 'loss_mi': loss_mi, 'reny': reny, 'loss_gamma': loss_gamma,
-                      'loss_h_sz': loss_h_sz, 'loss_h_s': loss_h_s, 'loss_style_classifier': loss_style_classifier,
-                      'gradient_encoder': gradient_encoder, 'gradient_decoder': gradient_decoder,
-                      'loss_gen_reny': loss_gen_reny,
-                      'gradient_content_proj': gradient_content_proj, 'gradient_style_proj': gradient_style_proj,
-                      'gradient_reny': gradient_reny / self.args.reny_training}
+        losses_dic = {
+            "loss_gen": loss_gen,
+            "loss_mi": loss_mi,
+            "reny": reny,
+            "loss_gamma": loss_gamma,
+            "loss_h_sz": loss_h_sz,
+            "loss_h_s": loss_h_s,
+            "loss_style_classifier": loss_style_classifier,
+            "gradient_encoder": gradient_encoder,
+            "gradient_decoder": gradient_decoder,
+            "loss_gen_reny": loss_gen_reny,
+            "gradient_content_proj": gradient_content_proj,
+            "gradient_style_proj": gradient_style_proj,
+            "gradient_reny": gradient_reny / self.args.reny_training,
+        }
         return (losses_dic, decoded_words, input_tensor_gen)
 
     def forward_non_clement(self, input_tensor, labels, teacher_ratio):
         ###############################
         # Update style classifier loss:
         ###############################
-        loss_gen, loss_mi, reny, loss_gamma, loss_style_classifier = torch.tensor(0.0).to(
-            self.args.device), torch.tensor(0.0).to(self.args.device), torch.tensor(0.0).to(
-            self.args.device), torch.tensor(0.0).to(self.args.device), torch.tensor(0.0).to(self.args.device)
-        gradient_encoder, gradient_decoder, gradient_content_proj, gradient_style_proj, gradient_reny = torch.tensor(
-            0.0).to(self.args.device), torch.tensor(0.0).to(self.args.device), torch.tensor(0.0).to(
-            self.args.device), torch.tensor(0.0).to(self.args.device), torch.tensor(0.0).to(self.args.device)
+        loss_gen, loss_mi, reny, loss_gamma, loss_style_classifier = (
+            torch.tensor(0.0).to(self.args.device),
+            torch.tensor(0.0).to(self.args.device),
+            torch.tensor(0.0).to(self.args.device),
+            torch.tensor(0.0).to(self.args.device),
+            torch.tensor(0.0).to(self.args.device),
+        )
+        gradient_encoder, gradient_decoder, gradient_content_proj, gradient_style_proj, gradient_reny = (
+            torch.tensor(0.0).to(self.args.device),
+            torch.tensor(0.0).to(self.args.device),
+            torch.tensor(0.0).to(self.args.device),
+            torch.tensor(0.0).to(self.args.device),
+            torch.tensor(0.0).to(self.args.device),
+        )
 
         # epoch_iterator = tqdm(self.reny_dataloader, desc="Reny Training")
         for step, batch in enumerate(self.reny_dataloader):
             if step == self.args.reny_training + 1:
                 break
-            inputs_reny = batch['line'].to(self.args.device)
-            labels_reny = batch['label'].to(self.args.device)
+            inputs_reny = batch["line"].to(self.args.device)
+            labels_reny = batch["label"].to(self.args.device)
             free_params(self.style_classifier)
             frozen_params(self.d_gamma)
             frozen_params(self.proj_style)
@@ -639,11 +697,13 @@ class RenySeq2Seq(torch.nn.Module):
 
             style_content_pred = self.style_classifier(content)
             label_content_pred = style_content_pred.topk(1, dim=-1)[-1]
-            label_v = torch.tensor([[1., 0.] if el == 0 else [0., 1.] for el in label_content_pred.tolist()]).to(
-                self.args.device)
-            label_u = torch.tensor([[1., 0.] if el == 0 else [0., 1.] for el in labels.tolist()]).to(self.args.device)
-            u = torch.cat([content, label_u.unsqueeze(0).float().repeat(4, 1, 1)],
-                          dim=-1)  # 4 is for bid + 2 layers
+            label_v = torch.tensor([[1.0, 0.0] if el == 0 else [0.0, 1.0] for el in label_content_pred.tolist()]).to(
+                self.args.device
+            )
+            label_u = torch.tensor([[1.0, 0.0] if el == 0 else [0.0, 1.0] for el in labels.tolist()]).to(
+                self.args.device
+            )
+            u = torch.cat([content, label_u.unsqueeze(0).float().repeat(4, 1, 1)], dim=-1)  # 4 is for bid + 2 layers
             v = torch.cat([content, label_v.unsqueeze(0).float().repeat(4, 1, 1)], dim=-1)
 
             d_gamma_content_pred_u = self.d_gamma(u)  # - log
@@ -665,7 +725,7 @@ class RenySeq2Seq(torch.nn.Module):
         input_tensor_gen_golden = input_tensor.clone()
         input_tensor_gen = input_tensor.clone()
         if self.args.add_noise:
-            input_tensor_gen = corrupt_input(self,input_tensor)
+            input_tensor_gen = corrupt_input(self, input_tensor)
         input_tensor_noisy = input_tensor_gen.clone()
         # input_tensor_gen = input_tensor.clone()
         if self.training:
@@ -684,24 +744,29 @@ class RenySeq2Seq(torch.nn.Module):
         content_mi = self.proj_content(encoder_hidden_mi)
         style_content_pred_mi = self.style_classifier(content_mi)
         if self.args.alternative_hs:
-            loss_h_s = - torch.log(torch.mean(torch.exp(style_content_pred_mi[:, 0]))) * (
-                    1 - torch.mean(labels.float()).item()) - torch.log(
-                torch.mean(torch.exp(style_content_pred_mi[:, 1]))) * torch.mean(labels.float()).item()  # we use Gibbs
+            loss_h_s = (
+                -torch.log(torch.mean(torch.exp(style_content_pred_mi[:, 0]))) * (1 - torch.mean(labels.float()).item())
+                - torch.log(torch.mean(torch.exp(style_content_pred_mi[:, 1]))) * torch.mean(labels.float()).item()
+            )  # we use Gibbs
         else:
-            loss_h_s = - torch.mean(style_content_pred_mi[:, 0]) * (1 - torch.mean(labels.float()).item()) - torch.mean(
-                style_content_pred_mi[:, 1]) * torch.mean(labels.float()).item()  # we use Jensen
+            loss_h_s = (
+                -torch.mean(style_content_pred_mi[:, 0]) * (1 - torch.mean(labels.float()).item())
+                - torch.mean(style_content_pred_mi[:, 1]) * torch.mean(labels.float()).item()
+            )  # we use Jensen
 
         # Compute Reny
         label_content_pred = style_content_pred_mi.topk(1, dim=-1)[-1]
-        label_v = torch.tensor([[1., 0.] if el == 0 else [0., 1.] for el in label_content_pred.tolist()]).to(
-            self.args.device)
-        label_u = torch.tensor([[1., 0.] if el == 0 else [0., 1.] for el in labels.tolist()]).to(self.args.device)
+        label_v = torch.tensor([[1.0, 0.0] if el == 0 else [0.0, 1.0] for el in label_content_pred.tolist()]).to(
+            self.args.device
+        )
+        label_u = torch.tensor([[1.0, 0.0] if el == 0 else [0.0, 1.0] for el in labels.tolist()]).to(self.args.device)
         u = torch.cat([content_mi, label_u.unsqueeze(0).float().repeat(4, 1, 1)], dim=-1)
         v = torch.cat([content_mi, label_v.unsqueeze(0).float().repeat(4, 1, 1)], dim=-1)
         d_gamma_content_pred_u = self.d_gamma(u)
         d_gamma_content_pred_v = self.d_gamma(v)
-        R = torch.mean((torch.exp(d_gamma_content_pred_u[:, 0]) / torch.exp(d_gamma_content_pred_v[:, 1])) ** (
-                self.args.alpha - 1))
+        R = torch.mean(
+            (torch.exp(d_gamma_content_pred_u[:, 0]) / torch.exp(d_gamma_content_pred_v[:, 1])) ** (self.args.alpha - 1)
+        )
 
         # Remove biais from gradients
         reny = torch.log(R) / (self.args.alpha - 1)
@@ -730,8 +795,9 @@ class RenySeq2Seq(torch.nn.Module):
 
         # Sentence Generation
         loss_gen = 0
-        decoder_input = torch.ones(self.args.batch_size, 1).to(
-            self.args.device).long() * self.args.tokenizer.sep_token_id
+        decoder_input = (
+            torch.ones(self.args.batch_size, 1).to(self.args.device).long() * self.args.tokenizer.sep_token_id
+        )
         decoder_hidden = encoder_hidden
         use_teacher_forcing = False if random.random() < teacher_ratio else False
 
@@ -760,9 +826,12 @@ class RenySeq2Seq(torch.nn.Module):
             else:
                 loss = loss_gen + loss_mi
             loss.backward()
-            gradient_encoder, gradient_decoder, gradient_content_proj, gradient_style_proj = comput_gradient_norm(
-                self.encoder), comput_gradient_norm(self.decoder), comput_gradient_norm(
-                self.proj_content), comput_gradient_norm(self.proj_style)
+            gradient_encoder, gradient_decoder, gradient_content_proj, gradient_style_proj = (
+                comput_gradient_norm(self.encoder),
+                comput_gradient_norm(self.decoder),
+                comput_gradient_norm(self.proj_content),
+                comput_gradient_norm(self.proj_style),
+            )
             torch.nn.utils.clip_grad_norm_(self.proj_style.parameters(), self.args.max_grad_norm)
             torch.nn.utils.clip_grad_norm_(self.proj_content.parameters(), self.args.max_grad_norm)
             torch.nn.utils.clip_grad_norm_(self.encoder.parameters(), self.args.max_grad_norm)
@@ -778,13 +847,21 @@ class RenySeq2Seq(torch.nn.Module):
             self.decoder.zero_grad()
 
         decoded_words = torch.cat(decoded_words, dim=-1)  # memory ineficient but nicer
-        losses_dic = {'loss_gen': loss_gen, 'loss_mi': loss_mi, 'reny': reny, 'loss_gamma': loss_gamma,
-                      'loss_h_sz': loss_h_sz, 'loss_h_s': loss_h_s, 'loss_style_classifier': loss_style_classifier,
-                      'gradient_encoder': gradient_encoder, 'gradient_decoder': gradient_decoder,
-                      'gradient_content_proj': gradient_content_proj, 'gradient_style_proj': gradient_style_proj,
-                      'gradient_reny': gradient_reny / self.args.reny_training}
+        losses_dic = {
+            "loss_gen": loss_gen,
+            "loss_mi": loss_mi,
+            "reny": reny,
+            "loss_gamma": loss_gamma,
+            "loss_h_sz": loss_h_sz,
+            "loss_h_s": loss_h_s,
+            "loss_style_classifier": loss_style_classifier,
+            "gradient_encoder": gradient_encoder,
+            "gradient_decoder": gradient_decoder,
+            "gradient_content_proj": gradient_content_proj,
+            "gradient_style_proj": gradient_style_proj,
+            "gradient_reny": gradient_reny / self.args.reny_training,
+        }
         return (losses_dic, decoded_words, input_tensor_noisy)
-
 
     def predict_latent_space(self, input_tensor):
         encoder_hidden = self.encoder.initHidden()
@@ -815,20 +892,21 @@ class RenySeq2Seq(torch.nn.Module):
         # Concatenate style and other
         encoder_hidden = torch.cat([style, content], dim=-1)
 
-        decoder_input = torch.ones(self.args.batch_size, 1).to(
-            self.args.device).long() * self.args.tokenizer.sep_token_id
+        decoder_input = (
+            torch.ones(self.args.batch_size, 1).to(self.args.device).long() * self.args.tokenizer.sep_token_id
+        )
         decoded_words = [decoder_input]
         decoder_hidden = encoder_hidden
         for di in range(self.args.max_length):
-                decoder_output, decoder_hidden = self.decoder(decoder_input, decoder_hidden)
-                topv, topi = decoder_output.topk(1)
-                decoder_input = topi.squeeze().detach().unsqueeze(-1)  # detach from history as input
-                decoded_words.append(topi.squeeze(-1))
-                loss += self.loss(decoder_output.squeeze(1), input_tensor[:, di])
+            decoder_output, decoder_hidden = self.decoder(decoder_input, decoder_hidden)
+            topv, topi = decoder_output.topk(1)
+            decoder_input = topi.squeeze().detach().unsqueeze(-1)  # detach from history as input
+            decoded_words.append(topi.squeeze(-1))
+            loss += self.loss(decoder_output.squeeze(1), input_tensor[:, di])
         loss = loss / self.args.max_length
 
         decoded_words = torch.cat(decoded_words, dim=-1)  # memory ineficient but nicer
-        return ({'generation_loss': loss}, decoded_words)
+        return ({"generation_loss": loss}, decoded_words)
 
     def evaluate_for_style_transfert(self, input_tensor, style):
         loss_gen = 0
@@ -842,8 +920,9 @@ class RenySeq2Seq(torch.nn.Module):
         encoder_hidden = torch.cat([style, content], dim=-1)
 
         # Sentence Generation
-        decoder_input = torch.ones(self.args.batch_size, 1).to(
-            self.args.device).long() * self.args.tokenizer.sep_token_id
+        decoder_input = (
+            torch.ones(self.args.batch_size, 1).to(self.args.device).long() * self.args.tokenizer.sep_token_id
+        )
         decoder_hidden = encoder_hidden
 
         decoded_words = [decoder_input]
@@ -857,5 +936,5 @@ class RenySeq2Seq(torch.nn.Module):
             loss_gen += self.loss(decoder_output.squeeze(1), input_tensor[:, di]) / self.args.max_length
 
         decoded_words = torch.cat(decoded_words, dim=-1)  # memory ineficient but nicer
-        losses_dic = {'loss_gen': loss_gen}
+        losses_dic = {"loss_gen": loss_gen}
         return (losses_dic, decoded_words)

@@ -16,12 +16,10 @@ import logging
 import os
 
 import requests as _requests
-from tqdm import tqdm
-
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import retry_on_specific_exceptions
-
+from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 
@@ -110,13 +108,9 @@ class TextSynthLM(LM):
                 is_greedy = resp["is_greedy"]
                 res.append((logprob, is_greedy))
 
-                self.cache_hook.add_partial(
-                    "loglikelihood", (context, continuation), (logprob, is_greedy)
-                )
+                self.cache_hook.add_partial("loglikelihood", (context, continuation), (logprob, is_greedy))
             else:
-                logger.error(
-                    f"The following response does not contain `logprobs`. Got:\n{resp}"
-                )
+                logger.error(f"The following response does not contain `logprobs`. Got:\n{resp}")
                 assert False
         return res
 
@@ -156,10 +150,7 @@ class TextSynthLM(LM):
 
                 self.cache_hook.add_partial("generate_until", (inp, request_args), s)
             else:
-                logger.error(
-                    "The following response does not contain generated `text`. "
-                    "Got:\n{resp}"
-                )
+                logger.error("The following response does not contain generated `text`. " "Got:\n{resp}")
                 assert False
         return res
 

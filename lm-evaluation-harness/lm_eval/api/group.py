@@ -27,9 +27,7 @@ class GroupConfig(dict):
     group: Optional[str] = None
     group_alias: Optional[str] = None
     task: Optional[Union[str, list]] = None
-    aggregate_metric_list: Optional[
-        Union[List[AggMetricConfig], AggMetricConfig, dict]
-    ] = None
+    aggregate_metric_list: Optional[Union[List[AggMetricConfig], AggMetricConfig, dict]] = None
     metadata: Optional[dict] = (
         None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
     )
@@ -46,8 +44,7 @@ class GroupConfig(dict):
                 self.aggregate_metric_list = [self.aggregate_metric_list]
 
             self.aggregate_metric_list = [
-                AggMetricConfig(**item) if isinstance(item, dict) else item
-                for item in self.aggregate_metric_list
+                AggMetricConfig(**item) if isinstance(item, dict) else item for item in self.aggregate_metric_list
             ]
 
     def to_dict(self, keep_callable: bool = False) -> dict:
@@ -67,9 +64,7 @@ class GroupConfig(dict):
                 cfg_dict[k] = self.serialize_function(v, keep_callable=keep_callable)
         return cfg_dict
 
-    def serialize_function(
-        self, value: Union[Callable, str], keep_callable=False
-    ) -> Union[Callable, str]:
+    def serialize_function(self, value: Union[Callable, str], keep_callable=False) -> Union[Callable, str]:
         """Serializes a given function or string.
 
         If 'keep_callable' is True, the original callable is returned.
@@ -112,6 +107,4 @@ class ConfigurableGroup(abc.ABC):
         return self._config.group
 
     def __repr__(self):
-        return (
-            f"ConfigurableGroup(group={self.group}," f"group_alias={self.group_alias})"
-        )
+        return f"ConfigurableGroup(group={self.group}," f"group_alias={self.group_alias})"

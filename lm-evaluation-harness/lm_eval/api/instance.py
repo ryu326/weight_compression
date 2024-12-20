@@ -1,10 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Literal, Optional, Tuple
 
-
-OutputType = Literal[
-    "loglikelihood", "loglikelihood_rolling", "generate_until", "multiple_choice"
-]
+OutputType = Literal["loglikelihood", "loglikelihood_rolling", "generate_until", "multiple_choice"]
 
 
 @dataclass
@@ -13,9 +10,7 @@ class Instance:
     doc: dict
     arguments: tuple
     idx: int
-    metadata: Tuple[Optional[str], Optional[int], Optional[int]] = field(
-        default_factory=lambda: (None, None, None)
-    )
+    metadata: Tuple[Optional[str], Optional[int], Optional[int]] = field(default_factory=lambda: (None, None, None))
     resps: list = field(default_factory=list)
     filtered_resps: dict = field(default_factory=dict)
 
@@ -33,6 +28,4 @@ class Instance:
         """
         Returns (string,) where `string` is the string to calculate loglikelihood over
         """
-        return (
-            self.arguments if isinstance(self.arguments, tuple) else (self.arguments,)
-        )
+        return self.arguments if isinstance(self.arguments, tuple) else (self.arguments,)

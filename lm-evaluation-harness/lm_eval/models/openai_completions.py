@@ -16,9 +16,7 @@ class LocalCompletionsAPI(TemplateAPI):
         tokenizer_backend="huggingface",
         **kwargs,
     ):
-        super().__init__(
-            base_url=base_url, tokenizer_backend=tokenizer_backend, **kwargs
-        )
+        super().__init__(base_url=base_url, tokenizer_backend=tokenizer_backend, **kwargs)
 
     def _create_payload(
         self,
@@ -105,9 +103,7 @@ class LocalChatCompletion(LocalCompletionsAPI):
         tokenized_requests=False,
         **kwargs,
     ):
-        eval_logger.warning(
-            "chat-completions endpoint requires the `--apply_chat_template` flag."
-        )
+        eval_logger.warning("chat-completions endpoint requires the `--apply_chat_template` flag.")
         super().__init__(
             base_url=base_url,
             tokenizer_backend=tokenizer_backend,
@@ -115,9 +111,7 @@ class LocalChatCompletion(LocalCompletionsAPI):
             **kwargs,
         )
         if self._batch_size > 1:
-            eval_logger.warning(
-                "Chat completions does not support batching. Defaulting to batch size 1."
-            )
+            eval_logger.warning("Chat completions does not support batching. Defaulting to batch size 1.")
             self._batch_size = 1
 
     def _create_payload(
@@ -129,9 +123,7 @@ class LocalChatCompletion(LocalCompletionsAPI):
         eos=None,
         **kwargs,
     ) -> dict:
-        assert (
-            type(messages) is not str
-        ), "chat-completions require the --apply_chat_template flag."
+        assert type(messages) is not str, "chat-completions require the --apply_chat_template flag."
         gen_kwargs.pop("do_sample", False)
         if "max_tokens" in gen_kwargs:
             max_tokens = gen_kwargs.pop("max_tokens")
@@ -186,28 +178,21 @@ class OpenAICompletionsAPI(LocalCompletionsAPI):
         tokenizer_backend="tiktoken",
         **kwargs,
     ):
-        super().__init__(
-            base_url=base_url, tokenizer_backend=tokenizer_backend, **kwargs
-        )
+        super().__init__(base_url=base_url, tokenizer_backend=tokenizer_backend, **kwargs)
 
     @cached_property
     def api_key(self):
         """Override this property to return the API key for the API request."""
         key = os.environ.get("OPENAI_API_KEY", None)
         if key is None:
-            raise ValueError(
-                "API key not found. Please set the `OPENAI_API_KEY` environment variable."
-            )
+            raise ValueError("API key not found. Please set the `OPENAI_API_KEY` environment variable.")
         return key
 
     def loglikelihood(self, requests, **kwargs):
-        assert (
-            self.model
-            in [
-                "babbage-002",
-                "davinci-002",
-            ]
-        ), f"Prompt loglikelihoods are only supported by OpenAI's API for {['babbage-002', 'davinci-002']}."
+        assert self.model in [
+            "babbage-002",
+            "davinci-002",
+        ], f"Prompt loglikelihoods are only supported by OpenAI's API for {['babbage-002', 'davinci-002']}."
         return super().loglikelihood(requests, **kwargs)
 
     def chat_template(self, chat_template: Union[bool, str] = False) -> Optional[str]:
@@ -224,9 +209,7 @@ class OpenAIChatCompletion(LocalChatCompletion):
         **kwargs,
     ):
         if "o1" in kwargs.get("model", ""):
-            eval_logger.warning(
-                "o1 models do not support `stop` and only support temperature=1"
-            )
+            eval_logger.warning("o1 models do not support `stop` and only support temperature=1")
         super().__init__(
             base_url=base_url,
             tokenizer_backend=tokenizer_backend,
@@ -239,9 +222,7 @@ class OpenAIChatCompletion(LocalChatCompletion):
         """Override this property to return the API key for the API request."""
         key = os.environ.get("OPENAI_API_KEY", None)
         if key is None:
-            raise ValueError(
-                "API key not found. Please set the `OPENAI_API_KEY` environment variable."
-            )
+            raise ValueError("API key not found. Please set the `OPENAI_API_KEY` environment variable.")
         return key
 
     def loglikelihood(self, requests, **kwargs):
@@ -258,9 +239,7 @@ class OpenAIChatCompletion(LocalChatCompletion):
         eos="<|endoftext|>",
         **kwargs,
     ) -> dict:
-        assert (
-            type(messages) is not str
-        ), "chat-completions require the --apply_chat_template flag."
+        assert type(messages) is not str, "chat-completions require the --apply_chat_template flag."
         gen_kwargs.pop("do_sample", False)
         if "max_tokens" in gen_kwargs:
             max_tokens = gen_kwargs.pop("max_tokens")

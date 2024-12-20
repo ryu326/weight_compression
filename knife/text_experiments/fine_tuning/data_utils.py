@@ -24,7 +24,7 @@ def comput_gradient_norm(model):
     for p in model.parameters():
         param_norm = p.grad.data.norm(2)
         total_norm += param_norm.item() ** 2
-    total_norm = total_norm ** (1. / 2)
+    total_norm = total_norm ** (1.0 / 2)
     return torch.tensor(total_norm)
 
 
@@ -134,17 +134,18 @@ class DataProcessor(object):
 
 
 def convert_examples_to_features(
-        examples,
-        tokenizer,
-        max_length=512,
-        task=None,
-        label_list=None,
-        pad_on_left=False,
-        pad_token=0,
-        pad_token_segment_id=0,
-        output_mode=None,
-        mask_padding_with_zero=True,
-        no_label=False):
+    examples,
+    tokenizer,
+    max_length=512,
+    task=None,
+    label_list=None,
+    pad_on_left=False,
+    pad_token=0,
+    pad_token_segment_id=0,
+    output_mode=None,
+    mask_padding_with_zero=True,
+    no_label=False,
+):
     """
     Loads a data file into a list of ``InputFeatures``
     Args:
@@ -165,8 +166,9 @@ def convert_examples_to_features(
         a list of task-specific ``InputFeatures`` which can be fed to the model.
     """
 
-    def get_padded(input_ids, token_type_ids, attention_mask, max_length, pad_token,
-                   pad_token_segment_id, mask_padding_with_zero):
+    def get_padded(
+        input_ids, token_type_ids, attention_mask, max_length, pad_token, pad_token_segment_id, mask_padding_with_zero
+    ):
         # Zero-pad up to the sequence length.
         padding_length = max_length - len(input_ids)
         if pad_on_left:
@@ -203,15 +205,26 @@ def convert_examples_to_features(
         raise KeyError(output_mode)
 
     features = []
-    for (ex_index, example) in tqdm(enumerate(examples), 'Samples conversion'):
-        inputs = tokenizer.encode_plus(example.text_a, example.text_b, add_special_tokens=True, max_length=max_length, )
+    for ex_index, example in tqdm(enumerate(examples), "Samples conversion"):
+        inputs = tokenizer.encode_plus(
+            example.text_a,
+            example.text_b,
+            add_special_tokens=True,
+            max_length=max_length,
+        )
         input_ids, token_type_ids = inputs["input_ids"], inputs["token_type_ids"]
         # The mask has 1 for real tokens and 0 for padding tokens. Only real
         # tokens are attended to.
         attention_mask = [1 if mask_padding_with_zero else 0] * len(input_ids)
-        input_ids, attention_mask, token_type_ids = get_padded(input_ids, token_type_ids, \
-                                                               attention_mask, max_length, pad_token,
-                                                               pad_token_segment_id, mask_padding_with_zero)
+        input_ids, attention_mask, token_type_ids = get_padded(
+            input_ids,
+            token_type_ids,
+            attention_mask,
+            max_length,
+            pad_token,
+            pad_token_segment_id,
+            mask_padding_with_zero,
+        )
 
         label = label_from_example(example) if not no_label else -1
 
@@ -232,18 +245,15 @@ class MrpcProcessor(DataProcessor):
     def get_train_examples(self, data_dir):
         """See base class."""
         logger.info("LOOKING AT {}".format(os.path.join(data_dir, "train.tsv")))
-        return self._create_examples(
-            self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
+        return self._create_examples(self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
 
     def get_validation_examples(self, data_dir):
         """See base class."""
-        return self._create_examples(
-            self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev")
+        return self._create_examples(self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev")
 
     def get_dev_examples(self, data_dir):
         """See base class."""
-        return self._create_examples(
-            self._read_tsv(os.path.join(data_dir, "test.tsv")), "test")
+        return self._create_examples(self._read_tsv(os.path.join(data_dir, "test.tsv")), "test")
 
     def get_labels(self):
         """See base class."""
@@ -252,15 +262,14 @@ class MrpcProcessor(DataProcessor):
     def _create_examples(self, lines, set_type):
         """Creates examples for the training and dev sets."""
         examples = []
-        for (i, line) in enumerate(lines):
+        for i, line in enumerate(lines):
             if i == 0:
                 continue
             guid = "%s-%s" % (set_type, i)
             text_a = line[3]
             text_b = line[4]
             label = line[0]
-            examples.append(
-                InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
+            examples.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
         return examples
 
 
@@ -273,25 +282,20 @@ class MnliProcessor(DataProcessor):
 
     def get_train_examples(self, data_dir):
         """See base class."""
-        return self._create_examples(
-            self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
+        return self._create_examples(self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
 
     def get_dev_examples(self, data_dir):
         """See base class."""
-        return self._create_examples(
-            self._read_tsv(os.path.join(data_dir, "dev_matched.tsv")),
-            "dev_matched")
+        return self._create_examples(self._read_tsv(os.path.join(data_dir, "dev_matched.tsv")), "dev_matched")
 
     def get_validation_examples(self, data_dir):
         """See base class."""
-        return self._create_examples(
-            self._read_tsv(os.path.join(data_dir, "dev_mismatched.tsv")),
-            "dev_mismatched")
+        return self._create_examples(self._read_tsv(os.path.join(data_dir, "dev_mismatched.tsv")), "dev_mismatched")
 
     def get_dev_labels(self, data_dir):
         lines = self._read_tsv(os.path.join(data_dir, "dev_matched.tsv"))
         labels = []
-        for (i, line) in enumerate(lines):
+        for i, line in enumerate(lines):
             if i == 0:
                 continue
             label = line[-1]
@@ -305,7 +309,7 @@ class MnliProcessor(DataProcessor):
     def _create_examples(self, lines, set_type):
         """Creates examples for the training and dev sets."""
         examples = []
-        for (i, line) in enumerate(lines):
+        for i, line in enumerate(lines):
             if i == 0:
                 continue
             guid = "%s-%s" % (set_type, line[0])
@@ -313,8 +317,7 @@ class MnliProcessor(DataProcessor):
             text_a = line[8]
             text_b = line[9]
             label = line[-1]
-            examples.append(
-                InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
+            examples.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
         return examples
 
 
@@ -323,20 +326,16 @@ class MnliMismatchedProcessor(MnliProcessor):
 
     def get_dev_examples(self, data_dir):
         """See base class."""
-        return self._create_examples(
-            self._read_tsv(os.path.join(data_dir, "dev_mismatched.tsv")),
-            "dev_matched")
+        return self._create_examples(self._read_tsv(os.path.join(data_dir, "dev_mismatched.tsv")), "dev_matched")
 
     def get_validation_examples(self, data_dir):
         """See base class."""
-        return self._create_examples(
-            self._read_tsv(os.path.join(data_dir, "dev_matched.tsv")),
-            "dev_matched")
+        return self._create_examples(self._read_tsv(os.path.join(data_dir, "dev_matched.tsv")), "dev_matched")
 
     def get_dev_labels(self, data_dir):
         lines = self._read_tsv(os.path.join(data_dir, "dev_mismatched.tsv"))
         labels = []
-        for (i, line) in enumerate(lines):
+        for i, line in enumerate(lines):
             if i == 0:
                 continue
             label = line[-1]
@@ -352,18 +351,15 @@ class ImdbProcessor(DataProcessor):
 
     def get_train_examples(self, data_dir):
         """See base class."""
-        return self._create_examples(
-            self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
+        return self._create_examples(self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
 
     def get_dev_examples(self, data_dir):
         """See base class."""
-        return self._create_examples(
-            self._read_tsv(os.path.join(data_dir, "test.tsv")), "test")
+        return self._create_examples(self._read_tsv(os.path.join(data_dir, "test.tsv")), "test")
 
     def get_validation_examples(self, data_dir):
         """See base class."""
-        return self._create_examples(
-            self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev")
+        return self._create_examples(self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev")
 
     def get_labels(self):
         """See base class."""
@@ -372,12 +368,11 @@ class ImdbProcessor(DataProcessor):
     def _create_examples(self, lines, set_type):
         """Creates examples for the training and dev sets."""
         examples = []
-        for (i, line) in enumerate(lines):
+        for i, line in enumerate(lines):
             guid = "%s-%s" % (set_type, i)
             text_a = line[1]
             label = line[0]
-            examples.append(
-                InputExample(guid=guid, text_a=text_a, text_b=None, label=label))
+            examples.append(InputExample(guid=guid, text_a=text_a, text_b=None, label=label))
         return examples
 
 
@@ -389,18 +384,15 @@ class YelpProcessor(DataProcessor):
 
     def get_train_examples(self, data_dir):
         """See base class."""
-        return self._create_examples(
-            self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
+        return self._create_examples(self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
 
     def get_dev_examples(self, data_dir):
         """See base class."""
-        return self._create_examples(
-            self._read_tsv(os.path.join(data_dir, "test.tsv")), "test")
+        return self._create_examples(self._read_tsv(os.path.join(data_dir, "test.tsv")), "test")
 
     def get_validation_examples(self, data_dir):
         """See base class."""
-        return self._create_examples(
-            self._read_tsv(os.path.join(data_dir, "valid.tsv")), "dev")
+        return self._create_examples(self._read_tsv(os.path.join(data_dir, "valid.tsv")), "dev")
 
     def get_labels(self):
         """See base class."""
@@ -409,12 +401,11 @@ class YelpProcessor(DataProcessor):
     def _create_examples(self, lines, set_type):
         """Creates examples for the training and dev sets."""
         examples = []
-        for (i, line) in enumerate(lines):
+        for i, line in enumerate(lines):
             guid = "%s-%s" % (set_type, i)
             label = line[0]
             text_a = line[1]
-            examples.append(
-                InputExample(guid=guid, text_a=text_a, text_b=None, label=label))
+            examples.append(InputExample(guid=guid, text_a=text_a, text_b=None, label=label))
         return examples
 
 
@@ -426,18 +417,15 @@ class StsbProcessor(DataProcessor):
 
     def get_train_examples(self, data_dir):
         """See base class."""
-        return self._create_examples(
-            self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
+        return self._create_examples(self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
 
     def get_validation_examples(self, data_dir):
         """See base class."""
-        return self._create_examples(
-            self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev")
+        return self._create_examples(self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev")
 
     def get_dev_examples(self, data_dir):
         """See base class."""
-        return self._create_examples(
-            self._read_tsv(os.path.join(data_dir, "test.tsv")), "test")
+        return self._create_examples(self._read_tsv(os.path.join(data_dir, "test.tsv")), "test")
 
     def get_labels(self):
         """See base class."""
@@ -446,15 +434,14 @@ class StsbProcessor(DataProcessor):
     def _create_examples(self, lines, set_type):
         """Creates examples for the training and dev sets."""
         examples = []
-        for (i, line) in enumerate(lines):
+        for i, line in enumerate(lines):
             if i == 0:
                 continue
             guid = "%s-%s" % (set_type, line[0])
             text_a = line[7]
             text_b = line[8]
             label = -1 if set_type == "test" else line[-1]
-            examples.append(
-                InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
+            examples.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
         return examples
 
 
@@ -466,17 +453,14 @@ class QqpProcessor(DataProcessor):
 
     def get_train_examples(self, data_dir):
         """See base class."""
-        return self._create_examples(
-            self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
+        return self._create_examples(self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
 
     def get_dev_examples(self, data_dir):
         """See base class."""
-        return self._create_examples(
-            self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev")
+        return self._create_examples(self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev")
 
     def get_validation_examples(self, data_dir):
-        return self._create_examples(
-            self._read_tsv(os.path.join(data_dir, "validation.tsv")), "validation")
+        return self._create_examples(self._read_tsv(os.path.join(data_dir, "validation.tsv")), "validation")
 
     def get_labels(self):
         """See base class."""
@@ -485,7 +469,7 @@ class QqpProcessor(DataProcessor):
     def _create_examples(self, lines, set_type):
         """Creates examples for the training and dev sets."""
         examples = []
-        for (i, line) in enumerate(lines):
+        for i, line in enumerate(lines):
             if i == 0:
                 continue
             guid = "%s-%s" % (set_type, line[0])
@@ -495,8 +479,7 @@ class QqpProcessor(DataProcessor):
                 label = line[5]
             except IndexError:
                 continue
-            examples.append(
-                InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
+            examples.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
         return examples
 
 
@@ -508,18 +491,15 @@ class RteProcessor(DataProcessor):
 
     def get_train_examples(self, data_dir):
         """See base class."""
-        return self._create_examples(
-            self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
+        return self._create_examples(self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
 
     def get_validation_examples(self, data_dir):
         """See base class."""
-        return self._create_examples(
-            self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev")
+        return self._create_examples(self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev")
 
     def get_dev_examples(self, data_dir):
         """See base class."""
-        return self._create_examples(
-            self._read_tsv(os.path.join(data_dir, "test.tsv")), "test")
+        return self._create_examples(self._read_tsv(os.path.join(data_dir, "test.tsv")), "test")
 
     def get_labels(self):
         """See base class."""
@@ -528,15 +508,14 @@ class RteProcessor(DataProcessor):
     def _create_examples(self, lines, set_type):
         """Creates examples for the training and dev sets."""
         examples = []
-        for (i, line) in enumerate(lines):
+        for i, line in enumerate(lines):
             if i == 0:
                 continue
             guid = "%s-%s" % (set_type, line[0])
             text_a = line[1]
             text_b = line[2]
             label = -1 if set_type == "test" else line[-1]
-            examples.append(
-                InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
+            examples.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
         return examples
 
 
@@ -548,19 +527,16 @@ class SnliProcessor(DataProcessor):
 
     def get_train_examples(self, data_dir):
         """See base class."""
-        return self._create_examples(
-            self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
+        return self._create_examples(self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
 
     def get_dev_examples(self, data_dir):
         """See base class."""
         print("test set")
-        return self._create_examples(
-            self._read_tsv(os.path.join(data_dir, "test.tsv")), "test")
+        return self._create_examples(self._read_tsv(os.path.join(data_dir, "test.tsv")), "test")
 
     def get_validation_examples(self, data_dir):
         print("dev set")
-        return self._create_examples(
-            self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev")
+        return self._create_examples(self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev")
 
     def get_labels(self):
         """See base class."""
@@ -569,7 +545,7 @@ class SnliProcessor(DataProcessor):
     def get_dev_labels(self, data_dir):
         lines = self._read_tsv(os.path.join(data_dir, "test.tsv"))
         labels = []
-        for (i, line) in enumerate(lines):
+        for i, line in enumerate(lines):
             if i == 0:
                 continue
             label = line[-1]
@@ -579,15 +555,14 @@ class SnliProcessor(DataProcessor):
     def _create_examples(self, lines, set_type):
         """Creates examples for the training and dev sets."""
         examples = []
-        for (i, line) in enumerate(lines):
+        for i, line in enumerate(lines):
             if i == 0:
                 continue
             guid = "%s-%s" % (set_type, line[0])
             text_a = line[7]
             text_b = line[8]
             label = line[-1]
-            examples.append(
-                InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
+            examples.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
         return examples
 
 
@@ -603,7 +578,7 @@ class NliProcessor(DataProcessor):
 
     def __init__(self, data_dir):
         # We assume there is a training file there and we read labels from there.
-        labels = [line.rstrip() for line in open(join(data_dir, 'labels.train'))]
+        labels = [line.rstrip() for line in open(join(data_dir, "labels.train"))]
         self.labels = list(set(labels))
         labels = ["contradiction", "entailment", "neutral"]
         ordered_labels = []
@@ -614,7 +589,7 @@ class NliProcessor(DataProcessor):
         self.num_classes = len(self.labels)
 
     def get_dev_labels(self, data_dir):
-        labels = [line.rstrip() for line in open(join(data_dir, 'labels.test'))]
+        labels = [line.rstrip() for line in open(join(data_dir, "labels.test"))]
         return np.array(labels)
 
     def get_validation_examples(self, data_dir):
@@ -634,12 +609,12 @@ class NliProcessor(DataProcessor):
 
     def _create_examples(self, data_dir, set_type):
         """Creates examples for the training and dev sets."""
-        s1s = [line.rstrip() for line in open(join(data_dir, 's1.' + set_type))]
-        s2s = [line.rstrip() for line in open(join(data_dir, 's2.' + set_type))]
-        labels = [line.rstrip() for line in open(join(data_dir, 'labels.' + set_type))]
+        s1s = [line.rstrip() for line in open(join(data_dir, "s1." + set_type))]
+        s2s = [line.rstrip() for line in open(join(data_dir, "s2." + set_type))]
+        labels = [line.rstrip() for line in open(join(data_dir, "labels." + set_type))]
 
         examples = []
-        for (i, line) in enumerate(s1s):
+        for i, line in enumerate(s1s):
             guid = "%s-%s" % (set_type, i)
             text_a = s1s[i]
             text_b = s2s[i]
@@ -647,8 +622,7 @@ class NliProcessor(DataProcessor):
             # In case of hidden labels, changes it with entailment.
             if label == "hidden":
                 label = "entailment"
-            examples.append(
-                InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
+            examples.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
         return examples
 
 
@@ -684,9 +658,24 @@ def glue_compute_metrics(task_name, preds, labels):
         return pearson_and_spearman(preds, labels)
     elif task_name == "qqp":
         return acc_and_f1(preds, labels)
-    elif task_name in ["mnli", "mnli-mm", "rte", "snli", \
-                       "addonerte", "dpr", "spr", "fnplus", "joci", "mpe", \
-                       "scitail", "sick", "QQP", "snlihard", "imdb", "yelp"]:
+    elif task_name in [
+        "mnli",
+        "mnli-mm",
+        "rte",
+        "snli",
+        "addonerte",
+        "dpr",
+        "spr",
+        "fnplus",
+        "joci",
+        "mpe",
+        "scitail",
+        "sick",
+        "QQP",
+        "snlihard",
+        "imdb",
+        "yelp",
+    ]:
         return {"acc": simple_accuracy(preds, labels)}
     else:
         raise KeyError(task_name)

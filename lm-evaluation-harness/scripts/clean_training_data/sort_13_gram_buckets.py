@@ -19,7 +19,6 @@ from signal import SIGINT
 from tqdm import tqdm
 from tqdm_multiprocess.logger import setup_logger_tqdm
 
-
 logger = logging.getLogger(__name__)
 
 terminate = False

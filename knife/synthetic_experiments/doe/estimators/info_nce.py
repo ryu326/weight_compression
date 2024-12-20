@@ -23,7 +23,7 @@ class InfoNCE(nn.Module):
         T1 = self.net(torch.cat([zc_tile, zd_tile], dim=-1))  # [sample_size, sample_size, 1]
 
         lower_bound = T0.mean() - (T1.logsumexp(dim=1).mean() - np.log(sample_size))
-        return lower_bound, 0., 0.
+        return lower_bound, 0.0, 0.0
 
     def learning_loss(self, z_c, z_d):
-        return - self(z_c, z_d)[0]
+        return -self(z_c, z_d)[0]

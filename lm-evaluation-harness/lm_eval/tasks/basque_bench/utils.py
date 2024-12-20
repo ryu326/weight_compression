@@ -1,6 +1,5 @@
 from functools import partial
 
-
 # ~~~~~~~~~~~ XCOPA ~~~~~~~~~~~ #
 
 xcopa_connectors = {"cause": " Izan ere,", "effect": " Beraz,"}

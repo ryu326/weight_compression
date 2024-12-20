@@ -5,7 +5,6 @@ import sys
 import xml.sax.saxutils
 from typing import Any, Dict, List, Optional, Pattern, Tuple, Union
 
-
 """
 This script was adapted from the original version by hieuhoang1972 which is part of MOSES.
 """
@@ -150,9 +149,7 @@ def score_cooked(allcomps, n=4, ground=0, smooth=1):
         addsmooth = 0
         if smooth == 1 and k > 0:
             addsmooth = 1
-        logbleu += math.log(correct + addsmooth + sys.float_info.min) - math.log(
-            guess + addsmooth + sys.float_info.min
-        )
+        logbleu += math.log(correct + addsmooth + sys.float_info.min) - math.log(guess + addsmooth + sys.float_info.min)
         if guess == 0:
             all_bleus.append(-10000000.0)
         else:
@@ -161,9 +158,7 @@ def score_cooked(allcomps, n=4, ground=0, smooth=1):
     logbleu /= float(n)
     all_bleus.insert(0, logbleu)
 
-    brevPenalty = min(
-        0, 1 - float(totalcomps["reflen"] + 1) / (totalcomps["testlen"] + 1)
-    )
+    brevPenalty = min(0, 1 - float(totalcomps["reflen"] + 1) / (totalcomps["testlen"] + 1))
     for i in range(len(all_bleus)):
         if i == 0:
             all_bleus[i] += brevPenalty

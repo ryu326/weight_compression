@@ -10,7 +10,6 @@ import itertools
 import yaml
 from langcodes import Language
 
-
 # utils
 flatten = lambda l: list(itertools.chain(*l))
 
@@ -221,9 +220,7 @@ _LANGUAGES = [
     "som_Latn",
     "tum_Latn",
 ]
-LANGUAGE_PAIRS = [
-    (a, b) for idx, a in enumerate(_LANGUAGES) for b in _LANGUAGES[idx + 1 :]
-]
+LANGUAGE_PAIRS = [(a, b) for idx, a in enumerate(_LANGUAGES) for b in _LANGUAGES[idx + 1 :]]
 
 LANGUAGES_OF_INTEREST = [
     "cat_Latn",
@@ -245,13 +242,9 @@ LANGUAGE_PAIRS = [
 
 # auxiliary functions
 
-code_to_language_name = lambda code: Language.make(
-    language=Language.get(code)["language"]
-).display_name()
+code_to_language_name = lambda code: Language.make(language=Language.get(code)["language"]).display_name()
 code_to_short_name = lambda code: Language.get(code)["language"]
-jinja_var = (
-    lambda s: "{{" + s + "}}"
-)  # wrapper to avoid having to escape { } in format strings
+jinja_var = lambda s: "{{" + s + "}}"  # wrapper to avoid having to escape { } in format strings
 
 
 def doc_to_text(src: str, tgt: str) -> str:
@@ -320,9 +313,7 @@ def main() -> None:
         action="store_true",
         help="Overwrite files if they already exist",
     )
-    parser.add_argument(
-        "--output-dir", default=".", help="Directory to write yaml files to"
-    )
+    parser.add_argument("--output-dir", default=".", help="Directory to write yaml files to")
     args = parser.parse_args()
 
     gen_lang_yamls(output_dir=args.output_dir, overwrite=args.overwrite)

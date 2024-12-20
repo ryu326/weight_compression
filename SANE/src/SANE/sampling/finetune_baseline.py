@@ -57,9 +57,7 @@ def sample_model_evaluation(
     logging.info("sampling:: de-normalize checkpoints")
     if norm_mode is not None:
         for idx in range(len(checkpoints)):
-            checkpoints[idx] = de_normalize_checkpoint(
-                checkpoints[idx], layers=layer_norms, mode=norm_mode
-            )
+            checkpoints[idx] = de_normalize_checkpoint(checkpoints[idx], layers=layer_norms, mode=norm_mode)
 
     # evaluate models
     logging.info("sampling:: evaluate models")
@@ -122,9 +120,7 @@ def sample_models(
     )
 
     # draw random samples from anchor dataset
-    sampled_ids = torch.randperm(
-        n=anchor_weights.shape[-3], dtype=torch.int32, device="cpu"
-    )[:repetitions]
+    sampled_ids = torch.randperm(n=anchor_weights.shape[-3], dtype=torch.int32, device="cpu")[:repetitions]
     # slice
     sampled_tokens = torch.index_select(anchor_weights, -3, sampled_ids).squeeze()
     sampled_tokens = sampled_tokens.detach().cpu().to(torch.float)
@@ -149,13 +145,9 @@ def sample_models(
         # z_ref has shape [n_tokens-ref, tokendim]
         # z_tmp has shape [n_reps, n_tokens-ref, tokendim]
         # case 1: new model is bigger
-        logging.info(
-            f'f"sampled tokens {sampled_tokens.shape} and reference tokens {tok_ref.shape} '
-        )
+        logging.info(f'f"sampled tokens {sampled_tokens.shape} and reference tokens {tok_ref.shape} ')
         if tok_ref.shape[0] > sampled_tokens.shape[1]:
-            tmp = torch.zeros(
-                [sampled_tokens.shape[0], tok_ref.shape[0], sampled_tokens.shape[2]]
-            )
+            tmp = torch.zeros([sampled_tokens.shape[0], tok_ref.shape[0], sampled_tokens.shape[2]])
             tmp[:, : sampled_tokens.shape[1], :] = sampled_tokens
             sampled_tokens = tmp
         # case 2: new model is smaller
@@ -167,9 +159,7 @@ def sample_models(
     # create new state dicts
     returns = []
     for idx in range(repetitions):
-        checkpoint = tokens_to_checkpoint(
-            sampled_tokens[idx], pos_ref.squeeze(), checkpoint_ref, ignore_bn=False
-        )
+        checkpoint = tokens_to_checkpoint(sampled_tokens[idx], pos_ref.squeeze(), checkpoint_ref, ignore_bn=False)
         returns.append(checkpoint)
     logging.debug(f"generated {len(returns)} checkpoints")
 
@@ -192,9 +182,7 @@ def sample_models(
 
         for idx, check in enumerate(returns):
             # re-initialize last layer
-            tmp_layer = torch.nn.Linear(
-                in_features=in_c, out_features=out_c, bias=True, device="cpu"
-            )
+            tmp_layer = torch.nn.Linear(in_features=in_c, out_features=out_c, bias=True, device="cpu")
             # copy weights
             check[layer_key] = tmp_layer.weight.data
             # copy biases
@@ -225,30 +213,24 @@ def de_normalize_checkpoint(checkpoint, layers, mode="minmax"):
             checkpoint[key] = checkpoint[key] * sigma + mu
             # de-noramlize bias
             if key.replace("weight", "bias") in checkpoint:
-                checkpoint[key.replace("weight", "bias")] = (
-                    checkpoint[key.replace("weight", "bias")] * sigma + mu
-                )
+                checkpoint[key.replace("weight", "bias")] = checkpoint[key.replace("weight", "bias")] * sigma + mu
         elif mode == "minmax":
             # get global min and max values
             min_glob = layers[key]["min"]
             max_glob = layers[key]["max"]
             # reverse of min-max normalization (mapped to range [-1,1])
             # returns weights exactly to original range
-            checkpoint[key] = (checkpoint[key] + 1) * (
-                max_glob - min_glob
-            ) / 2 + min_glob
+            checkpoint[key] = (checkpoint[key] + 1) * (max_glob - min_glob) / 2 + min_glob
             # de-normalize bais
             if key.replace("weight", "bias") in checkpoint:
-                checkpoint[key.replace("weight", "bias")] = (
-                    checkpoint[key.replace("weight", "bias")] + 1
-                ) * (max_glob - min_glob) / 2 + min_glob
+                checkpoint[key.replace("weight", "bias")] = (checkpoint[key.replace("weight", "bias")] + 1) * (
+                    max_glob - min_glob
+                ) / 2 + min_glob
 
     return checkpoint
 
 
-def evaluate_single_model(
-    config: dict, checkpoint: OrderedDict, fintuning_epochs: int = 0
-) -> dict:
+def evaluate_single_model(config: dict, checkpoint: OrderedDict, fintuning_epochs: int = 0) -> dict:
     """
     evaluates a single model on a single task
     Args:
@@ -364,14 +346,10 @@ def load_datasets_from_config(config):
             shuffle=True,
             # num_workers=config.get("testloader::workers", 2),
         )
-        testloader = FastTensorDataLoader(
-            dataset=testset, batch_size=len(testset), shuffle=False
-        )
+        testloader = FastTensorDataLoader(dataset=testset, batch_size=len(testset), shuffle=False)
         valloader = None
         if valset is not None:
-            valloader = FastTensorDataLoader(
-                dataset=valset, batch_size=len(valset), shuffle=False
-            )
+            valloader = FastTensorDataLoader(dataset=valset, batch_size=len(valset), shuffle=False)
 
     else:
         trainloader = torch.utils.data.DataLoader(

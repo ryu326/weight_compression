@@ -4,12 +4,13 @@
 
 # Yibo Yang, 2021
 
-import os
-import numpy as np
-import sys
 import glob
-from PIL import Image
+import os
+import sys
 from multiprocessing import Pool
+
+import numpy as np
+from PIL import Image
 
 
 def process_img(img_path, output_dir, min_hw=(512, 512), avg_downsample_factor=0.8):
@@ -21,21 +22,20 @@ def process_img(img_path, output_dir, min_hw=(512, 512), avg_downsample_factor=0
         return -2  # non-color image
 
     # e.g., downsample_factor ~ Uniform[0.6, 1) if avg_downsample_factor=0.8
-    downsample_factor = np.random.uniform(low=1 - 2 * (1 - avg_downsample_factor), high=1.)
+    downsample_factor = np.random.uniform(low=1 - 2 * (1 - avg_downsample_factor), high=1.0)
     downsampled_size = (round(img.width * downsample_factor), round(img.height * downsample_factor))  # PIL needs (w,h)
     out_img = img.resize(downsampled_size, Image.BICUBIC)
 
     img_name = os.path.splitext(os.path.basename(img_path))[0]  # xyz.jpeg -> xyz
-    out_path = os.path.join(output_dir, f'{img_name}-downsampled.png')
+    out_path = os.path.join(output_dir, f"{img_name}-downsampled.png")
     out_img.save(out_path)
     return out_path
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     input_glob = sys.argv[1]
     output_dir = sys.argv[2]
     img_paths = glob.glob(input_glob)
-
 
     def fun(img_path):
         return process_img(img_path, output_dir, min_hw=(512, 512), avg_downsample_factor=0.8)

@@ -129,12 +129,8 @@ class ModelDatasetBaseEpochs(Dataset):
                 idx1 = int(self.ds_split[0] * len(self.path_list))
                 self.path_list = self.path_list[idx1:]
             else:
-                logging.error(
-                    "validation split requested, but only two splits provided."
-                )
-                raise NotImplementedError(
-                    "validation split requested, but only two splits provided."
-                )
+                logging.error("validation split requested, but only two splits provided.")
+                raise NotImplementedError("validation split requested, but only two splits provided.")
         # three splits
         elif len(self.ds_split) == 3:
             if self.train_val_test == "train":
@@ -255,9 +251,7 @@ class ModelDatasetBaseEpochs(Dataset):
     ## getitem ####################################################################################################################################################################
     def __getitem__(self, index):
         # not implemented in base class
-        raise NotImplementedError(
-            "the __getitem__ function is not implemented in the base class. "
-        )
+        raise NotImplementedError("the __getitem__ function is not implemented in the base class. ")
         pass
 
     ## len ####################################################################################################################################################################
@@ -325,9 +319,7 @@ class ModelDatasetBaseEpochs(Dataset):
                 # assert epoch == training_iteration -> match correct data
                 if iidx == 0:
                     train_it = int(res_tmp["training_iteration"])
-                    assert (
-                        int(eedx) == train_it
-                    ), f"training iteration {train_it} and epoch {eedx} don't match."
+                    assert int(eedx) == train_it, f"training iteration {train_it} and epoch {eedx} don't match."
 
             # transfer model lists to properties dict
             for key in results_key_list:
@@ -443,9 +435,7 @@ def load_checkpoints_remote(
             return None, None, None, None
 
     #### apply threhold #################################################################
-    thresh_flag = test_checkpoint_with_threshold(
-        copy.deepcopy(chkpoint), threshold=weight_threshold
-    )
+    thresh_flag = test_checkpoint_with_threshold(copy.deepcopy(chkpoint), threshold=weight_threshold)
     if thresh_flag == True:
         if verbosity > 5:
             # jump to next sample
@@ -505,9 +495,7 @@ def load_checkpoint(
             return None, None, None, None
 
     #### apply threhold #################################################################
-    thresh_flag = test_checkpoint_with_threshold(
-        copy.deepcopy(chkpoint), threshold=weight_threshold
-    )
+    thresh_flag = test_checkpoint_with_threshold(copy.deepcopy(chkpoint), threshold=weight_threshold)
     if thresh_flag == True:
         return None, None, None, None
 

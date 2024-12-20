@@ -4,26 +4,12 @@ import gc
 import itertools
 import time
 from functools import wraps
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
-    Literal,
-    Optional,
-    Tuple,
-    Type,
-    Union,
-)
+from typing import (TYPE_CHECKING, Any, Callable, Dict, Iterable, Iterator,
+                    List, Literal, Optional, Tuple, Type, Union)
 
 import torch
 import transformers
-
 from lm_eval.utils import eval_logger
-
 
 if TYPE_CHECKING:
     from transformers import PreTrainedTokenizerBase
@@ -260,9 +246,7 @@ def stop_sequences_criteria(
     return transformers.StoppingCriteriaList(
         [
             *[
-                MultiTokenEOSCriteria(
-                    sequence, tokenizer, initial_decoder_input_length, batch_size
-                )
+                MultiTokenEOSCriteria(sequence, tokenizer, initial_decoder_input_length, batch_size)
                 for sequence in stop_sequences
             ],
         ]
@@ -301,11 +285,7 @@ def undistribute(iterable):
     """
 
     return [
-        x
-        for x in itertools.chain.from_iterable(
-            itertools.zip_longest(*[list(x) for x in iterable])
-        )
-        if x is not None
+        x for x in itertools.chain.from_iterable(itertools.zip_longest(*[list(x) for x in iterable])) if x is not None
     ]
 
 
@@ -375,9 +355,7 @@ class Collator:
         self._group_fn = lambda x: group_fn(x[1])
         self._reorder_indices: List = []
         self._size = len(arr)
-        self._arr_with_indices: Union[Dict, Tuple[Tuple[int, Any], ...]] = tuple(
-            enumerate(arr)
-        )  # [indices, (arr)]
+        self._arr_with_indices: Union[Dict, Tuple[Tuple[int, Any], ...]] = tuple(enumerate(arr))  # [indices, (arr)]
         if self._group_by == "contexts":
             self._group_by_context()
         elif self._group_by == "gen_kwargs":
@@ -385,15 +363,11 @@ class Collator:
 
     def _group_by_index(self) -> None:
         """Group the elements of a list based on their indices."""
-        self._arr_with_indices = self.group(
-            self._arr_with_indices, fn=self._group_fn, group_by="gen_kwargs"
-        )
+        self._arr_with_indices = self.group(self._arr_with_indices, fn=self._group_fn, group_by="gen_kwargs")
 
     def _group_by_context(self) -> None:
         """Group the array with indices by context."""
-        self._arr_with_indices = self.group(
-            self._arr_with_indices, fn=self._group_fn, group_by="contexts"
-        )
+        self._arr_with_indices = self.group(self._arr_with_indices, fn=self._group_fn, group_by="contexts")
 
     def get_batched(self, n: int = 1, batch_fn: Optional[Callable] = None) -> Iterator:
         """
@@ -426,9 +400,7 @@ class Collator:
                 yield from batch
         elif self._group_by == "contexts":
             # Get one sample from each key
-            values = self._reorder(
-                [value[0] for value in self._arr_with_indices.values()]
-            )
+            values = self._reorder([value[0] for value in self._arr_with_indices.values()])
             batch = self.get_chunks(values, n=n, fn=batch_fn)
             yield from batch
         else:
@@ -479,9 +451,9 @@ class Collator:
             - logits (torch.Tensor [1, seq_length, vocab_size]): The original logits (repeated cache hit times)
         """
         if self._group_by == "contexts":
-            cache_hit: List[
-                Tuple[int, Tuple[Tuple[str, str], List[int], List[int]]]
-            ] = self._arr_with_indices.pop(tuple(cxt_toks + cont_toks[:-1]))
+            cache_hit: List[Tuple[int, Tuple[Tuple[str, str], List[int], List[int]]]] = self._arr_with_indices.pop(
+                tuple(cxt_toks + cont_toks[:-1])
+            )
             if (cache_size := len(cache_hit)) == 1:
                 self._reorder_indices.extend(x[0] for x in cache_hit)
                 yield req_str, cont_toks, logits
@@ -489,9 +461,7 @@ class Collator:
                 # If we have matching requests then expand the batch dimension (no-op) and
                 # yield each along with its corresponding args.
                 multilogits = logits.expand(cache_size, -1, -1).chunk(cache_size)
-                indices, req_str, cont_toks = zip(
-                    *[(x[0], x[1][0], x[-1][-1]) for x in cache_hit]
-                )
+                indices, req_str, cont_toks = zip(*[(x[0], x[1][0], x[-1][-1]) for x in cache_hit])
                 self._reorder_indices.extend(indices)
                 for c_key, cont_tok, logit in zip(req_str, cont_toks, multilogits):
                     yield c_key, cont_tok, logit
@@ -570,9 +540,7 @@ class Collator:
                     hashable_dict = tuple(
                         (
                             key,
-                            tuple(value)
-                            if isinstance(value, collections.abc.Iterable)
-                            else value,
+                            tuple(value) if isinstance(value, collections.abc.Iterable) else value,
                         )
                         for key, value in sorted(fn(ob).items())
                     )
@@ -650,10 +618,7 @@ def configure_pad_token(
         if model_config and getattr(model_config, "model_type", None) == "qwen":
             # Qwen's trust_remote_code tokenizer does not allow for adding special tokens
             tokenizer.pad_token = "<|endoftext|>"
-        elif (
-            tokenizer.__class__.__name__ == "RWKVWorldTokenizer"
-            or tokenizer.__class__.__name__ == "Rwkv5Tokenizer"
-        ):
+        elif tokenizer.__class__.__name__ == "RWKVWorldTokenizer" or tokenizer.__class__.__name__ == "Rwkv5Tokenizer":
             # The RWKV world tokenizer, does not allow for adding special tokens / setting the pad token (which is set as 0)
             # The additional tokenizer name check is needed, as there exists rwkv4 models with neox tokenizer
             # ---
@@ -666,9 +631,7 @@ def configure_pad_token(
     return tokenizer
 
 
-def replace_placeholders(
-    string: str, default_placeholder: str, image_token: str, max_images: int
-):
+def replace_placeholders(string: str, default_placeholder: str, image_token: str, max_images: int):
     """
     A utility function used for local multimodal models. It locates all `placeholder` string
     occurrences in the given input `string_` and replaces the first `max_count` instances with
@@ -711,18 +674,14 @@ def flatten_image_list(images: List[List]):
     return [image for image_list in images for image in image_list]
 
 
-def handle_stop_sequences(
-    until: Union[str, List[str], None], eos: Optional[str]
-) -> List[str]:
+def handle_stop_sequences(until: Union[str, List[str], None], eos: Optional[str]) -> List[str]:
     """Ensures that the `until` parameter is a list of stop sequences and includes the EOS token."""
     if isinstance(until, str):
         until = [until]
     elif until is None:
         until = []
     elif not isinstance(until, list):
-        raise ValueError(
-            f"Expected `kwargs['until']` to be of type Union[str,list] but got {until}"
-        )
+        raise ValueError(f"Expected `kwargs['until']` to be of type Union[str,list] but got {until}")
 
     if eos is not None and eos not in until:
         until.append(eos)

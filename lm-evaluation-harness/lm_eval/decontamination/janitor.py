@@ -4,7 +4,6 @@ import string
 import traceback
 from typing import Iterator, List, Sequence, Tuple, TypeVar
 
-
 # This is a cpp module. Compile janitor_util.cpp with:
 # c++ -O3 -Wall -shared -std=c++11 -fPIC $(python3 -m pybind11 --includes) janitor_util.cpp -o janitor_util$(python3-config --extension-suffix) -undefined dynamic_lookup
 try:
@@ -94,15 +93,10 @@ def word_ngrams_indices(s: str, n: int) -> Iterator[Tuple[str, Tuple[int, int]]]
     #   ([word, word, ...], [(start,end), (start,end), ...]),
     #   ...
     # )
-    ngram_indices_pairs = (
-        zip(*ngram_with_indices) for ngram_with_indices in ngram_seqs_with_indices
-    )
+    ngram_indices_pairs = (zip(*ngram_with_indices) for ngram_with_indices in ngram_seqs_with_indices)
 
     # Generator of ( (word_ngram, (start, end)), (word_ngram, start, end)), ...)
-    return (
-        (" ".join(ngram_seq), (indices[0][0], indices[-1][1]))
-        for ngram_seq, indices in ngram_indices_pairs
-    )
+    return ((" ".join(ngram_seq), (indices[0][0], indices[-1][1])) for ngram_seq, indices in ngram_indices_pairs)
 
 
 class Janitor:
@@ -167,9 +161,7 @@ class Janitor:
             print("WARNING: Janitor running in python mode")
             return self.clean_python(dirty_string)
 
-    def _split_chunks(
-        self, dirty_string: str, dirty_parts: Sequence[Tuple]
-    ) -> List[str]:
+    def _split_chunks(self, dirty_string: str, dirty_parts: Sequence[Tuple]) -> List[str]:
         clean_chunks = []
         splice_idx = 0
         end = -1
@@ -193,14 +185,10 @@ class Janitor:
     ##############
 
     def register_contaminant_cpp(self, dirt_string) -> None:
-        self.dirt_ngrams.update(
-            janitor_util.clean_ngram(dirt_string, self.delete_chars, self.ngram_n)
-        )
+        self.dirt_ngrams.update(janitor_util.clean_ngram(dirt_string, self.delete_chars, self.ngram_n))
 
     def clean_cpp(self, dirty_string: str) -> List[str]:
-        contamination_indices = janitor_util.clean_ngram_with_indices(
-            dirty_string, self.delete_chars, self.ngram_n
-        )
+        contamination_indices = janitor_util.clean_ngram_with_indices(dirty_string, self.delete_chars, self.ngram_n)
         return self._split_chunks(dirty_string, contamination_indices)
 
     ##############
@@ -211,9 +199,7 @@ class Janitor:
         return s.translate(self.translation_table)
 
     def register_contaminant_python(self, dirt_string: str) -> None:
-        self.dirt_ngrams.update(
-            word_ngrams(self.normalize_string(dirt_string), self.ngram_n)
-        )
+        self.dirt_ngrams.update(word_ngrams(self.normalize_string(dirt_string), self.ngram_n))
 
     def clean_python(self, dirty_string: str) -> List[str]:
         contamination_indices = (

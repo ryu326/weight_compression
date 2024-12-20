@@ -19,7 +19,7 @@ class BertForSequenceClassification(BertPreTrainedModel):
         self.ib_dim = config.ib_dim
         self.ib = config.ib
         self.activation = config.activation
-        self.activations = {'tanh': nn.Tanh(), 'relu': nn.ReLU(), 'sigmoid': nn.Sigmoid()}
+        self.activations = {"tanh": nn.Tanh(), "relu": nn.ReLU(), "sigmoid": nn.Sigmoid()}
         if self.ib or self.deterministic:
             self.kl_annealing = config.kl_annealing
             self.hidden_dim = config.hidden_dim
@@ -28,7 +28,8 @@ class BertForSequenceClassification(BertPreTrainedModel):
                 nn.Linear(config.hidden_size, intermediate_dim),
                 self.activations[self.activation],
                 nn.Linear(intermediate_dim, self.hidden_dim),
-                self.activations[self.activation])
+                self.activations[self.activation],
+            )
             self.beta = config.beta
             self.sample_size = config.sample_size
             self.emb2mu = nn.Linear(self.hidden_dim, self.ib_dim)
@@ -37,19 +38,20 @@ class BertForSequenceClassification(BertPreTrainedModel):
             self.std_p = nn.Parameter(torch.randn(self.ib_dim))
             self.classifier = nn.Linear(self.ib_dim, self.config.num_labels)
             if self.args.use_mi_estimation:
-                if self.args.name_mi_estimator == 'KERNEL_E':
+                if self.args.name_mi_estimator == "KERNEL_E":
                     self.mi_estimator = MultiGaussKernelEE(device, config.args.number_of_samples, self.ib_dim).to(
-                        device)
-                elif self.args.name_mi_estimator == 'KERNEL_A':
-                    self.mi_estimator = MIKernelEstimator(device, config.args.number_of_samples, self.ib_dim,
-                                                          config.hidden_size,
-                                                          use_joint=False).to(device)
-                elif self.args.name_mi_estimator in ['CLUBSample', 'MINE', 'L1OutUB', 'NWJ', 'InfoNCE']:
-                    self.mi_estimator = eval(self.args.name_mi_estimator)(config.hidden_size, self.ib_dim,
-                                                                     intermediate_dim).to(device)
+                        device
+                    )
+                elif self.args.name_mi_estimator == "KERNEL_A":
+                    self.mi_estimator = MIKernelEstimator(
+                        device, config.args.number_of_samples, self.ib_dim, config.hidden_size, use_joint=False
+                    ).to(device)
+                elif self.args.name_mi_estimator in ["CLUBSample", "MINE", "L1OutUB", "NWJ", "InfoNCE"]:
+                    self.mi_estimator = eval(self.args.name_mi_estimator)(
+                        config.hidden_size, self.ib_dim, intermediate_dim
+                    ).to(device)
                 elif self.args.name_mi_estimator in ["DOE"]:
-                    self.mi_estimator = eval(self.args.name_mi_estimator)(self.ib_dim, config.hidden_size).to(
-                        device)
+                    self.mi_estimator = eval(self.args.name_mi_estimator)(self.ib_dim, config.hidden_size).to(device)
                 else:
                     raise NotImplementedError
         else:
@@ -72,7 +74,7 @@ class BertForSequenceClassification(BertPreTrainedModel):
         mu_diff_sq = torch.mul(mu_diff, mu_diff)
         logdet_std_q = torch.sum(2 * torch.log(torch.clamp(std_q, min=1e-8)), dim=1)
         logdet_std_p = torch.sum(2 * torch.log(torch.clamp(std_p, min=1e-8)), dim=1)
-        fs = torch.sum(torch.div(std_q ** 2, std_p ** 2), dim=1) + torch.sum(torch.div(mu_diff_sq, std_p ** 2), dim=1)
+        fs = torch.sum(torch.div(std_q**2, std_p**2), dim=1) + torch.sum(torch.div(mu_diff_sq, std_p**2), dim=1)
         kl_divergence = (fs - k + logdet_std_p - logdet_std_q) * 0.5
         return kl_divergence.mean()
 
@@ -117,47 +119,47 @@ class BertForSequenceClassification(BertPreTrainedModel):
         return loss
 
     def forward(
-            self,
-            input_ids=None,
-            attention_mask=None,
-            token_type_ids=None,
-            position_ids=None,
-            head_mask=None,
-            inputs_embeds=None,
-            labels=None,
-            sampling_type="iid",
-            epoch=1,
+        self,
+        input_ids=None,
+        attention_mask=None,
+        token_type_ids=None,
+        position_ids=None,
+        head_mask=None,
+        inputs_embeds=None,
+        labels=None,
+        sampling_type="iid",
+        epoch=1,
     ):
         r"""
-        labels (:obj:`torch.LongTensor` of shape :obj:`(batch_size,)`, `optional`, defaults to :obj:`None`):
-            Labels for computing the sequence classification/regression loss.
-            Indices should be in :obj:`[0, ..., config.num_labels - 1]`.
-            If :obj:`config.num_labels == 1` a regression loss is computed (Mean-Square loss),
-            If :obj:`config.num_labels > 1` a classification loss is computed (Cross-Entropy).
-    Returns:
-        :obj:`tuple(torch.FloatTensor)` comprising various elements depending on the configuration (:class:`~transformers.BertConfig`) and inputs:
-        loss (:obj:`torch.FloatTensor` of shape :obj:`(1,)`, `optional`, returned when :obj:`label` is provided):
-            Classification (or regression if config.num_labels==1) loss.
-        logits (:obj:`torch.FloatTensor` of shape :obj:`(batch_size, config.num_labels)`):
-            Classification (or regression if config.num_labels==1) scores (before SoftMax).
-        hidden_states (:obj:`tuple(torch.FloatTensor)`, `optional`, returned when ``config.output_hidden_states=True``):
-            Tuple of :obj:`torch.FloatTensor` (one for the output of the embeddings + one for the output of each layer)
-            of shape :obj:`(batch_size, sequence_length, hidden_size)`.
-            Hidden-states of the model at the output of each layer plus the initial embedding outputs.
-        attentions (:obj:`tuple(torch.FloatTensor)`, `optional`, returned when ``config.output_attentions=True``):
-            Tuple of :obj:`torch.FloatTensor` (one for each layer) of shape
-            :obj:`(batch_size, num_heads, sequence_length, sequence_length)`.
-            Attentions weights after the attention softmax, used to compute the weighted average in the self-attention
-            heads.
-    Examples::
-        from transformers import BertTokenizer, BertForSequenceClassification
-        import torch
-        tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-        model = BertForSequenceClassification.from_pretrained('bert-base-uncased')
-        input_ids = torch.tensor(tokenizer.encode("Hello, my dog is cute", add_special_tokens=True)).unsqueeze(0)  # Batch size 1
-        labels = torch.tensor([1]).unsqueeze(0)  # Batch size 1
-        outputs = model(input_ids, labels=labels)
-        loss, logits = outputs[:2]
+            labels (:obj:`torch.LongTensor` of shape :obj:`(batch_size,)`, `optional`, defaults to :obj:`None`):
+                Labels for computing the sequence classification/regression loss.
+                Indices should be in :obj:`[0, ..., config.num_labels - 1]`.
+                If :obj:`config.num_labels == 1` a regression loss is computed (Mean-Square loss),
+                If :obj:`config.num_labels > 1` a classification loss is computed (Cross-Entropy).
+        Returns:
+            :obj:`tuple(torch.FloatTensor)` comprising various elements depending on the configuration (:class:`~transformers.BertConfig`) and inputs:
+            loss (:obj:`torch.FloatTensor` of shape :obj:`(1,)`, `optional`, returned when :obj:`label` is provided):
+                Classification (or regression if config.num_labels==1) loss.
+            logits (:obj:`torch.FloatTensor` of shape :obj:`(batch_size, config.num_labels)`):
+                Classification (or regression if config.num_labels==1) scores (before SoftMax).
+            hidden_states (:obj:`tuple(torch.FloatTensor)`, `optional`, returned when ``config.output_hidden_states=True``):
+                Tuple of :obj:`torch.FloatTensor` (one for the output of the embeddings + one for the output of each layer)
+                of shape :obj:`(batch_size, sequence_length, hidden_size)`.
+                Hidden-states of the model at the output of each layer plus the initial embedding outputs.
+            attentions (:obj:`tuple(torch.FloatTensor)`, `optional`, returned when ``config.output_attentions=True``):
+                Tuple of :obj:`torch.FloatTensor` (one for each layer) of shape
+                :obj:`(batch_size, num_heads, sequence_length, sequence_length)`.
+                Attentions weights after the attention softmax, used to compute the weighted average in the self-attention
+                heads.
+        Examples::
+            from transformers import BertTokenizer, BertForSequenceClassification
+            import torch
+            tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+            model = BertForSequenceClassification.from_pretrained('bert-base-uncased')
+            input_ids = torch.tensor(tokenizer.encode("Hello, my dog is cute", add_special_tokens=True)).unsqueeze(0)  # Batch size 1
+            labels = torch.tensor([1]).unsqueeze(0)  # Batch size 1
+            outputs = model(input_ids, labels=labels)
+            loss, logits = outputs[:2]
         """
 
         final_outputs = {}
@@ -177,9 +179,9 @@ class BertForSequenceClassification(BertPreTrainedModel):
             pooled_output = self.mlp(pooled_output)
             mu, std = self.estimate(pooled_output, self.emb2mu, self.emb2std)
             final_outputs["z"] = mu
-            sampled_logits, logits = self.get_logits(mu, mu, sampling_type='argmax')  # always deterministic
+            sampled_logits, logits = self.get_logits(mu, mu, sampling_type="argmax")  # always deterministic
             if labels is not None:
-                loss["loss"] = self.sampled_loss(sampled_logits, logits, labels.view(-1), sampling_type='argmax')
+                loss["loss"] = self.sampled_loss(sampled_logits, logits, labels.view(-1), sampling_type="argmax")
 
         elif self.ib:
             # sample X sample for the dataset
@@ -196,8 +198,11 @@ class BertForSequenceClassification(BertPreTrainedModel):
                     if count > self.args.loader_number:
                         break
                     batch_estimator = tuple(t.to(self.args.device) for t in batch_estimator)
-                    inputs_estimator = {"input_ids": batch_estimator[0], "attention_mask": batch_estimator[1],
-                                        "labels": batch_estimator[3]}
+                    inputs_estimator = {
+                        "input_ids": batch_estimator[0],
+                        "attention_mask": batch_estimator[1],
+                        "labels": batch_estimator[3],
+                    }
                     outputs_estimator = self.bert(
                         batch_estimator[0],
                         attention_mask=batch_estimator[1],
@@ -212,15 +217,18 @@ class BertForSequenceClassification(BertPreTrainedModel):
                     batch_size_estimator = pooled_output_mlp_estimator.shape[0]
                     mu_estimator, std_estimator = self.estimate(pooled_output_mlp_estimator, self.emb2mu, self.emb2std)
                     z_estimator = self.reparameterize(mu_estimator, std_estimator)
-                    if self.args.name_mi_estimator == 'KERNEL_E':
-                        training_loss_estimator = self.mi_estimator.learning_loss(z_estimator[0, :, :],
-                                                                                  None)  # mi estimation
-                    elif self.args.name_mi_estimator == 'KERNEL_A':
-                        training_loss_estimator = self.mi_estimator.learning_loss(z_estimator[0, :, :],
-                                                                                  pooled_output_estimator)  # mi estimation
+                    if self.args.name_mi_estimator == "KERNEL_E":
+                        training_loss_estimator = self.mi_estimator.learning_loss(
+                            z_estimator[0, :, :], None
+                        )  # mi estimation
+                    elif self.args.name_mi_estimator == "KERNEL_A":
+                        training_loss_estimator = self.mi_estimator.learning_loss(
+                            z_estimator[0, :, :], pooled_output_estimator
+                        )  # mi estimation
                     else:
-                        training_loss_estimator = self.mi_estimator.learning_loss(pooled_output_estimator,
-                                                                                  z_estimator[0, :, :])  # mi estimation
+                        training_loss_estimator = self.mi_estimator.learning_loss(
+                            pooled_output_estimator, z_estimator[0, :, :]
+                        )  # mi estimation
                     training_loss_estimator.backward()
                     self.optimizer.step()
                     self.mi_estimator.zero_grad()
@@ -240,15 +248,16 @@ class BertForSequenceClassification(BertPreTrainedModel):
 
             z = self.reparameterize(mu, std)
             if self.args.use_mi_estimation:
-                if self.args.name_mi_estimator == 'KERNEL_E':
+                if self.args.name_mi_estimator == "KERNEL_E":
                     mi_loss = self.mi_estimator(z[0, :, :], None)  # mi estimation
-                elif self.args.name_mi_estimator == 'KERNEL_A':
+                elif self.args.name_mi_estimator == "KERNEL_A":
                     mi_loss = self.mi_estimator(z[0, :, :], pooled_output)  # mi estimation  # mi estimation
                 else:
                     mi_loss = self.mi_estimator(pooled_output, z[0, :, :])  # mi estimation
-                if self.args.name_mi_estimator == 'KERNEL_E':
+                if self.args.name_mi_estimator == "KERNEL_E":
                     mi_loss = torch.abs(
-                        mi_loss - 1 / 2 * torch.mean(torch.sum(2 * torch.log(torch.clamp(std, min=1e-8)), dim=1)))
+                        mi_loss - 1 / 2 * torch.mean(torch.sum(2 * torch.log(torch.clamp(std, min=1e-8)), dim=1))
+                    )
             else:
                 mi_loss = self.kl_div(mu, std, mu_p, std_p)
             final_outputs["z"] = mu
@@ -278,5 +287,6 @@ class BertForSequenceClassification(BertPreTrainedModel):
         except:
             ce_loss = torch.tensor(0.0).to(self.args.device)
         final_outputs.update(
-            {"logits": logits, "loss": loss, "hidden_attention": outputs[2:], 'mi_loss': mi_loss, 'ce_loss': ce_loss})
+            {"logits": logits, "loss": loss, "hidden_attention": outputs[2:], "mi_loss": mi_loss, "ce_loss": ce_loss}
+        )
         return final_outputs

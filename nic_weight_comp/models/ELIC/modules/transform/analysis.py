@@ -24,7 +24,7 @@ class AnalysisTransformEX(nn.Module):
             ResidualBottleneck(N, act=act),
             ResidualBottleneck(N, act=act),
             conv(N, M),
-            AttentionBlock(M)
+            AttentionBlock(M),
         )
 
     def forward(self, x):
@@ -37,15 +37,8 @@ class HyperAnalysisEX(nn.Module):
         super().__init__()
         self.M = M
         self.N = N
-        self.reduction = nn.Sequential(
-            conv3x3(M, N),
-            act(),
-            conv(N, N),
-            act(),
-            conv(N, N)
-        )
+        self.reduction = nn.Sequential(conv3x3(M, N), act(), conv(N, N), act(), conv(N, N))
 
     def forward(self, x):
         x = self.reduction(x)
         return x
-

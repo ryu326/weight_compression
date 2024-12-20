@@ -5,14 +5,9 @@ import re
 from pathlib import Path
 
 import pandas as pd
+from lm_eval.utils import (eval_logger, get_latest_filename,
+                           get_results_filenames, get_sample_results_filenames)
 from zeno_client import ZenoClient, ZenoMetric
-
-from lm_eval.utils import (
-    eval_logger,
-    get_latest_filename,
-    get_results_filenames,
-    get_sample_results_filenames,
-)
 
 
 def parse_args():
@@ -42,11 +37,7 @@ def main():
     client = ZenoClient(os.environ["ZENO_API_KEY"])
 
     # Get all model subfolders from the parent data folder.
-    models = [
-        os.path.basename(os.path.normpath(f))
-        for f in os.scandir(Path(args.data_path))
-        if f.is_dir()
-    ]
+    models = [os.path.basename(os.path.normpath(f)) for f in os.scandir(Path(args.data_path)) if f.is_dir()]
 
     assert len(models) > 0, "No model directories found in the data_path."
 
@@ -66,9 +57,7 @@ def main():
                 f"All models must have the same tasks. {model} has tasks: {model_tasks} but have already recorded tasks: {old_tasks}. Taking intersection {tasks}"
             )
 
-    assert (
-        len(tasks) > 0
-    ), "Must provide at least one task in common amongst models to compare."
+    assert len(tasks) > 0, "Must provide at least one task in common amongst models to compare."
 
     for task in tasks:
         # Upload data for all models
@@ -78,18 +67,12 @@ def main():
             model_files = [f.as_posix() for f in model_dir.iterdir() if f.is_file()]
             model_results_filenames = get_results_filenames(model_files)
             model_sample_filenames = get_sample_results_filenames(model_files)
-            latest_results = get_latest_filename(
-                [Path(f).name for f in model_results_filenames]
-            )
-            latest_sample_results = get_latest_filename(
-                [Path(f).name for f in model_sample_filenames if task in f]
-            )
+            latest_results = get_latest_filename([Path(f).name for f in model_results_filenames])
+            latest_sample_results = get_latest_filename([Path(f).name for f in model_sample_filenames if task in f])
             model_args = re.sub(
                 r"[\"<>:/\|\\?\*\[\]]+",
                 "__",
-                json.load(
-                    open(Path(args.data_path, model, latest_results), encoding="utf-8")
-                )["config"]["model_args"],
+                json.load(open(Path(args.data_path, model, latest_results), encoding="utf-8"))["config"]["model_args"],
             )
             print(model_args)
             data = []
@@ -101,9 +84,7 @@ def main():
                 for line in file:
                     data.append(json.loads(line.strip()))
 
-            configs = json.load(
-                open(Path(args.data_path, model, latest_results), encoding="utf-8")
-            )["configs"]
+            configs = json.load(open(Path(args.data_path, model, latest_results), encoding="utf-8"))["configs"]
             config = configs[task]
 
             if model_index == 0:  # Only need to assemble data for the first model
@@ -177,9 +158,7 @@ def generate_dataset(
         labels = [x["arguments"]["gen_args_0"]["arg_1"] for x in data]
     elif config["output_type"] == "multiple_choice":
         instance = [
-            x["arguments"]["gen_args_0"]["arg_0"]
-            + "\n\n"
-            + "\n".join([f"- {y[1]}" for y in x["arguments"]])
+            x["arguments"]["gen_args_0"]["arg_0"] + "\n\n" + "\n".join([f"- {y[1]}" for y in x["arguments"]])
             for x in data
         ]
     elif config["output_type"] == "loglikelihood_rolling":
@@ -213,14 +192,9 @@ def generate_system_df(data, config):
     system_dict["output"] = [""] * len(ids)
 
     if config["output_type"] == "loglikelihood":
-        system_dict["output"] = [
-            "correct" if x["filtered_resps"][0][1] is True else "incorrect"
-            for x in data
-        ]
+        system_dict["output"] = ["correct" if x["filtered_resps"][0][1] is True else "incorrect" for x in data]
     elif config["output_type"] == "multiple_choice":
-        system_dict["output"] = [
-            ", ".join([str(y[0]) for y in x["filtered_resps"]]) for x in data
-        ]
+        system_dict["output"] = [", ".join([str(y[0]) for y in x["filtered_resps"]]) for x in data]
         system_dict["num_answers"] = [len(x["filtered_resps"]) for x in data]
     elif config["output_type"] == "loglikelihood_rolling":
         system_dict["output"] = [str(x["filtered_resps"][0]) for x in data]

@@ -7,39 +7,23 @@ from collections.abc import Callable
 from copy import deepcopy
 from dataclasses import asdict, dataclass
 from inspect import getsource
-from typing import (
-    Any,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
-    Literal,
-    Mapping,
-    Optional,
-    Tuple,
-    Union,
-)
+from typing import (Any, Dict, Iterable, Iterator, List, Literal, Mapping,
+                    Optional, Tuple, Union)
 
 import datasets
 import numpy as np
-from tqdm import tqdm
-
 from lm_eval import utils
 from lm_eval.api import samplers
 from lm_eval.api.instance import Instance, OutputType
 from lm_eval.api.metrics import bits_per_byte, mean, weighted_perplexity
-from lm_eval.api.registry import (
-    AGGREGATION_REGISTRY,
-    DEFAULT_METRIC_REGISTRY,
-    get_aggregation,
-    get_metric,
-    get_metric_aggregation,
-    is_higher_better,
-)
+from lm_eval.api.registry import (AGGREGATION_REGISTRY,
+                                  DEFAULT_METRIC_REGISTRY, get_aggregation,
+                                  get_metric, get_metric_aggregation,
+                                  is_higher_better)
 from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
-
+from tqdm import tqdm
 
 ALL_OUTPUT_TYPES = [
     "loglikelihood",
@@ -104,9 +88,7 @@ class TaskConfig(dict):
                 )
 
             if "temperature" in self.generation_kwargs:
-                self.generation_kwargs["temperature"] = float(
-                    self.generation_kwargs["temperature"]
-                )
+                self.generation_kwargs["temperature"] = float(self.generation_kwargs["temperature"])
 
             if "until" not in self.generation_kwargs:
                 self.generation_kwargs["until"] = [self.fewshot_delimiter]
@@ -114,11 +96,7 @@ class TaskConfig(dict):
             if self.output_type == "generate_until":
                 # ensure that we greedily generate in absence of explicit arguments otherwise
                 self.generation_kwargs = {
-                    "until": (
-                        None
-                        if self.fewshot_delimiter is None
-                        else [self.fewshot_delimiter]
-                    ),
+                    "until": (None if self.fewshot_delimiter is None else [self.fewshot_delimiter]),
                     "do_sample": False,
                 }
 
@@ -147,17 +125,13 @@ class TaskConfig(dict):
                 for metric_dict in v:
                     for metric_key, metric_value in metric_dict.items():
                         if callable(metric_value):
-                            metric_dict[metric_key] = self.serialize_function(
-                                metric_value, keep_callable=keep_callable
-                            )
+                            metric_dict[metric_key] = self.serialize_function(metric_value, keep_callable=keep_callable)
                 cfg_dict[k] = v
             elif callable(v):
                 cfg_dict[k] = self.serialize_function(v, keep_callable=keep_callable)
         return cfg_dict
 
-    def serialize_function(
-        self, value: Union[Callable, str], keep_callable=False
-    ) -> Union[Callable, str]:
+    def serialize_function(self, value: Union[Callable, str], keep_callable=False) -> Union[Callable, str]:
         """Serializes a given function or string.
 
         If 'keep_callable' is True, the original callable is returned.
@@ -229,9 +203,7 @@ class Task(abc.ABC):
         self._config: TaskConfig = TaskConfig({**config}) if config else TaskConfig()
 
         self._filters = [build_filter_ensemble("none", [["take_first", None]])]
-        self.fewshot_rnd: Optional[random.Random] = (
-            None  # purposely induce errors in case of improper usage
-        )
+        self.fewshot_rnd: Optional[random.Random] = None  # purposely induce errors in case of improper usage
 
     def download(
         self,
@@ -353,9 +325,7 @@ class Task(abc.ABC):
         return rnd.sample(self._training_docs, k)
 
     def doc_to_decontamination_query(self, doc):
-        raise NotImplementedError(
-            "Override doc_to_decontamination_query with document specific decontamination query."
-        )
+        raise NotImplementedError("Override doc_to_decontamination_query with document specific decontamination query.")
 
     @abc.abstractmethod
     def doc_to_text(self, doc):
@@ -392,9 +362,7 @@ class Task(abc.ABC):
         cache_key += "-chat_template" if apply_chat_template else ""
         cache_key += "-fewshot_as_multiturn" if fewshot_as_multiturn else ""
         cache_key += (
-            f"-system_prompt_hash{utils.hash_string(system_instruction)}"
-            if system_instruction is not None
-            else ""
+            f"-system_prompt_hash{utils.hash_string(system_instruction)}" if system_instruction is not None else ""
         )
         cache_key += f"-tokenizer{tokenizer_name}"
 
@@ -403,11 +371,7 @@ class Task(abc.ABC):
         if cache_requests and cached_instances and not rewrite_requests_cache:
             cached_instances = cached_instances[:limit]
 
-            flattened_instances = [
-                instance
-                for instance_group in cached_instances
-                for instance in instance_group
-            ]
+            flattened_instances = [instance for instance_group in cached_instances for instance in instance_group]
 
             self._instances = flattened_instances
             return
@@ -417,16 +381,10 @@ class Task(abc.ABC):
         instances = []
 
         # process all documents when caching is specified for simplicity
-        if (
-            cache_requests
-            and (not cached_instances or rewrite_requests_cache)
-            and limit is not None
-        ):
+        if cache_requests and (not cached_instances or rewrite_requests_cache) and limit is not None:
             limit = None
 
-        doc_id_docs = list(
-            self.doc_iterator(rank=rank, limit=limit, world_size=world_size)
-        )
+        doc_id_docs = list(self.doc_iterator(rank=rank, limit=limit, world_size=world_size))
 
         num_docs = len(doc_id_docs)
 
@@ -461,11 +419,7 @@ class Task(abc.ABC):
 
         sliced_instances = instances[:og_limit]
 
-        flattened_instances = [
-            instance
-            for instance_group in sliced_instances
-            for instance in instance_group
-        ]
+        flattened_instances = [instance for instance_group in sliced_instances for instance in instance_group]
 
         self._instances = flattened_instances
 
@@ -567,9 +521,7 @@ class Task(abc.ABC):
             if self.fewshot_rnd is not None:
                 rnd = self.fewshot_rnd
             else:
-                raise ValueError(
-                    "A `random.Random` generator argument must be provided to `rnd`"
-                )
+                raise ValueError("A `random.Random` generator argument must be provided to `rnd`")
 
         description = description if description else ""
 
@@ -582,9 +534,7 @@ class Task(abc.ABC):
             else:
                 if self._fewshot_docs is None:
                     self._fewshot_docs = list(
-                        self.validation_docs()
-                        if self.has_validation_docs()
-                        else self.test_docs()
+                        self.validation_docs() if self.has_validation_docs() else self.test_docs()
                     )
 
                 fewshotex = rnd.sample(self._fewshot_docs, num_fewshot + 1)
@@ -593,13 +543,7 @@ class Task(abc.ABC):
                 fewshotex = [x for x in fewshotex if x != doc][:num_fewshot]
 
             labeled_examples = (
-                "\n\n".join(
-                    [
-                        self.doc_to_text(doc) + self.doc_to_target(doc)
-                        for doc in fewshotex
-                    ]
-                )
-                + "\n\n"
+                "\n\n".join([self.doc_to_text(doc) + self.doc_to_target(doc) for doc in fewshotex]) + "\n\n"
             )
 
         example = self.doc_to_text(doc)
@@ -628,9 +572,7 @@ class Task(abc.ABC):
         if update:
             current_value = getattr(self._config, key, {})
             if not isinstance(current_value, dict):
-                raise TypeError(
-                    f"Expected a dict for key '{key}', got {type(current_value).__name__} instead."
-                )
+                raise TypeError(f"Expected a dict for key '{key}', got {type(current_value).__name__} instead.")
             current_value.update(value)
         else:
             setattr(self._config, key, value)
@@ -654,9 +596,7 @@ class Task(abc.ABC):
         self._metric_fn_kwargs[metric_name] = {}
         if not isinstance(self, ConfigurableTask):
             self.process_results = lambda x, y: {metric_name: get_metric(metric_name)}
-            self.aggregation = lambda: {
-                metric_name: get_metric_aggregation(metric_name)
-            }
+            self.aggregation = lambda: {metric_name: get_metric_aggregation(metric_name)}
         setattr(self._config, "metric_list", [{"metric": metric_name}])
         setattr(self._config, "process_results", None)
 
@@ -713,9 +653,7 @@ class ConfigurableTask(Task):
                 self._config.__dict__.update(config)
 
         if self.config is None:
-            raise ValueError(
-                "Must pass a config to ConfigurableTask, either in cls.CONFIG or `config` kwarg"
-            )
+            raise ValueError("Must pass a config to ConfigurableTask, either in cls.CONFIG or `config` kwarg")
 
         if isinstance(self.config.metadata, dict):
             if "version" in self.config.metadata:
@@ -750,27 +688,19 @@ class ConfigurableTask(Task):
             for metric_name in _metric_list:
                 self._metric_fn_list[metric_name] = get_metric(metric_name)
                 self._metric_fn_kwargs[metric_name] = {}
-                self._aggregation_list[metric_name] = get_metric_aggregation(
-                    metric_name
-                )
+                self._aggregation_list[metric_name] = get_metric_aggregation(metric_name)
                 self._higher_is_better[metric_name] = is_higher_better(metric_name)
         else:
             for metric_config in self.config.metric_list:
                 if "metric" not in metric_config:
-                    raise ValueError(
-                        "'metric' key not provided for an entry in 'metric_list', must be specified!"
-                    )
+                    raise ValueError("'metric' key not provided for an entry in 'metric_list', must be specified!")
                 metric_name = metric_config["metric"]
                 kwargs = {
                     key: metric_config[key]
                     for key in metric_config
-                    if key
-                    not in ["metric", "aggregation", "higher_is_better", "hf_evaluate"]
+                    if key not in ["metric", "aggregation", "higher_is_better", "hf_evaluate"]
                 }
-                hf_evaluate_metric = (
-                    "hf_evaluate" in metric_config
-                    and metric_config["hf_evaluate"] is True
-                )
+                hf_evaluate_metric = "hf_evaluate" in metric_config and metric_config["hf_evaluate"] is True
 
                 if self.config.process_results is not None:
                     self._metric_fn_list[metric_name] = None
@@ -781,9 +711,7 @@ class ConfigurableTask(Task):
                     self._metric_fn_list[metric_name] = metric_fn
                     self._metric_fn_kwargs[metric_name] = kwargs
                 else:
-                    self._metric_fn_list[metric_name] = get_metric(
-                        metric_name, hf_evaluate_metric
-                    )
+                    self._metric_fn_list[metric_name] = get_metric(metric_name, hf_evaluate_metric)
                     self._metric_fn_kwargs[metric_name] = kwargs
 
                 if "aggregation" in metric_config:
@@ -791,9 +719,7 @@ class ConfigurableTask(Task):
                     if isinstance(agg_name, str):
                         self._aggregation_list[metric_name] = get_aggregation(agg_name)
                     elif callable(agg_name):  # noqa: E721
-                        self._aggregation_list[metric_name] = metric_config[
-                            "aggregation"
-                        ]
+                        self._aggregation_list[metric_name] = metric_config["aggregation"]
                 else:
                     INV_AGG_REGISTRY = {v: k for k, v in AGGREGATION_REGISTRY.items()}
                     metric_agg = get_metric_aggregation(metric_name)
@@ -805,9 +731,7 @@ class ConfigurableTask(Task):
                     self._aggregation_list[metric_name] = metric_agg
 
                 if "higher_is_better" in metric_config:
-                    self._higher_is_better[metric_name] = metric_config[
-                        "higher_is_better"
-                    ]
+                    self._higher_is_better[metric_name] = metric_config["higher_is_better"]
                 else:
                     eval_logger.warning(
                         f"[Task: {self.config.task}] metric {metric_name} is defined, but higher_is_better is not. "
@@ -827,9 +751,7 @@ class ConfigurableTask(Task):
                 filter_functions = filter_config["filter"]
                 components = []
                 for function in filter_functions:
-                    kwargs = {
-                        key: function[key] for key in function if key != "function"
-                    }
+                    kwargs = {key: function[key] for key in function if key != "function"}
                     components.append([function["function"], kwargs])
                 filter_pipeline = build_filter_ensemble(filter_name, components)
                 self._filters.append(filter_pipeline)
@@ -838,31 +760,21 @@ class ConfigurableTask(Task):
 
         if self.config.use_prompt is not None:
             eval_logger.info(f"loading prompt {self.config.use_prompt}")
-            self.prompt = get_prompt(
-                self.config.use_prompt, self.DATASET_PATH, self.DATASET_NAME
-            )
+            self.prompt = get_prompt(self.config.use_prompt, self.DATASET_PATH, self.DATASET_NAME)
         else:
             self.prompt = None
 
         if self.fewshot_docs() is not None:
-            self.fewshot_rnd = (
-                random.Random()
-            )  # setting with no seed, to be overridden at a later time
+            self.fewshot_rnd = random.Random()  # setting with no seed, to be overridden at a later time
             config_sampler: Union[str, Callable] = (
-                self.config.fewshot_config.get("sampler", "default")
-                if self.config.fewshot_config
-                else "default"
+                self.config.fewshot_config.get("sampler", "default") if self.config.fewshot_config else "default"
             )
             if isinstance(config_sampler, str):
                 self.sampler = samplers.get_sampler(config_sampler)(
                     list(self.fewshot_docs()), self, rnd=self.fewshot_rnd
                 )
-            elif callable(config_sampler) and issubclass(
-                config_sampler, samplers.ContextSampler
-            ):
-                self.sampler = config_sampler(
-                    docs=list(self.fewshot_docs()), task=self, rnd=self.fewshot_rnd
-                )
+            elif callable(config_sampler) and issubclass(config_sampler, samplers.ContextSampler):
+                self.sampler = config_sampler(docs=list(self.fewshot_docs()), task=self, rnd=self.fewshot_rnd)
             else:
                 raise TypeError(
                     f"fewshot_config.sampler should be a string or callable of ContextSampler type, "
@@ -907,10 +819,7 @@ class ConfigurableTask(Task):
             for choice in check_choices:
                 choice_has_whitespace = True if choice[0].isspace() else False
                 delimiter_has_whitespace = (
-                    True
-                    if self.config.target_delimiter.rstrip()
-                    != self.config.target_delimiter
-                    else False
+                    True if self.config.target_delimiter.rstrip() != self.config.target_delimiter else False
                 )
 
                 if delimiter_has_whitespace and choice_has_whitespace:
@@ -950,17 +859,13 @@ class ConfigurableTask(Task):
     def training_docs(self) -> datasets.Dataset:
         if self.has_training_docs():
             if self.config.process_docs is not None:
-                return self.config.process_docs(
-                    self.dataset[self.config.training_split]
-                )
+                return self.config.process_docs(self.dataset[self.config.training_split])
             return self.dataset[self.config.training_split]
 
     def validation_docs(self) -> datasets.Dataset:
         if self.has_validation_docs():
             if self.config.process_docs is not None:
-                return self.config.process_docs(
-                    self.dataset[self.config.validation_split]
-                )
+                return self.config.process_docs(self.dataset[self.config.validation_split])
             return self.dataset[self.config.validation_split]
 
     def test_docs(self) -> datasets.Dataset:
@@ -974,10 +879,7 @@ class ConfigurableTask(Task):
             if self.config.process_docs is not None:
                 return self.config.process_docs(self.dataset[self.config.fewshot_split])
             return self.dataset[self.config.fewshot_split]
-        elif (
-            self.config.fewshot_config is not None
-            and self.config.fewshot_config.get("samples", None) is not None
-        ):
+        elif self.config.fewshot_config is not None and self.config.fewshot_config.get("samples", None) is not None:
             if isinstance(self.config.fewshot_config["samples"], list):
                 return self.config.fewshot_config["samples"]
             elif callable(self.config.fewshot_config["samples"]):
@@ -1056,9 +958,7 @@ class ConfigurableTask(Task):
 
         # create system prompt based on the provided system instruction and description
         if system_instruction is not None and description:
-            system_prompt = (
-                f"{system_instruction}{self.sampler.fewshot_delimiter}{description}"
-            )
+            system_prompt = f"{system_instruction}{self.sampler.fewshot_delimiter}{description}"
         elif system_instruction is not None:
             system_prompt = system_instruction
         elif description:
@@ -1076,11 +976,7 @@ class ConfigurableTask(Task):
         # if few-shot - append examples after the system prompt
         if num_fewshot > 0:
             if apply_chat_template:
-                labeled_examples.extend(
-                    self.sampler.get_chat_context(
-                        doc, num_fewshot, fewshot_as_multiturn
-                    )
-                )
+                labeled_examples.extend(self.sampler.get_chat_context(doc, num_fewshot, fewshot_as_multiturn))
             else:
                 labeled_examples += self.sampler.get_context(doc, num_fewshot)
 
@@ -1089,9 +985,7 @@ class ConfigurableTask(Task):
             if self.multiple_input:
                 return chat_template(labeled_examples)
             if isinstance(example, str):
-                self.append_target_question(
-                    labeled_examples, example, fewshot_as_multiturn
-                )
+                self.append_target_question(labeled_examples, example, fewshot_as_multiturn)
             # for loglikelihood create a list of questions with appended choices
             elif isinstance(example, list):
                 labeled_examples_list = []
@@ -1105,13 +999,9 @@ class ConfigurableTask(Task):
             elif isinstance(example, int):
                 if self.config.doc_to_choice is not None:
                     choices = self.doc_to_choice(doc)
-                    self.append_target_question(
-                        labeled_examples, choices[example], fewshot_as_multiturn
-                    )
+                    self.append_target_question(labeled_examples, choices[example], fewshot_as_multiturn)
                 else:
-                    self.append_target_question(
-                        labeled_examples, str(example), fewshot_as_multiturn
-                    )
+                    self.append_target_question(labeled_examples, str(example), fewshot_as_multiturn)
                 # return lm.apply_chat_template(labeled_examples)
             return chat_template(labeled_examples)
         else:
@@ -1151,11 +1041,7 @@ class ConfigurableTask(Task):
                 elif callable(doc_to_decontamination_query):
                     return doc_to_decontamination_query(doc)
                 else:
-                    return ast.literal_eval(
-                        utils.apply_template(
-                            self.config.doc_to_decontamination_query, doc
-                        )
-                    )
+                    return ast.literal_eval(utils.apply_template(self.config.doc_to_decontamination_query, doc))
 
     def _process_doc(self, doc: dict) -> dict:
         """
@@ -1224,11 +1110,7 @@ class ConfigurableTask(Task):
                 target_string = utils.apply_template(doc_to_target, doc)
                 if target_string.isdigit() and self._config.doc_to_choice is not None:
                     return ast.literal_eval(target_string)
-                elif (
-                    len(target_string) >= 2
-                    and (target_string[0] == "[")
-                    and (target_string[-1] == "]")
-                ):
+                elif len(target_string) >= 2 and (target_string[0] == "[") and (target_string[-1] == "]"):
                     try:
                         return ast.literal_eval(target_string)
                     except (SyntaxError, ValueError):
@@ -1285,9 +1167,7 @@ class ConfigurableTask(Task):
             return None
 
         if isinstance(doc_to_image, list):
-            image_feature = [
-                self.doc_to_image(doc, feature) for feature in doc_to_image
-            ]
+            image_feature = [self.doc_to_image(doc, feature) for feature in doc_to_image]
             return [feature for feature in image_feature if feature is not None]
         elif isinstance(doc_to_image, str):
             if doc_to_image in self.features:
@@ -1299,9 +1179,7 @@ class ConfigurableTask(Task):
         else:
             return None
 
-    def construct_requests(
-        self, doc: dict, ctx: str, **kwargs
-    ) -> Union[List[Instance], Instance]:
+    def construct_requests(self, doc: dict, ctx: str, **kwargs) -> Union[List[Instance], Instance]:
         apply_chat_template = kwargs.pop("apply_chat_template", False)
 
         aux_arguments = None
@@ -1318,9 +1196,7 @@ class ConfigurableTask(Task):
             if self.multiple_input:
                 # If there are multiple inputs, choices are placed in the ctx
                 cont = self.doc_to_target(doc)
-                arguments = [
-                    (ctx + choice, f"{target_delimiter}{cont}") for choice in choices
-                ]
+                arguments = [(ctx + choice, f"{target_delimiter}{cont}") for choice in choices]
             else:
                 # Otherwise they are placed in the continuation
                 arguments = [(ctx, f"{target_delimiter}{cont}") for cont in choices]
@@ -1341,9 +1217,7 @@ class ConfigurableTask(Task):
             arguments = (ctx, deepcopy(self.config.generation_kwargs))
 
         multimodal_arg = {}
-        if (
-            self.config.doc_to_image
-        ):  # TODO: ensure that non-multimodal tasks aren't getting visual args
+        if self.config.doc_to_image:  # TODO: ensure that non-multimodal tasks aren't getting visual args
             multimodal_arg = {
                 **multimodal_arg,
                 **{"visual": self.doc_to_image(doc)},
@@ -1395,21 +1269,9 @@ class ConfigurableTask(Task):
             _words = self.count_words(self.doc_to_target(doc))
             _bytes = self.count_bytes(self.doc_to_target(doc))
             return {
-                **(
-                    {"word_perplexity": (loglikelihood, _words)}
-                    if "word_perplexity" in use_metric
-                    else {}
-                ),
-                **(
-                    {"byte_perplexity": (loglikelihood, _bytes)}
-                    if "byte_perplexity" in use_metric
-                    else {}
-                ),
-                **(
-                    {"bits_per_byte": (loglikelihood, _bytes)}
-                    if "bits_per_byte" in use_metric
-                    else {}
-                ),
+                **({"word_perplexity": (loglikelihood, _words)} if "word_perplexity" in use_metric else {}),
+                **({"byte_perplexity": (loglikelihood, _bytes)} if "byte_perplexity" in use_metric else {}),
+                **({"bits_per_byte": (loglikelihood, _bytes)} if "bits_per_byte" in use_metric else {}),
             }
         elif self.OUTPUT_TYPE == "multiple_choice":
             lls, is_greedy = zip(*results)
@@ -1418,10 +1280,7 @@ class ConfigurableTask(Task):
             choices = self.doc_to_choice(doc)
             completion_len = np.array([float(len(i)) for i in choices])
 
-            if (
-                2 * len(choices) == len(lls)
-                and "acc_mutual_info" in self._metric_fn_list.keys()
-            ):
+            if 2 * len(choices) == len(lls) and "acc_mutual_info" in self._metric_fn_list.keys():
                 # then we are doing mutual info.
                 # this stores the "dryrun" / unconditional answer loglikelihoods
                 lls_unconditional = lls[1::2]
@@ -1454,8 +1313,7 @@ class ConfigurableTask(Task):
 
             if gold_index_error:
                 eval_logger.warning(
-                    f"Label index was not in within range of available choices,"
-                    f"Sample:\n\n{doc}\n\n"
+                    f"Label index was not in within range of available choices," f"Sample:\n\n{doc}\n\n"
                 )
 
             if self.multiple_target:
@@ -1478,17 +1336,11 @@ class ConfigurableTask(Task):
                 **({"mcc": (gold, pred)} if "mcc" in use_metric else {}),
                 **({"acc_norm": acc_norm} if "acc_norm" in use_metric else {}),
                 **({"exact_match": exact_match} if "exact_match" in use_metric else {}),
-                **(
-                    {"brier_score": (gold, prob_norm)}
-                    if "brier_score" in use_metric
-                    else {}
-                ),
+                **({"brier_score": (gold, prob_norm)} if "brier_score" in use_metric else {}),
             }
 
             if "acc_mutual_info" in use_metric:
-                lls_mutual_info = [
-                    ll_c - ll_u for ll_c, ll_u in zip(lls, lls_unconditional)
-                ]
+                lls_mutual_info = [ll_c - ll_u for ll_c, ll_u in zip(lls, lls_unconditional)]
                 acc_mutual_info = 1.0 if np.argmax(lls_mutual_info) == gold else 0.0
                 result_dict["acc_mutual_info"] = acc_mutual_info
 
@@ -1503,10 +1355,7 @@ class ConfigurableTask(Task):
             # we expect multiple_targets to be a list.
             elif self.multiple_target:
                 gold = list(gold)
-            elif (
-                type(gold) is not type(result)
-                and "bypass" not in self._metric_fn_list.keys()
-            ):
+            elif type(gold) is not type(result) and "bypass" not in self._metric_fn_list.keys():
                 # cast gold to the same type as result
                 gold = type(result)(gold)
 
@@ -1536,12 +1385,8 @@ class ConfigurableTask(Task):
                                     predictions=[result],
                                     **self._metric_fn_kwargs[metric],
                                 )
-                            except (
-                                TypeError
-                            ):  # TODO: this is hacky and I don't want to do it
-                                result_score = self._metric_fn_list[metric](
-                                    [gold_option, result]
-                                )
+                            except TypeError:  # TODO: this is hacky and I don't want to do it
+                                result_score = self._metric_fn_list[metric]([gold_option, result])
                             if isinstance(result_score, dict):
                                 # TODO: this handles the case where HF evaluate returns a dict.
                                 result_score = result_score[metric]
@@ -1557,7 +1402,9 @@ class ConfigurableTask(Task):
                             predictions=[result],
                             **self._metric_fn_kwargs[metric],
                         )
-                    except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
+                    except (
+                        TypeError
+                    ):  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
                         result_score = self._metric_fn_list[metric]([gold, result])
                     if isinstance(result_score, dict):
                         # TODO: this handles the case where HF evaluate returns a dict.
@@ -1648,16 +1495,12 @@ class PerplexityTask(Task):
 
     def fewshot_examples(self, k: int, rnd) -> List:
         if k != 0:
-            raise ValueError(
-                "The number of fewshot examples must be 0 for perplexity tasks."
-            )
+            raise ValueError("The number of fewshot examples must be 0 for perplexity tasks.")
         return []
 
     def fewshot_context(self, doc: dict, num_fewshot: int) -> Literal[""]:
         if num_fewshot != 0:
-            raise ValueError(
-                "The number of fewshot examples must be 0 for perplexity tasks."
-            )
+            raise ValueError("The number of fewshot examples must be 0 for perplexity tasks.")
 
         return ""
 

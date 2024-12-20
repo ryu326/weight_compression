@@ -76,15 +76,11 @@ def get_anchor_embeddings(
     # get positions
     pos = anchor_ds.positions
     anchor_pos = repeat(pos, "n d -> b n d", b=anchor_weights.shape[0])
-    print(
-        f"get anchor embeddings with halo: {halo} window size: {halo_wse} halo size: {halo_hs}"
-    )
+    print(f"get anchor embeddings with halo: {halo} window size: {halo_wse} halo size: {halo_hs}")
     # HALO MODELS
     if halo:
         logging.info("haloify embeddings")
-        anchor_weights, anchor_pos = haloify(
-            anchor_weights, anchor_pos, windowsize=halo_wse, halosize=halo_hs
-        )
+        anchor_weights, anchor_pos = haloify(anchor_weights, anchor_pos, windowsize=halo_wse, halosize=halo_hs)
         # this isnow [n-samples,n-haloed_windows,n_tokens-per-window, tokendim]
         logging.debug(f"haloified weights:{anchor_weights.shape}")
         logging.debug(f"haloified positions:{anchor_pos.shape}")
@@ -123,12 +119,8 @@ def get_anchor_embeddings(
     # DE-HALO EMBEDDINGS
     if halo:
         print(f"unstack haloed batches")
-        anchor_z = anchor_z.view(
-            awhalo_shape[-4], awhalo_shape[-3], awhalo_shape[-2], anchor_z.shape[-1]
-        )
-        anchor_pos = anchor_pos.view(
-            aphalo_shape[-4], aphalo_shape[-3], aphalo_shape[-2], aphalo_shape[-1]
-        )
+        anchor_z = anchor_z.view(awhalo_shape[-4], awhalo_shape[-3], awhalo_shape[-2], anchor_z.shape[-1])
+        anchor_pos = anchor_pos.view(aphalo_shape[-4], aphalo_shape[-3], aphalo_shape[-2], aphalo_shape[-1])
         logging.info("unhaloify embeddings")
         anchor_z, anchor_pos = dehaloify(
             toks=anchor_z,

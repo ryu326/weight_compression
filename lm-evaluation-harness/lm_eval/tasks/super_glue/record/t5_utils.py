@@ -4,7 +4,6 @@ import string
 
 import numpy as np
 from datasets import Dataset
-
 from lm_eval.api.metrics import metric_max_over_ground_truths
 
 
@@ -106,9 +105,7 @@ def squad_f1_agg(items):
         """Computes token f1 score for a single target and prediction."""
         prediction_tokens = prediction.split()
         target_tokens = target.split()
-        common = collections.Counter(prediction_tokens) & collections.Counter(
-            target_tokens
-        )
+        common = collections.Counter(prediction_tokens) & collections.Counter(target_tokens)
         num_same = sum(common.values())
         if num_same == 0:
             return 0

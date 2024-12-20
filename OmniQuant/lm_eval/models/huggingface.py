@@ -24,10 +24,7 @@ def _get_accelerate_args(
     """Returns the kwargs needed to apply `accelerate` in `AutoModel.from_pretrained`."""
     max_memory = {}
     if max_memory_per_gpu is not None:
-        max_memory_per_gpu_map = {
-            device_idx: max_memory_per_gpu
-            for device_idx in range(torch.cuda.device_count())
-        }
+        max_memory_per_gpu_map = {device_idx: max_memory_per_gpu for device_idx in range(torch.cuda.device_count())}
         max_memory.update(max_memory_per_gpu_map)
     if max_cpu_memory is not None:
         max_memory["cpu"] = max_cpu_memory
@@ -40,9 +37,7 @@ def _get_accelerate_args(
     return args
 
 
-def _get_dtype(
-    dtype: Union[str, torch.dtype], config: Optional[transformers.AutoConfig] = None
-) -> torch.dtype:
+def _get_dtype(dtype: Union[str, torch.dtype], config: Optional[transformers.AutoConfig] = None) -> torch.dtype:
     """Converts `dtype` from `str` to torch.dtype when possible."""
     if dtype is None and config is not None:
         _torch_dtype = config.torch_dtype
@@ -130,10 +125,7 @@ class HuggingFaceAutoLM(BaseLM):
         assert isinstance(pretrained, str)
         assert isinstance(device, str)
         assert isinstance(batch_size, int)
-        if (
-            add_special_tokens is not None
-            and self.AUTO_MODEL_CLASS is transformers.AutoModelForCausalLM
-        ):
+        if add_special_tokens is not None and self.AUTO_MODEL_CLASS is transformers.AutoModelForCausalLM:
             # TODO: Support evaluating causal models with special tokens. Currently,
             # this is not possible because the `_loglikelihood_tokens()` method for
             # causal LMs makes a no-special-tokens assumption given that contexts
@@ -310,18 +302,14 @@ class HuggingFaceAutoLM(BaseLM):
 
         results = []
         reorder = utils.Reorderer(requests, _collate)
-        for chunk in utils.chunks(
-            tqdm(reorder.get_reordered(), disable=False), self.batch_size
-        ):
+        for chunk in utils.chunks(tqdm(reorder.get_reordered(), disable=False), self.batch_size):
             context = [c[0] for c in chunk]
             request_args = chunk[0][1]
             stop_sequences = request_args["stop_sequences"]
             max_generation_length = request_args["max_generation_length"]
             num_fewshot = request_args["num_fewshot"]
 
-            assert (
-                isinstance(max_generation_length, int) or max_generation_length is None
-            )
+            assert isinstance(max_generation_length, int) or max_generation_length is None
             assert isinstance(stop_sequences, list) or stop_sequences is None
             assert isinstance(num_fewshot, int) or num_fewshot is None
 
@@ -380,9 +368,7 @@ class AutoCausalLM(HuggingFaceAutoLM):
         tokenizer.padding_side = "left"
         return tokenizer
 
-    def _model_call(
-        self, inputs: TokenSequence, labels: Optional[TokenSequence] = None
-    ) -> TokenSequence:
+    def _model_call(self, inputs: TokenSequence, labels: Optional[TokenSequence] = None) -> TokenSequence:
         return self.model(inputs)["logits"]
 
     def _model_generate(
@@ -394,15 +380,11 @@ class AutoCausalLM(HuggingFaceAutoLM):
         # Ensure that the context does not encroach into the `space`
         # for the generation.
         input_ids = inputs["input_ids"][:, self.max_gen_toks - self.max_length :]
-        attention_mask = inputs["attention_mask"][
-            :, self.max_gen_toks - self.max_length :
-        ]
+        attention_mask = inputs["attention_mask"][:, self.max_gen_toks - self.max_length :]
         input_ids = input_ids.to(self.device)
         attention_mask = attention_mask.to(self.device)
 
-        stopping_criteria = stop_sequences_criteria(
-            self.tokenizer, stop, input_ids.shape[1], input_ids.shape[0]
-        )
+        stopping_criteria = stop_sequences_criteria(self.tokenizer, stop, input_ids.shape[1], input_ids.shape[0])
 
         generations = self.model.generate(
             input_ids=input_ids,
@@ -436,17 +418,13 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
             return self._max_length
         return self._DEFAULT_MAX_LENGTH
 
-    def loglikelihood(
-        self, requests: List[Tuple[str, str]]
-    ) -> List[Tuple[float, bool]]:
+    def loglikelihood(self, requests: List[Tuple[str, str]]) -> List[Tuple[float, bool]]:
         new_requests = []
         for chunk in utils.chunks(requests, self.batch_size):
             context, continuation = zip(*chunk)
 
             # Fill empty contexts with the EOT token.
-            context = [
-                f"{self.eot_token}" if len(text) == 0 else text for text in context
-            ]
+            context = [f"{self.eot_token}" if len(text) == 0 else text for text in context]
             context_enc = self.tok_encode_batch(context)
             for key in context_enc:
                 context_enc[key] = context_enc[key][:, -self.max_length :]
@@ -459,9 +437,7 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
             for key in continuation_enc:
                 continuation_enc[key] = continuation_enc[key][:, -self.max_length :]
 
-            new_requests.append(
-                ((context, continuation), context_enc, continuation_enc)
-            )
+            new_requests.append(((context, continuation), context_enc, continuation_enc))
         return self._loglikelihood_tokens(new_requests)
 
     def loglikelihood_rolling(self, requests: List[Tuple[str, str]]) -> List[float]:
@@ -501,12 +477,8 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
             )
             # TODO: Extract out this call so it only gets called once and also
             # somehow figure out partial caching for.
-            rolling_token_windows_request = [
-                ((contexts, conts), contexts_enc, conts_enc)
-            ]
-            string_nll = self._loglikelihood_tokens(
-                rolling_token_windows_request, disable_tqdm=True
-            )
+            rolling_token_windows_request = [((contexts, conts), contexts_enc, conts_enc)]
+            string_nll = self._loglikelihood_tokens(rolling_token_windows_request, disable_tqdm=True)
             string_nll = [x[0] for x in string_nll]  # discard is_greedy
             string_nll = sum(string_nll)
             loglikelihoods.append(string_nll)
@@ -518,9 +490,7 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
         disable_tqdm: Optional[bool] = False,
     ) -> List[Tuple[float, bool]]:
         results = []
-        for chunk in tqdm(
-            requests, total=math.ceil(len(requests)), disable=disable_tqdm
-        ):
+        for chunk in tqdm(requests, total=math.ceil(len(requests)), disable=disable_tqdm):
             cache_keys, inputs_tokens, targets_tokens = chunk
             inputs_tokens = inputs_tokens.to(self.device)
             targets_tokens = targets_tokens.to(self.device)
@@ -539,18 +509,14 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
                 target_tokens = target_tokens[:length]
                 greedy_tokens = log_softmax.argmax(dim=-1)
                 max_equal = (greedy_tokens == target_tokens).all()
-                target_logits = torch.gather(
-                    log_softmax, 1, target_tokens.unsqueeze(-1)
-                ).squeeze(-1)
+                target_logits = torch.gather(log_softmax, 1, target_tokens.unsqueeze(-1)).squeeze(-1)
                 answer = (float(target_logits.sum()), bool(max_equal))
                 results.append(answer)
                 if cache_key is not None:
                     self.cache_hook.add_partial("loglikelihood", cache_key, answer)
         return results
 
-    def _model_call(
-        self, inputs: TokenSequence, labels: Optional[TokenSequence] = None
-    ) -> TokenSequence:
+    def _model_call(self, inputs: TokenSequence, labels: Optional[TokenSequence] = None) -> TokenSequence:
         return self.model(**inputs, labels=labels["input_ids"])
 
     def _model_generate(
@@ -572,9 +538,7 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
         # initial_decoder_input_length = len(one_tok_gen) - 1
 
         # Assume that there will always only be one token in the decoder inputs, assumption holds for existing HF models
-        stopping_criteria = stop_sequences_criteria(
-            self.tokenizer, stop, 1, input_ids.shape[0]
-        )
+        stopping_criteria = stop_sequences_criteria(self.tokenizer, stop, 1, input_ids.shape[0])
 
         generations = self.model.generate(
             input_ids=input_ids,
@@ -605,9 +569,7 @@ class MultiTokenEOSCriteria(transformers.StoppingCriteria):
 
     def __call__(self, input_ids, scores, **kwargs) -> bool:
         # For efficiency, we compare the last n tokens where n is the number of tokens in the stop_sequence
-        lookback_ids_batch = input_ids[:, self.initial_decoder_input_length :][
-            :, -self.sequence_id_len :
-        ]
+        lookback_ids_batch = input_ids[:, self.initial_decoder_input_length :][:, -self.sequence_id_len :]
 
         lookback_tokens_batch = self.tokenizer.batch_decode(lookback_ids_batch)
 
@@ -626,11 +588,8 @@ def stop_sequences_criteria(
     return transformers.StoppingCriteriaList(
         [
             *[
-                MultiTokenEOSCriteria(
-                    sequence, tokenizer, initial_decoder_input_length, batch_size
-                )
+                MultiTokenEOSCriteria(sequence, tokenizer, initial_decoder_input_length, batch_size)
                 for sequence in stop_sequences
             ],
         ]
     )
-

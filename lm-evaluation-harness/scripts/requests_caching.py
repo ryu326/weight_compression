@@ -8,14 +8,10 @@ import os
 from typing import List
 
 import torch
-from transformers import (
-    pipeline as trans_pipeline,
-)
-
 from lm_eval import simple_evaluate
 from lm_eval.evaluator import request_caching_arg_to_dict
 from lm_eval.utils import eval_logger
-
+from transformers import pipeline as trans_pipeline
 
 MODULE_DIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -34,22 +30,16 @@ TASK = "text-generation"
 def run_model_for_task_caching(tasks: List[str], cache_requests: str):
     eval_logger.info(f"Loading HF model: {MODEL}")
 
-    trans_pipe = trans_pipeline(
-        task=TASK, model=MODEL, device=DEVICE, trust_remote_code=True
-    )
+    trans_pipe = trans_pipeline(task=TASK, model=MODEL, device=DEVICE, trust_remote_code=True)
 
     model = trans_pipe.model
     tokenizer = trans_pipe.tokenizer
 
-    eval_logger.info(
-        f"Running simple_evaluate to cache request objects for tasks: {tasks}"
-    )
+    eval_logger.info(f"Running simple_evaluate to cache request objects for tasks: {tasks}")
 
     cache_args = request_caching_arg_to_dict(cache_requests=cache_requests)
 
-    eval_logger.info(
-        f"The following operations will be performed on the cache: {cache_requests}"
-    )
+    eval_logger.info(f"The following operations will be performed on the cache: {cache_requests}")
 
     eval_data = simple_evaluate(
         model="hf-auto",
@@ -87,6 +77,4 @@ if __name__ == "__main__":
 
     tasks = args.tasks.split(",")
 
-    eval_data = run_model_for_task_caching(
-        tasks=tasks, model=MODEL, device=DEVICE, cache_requests=args.cache_requests
-    )
+    eval_data = run_model_for_task_caching(tasks=tasks, model=MODEL, device=DEVICE, cache_requests=args.cache_requests)

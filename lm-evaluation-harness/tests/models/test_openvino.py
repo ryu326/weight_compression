@@ -3,12 +3,10 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from optimum.intel import OVModelForCausalLM
-from transformers import AutoTokenizer
-
 from lm_eval import evaluator
 from lm_eval.api.registry import get_model
-
+from optimum.intel import OVModelForCausalLM
+from transformers import AutoTokenizer
 
 SUPPORTED_ARCHITECTURES_TASKS = {
     "facebook/opt-125m": "lambada_openai",
@@ -19,9 +17,7 @@ SUPPORTED_ARCHITECTURES_TASKS = {
 @pytest.mark.parametrize("model_id,task", SUPPORTED_ARCHITECTURES_TASKS.items())
 def test_evaluator(model_id, task):
     with tempfile.TemporaryDirectory() as tmpdirname:
-        model = OVModelForCausalLM.from_pretrained(
-            model_id, export=True, use_cache=True
-        )
+        model = OVModelForCausalLM.from_pretrained(model_id, export=True, use_cache=True)
         model.save_pretrained(tmpdirname)
         tokenizer = AutoTokenizer.from_pretrained(model_id)
         tokenizer.save_pretrained(tmpdirname)
@@ -81,12 +77,5 @@ def test_ov_config():
         config_file = str(Path(tmpdirname) / "ov_config.json")
         with open(Path(config_file), "w", encoding="utf-8") as f:
             f.write('{"DYNAMIC_QUANTIZATION_GROUP_SIZE" : "32"}')
-        lm = get_model("openvino").create_from_arg_string(
-            f"pretrained={model_id},ov_config={config_file}"
-        )
-    assert (
-        lm.model.request.get_compiled_model().get_property(
-            "DYNAMIC_QUANTIZATION_GROUP_SIZE"
-        )
-        == 32
-    )
+        lm = get_model("openvino").create_from_arg_string(f"pretrained={model_id},ov_config={config_file}")
+    assert lm.model.request.get_compiled_model().get_property("DYNAMIC_QUANTIZATION_GROUP_SIZE") == 32

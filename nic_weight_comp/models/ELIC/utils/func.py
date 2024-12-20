@@ -7,10 +7,10 @@ import math
 import einops
 
 
-def get_scale_table(
-    min=0.11, max=256, levels=64
-):  # pylint: disable=W0622
-    return torch.exp(torch.linspace(math.log(min), math.log(max), levels)) # 为什么要先ln再求e次方，是为了更高的精度吗？
+def get_scale_table(min=0.11, max=256, levels=64):  # pylint: disable=W0622
+    return torch.exp(
+        torch.linspace(math.log(min), math.log(max), levels)
+    )  # 为什么要先ln再求e次方，是为了更高的精度吗？
 
 
 def find_named_module(module, query):

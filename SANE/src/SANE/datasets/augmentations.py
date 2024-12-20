@@ -103,18 +103,14 @@ class TwoViewSplit(torch.nn.Module):
     def _forward_permutation(self, ddx1, mdx1, p1):
         # ddx.shape[-3] contains random permutations
         # choose two out of those and slice
-        perm_ids = torch.randperm(
-            n=ddx1.shape[-3], dtype=torch.int32, device=ddx1.device
-        )[:2]
+        perm_ids = torch.randperm(n=ddx1.shape[-3], dtype=torch.int32, device=ddx1.device)[:2]
         if self.view_1_canon == True:
             perm_ids[0] = 0
         if self.view_2_canon == True:
             perm_ids[1] = 0
         # slice+clone second sample first
         logging.debug(f"perm_ids: {perm_ids}")
-        ddx2 = (
-            torch.index_select(ddx1.clone(), -3, perm_ids[1]).squeeze().to(ddx1.device)
-        )
+        ddx2 = torch.index_select(ddx1.clone(), -3, perm_ids[1]).squeeze().to(ddx1.device)
         # slice / overwrite first sample
         ddx1 = torch.index_select(ddx1, -3, perm_ids[0]).squeeze().to(ddx1.device)
 
@@ -169,20 +165,14 @@ class PermutationSelector(torch.nn.Module):
         # ddx.shape[0] contains random permutations
         # choose first out of those and slice
         # ddx = ddx[0]
-        ddx = (
-            torch.index_select(ddx, -3, torch.tensor(0).to(torch.int32))
-            .squeeze()
-            .to(ddx.device)
-        )
+        ddx = torch.index_select(ddx, -3, torch.tensor(0).to(torch.int32)).squeeze().to(ddx.device)
         return self._return(ddx, mdx, p, props)
 
     def _forward_random(self, ddx, mdx, p, props=None):
         # ddx.shape[0] contains random permutations
         # choose one out of those and slice
         # -3 is the index of permutations
-        perm_ids = torch.randperm(
-            n=ddx.shape[-3], dtype=torch.int32, device=ddx.device
-        )[:1]
+        perm_ids = torch.randperm(n=ddx.shape[-3], dtype=torch.int32, device=ddx.device)[:1]
         logging.debug(f"perm_ids: {perm_ids}")
         # ddx = ddx[perm_ids[0]]
         ddx = torch.index_select(ddx, -3, perm_ids[0]).squeeze().to(ddx.device)
@@ -271,17 +261,9 @@ class MultiWindowCutter(torch.nn.Module):
         idx_starts = torch.randint(0, max_idx, (self.k,))
 
         # apply slicing
-        ddx = [
-            ddx[:, idx_start : idx_start + self.windowsize, :]
-            for idx_start in idx_starts
-        ]
-        mdx = [
-            mdx[:, idx_start : idx_start + self.windowsize, :]
-            for idx_start in idx_starts
-        ]
-        p = [
-            p[:, idx_start : idx_start + self.windowsize, :] for idx_start in idx_starts
-        ]
+        ddx = [ddx[:, idx_start : idx_start + self.windowsize, :] for idx_start in idx_starts]
+        mdx = [mdx[:, idx_start : idx_start + self.windowsize, :] for idx_start in idx_starts]
+        p = [p[:, idx_start : idx_start + self.windowsize, :] for idx_start in idx_starts]
 
         # cat along batch dimension
         ddx = torch.cat(ddx, dim=0)
@@ -324,9 +306,7 @@ class ErasingAugmentation(torch.nn.Module):
         value=0,
     ):
         super(ErasingAugmentation, self).__init__()
-        self.re = RandomErasing(
-            p=p, scale=scale, ratio=ratio, value=value, inplace=True
-        )
+        self.re = RandomErasing(p=p, scale=scale, ratio=ratio, value=value, inplace=True)
 
     def forward(self, ddx, mdx, p):
         """
@@ -403,9 +383,7 @@ class PermutationAugmentation(torch.nn.Module):
 
     def forward(self, ddx, mdx, p):
         if len(ddx.shape) != 2:
-            raise NotImplementedError(
-                "PermutationAugmentation so far only works with single samples"
-            )
+            raise NotImplementedError("PermutationAugmentation so far only works with single samples")
             # TODO: implement batched version
             # permutation needs to be adapted, (unless it's ok to apply same  perm/window on all samples in batch)
             # window slicing  of mask and pos needs to be adapted
@@ -415,18 +393,14 @@ class PermutationAugmentation(torch.nn.Module):
         idx_start = random.randint(0, max_len - self.windowsize)
 
         # get random permutation
-        perm_ids = torch.randperm(
-            n=self.permutation_number, dtype=torch.int32, device="cpu"
-        )[: self.perms_per_sample]
+        perm_ids = torch.randperm(n=self.permutation_number, dtype=torch.int32, device="cpu")[: self.perms_per_sample]
 
         # include ddx original in the list
         # add original ddx to list of permutations
         ddxp = [ddx[idx_start : idx_start + self.windowsize, :]]
         for pdx in perm_ids:
             perm = self.perms[pdx]
-            wdx = permute_model_vector(
-                wdx=ddx, idx_start=idx_start, window=self.windowsize, perm=perm
-            )
+            wdx = permute_model_vector(wdx=ddx, idx_start=idx_start, window=self.windowsize, perm=perm)
             ddxp.append(wdx)
         ddx = torch.stack(ddxp, dim=0)
 
@@ -440,15 +414,11 @@ class PermutationAugmentation(torch.nn.Module):
         return ddx, mdx, p
 
 
-def precompute_permutations(
-    ref_checkpoint, permutation_number, perm_spec, tokensize, ignore_bn, num_threads=6
-):
+def precompute_permutations(ref_checkpoint, permutation_number, perm_spec, tokensize, ignore_bn, num_threads=6):
     logging.info("start precomputing permutations")
     model_curr = ref_checkpoint
     # find permutation of model to itself as reference
-    reference_permutation = weight_matching(
-        ps=perm_spec, params_a=model_curr, params_b=model_curr
-    )
+    reference_permutation = weight_matching(ps=perm_spec, params_a=model_curr, params_b=model_curr)
 
     logging.info("get random permutation dicts")
     # compute random permutations
@@ -532,15 +502,11 @@ def precompute_permutations(
 
 
 @ray.remote(num_returns=1)
-def compute_single_perm(
-    reference_checkpoint, permutation_dict, perm_spec, tokensize, ignore_bn, pba
-):
+def compute_single_perm(reference_checkpoint, permutation_dict, perm_spec, tokensize, ignore_bn, pba):
     # copy reference checkpoint
     index_check = copy.deepcopy(reference_checkpoint)
     # apply permutation on checkpoint
-    index_check_perm = apply_permutation(
-        ps=perm_spec, perm=permutation_dict, params=index_check
-    )
+    index_check_perm = apply_permutation(ps=perm_spec, perm=permutation_dict, params=index_check)
     # vectorize
     index_perm, _ = tokenize_checkpoint(
         checkpoint=index_check_perm,
@@ -606,13 +572,9 @@ class CheckpointAugmentationPipeline(torch.nn.Module):
         self.permutation_number = permutation_number
         self.windowsize = windowsize
 
-        self.permuter = PermutationCheckpoint(
-            permutation_number=permutation_number, perm_spec=perm_spec
-        )
+        self.permuter = PermutationCheckpoint(permutation_number=permutation_number, perm_spec=perm_spec)
 
-        self.tokenizer = TokenizerAugmentation(
-            tokensize=self.tokensize, ignore_bn=self.ignore_bn
-        )
+        self.tokenizer = TokenizerAugmentation(tokensize=self.tokensize, ignore_bn=self.ignore_bn)
 
     def forward(self, checkpoint, props=None):
         """
@@ -678,9 +640,7 @@ class PermutationCheckpoint(torch.nn.Module):
         """
         # get reference checkpoint
         # find permutation of model to itself as reference
-        reference_permutation = weight_matching(
-            ps=self.perm_spec, params_a=checkpoint, params_b=checkpoint
-        )
+        reference_permutation = weight_matching(ps=self.perm_spec, params_a=checkpoint, params_b=checkpoint)
 
         # compute random permutations
         permutation_dicts = []
@@ -698,9 +658,7 @@ class PermutationCheckpoint(torch.nn.Module):
             # copy reference checkpoint
             index_check = copy.deepcopy(checkpoint)
             # apply permutation on checkpoint
-            index_check_perm = apply_permutation(
-                ps=self.perm_spec, perm=perm_dict, params=index_check
-            )
+            index_check_perm = apply_permutation(ps=self.perm_spec, perm=perm_dict, params=index_check)
             checkpoints.append(index_check_perm)
 
         return checkpoints
@@ -724,9 +682,7 @@ class TokenizerAugmentation(torch.nn.Module):
         self.ignore_bn = ignore_bn
 
     def forward(self, checkpoint):
-        ddx, mdx, pos = tokenize_checkpoint(
-            checkpoint, self.tokensize, return_mask=True, ignore_bn=self.ignore_bn
-        )
+        ddx, mdx, pos = tokenize_checkpoint(checkpoint, self.tokensize, return_mask=True, ignore_bn=self.ignore_bn)
         return ddx, mdx, pos
 
 

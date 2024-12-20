@@ -7,9 +7,7 @@ from lm_eval.filters.extraction import Filter, RegexFilter
 
 
 class ExtendedRegexFilter(RegexFilter):
-    punct_tbl = dict.fromkeys(
-        i for i in range(sys.maxunicode) if unicodedata.category(chr(i)).startswith("P")
-    )
+    punct_tbl = dict.fromkeys(i for i in range(sys.maxunicode) if unicodedata.category(chr(i)).startswith("P"))
 
     def __init__(
         self,
@@ -75,9 +73,7 @@ class MapRegexFilter(ExtendedRegexFilter):
             ignore_punctuation,
             regexes_to_ignore,
         )
-        self.regex_to_value = {
-            re.compile(r): v for r, v in regex_pattern_to_value.items()
-        }
+        self.regex_to_value = {re.compile(r): v for r, v in regex_pattern_to_value.items()}
 
     def apply(self, resps, docs):
         filtered_resps = []
@@ -85,9 +81,7 @@ class MapRegexFilter(ExtendedRegexFilter):
         for r in resps:
             filtered = []
             for resp in r:
-                whole_match_considering_group_select = self.find_match(
-                    self.regex, self.filter_ignores(resp)
-                )
+                whole_match_considering_group_select = self.find_match(self.regex, self.filter_ignores(resp))
                 if whole_match_considering_group_select:
                     for regex, mapped_value in self.regex_to_value.items():
                         match = self.find_match(
@@ -150,9 +144,7 @@ class WordSortFilter(Filter):
             for resp in r:
                 match = regex.findall(resp)
                 match.reverse()
-                ordered_words = reversed(
-                    collections.OrderedDict(zip(match, [None] * len(match)))
-                )
+                ordered_words = reversed(collections.OrderedDict(zip(match, [None] * len(match))))
                 filtered.append(" ".join(ordered_words))
             filtered_resps.append(filtered)
 
@@ -201,21 +193,15 @@ class MultiChoiceRegexFilter(ExtendedRegexFilter):
                 next_alpha = chr(ord(next_alpha) + 1)
             fallback_regex = re.compile("|".join(fallback_regexes))
             without_paren_fallback_regex = "|".join(without_paren_fallback_regexes)
-            without_paren_fallback_regex = re.compile(
-                f":[\s]*({without_paren_fallback_regex})"
-            )
+            without_paren_fallback_regex = re.compile(f":[\s]*({without_paren_fallback_regex})")
 
             filtered = []
             for resp in r:
                 match = self.find_match(self.regex, resp)
                 if not match:
-                    match = self.find_match(
-                        fallback_regex, self.filter_ignores(resp), choice_to_alpha
-                    )
+                    match = self.find_match(fallback_regex, self.filter_ignores(resp), choice_to_alpha)
                     if not match:
-                        match = self.find_match(
-                            without_paren_fallback_regex, resp, without_paren_to_target
-                        )
+                        match = self.find_match(without_paren_fallback_regex, resp, without_paren_to_target)
                 if not match:
                     match = self.fallback
                 filtered.append(match)

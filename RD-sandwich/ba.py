@@ -60,7 +60,7 @@ def blahut_arimoto(Rho, p_x, lamb, steps=1000, tol=1e-6, verbose=False):
             print(rcd)
         if (ub_prev - ub) / ub < tol:
             if verbose:
-                print(f'Tolerance reached, terminating after {step} steps')
+                print(f"Tolerance reached, terminating after {step} steps")
             break
         else:
             ub_prev = ub
@@ -91,19 +91,21 @@ def vectorized_mse(xs, ys):
 
 if __name__ == "__main__":
     import argparse
-    import sys, os, json
+    import json
+    import os
+    import sys
 
     parser = argparse.ArgumentParser()
 
     # High-level options.
     parser.add_argument("--seed", type=int, default=0)
-    parser.add_argument("--samples", type=str, help='Path to the .npy file containing data samples.')
+    parser.add_argument("--samples", type=str, help="Path to the .npy file containing data samples.")
     parser.add_argument("--lamb", type=float, default=1.0)
     parser.add_argument("--save_dir", default="./results/")
-    parser.add_argument("--bins", type=int, default=50, help='Number of discretization bins per dimension.')
-    parser.add_argument("--tol", type=float, default=1e-6, help='Convergence tolerance.')
-    parser.add_argument("--steps", type=int, default=1000, help='Max number of iterations.')
-    parser.add_argument("-V", '--verbose', default=False, action='store_true')
+    parser.add_argument("--bins", type=int, default=50, help="Number of discretization bins per dimension.")
+    parser.add_argument("--tol", type=float, default=1e-6, help="Convergence tolerance.")
+    parser.add_argument("--steps", type=int, default=1000, help="Max number of iterations.")
+    parser.add_argument("-V", "--verbose", default=False, action="store_true")
 
     args = parser.parse_args()
     seed = args.seed
@@ -113,26 +115,26 @@ if __name__ == "__main__":
     bins = args.bins
     samples = np.load(args.samples)  # num samples by n-dim
     n = samples.shape[1]
-    assert issubclass(samples.dtype.type, np.floating), 'Assuming data is continuous for now.'
+    assert issubclass(samples.dtype.type, np.floating), "Assuming data is continuous for now."
     hist_res = np.histogramdd(samples, bins=bins)  # , range=(xlim, ylim))  # here using the default range of samples
     counts = hist_res[0]  # joint counts
     bin_edges = hist_res[1]  # length-n list of arrays, each array has length bins+1
     if args.verbose:
-        print('bin ranges:')
+        print("bin ranges:")
         for edges in bin_edges:
             print(edges[0], edges[-1])
 
     grid_axes = [bin_edges_to_grid_pts(edges) for edges in bin_edges]
 
     # Enumerate grid points corresponding to the histogram (using the center of each bin).
-    meshgrid = np.meshgrid(*grid_axes, indexing='ij')  # length-n list, one 'mesh' for each data dimension
+    meshgrid = np.meshgrid(*grid_axes, indexing="ij")  # length-n list, one 'mesh' for each data dimension
     grid_pts = np.dstack(meshgrid)  # each grid point (n-tuple) resides in the inner-most dimension
     grid_pts_flat = np.reshape(grid_pts, [-1, n])  # preserve the inner-most dim while flatten the rest
     counts_flat = counts.ravel()
 
     if args.verbose:
-        print('prop of zero bins', np.mean(counts_flat == 0))
-    good_pts_ind = (counts_flat != 0)
+        print("prop of zero bins", np.mean(counts_flat == 0))
+    good_pts_ind = counts_flat != 0
     src_alphabet = grid_pts_flat[good_pts_ind]  # remove bins with zero samples from the source alphabet
     src_dist = counts_flat[good_pts_ind]
     src_dist /= src_dist.sum()
@@ -141,33 +143,33 @@ if __name__ == "__main__":
     Rho = vectorized_mse(src_alphabet, rep_alphabet)
 
     if args.verbose:
-        print(f'(source, reproduction) alphabets have size {Rho.shape}')
+        print(f"(source, reproduction) alphabets have size {Rho.shape}")
 
     #### BEGIN: boilerplate for training logistics ####
-    from utils import config_dict_to_str, MyJSONEncoder
+    from utils import MyJSONEncoder, config_dict_to_str
 
     script_name = os.path.splitext(os.path.basename(__file__))[0]
-    runname = config_dict_to_str(vars(args), record_keys=('lamb', 'bins'), prefix=script_name,
-                                 use_abbr=False)
+    runname = config_dict_to_str(vars(args), record_keys=("lamb", "bins"), prefix=script_name, use_abbr=False)
     save_dir = os.path.join(args.save_dir, runname)
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
-    records, log_Q, log_q_y = blahut_arimoto(Rho=Rho, p_x=src_dist, steps=args.steps, lamb=args.lamb,
-                                             verbose=args.verbose, tol=args.tol)
+    records, log_Q, log_q_y = blahut_arimoto(
+        Rho=Rho, p_x=src_dist, steps=args.steps, lamb=args.lamb, verbose=args.verbose, tol=args.tol
+    )
 
     final_rcd = records[-1]
-    R, D, obj = final_rcd['R'], final_rcd['D'], final_rcd['ub']
-    steps = final_rcd['step'] + 1  # total num coord descent steps taken
-    save_name = f'steps={steps}-R={R:.3g}-D={D:.3g}-obj={obj:.3g}'
-    save_path = os.path.join(save_dir, f'{save_name}.jsonl')
+    R, D, obj = final_rcd["R"], final_rcd["D"], final_rcd["ub"]
+    steps = final_rcd["step"] + 1  # total num coord descent steps taken
+    save_name = f"steps={steps}-R={R:.3g}-D={D:.3g}-obj={obj:.3g}"
+    save_path = os.path.join(save_dir, f"{save_name}.jsonl")
     log_file_path = save_path
 
     import json
 
-    with open(log_file_path, 'a') as f:  # write one line to the json log
+    with open(log_file_path, "a") as f:  # write one line to the json log
         for rcd in records:
             json.dump(rcd, f, cls=MyJSONEncoder)
-            f.write('\n')
+            f.write("\n")
 
-    print(f'Saved to {save_path}')
+    print(f"Saved to {save_path}")

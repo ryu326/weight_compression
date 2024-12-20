@@ -1,6 +1,7 @@
 # Commonly used utility routines for organizing/keeping track of my experiments.
 
-def get_runname(args_dict, record_keys=tuple(), prefix=''):
+
+def get_runname(args_dict, record_keys=tuple(), prefix=""):
     """
     Given a dictionary of cmdline arguments, return a string that identifies the training run.
     :param args_dict:
@@ -12,12 +13,12 @@ def get_runname(args_dict, record_keys=tuple(), prefix=''):
     for key in record_keys:
         val = args_dict[key]
         if isinstance(val, (list, tuple)):  # e.g., 'num_layers: [10, 8, 10] -> 'num_layers=10_8_10'
-            val_str = '_'.join(map(str, val))
+            val_str = "_".join(map(str, val))
         else:
             val_str = str(val)
-        kv_strs.append('%s=%s' % (key, val_str))
+        kv_strs.append("%s=%s" % (key, val_str))
 
-    return '-'.join([prefix] + kv_strs)
+    return "-".join([prefix] + kv_strs)
 
 
 class AttrDict(dict):
@@ -37,6 +38,7 @@ def get_args_as_obj(args):
     """
     if isinstance(args, str):
         import json
+
         with open(args) as f:
             args = json.load(f)
     if isinstance(args, dict):
@@ -44,8 +46,15 @@ def get_args_as_obj(args):
     return args
 
 
-def config_dict_to_str(args_dict, record_keys=tuple(), leave_out_falsy=True, prefix=None, use_abbr=False,
-                       primary_delimiter='-', secondary_delimiter='_'):
+def config_dict_to_str(
+    args_dict,
+    record_keys=tuple(),
+    leave_out_falsy=True,
+    prefix=None,
+    use_abbr=False,
+    primary_delimiter="-",
+    secondary_delimiter="_",
+):
     """
     Given a dictionary of cmdline arguments, return a string that identifies the training run.
     :param args_dict:
@@ -68,8 +77,9 @@ def config_dict_to_str(args_dict, record_keys=tuple(), leave_out_falsy=True, pre
             val_str = str(val)
         if use_abbr:
             from configs import cmdline_arg_abbr
+
             key = cmdline_arg_abbr.get(key, key)
-        kv_strs.append('%s=%s' % (key, val_str))
+        kv_strs.append("%s=%s" % (key, val_str))
 
     if prefix:
         substrs = [prefix] + kv_strs
@@ -100,6 +110,7 @@ def parse_runname(s, parse_numbers=False):
     """
     from collections import OrderedDict
     import re
+
     # Want to look for key, value pairs, of the form key_str=val_str.
     # In the following regex, key_str and val_str correspond to the first and second capturing groups, separated by '='.
     # The val_str should either correspond to a sequence of integers separated by underscores (like '2_3_12'), or a
@@ -107,7 +118,7 @@ def parse_runname(s, parse_numbers=False):
     # stop at the first possible match, in this order.
     # The sub-regex for scientific notation is adapted from https://stackoverflow.com/a/4479455
     sequence_delimiter = "_"
-    pattern = fr'(\w+)=((\d+{sequence_delimiter})+\d+|(-?\d*\.?\d+(?:e[+-]?\d+)?)+|\w+)'
+    pattern = rf"(\w+)=((\d+{sequence_delimiter})+\d+|(-?\d*\.?\d+(?:e[+-]?\d+)?)+|\w+)"
 
     def parse_ints(delimited_ints_str):
         ints = tuple(map(int, delimited_ints_str.split(sequence_delimiter)))
@@ -132,12 +143,13 @@ def parse_runname(s, parse_numbers=False):
     return res
 
 
-def preprocess_float_dict(d, format_str='.6g', as_str=False):
+def preprocess_float_dict(d, format_str=".6g", as_str=False):
     # preprocess the floating values in a dict so that json.dump(dict) looks nice
     import tensorflow as tf
     import numpy as np
+
     res = {}
-    for (k, v) in d.items():
+    for k, v in d.items():
         if isinstance(v, (float, np.floating)) or tf.is_tensor(v):
             if as_str:
                 res[k] = format(float(v), format_str)
@@ -150,6 +162,7 @@ def preprocess_float_dict(d, format_str='.6g', as_str=False):
 
 def get_time_str():
     import datetime
+
     try:
         from configs import strftime_format
     except ImportError:
@@ -162,20 +175,21 @@ def get_time_str():
 def natural_sort(l):
     # https://stackoverflow.com/a/4836734
     import re
+
     convert = lambda text: int(text) if text.isdigit() else text.lower()
-    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
+    alphanum_key = lambda key: [convert(c) for c in re.split("([0-9]+)", key)]
     return sorted(l, key=alphanum_key)
 
 
 def get_np_datasets(np_file, batchsize, append_channel_dim=False, get_validation_data=True):
-    assert np_file.endswith('.npy') or np_file.endswith('.npz')
+    assert np_file.endswith(".npy") or np_file.endswith(".npz")
 
     import numpy as np
     import tensorflow as tf
     import os
 
     def get_dataset(ar_path, repeat):
-        X = np.load(ar_path).astype('float32')
+        X = np.load(ar_path).astype("float32")
         if append_channel_dim:  # convolutional models often require data to have a channel dim
             X = X[..., np.newaxis]
         dataset = tf.data.Dataset.from_tensor_slices(X)
@@ -191,15 +205,15 @@ def get_np_datasets(np_file, batchsize, append_channel_dim=False, get_validation
         return train_dataset
     else:
         validation_dataset = None
-        if 'train' in np_file:  # dataset named as such comes with a validation set
+        if "train" in np_file:  # dataset named as such comes with a validation set
             val_dataset = None
-            if os.path.isfile(np_file.replace('train', 'val')):
-                val_dataset = np_file.replace('train', 'val')
-            elif os.path.isfile(np_file.replace('train', 'test')):
-                val_dataset = np_file.replace('train', 'test')
+            if os.path.isfile(np_file.replace("train", "val")):
+                val_dataset = np_file.replace("train", "val")
+            elif os.path.isfile(np_file.replace("train", "test")):
+                val_dataset = np_file.replace("train", "test")
             if val_dataset:
                 validation_dataset = get_dataset(val_dataset, repeat=False)
-                print(f'Validating on {val_dataset}')
+                print(f"Validating on {val_dataset}")
 
         if validation_dataset is None:
             print(f"Couldn't find validation data for {np_file}; validating on a subset of train data")

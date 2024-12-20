@@ -1,8 +1,7 @@
 import argparse
 
-import pytest
-
 import lm_eval.__main__
+import pytest
 
 
 def test_cli_parse_error():
@@ -11,9 +10,7 @@ def test_cli_parse_error():
     """
     with pytest.raises(ValueError):
         parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-        parser.add_argument(
-            "--model", "-m", type=str, default="hf", help="Name of model e.g. `hf`"
-        )
+        parser.add_argument("--model", "-m", type=str, default="hf", help="Name of model e.g. `hf`")
         parser.add_argument(
             "--tasks",
             "-t",
@@ -29,9 +26,7 @@ def test_cli_parse_no_error():
     Assert typed arguments are parsed correctly
     """
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument(
-        "--model", "-m", type=str, default="hf", help="Name of model e.g. `hf`"
-    )
+    parser.add_argument("--model", "-m", type=str, default="hf", help="Name of model e.g. `hf`")
     parser.add_argument(
         "--tasks",
         "-t",

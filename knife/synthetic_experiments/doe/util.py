@@ -6,6 +6,7 @@ import torch.nn as nn
 from torch.distributions.multivariate_normal import MultivariateNormal
 from estimators.utils import FF
 
+
 class DoE(nn.Module):
 
     def __init__(self, args, dim, hidden, layers, pdf):
@@ -32,7 +33,7 @@ class ConditionalPDF(nn.Module):
 
     def __init__(self, args, dim, hidden, layers, pdf):
         super(ConditionalPDF, self).__init__()
-        assert pdf in {'gauss', 'logistic'}
+        assert pdf in {"gauss", "logistic"}
         self.dim = dim
         self.pdf = pdf
         self.X2Y = FF(args, dim, hidden, 2 * dim)
@@ -47,20 +48,18 @@ class PDF(nn.Module):
 
     def __init__(self, dim, pdf):
         super(PDF, self).__init__()
-        assert pdf in {'gauss', 'logistic'}
+        assert pdf in {"gauss", "logistic"}
         self.dim = dim
         self.pdf = pdf
         self.mu = nn.Embedding(1, self.dim)
         self.ln_var = nn.Embedding(1, self.dim)  # ln(s) in logistic
 
     def forward(self, Y):
-        cross_entropy = compute_negative_ln_prob(Y, self.mu.weight,
-                                                 self.ln_var.weight, self.pdf)
+        cross_entropy = compute_negative_ln_prob(Y, self.mu.weight, self.ln_var.weight, self.pdf)
         return cross_entropy
 
     def logpdf(self, Y):
-        return -compute_negative_ln_prob(Y, self.mu.weight,
-                                         self.ln_var.weight, self.pdf, mean=False)
+        return -compute_negative_ln_prob(Y, self.mu.weight, self.ln_var.weight, self.pdf, mean=False)
 
 
 class NWJJS(nn.Module):
@@ -73,7 +72,7 @@ class NWJJS(nn.Module):
 
     def forward(self, X, Y, XY_package):
         N = int(math.sqrt(XY_package.size(0)))
-        infs = torch.tensor([float('inf')] * N).to(X.device)
+        infs = torch.tensor([float("inf")] * N).to(X.device)
 
         S = self.fXY(XY_package).view(N, N)
 
@@ -82,21 +81,20 @@ class NWJJS(nn.Module):
         reject = (reject - reject.diag().diag()).sum() / N / (N - 1)
         js = -(accept + reject)
 
-        nwj = (S - infs.diag()).exp().sum() / N / (N - 1) / math.e - \
-              S.diag().mean()
+        nwj = (S - infs.diag()).exp().sum() / N / (N - 1) / math.e - S.diag().mean()
 
         return (nwj - js).detach() + js
 
     def I(self, X, Y, XY_package):
         N = int(math.sqrt(XY_package.size(0)))
-        infs = torch.tensor([float('inf')] * N).to(X.device)
+        infs = torch.tensor([float("inf")] * N).to(X.device)
 
         S = self.fXY(XY_package).view(N, N)
 
-        nwj = (S - infs.diag()).exp().sum() / N / (N - 1) / math.e - \
-              S.diag().mean()
+        nwj = (S - infs.diag()).exp().sum() / N / (N - 1) / math.e - S.diag().mean()
 
         return -nwj
+
 
 class Interpolated(nn.Module):
 
@@ -105,9 +103,8 @@ class Interpolated(nn.Module):
         assert alpha >= 0 and alpha <= 1
         self.fXY = FF(args, 2 * dim, hidden, 1)
         self.ln_aY = get_ln_score_function(args, dim, hidden, layers, aY_type)
-        self.ln_alpha = math.log(alpha) if alpha > 0 else float('-inf')
-        self.ln_one_minus_alpha = math.log(1 - alpha) if alpha < 1 \
-                                  else float('-inf')
+        self.ln_alpha = math.log(alpha) if alpha > 0 else float("-inf")
+        self.ln_one_minus_alpha = math.log(1 - alpha) if alpha < 1 else float("-inf")
 
     def forward(self, X, Y, XY_package):
         N = int(math.sqrt(XY_package.size(0)))
@@ -121,12 +118,9 @@ class Interpolated(nn.Module):
         return loo - joint - 1
 
     def get_loo_term(self, S, ln_aY, N):
-        infs = torch.tensor([float('inf')] * N).to(S.device)
-        ln_sumexp_Y_loo = (torch.logsumexp(S - infs.diag(), 0)
-                           - math.log(N - 1)).view(N, 1)
-        ln_interpol_loo = torch.cat([self.ln_alpha + ln_sumexp_Y_loo,
-                                     self.ln_one_minus_alpha + ln_aY],
-                                    dim=1)
+        infs = torch.tensor([float("inf")] * N).to(S.device)
+        ln_sumexp_Y_loo = (torch.logsumexp(S - infs.diag(), 0) - math.log(N - 1)).view(N, 1)
+        ln_interpol_loo = torch.cat([self.ln_alpha + ln_sumexp_Y_loo, self.ln_one_minus_alpha + ln_aY], dim=1)
         ln_interpol_loo = torch.logsumexp(ln_interpol_loo, 1)
 
         exp_loo = torch.logsumexp(S - ln_interpol_loo - infs.diag(), 0)
@@ -135,9 +129,7 @@ class Interpolated(nn.Module):
 
     def get_joint_term(self, S, ln_aY, N):
         ln_sumexp_Y = (torch.logsumexp(S, 0) - math.log(N)).view(N, 1)
-        ln_interpol = torch.cat([self.ln_alpha + ln_sumexp_Y,
-                                 self.ln_one_minus_alpha + ln_aY],
-                                dim=1)
+        ln_interpol = torch.cat([self.ln_alpha + ln_sumexp_Y, self.ln_one_minus_alpha + ln_aY], dim=1)
         ln_interpol = torch.logsumexp(ln_interpol, 1)
         joint = (S - ln_interpol).diag().mean()
         return joint
@@ -153,7 +145,7 @@ class CPC(nn.Module):
 
     def forward(self, X, Y, XY_package):
         N = int(math.sqrt(XY_package.size(0)))
-        infs = torch.tensor([float('inf')] * N).to(X.device)
+        infs = torch.tensor([float("inf")] * N).to(X.device)
 
         S = self.fXY(XY_package).view(N, N)
         if self.transpose:
@@ -172,7 +164,7 @@ class SingleSampleEstimator(nn.Module):
 
     def forward(self, X, Y, XY_package):
         N = int(math.sqrt(XY_package.size(0)))
-        infs = torch.tensor([float('inf')] * N).to(X.device)
+        infs = torch.tensor([float("inf")] * N).to(X.device)
 
         S = self.fXY(XY_package).view(N, N)
         joint = S.diag().mean()
@@ -180,15 +172,16 @@ class SingleSampleEstimator(nn.Module):
         return self.squash(exp_marginal) - joint
 
     def squash(self, exp_marginal):
-        if self.estimator_type == 'dv':
+        if self.estimator_type == "dv":
             return exp_marginal.log()
-        elif self.estimator_type == 'nwj':
+        elif self.estimator_type == "nwj":
             return exp_marginal / math.e
         else:
-            raise ValueError('Unknown estimator: %s' % (self.estimator_type))
+            raise ValueError("Unknown estimator: %s" % (self.estimator_type))
 
     def I(self, *args, **kwargs):
         return -self.forward(*args, **kwargs)
+
 
 class MINE(nn.Module):
 
@@ -200,15 +193,17 @@ class MINE(nn.Module):
 
     def forward(self, X, Y, XY_package):
         N = int(math.sqrt(XY_package.size(0)))
-        infs = torch.tensor([float('inf')] * N).to(X.device)
+        infs = torch.tensor([float("inf")] * N).to(X.device)
 
         S = self.fXY(XY_package).view(N, N)
         joint = S.diag().mean()
         exp_marginal = (S - infs.diag()).exp().sum() / N / (N - 1)
 
-        self.ema = exp_marginal.detach() if self.ema is None else \
-                   self.carry_rate * self.ema + \
-                   (1 - self.carry_rate) * exp_marginal.detach()
+        self.ema = (
+            exp_marginal.detach()
+            if self.ema is None
+            else self.carry_rate * self.ema + (1 - self.carry_rate) * exp_marginal.detach()
+        )
 
         mine_loss = (1 / self.ema) * exp_marginal - joint
         dv_loss = self.ema.log() - joint
@@ -217,19 +212,22 @@ class MINE(nn.Module):
 
     def I(self, X, Y, XY_package):
         N = int(math.sqrt(XY_package.size(0)))
-        infs = torch.tensor([float('inf')] * N).to(X.device)
+        infs = torch.tensor([float("inf")] * N).to(X.device)
 
         S = self.fXY(XY_package).view(N, N)
         joint = S.diag().mean()
         exp_marginal = (S - infs.diag()).exp().sum() / N / (N - 1)
 
-        self.ema = exp_marginal.detach() if self.ema is None else \
-            self.carry_rate * self.ema + \
-            (1 - self.carry_rate) * exp_marginal.detach()
+        self.ema = (
+            exp_marginal.detach()
+            if self.ema is None
+            else self.carry_rate * self.ema + (1 - self.carry_rate) * exp_marginal.detach()
+        )
 
         dv_loss = self.ema.log() - joint
 
         return -dv_loss
+
 
 class TUBA(nn.Module):
 
@@ -240,7 +238,7 @@ class TUBA(nn.Module):
 
     def forward(self, X, Y, XY_package):
         N = int(math.sqrt(XY_package.size(0)))
-        infs = torch.tensor([float('inf')] * N).to(X.device)
+        infs = torch.tensor([float("inf")] * N).to(X.device)
 
         S = self.fXY(XY_package).view(N, N) - self.ln_aX(X).to(X.device)
         joint = S.diag().mean()
@@ -249,6 +247,7 @@ class TUBA(nn.Module):
 
     def I(self, *args, **kwargs):
         return -self.forward(*args, **kwargs)
+
 
 class LnConstant(nn.Module):
 
@@ -276,12 +275,10 @@ class CorrelatedStandardNormals(object):
         assert abs(rho) <= 1
         self.dim = dim
         self.rho = rho
-        self.pdf = MultivariateNormal(torch.zeros(dim).to(device),
-                                      torch.eye(dim).to(device))
+        self.pdf = MultivariateNormal(torch.zeros(dim).to(device), torch.eye(dim).to(device))
 
     def I(self):
-        num_nats = - self.dim / 2 * math.log(1 - math.pow(self.rho, 2)) \
-                   if abs(self.rho) != 1.0 else float('inf')
+        num_nats = -self.dim / 2 * math.log(1 - math.pow(self.rho, 2)) if abs(self.rho) != 1.0 else float("inf")
         return num_nats
 
     def hY(self):
@@ -296,21 +293,18 @@ class CorrelatedStandardNormals(object):
 def compute_negative_ln_prob(Y, mu, ln_var, pdf, mean=True):
     var = ln_var.exp()
 
-    if pdf == 'gauss':
-        negative_ln_prob = 0.5 * ((Y - mu) ** 2 / var).sum(1) + \
-                           0.5 * Y.size(1) * math.log(2 * math.pi) + \
-                           0.5 * ln_var.sum(1)
+    if pdf == "gauss":
+        negative_ln_prob = (
+            0.5 * ((Y - mu) ** 2 / var).sum(1) + 0.5 * Y.size(1) * math.log(2 * math.pi) + 0.5 * ln_var.sum(1)
+        )
 
-    elif pdf == 'logistic':
+    elif pdf == "logistic":
         whitened = (Y - mu) / var
-        adjust = torch.logsumexp(
-            torch.stack([torch.zeros(Y.size()).to(Y.device), -whitened]), 0)
-        negative_ln_prob = whitened.sum(1) + \
-                           2 * adjust.sum(1) + \
-                           ln_var.sum(1)
+        adjust = torch.logsumexp(torch.stack([torch.zeros(Y.size()).to(Y.device), -whitened]), 0)
+        negative_ln_prob = whitened.sum(1) + 2 * adjust.sum(1) + ln_var.sum(1)
 
     else:
-        raise ValueError('Unknown PDF: %s' % (pdf))
+        raise ValueError("Unknown PDF: %s" % (pdf))
 
     if mean:
         negative_ln_prob = negative_ln_prob.mean()
@@ -319,11 +313,11 @@ def compute_negative_ln_prob(Y, mu, ln_var, pdf, mean=True):
 
 
 def get_ln_score_function(args, dim, hidden, layers, function_type):
-        if function_type == 'e':
-            return LnConstant(math.e)
-        elif function_type == 'ff':
-            return FF(args, dim, hidden, 1)
-        elif function_type == 'lp':
-            return LnStandardNormal(dim)
-        else:
-            raise ValueError('Unknown function type: %s' % (function_type))
+    if function_type == "e":
+        return LnConstant(math.e)
+    elif function_type == "ff":
+        return FF(args, dim, hidden, 1)
+    elif function_type == "lp":
+        return LnStandardNormal(dim)
+    else:
+        raise ValueError("Unknown function type: %s" % (function_type))

@@ -5,7 +5,6 @@ from typing import Dict
 from lm_eval import utils
 from lm_eval.utils import eval_logger
 
-
 # Prompt library.
 # Stores prompts in a dictionary indexed by 2 levels:
 # prompt category name, and prompt name.
@@ -38,17 +37,13 @@ def get_prompt(prompt_id: str, dataset_name: str = None, subset_name: str = None
             if subset_name is None:
                 prompts = DatasetTemplates(dataset_name=dataset_name)
             else:
-                prompts = DatasetTemplates(
-                    dataset_name=dataset_name, subset_name=subset_name
-                )
+                prompts = DatasetTemplates(dataset_name=dataset_name, subset_name=subset_name)
         except Exception:
             raise ValueError(f"{dataset_name} and {subset_name} not found")
         if prompt_name in prompts.all_template_names:
             return prompts[prompt_name]
         else:
-            raise ValueError(
-                f"{prompt_name} not in prompt list {prompts.all_template_names}"
-            )
+            raise ValueError(f"{prompt_name} not in prompt list {prompts.all_template_names}")
     elif ".yaml" in category_name:
         import yaml
 
@@ -67,9 +62,7 @@ def get_prompt(prompt_id: str, dataset_name: str = None, subset_name: str = None
             )
 
 
-def load_prompt_list(
-    use_prompt: str, dataset_name=None, subset_name=None, yaml_path=None, **kwargs
-):
+def load_prompt_list(use_prompt: str, dataset_name=None, subset_name=None, yaml_path=None, **kwargs):
     category_name, prompt_name = use_prompt.split(":")
 
     if category_name == "promptsource":
@@ -78,9 +71,7 @@ def load_prompt_list(
         if subset_name is None:
             prompts = DatasetTemplates(dataset_name=dataset_name)
         else:
-            prompts = DatasetTemplates(
-                dataset_name=dataset_name, subset_name=subset_name
-            )
+            prompts = DatasetTemplates(dataset_name=dataset_name, subset_name=subset_name)
 
         prompt_list = utils.pattern_match(prompt_name, prompts.all_template_names)
 
@@ -93,9 +84,7 @@ def load_prompt_list(
         with open(category_name, "rb") as file:
             prompt_yaml_file = yaml.full_load(file)
 
-        prompt_list = utils.pattern_match(
-            prompt_name, prompt_yaml_file["prompts"].keys()
-        )
+        prompt_list = utils.pattern_match(prompt_name, prompt_yaml_file["prompts"].keys())
 
     # category_name, *prompt_name = use_prompt.split(":")
     # TODO allow to multiple prompt naming

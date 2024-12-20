@@ -30,7 +30,8 @@ class PriorWD(Optimizer):
                         p.data.add_(-group["lr"] * self.weight_decay_by_group[i], p.data)
                     else:
                         p.data.add_(
-                            -group["lr"] * self.weight_decay_by_group[i], p.data - self.prior_params[id(p)],
+                            -group["lr"] * self.weight_decay_by_group[i],
+                            p.data - self.prior_params[id(p)],
                         )
         loss = self.optim.step(closure)
 

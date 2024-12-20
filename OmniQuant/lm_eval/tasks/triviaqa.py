@@ -9,6 +9,7 @@ high quality distant supervision for answering the questions.
 
 Homepage: https://nlp.cs.washington.edu/triviaqa/
 """
+
 import inspect
 import lm_eval.datasets.triviaqa.triviaqa
 from lm_eval.base import Task, rf

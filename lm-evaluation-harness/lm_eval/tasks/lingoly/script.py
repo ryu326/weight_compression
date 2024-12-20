@@ -52,9 +52,7 @@ def parse_str_list_score(model, correct, scoring_func):
     if isinstance(correct, list):
         if all(isinstance(c, str) for c in correct):
             max_score = 0.0
-            if (
-                len(correct) > 24
-            ):  # bleu and rouge are expensive and don't make sense for any order problems
+            if len(correct) > 24:  # bleu and rouge are expensive and don't make sense for any order problems
                 return clean_answer(model) in [clean_answer(c) for c in correct]
             for c in correct:
                 score = scoring_func(
@@ -95,9 +93,7 @@ def exact_match(references: list[str], predictions: list[str]):
         if predictions[0][-1] == "}":
             pred_dict = ast.literal_eval(predictions[0][predictions[0].index("{") :])
         else:
-            pred_dict = ast.literal_eval(
-                predictions[0][predictions[0].index("{") :] + "}"
-            )
+            pred_dict = ast.literal_eval(predictions[0][predictions[0].index("{") :] + "}")
     except (SyntaxError, ValueError, AssertionError):
         pred_dict = {}
         for k in ref_dict.keys():
@@ -109,14 +105,9 @@ def exact_match(references: list[str], predictions: list[str]):
                 pred_dict[k] = n.group()[:-1]
             else:
                 pred_dict[k] = ""
-    pred_dict_full = {
-        k: pred_dict[k] if k in pred_dict else "" for k in ref_dict.keys()
-    }
+    pred_dict_full = {k: pred_dict[k] if k in pred_dict else "" for k in ref_dict.keys()}
 
-    scores = [
-        parse_str_list_score(pred_dict_full[k], v, safe_exact)
-        for k, v in ref_dict.items()
-    ]
+    scores = [parse_str_list_score(pred_dict_full[k], v, safe_exact) for k, v in ref_dict.items()]
 
     return scores
 
@@ -125,7 +116,5 @@ def aggregate_scores(input):
     return sum([sum(i) for i in input]) / sum([len(j) for j in input])
 
 
-def aggregate_metrics(
-    metrics_scores: list[int], dataset_size: list[int], weight_by_size: bool
-):
+def aggregate_metrics(metrics_scores: list[int], dataset_size: list[int], weight_by_size: bool):
     return metrics_scores[0] - metrics_scores[1]

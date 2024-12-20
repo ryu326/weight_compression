@@ -1,1 +1,1 @@
-from .flic import  FrequencyAwareTransFormer
+from .flic import FrequencyAwareTransFormer

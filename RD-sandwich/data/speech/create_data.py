@@ -45,31 +45,33 @@ def get_stft_npy(wav_paths, frame_length=255, frame_step=1, concat_time=True):
     return out_npy
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     import glob
     import os
 
-    data_dir = '/path/to/free-spoken-digit-dataset' # replace with your own
-    speaker = 'theo'
+    data_dir = "/path/to/free-spoken-digit-dataset"  # replace with your own
+    speaker = "theo"
     marginal_coords = [30, 10]  # for creating 2D marginals; these have the least abs correlation on the training data
-    for split in ['train', 'test']:
-        save_name = f'stft-split={split}.npy'
+    for split in ["train", "test"]:
+        save_name = f"stft-split={split}.npy"
 
-        if split == 'train':  # Using the original train/test split; https://github.com/Jakobovski/free-spoken-digit-dataset/#usage
+        if (
+            split == "train"
+        ):  # Using the original train/test split; https://github.com/Jakobovski/free-spoken-digit-dataset/#usage
             id_range = range(5, 50)
         else:
             id_range = range(5)
 
         wav_paths = []
         for i in id_range:
-            glob_pat = f'{data_dir}/recordings/*_{speaker}_{i}.wav'
+            glob_pat = f"{data_dir}/recordings/*_{speaker}_{i}.wav"
             wav_paths += glob.glob(glob_pat)
 
         arr = get_stft_npy(wav_paths, frame_length=63, frame_step=1)
         np.save(save_name, arr)
-        print('saved to', save_name)
+        print("saved to", save_name)
 
-        save_name = 'n=2-' + save_name
+        save_name = "n=2-" + save_name
         np.save(save_name, arr[:, marginal_coords])
-        print('saved to', save_name)
+        print("saved to", save_name)

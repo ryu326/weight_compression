@@ -6,9 +6,7 @@ from typing import List, Optional, Tuple
 
 import pytest
 import torch
-
 from lm_eval.caching.cache import PATH
-
 
 MODULE_DIR = os.path.dirname(os.path.realpath(__file__))
 

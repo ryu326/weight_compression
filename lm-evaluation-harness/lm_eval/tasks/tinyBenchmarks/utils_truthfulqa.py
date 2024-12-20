@@ -3,7 +3,6 @@ import numpy as np
 import sacrebleu
 from rouge_score import rouge_scorer, scoring
 
-
 """ This code mirrors the utils of the original truthful_qa task """
 
 ROUGE_SCORER = None

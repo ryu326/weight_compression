@@ -13,7 +13,6 @@ import bigbench.api.util as bb_utils
 import datasets
 from tqdm import tqdm
 
-
 all_task_names = bb_utils.get_all_json_task_names()
 
 num_shots = [0]

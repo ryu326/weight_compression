@@ -108,9 +108,7 @@ def sample(
         # get max epoch
         epoch_last = torch.tensor(epochs_train).max().item()  # avoid max(list)
         # slice weights for last epoch
-        idx_last_epoch = [
-            idx for idx, edx in enumerate(epochs_train) if edx == epoch_last
-        ]
+        idx_last_epoch = [idx for idx, edx in enumerate(epochs_train) if edx == epoch_last]
         weights_transfer = weights_train[idx_last_epoch, :]
         # slice for no_samples
         weights_transfer = weights_transfer[:no_samples, :]
@@ -170,9 +168,7 @@ def sample(
         # sample in umap range
         min = z_train_umap.min()
         max = z_train_umap.max()
-        sample_2 = (
-            torch.rand(size=[no_samples, 3], requires_grad=False) * (max - min) + min
-        )
+        sample_2 = torch.rand(size=[no_samples, 3], requires_grad=False) * (max - min) + min
         # reconstruct
         z_umap_sample_2 = umap_reducer.inverse_transform(sample_2)
         z_umap_sample_2 = torch.Tensor(z_umap_sample_2)
@@ -195,9 +191,7 @@ def sample(
         train_zoo_acc = torch.Tensor(dataset["trainset"].properties["test_acc"])
         acc_threshold = torch.quantile(train_zoo_acc, q=0.7)
         idx_best = [
-            idx
-            for idx, acc_dx in enumerate(dataset["trainset"].properties["test_acc"])
-            if acc_dx >= acc_threshold
+            idx for idx, acc_dx in enumerate(dataset["trainset"].properties["test_acc"]) if acc_dx >= acc_threshold
         ]
         ## map train weights to embeddings
         with torch.no_grad():
@@ -211,15 +205,11 @@ def sample(
             random_state=42,
         )
         # get lower-dim representation
-        z_train_best_umap = umap_reducer_best.fit_transform(
-            z_train_best.detach().numpy()
-        )
+        z_train_best_umap = umap_reducer_best.fit_transform(z_train_best.detach().numpy())
         # sample in umap range
         min = z_train_best_umap.min()
         max = z_train_best_umap.max()
-        sample_3 = (
-            torch.rand(size=[no_samples, 3], requires_grad=False) * (max - min) + min
-        )
+        sample_3 = torch.rand(size=[no_samples, 3], requires_grad=False) * (max - min) + min
         # reconstruct
         z_umap_sample_3 = umap_reducer_best.inverse_transform(sample_3)
         z_umap_sample_3 = torch.Tensor(z_umap_sample_3)
@@ -284,9 +274,7 @@ def sample(
 ########################################################################
 # # SAMPLE WEIGHTS ######################################################
 # #######################################################################
-def generate_checkpoints_from_weights(
-    sample_population_path, weights, model_config_path, layer_lst
-):
+def generate_checkpoints_from_weights(sample_population_path, weights, model_config_path, layer_lst):
     # generate path
     sample_population_path = Path(sample_population_path)
     sample_population_path.mkdir(exist_ok=True)
@@ -674,15 +662,9 @@ def finetune_single(
 
     # clean_up empty / errored only runs
     print(f"clean up {net_dir.joinpath(experiment_name)}: remove uneccessary folders")
-    path_lst = [
-        pdx for pdx in net_dir.joinpath(experiment_name).iterdir() if pdx.is_dir()
-    ]
+    path_lst = [pdx for pdx in net_dir.joinpath(experiment_name).iterdir() if pdx.is_dir()]
     # find directories that are either empty or contain error.txt
-    path_lst_remove = [
-        pdx
-        for pdx in path_lst
-        if pdx.joinpath("error.txt").is_file() or not any(pdx.iterdir())
-    ]
+    path_lst_remove = [pdx for pdx in path_lst if pdx.joinpath("error.txt").is_file() or not any(pdx.iterdir())]
     for pdx in tqdm.tqdm(path_lst_remove):
         rm_tree(pdx)
 
@@ -732,9 +714,7 @@ def plot_populations(
     }
 
     # set which epochs to load
-    epoch_lst_transfer = (
-        list(range(0, 51)) if id_offset == 0 else list(range(0, 51 - id_offset))
-    )
+    epoch_lst_transfer = list(range(0, 51)) if id_offset == 0 else list(range(0, 51 - id_offset))
 
     print(f"load populations for plotting: 1/9")
     root_path = path_target_zoo.absolute().joinpath("zoo_testsplit.pt")
@@ -885,10 +865,7 @@ def plot_populations(
             r"$B_{F}$"
             for _ in range(len(dataset_direct.properties["test_acc"]))
         ]
-        epochs_direct = [
-            edx + epoch_offset
-            for edx in dataset_direct.properties["training_iteration"]
-        ]
+        epochs_direct = [edx + epoch_offset for edx in dataset_direct.properties["training_iteration"]]
         acc_direct = dataset_direct.properties["test_acc"]
     except:
         hue_direct = []
@@ -902,10 +879,7 @@ def plot_populations(
             r"$S_{0}$"
             for _ in range(len(dataset_uniform.properties["test_acc"]))
         ]
-        epochs_uniform = [
-            edx + epoch_offset
-            for edx in dataset_uniform.properties["training_iteration"]
-        ]
+        epochs_uniform = [edx + epoch_offset for edx in dataset_uniform.properties["training_iteration"]]
         acc_uniform = dataset_uniform.properties["test_acc"]
     except:
         hue_uniform = []
@@ -919,9 +893,7 @@ def plot_populations(
             r"$S_{N}$"
             for _ in range(len(dataset_train.properties["test_acc"]))
         ]
-        epochs_train = [
-            edx + epoch_offset for edx in dataset_train.properties["training_iteration"]
-        ]
+        epochs_train = [edx + epoch_offset for edx in dataset_train.properties["training_iteration"]]
         acc_train = dataset_train.properties["test_acc"]
     except:
         hue_train = []
@@ -935,9 +907,7 @@ def plot_populations(
             r"$S_{N30}$"
             for _ in range(len(dataset_best.properties["test_acc"]))
         ]
-        epochs_best = [
-            edx + epoch_offset for edx in dataset_best.properties["training_iteration"]
-        ]
+        epochs_best = [edx + epoch_offset for edx in dataset_best.properties["training_iteration"]]
         acc_best = dataset_best.properties["test_acc"]
     except:
         hue_best = []
@@ -951,10 +921,7 @@ def plot_populations(
             r"$S_D$"
             for _ in range(len(dataset_kde_z_train.properties["test_acc"]))
         ]
-        epochs_kde_z_train = [
-            edx + epoch_offset
-            for edx in dataset_kde_z_train.properties["training_iteration"]
-        ]
+        epochs_kde_z_train = [edx + epoch_offset for edx in dataset_kde_z_train.properties["training_iteration"]]
         acc_kde_z_train = dataset_kde_z_train.properties["test_acc"]
     except:
         hue_kde_z_train = []
@@ -968,10 +935,7 @@ def plot_populations(
             r"$S_{D30}$"
             for _ in range(len(dataset_kde_z_best.properties["test_acc"]))
         ]
-        epochs_kde_z_best = [
-            edx + epoch_offset
-            for edx in dataset_kde_z_best.properties["training_iteration"]
-        ]
+        epochs_kde_z_best = [edx + epoch_offset for edx in dataset_kde_z_best.properties["training_iteration"]]
         acc_kde_z_best = dataset_kde_z_best.properties["test_acc"]
     except:
         hue_kde_z_best = []
@@ -985,9 +949,7 @@ def plot_populations(
             r"$S_{G}$"
             for _ in range(len(dataset_gan.properties["test_acc"]))
         ]
-        epochs_gan = [
-            edx + epoch_offset for edx in dataset_gan.properties["training_iteration"]
-        ]
+        epochs_gan = [edx + epoch_offset for edx in dataset_gan.properties["training_iteration"]]
         acc_gan = dataset_gan.properties["test_acc"]
     except:
         hue_gan = []
@@ -995,13 +957,8 @@ def plot_populations(
         acc_gan = []
     # Gan_best
     try:
-        hue_gan_best = [
-            r"$S_{G30}$" for _ in range(len(dataset_gan_best.properties["test_acc"]))
-        ]
-        epochs_gan_best = [
-            edx + epoch_offset
-            for edx in dataset_gan_best.properties["training_iteration"]
-        ]
+        hue_gan_best = [r"$S_{G30}$" for _ in range(len(dataset_gan_best.properties["test_acc"]))]
+        epochs_gan_best = [edx + epoch_offset for edx in dataset_gan_best.properties["training_iteration"]]
         acc_gan_best = dataset_gan_best.properties["test_acc"]
     except:
         hue_gan_best = []
@@ -1010,12 +967,8 @@ def plot_populations(
 
     ### labels
     # sample_size
-    epochs_base = torch.unique(
-        torch.tensor(dataset_baseline.properties["training_iteration"])
-    ).shape[0]
-    epochs_transfer = torch.unique(
-        torch.tensor(dataset_direct.properties["training_iteration"])
-    ).shape[0]
+    epochs_base = torch.unique(torch.tensor(dataset_baseline.properties["training_iteration"])).shape[0]
+    epochs_transfer = torch.unique(torch.tensor(dataset_direct.properties["training_iteration"])).shape[0]
     n_original = len(dataset_baseline.properties["test_acc"]) // epochs_base
     n_direct = len(dataset_direct.properties["test_acc"]) // epochs_transfer
     n_uniform = len(dataset_uniform.properties["test_acc"]) // epochs_transfer
@@ -1074,68 +1027,47 @@ def plot_populations(
         if "baseline" in plot_domains:
             if len(hue_baseline) > 0:
                 domain_keys.append(hue_baseline[0])
-                labels.append(
-                    r"$B_{T}$: trained on " + f"{target} - {n_original} samples"
-                )
+                labels.append(r"$B_{T}$: trained on " + f"{target} - {n_original} samples")
                 labels2.append(r"$B_{T}$")
         if "direct" in plot_domains:
             if len(hue_direct) > 0:
                 domain_keys.append(hue_direct[0])
-                labels.append(
-                    r"$B_{F}$: pretrained on "
-                    + f"{source} and finetuned on {target} - {n_direct} samples"
-                )
+                labels.append(r"$B_{F}$: pretrained on " + f"{source} and finetuned on {target} - {n_direct} samples")
                 labels2.append(r"$B_{F}$")
         if "uniform" in plot_domains:
             if len(hue_uniform) > 0:
                 domain_keys.append(hue_uniform[0])
-                labels.append(
-                    r"$S_{0}$: sampled uniform in latent" + f" - {n_uniform} samples"
-                )
+                labels.append(r"$S_{0}$: sampled uniform in latent" + f" - {n_uniform} samples")
                 labels2.append(r"$S_{U}$")
         if "train" in plot_domains:
             if len(hue_train) > 0:
                 domain_keys.append(hue_train[0])
-                labels.append(
-                    r"$S_{N}$: neigborhood-based sampling" + f" - {n_train} samples"
-                )
+                labels.append(r"$S_{N}$: neigborhood-based sampling" + f" - {n_train} samples")
                 labels2.append(r"$S_{Neigh}$")
         if "best" in plot_domains:
             if len(hue_best) > 0:
                 domain_keys.append(hue_best[0])
-                labels.append(
-                    r"$S_{N30}$: top 30% neighborhood-based sampling"
-                    + f" - {n_best} samples"
-                )
+                labels.append(r"$S_{N30}$: top 30% neighborhood-based sampling" + f" - {n_best} samples")
                 labels2.append(r"$S_{Neigh30}$")
         if "kde_z_train" in plot_domains:
             if len(hue_kde_z_train) > 0:
                 domain_keys.append(hue_kde_z_train[0])
-                labels.append(
-                    r"$S_D$: sampled in z-distribution" + f" - {n_kde_z_train} samples"
-                )
+                labels.append(r"$S_D$: sampled in z-distribution" + f" - {n_kde_z_train} samples")
                 labels2.append(r"$S_{KDE}$")
         if "kde_z_best" in plot_domains:
             if len(hue_kde_z_best) > 0:
                 domain_keys.append(hue_kde_z_best[0])
-                labels.append(
-                    r"$S_{D30}$: sampled in top 30% z-distribution"
-                    + f" - {n_kde_z_best} samples"
-                )
+                labels.append(r"$S_{D30}$: sampled in top 30% z-distribution" + f" - {n_kde_z_best} samples")
                 labels2.append(r"$S_{KDE30}$")
         if "gan" in plot_domains:
             if len(hue_gan) > 0:
                 domain_keys.append(hue_gan[0])
-                labels.append(
-                    r"$S_{G}$: GAN generated embeddings" + f" - {n_gan} samples"
-                )
+                labels.append(r"$S_{G}$: GAN generated embeddings" + f" - {n_gan} samples")
                 labels2.append(r"$S_{GAN}$")
         if "gan_best" in plot_domains:
             if len(hue_gan_best) > 0:
                 domain_keys.append(hue_gan_best[0])
-                labels.append(
-                    r"$S_{G30}$: GAN generated embeddings" + f" - {n_gan_best} samples"
-                )
+                labels.append(r"$S_{G30}$: GAN generated embeddings" + f" - {n_gan_best} samples")
                 labels2.append(r"$S_{GAN30}$")
         print(f"plot domains: {domain_keys}")
         idx_plot = [idx for idx, cdx in enumerate(c) if cdx in domain_keys]
@@ -1218,9 +1150,7 @@ def plot_populations(
     fig, ax = plt.subplots(figsize=(25, 8), dpi=300)
 
     # ax 0
-    sns.boxplot(
-        x=x_plot, y=y_plot, hue=c_plot, fliersize=0.0, palette=color_palette, ax=ax
-    )
+    sns.boxplot(x=x_plot, y=y_plot, hue=c_plot, fliersize=0.0, palette=color_palette, ax=ax)
     ax.set_xlabel("Epochs", fontsize=20)
     ax.set_ylabel("Accuracy", fontsize=20)
     ax.xaxis.set_tick_params(labelsize=18)
@@ -1245,9 +1175,7 @@ def plot_populations(
     fig, ax = plt.subplots(figsize=(12, 8), dpi=300)
 
     # ax 0
-    sns.boxplot(
-        x=x_plot2, y=y_plot2, hue=c_plot2, fliersize=0.0, palette=color_palette, ax=ax
-    )
+    sns.boxplot(x=x_plot2, y=y_plot2, hue=c_plot2, fliersize=0.0, palette=color_palette, ax=ax)
     ax.set_xlabel("Epochs", fontsize=14)
     ax.set_ylabel("Accuracy", fontsize=14)
     ax.xaxis.set_tick_params(labelsize=12)
@@ -1271,9 +1199,7 @@ def plot_populations(
     if source == target:
         fig, ax = plt.subplots(figsize=(25, 8), dpi=300)
         sns.set_style("whitegrid")
-        sns.boxplot(
-            x=x_plot, y=y_plot, hue=c_plot, fliersize=0.0, palette=color_palette, ax=ax
-        )
+        sns.boxplot(x=x_plot, y=y_plot, hue=c_plot, fliersize=0.0, palette=color_palette, ax=ax)
         ax.set_xlabel("Epochs", fontsize=14)
         ax.set_ylabel("Accuracy", fontsize=14)
         ax.xaxis.set_tick_params(labelsize=12)
@@ -1512,9 +1438,7 @@ def plot_populations(
         # slice for hue
         if hue_baseline is not None:
             try:
-                acc_base = [
-                    ydx for ydx, cdx in zip(y_slice, c_slice) if cdx == hue_baseline[0]
-                ]
+                acc_base = [ydx for ydx, cdx in zip(y_slice, c_slice) if cdx == hue_baseline[0]]
                 print(f"acc_base: {len(acc_base)} samples")
                 if len(acc_base) > 0:
                     acc_dict["base"] = acc_base
@@ -1522,9 +1446,7 @@ def plot_populations(
                 print("error loading basline data for statistics")
         if hue_direct is not None:
             try:
-                acc_direct = [
-                    ydx for ydx, cdx in zip(y_slice, c_slice) if cdx == hue_direct[0]
-                ]
+                acc_direct = [ydx for ydx, cdx in zip(y_slice, c_slice) if cdx == hue_direct[0]]
                 print(f"acc_direct: {len(acc_direct)} samples")
                 if len(acc_direct) > 0:
                     acc_dict["direct"] = acc_direct
@@ -1533,9 +1455,7 @@ def plot_populations(
 
         if hue_uniform is not None:
             try:
-                acc_uniform = [
-                    ydx for ydx, cdx in zip(y_slice, c_slice) if cdx == hue_uniform[0]
-                ]
+                acc_uniform = [ydx for ydx, cdx in zip(y_slice, c_slice) if cdx == hue_uniform[0]]
                 print(f"acc_uniform: {len(acc_uniform)} samples")
                 if len(acc_uniform) > 0:
                     acc_dict["uniform"] = acc_uniform
@@ -1543,9 +1463,7 @@ def plot_populations(
                 print("error loading uniform data for statistics")
         if hue_train is not None:
             try:
-                acc_train = [
-                    ydx for ydx, cdx in zip(y_slice, c_slice) if cdx == hue_train[0]
-                ]
+                acc_train = [ydx for ydx, cdx in zip(y_slice, c_slice) if cdx == hue_train[0]]
                 print(f"acc_train: {len(acc_train)} samples")
                 if len(acc_train) > 0:
                     acc_dict["train"] = acc_train
@@ -1553,9 +1471,7 @@ def plot_populations(
                 print("error loading umap train data for statistics")
         if hue_best is not None:
             try:
-                acc_best = [
-                    ydx for ydx, cdx in zip(y_slice, c_slice) if cdx == hue_best[0]
-                ]
+                acc_best = [ydx for ydx, cdx in zip(y_slice, c_slice) if cdx == hue_best[0]]
                 print(f"acc_best: {len(acc_best)} samples")
                 if len(acc_best) > 0:
                     acc_dict["best"] = acc_best
@@ -1563,11 +1479,7 @@ def plot_populations(
                 print("error loading umap best data for statistics")
         if hue_kde_z_train is not None:
             try:
-                acc_kde_z_train = [
-                    ydx
-                    for ydx, cdx in zip(y_slice, c_slice)
-                    if cdx == hue_kde_z_train[0]
-                ]
+                acc_kde_z_train = [ydx for ydx, cdx in zip(y_slice, c_slice) if cdx == hue_kde_z_train[0]]
                 print(f"acc_train: {len(acc_kde_z_train)} samples")
                 if len(acc_kde_z_train) > 0:
                     acc_dict["kde_z_train"] = acc_kde_z_train
@@ -1575,11 +1487,7 @@ def plot_populations(
                 print("error loading kde_train data for statistics")
         if hue_kde_z_best is not None:
             try:
-                acc_kde_z_best = [
-                    ydx
-                    for ydx, cdx in zip(y_slice, c_slice)
-                    if cdx == hue_kde_z_best[0]
-                ]
+                acc_kde_z_best = [ydx for ydx, cdx in zip(y_slice, c_slice) if cdx == hue_kde_z_best[0]]
                 print(f"acc_best: {len(acc_kde_z_best)} samples")
                 if len(acc_kde_z_best) > 0:
                     acc_dict["kde_z_best"] = acc_kde_z_best
@@ -1587,9 +1495,7 @@ def plot_populations(
                 print("error loading kde_best data for statistics")
         if hue_gan is not None:
             try:
-                acc_gan = [
-                    ydx for ydx, cdx in zip(y_slice, c_slice) if cdx == hue_gan[0]
-                ]
+                acc_gan = [ydx for ydx, cdx in zip(y_slice, c_slice) if cdx == hue_gan[0]]
                 print(f"acc_best: {len(acc_gan)} samples")
                 if len(acc_gan) > 0:
                     acc_dict["gan"] = acc_gan
@@ -1597,9 +1503,7 @@ def plot_populations(
                 print("error loading gan data for statistics")
         if hue_gan_best is not None:
             try:
-                acc_gan_best = [
-                    ydx for ydx, cdx in zip(y_slice, c_slice) if cdx == hue_gan_best[0]
-                ]
+                acc_gan_best = [ydx for ydx, cdx in zip(y_slice, c_slice) if cdx == hue_gan_best[0]]
                 print(f"acc_best: {len(acc_gan_best)} samples")
                 if len(acc_gan_best) > 0:
                     acc_dict["gan_best"] = acc_gan_best
@@ -1620,9 +1524,7 @@ def plot_populations(
 #########################################################################
 
 
-def compute_mwu_ci(
-    df_wmu, x, y, alternative="two-sided", confidence: float = 0.95
-) -> list:
+def compute_mwu_ci(df_wmu, x, y, alternative="two-sided", confidence: float = 0.95) -> list:
     """
     # Calculating confidence intervals for some non-parametric analyses
     # MICHAEL J CAMPBELL, MARTIN J GARDNER
@@ -1697,14 +1599,10 @@ def compute_statistics(
         dict_stats["median"].append(np.median(pop1))
         qs = [0, 0.05, 0.3, 0.5, 0.7, 0.95, 1.0]
         dict_stats["quantiles"].append(np.quantile(a=pop1, q=qs))
-        res = st.bootstrap(
-            (pop1,), np.median, confidence_level=confidence, random_state=42
-        )
+        res = st.bootstrap((pop1,), np.median, confidence_level=confidence, random_state=42)
         median_ci = [res.confidence_interval.low, res.confidence_interval.high]
         dict_stats[f"median_ci_{confidence:.2f}"].append(median_ci)
-        res = st.bootstrap(
-            (pop1,), np.mean, confidence_level=confidence, random_state=42
-        )
+        res = st.bootstrap((pop1,), np.mean, confidence_level=confidence, random_state=42)
         mean_ci = [res.confidence_interval.low, res.confidence_interval.high]
         dict_stats[f"mean_ci_{confidence:.2f}"].append(mean_ci)
         # normality
@@ -1715,18 +1613,14 @@ def compute_statistics(
             # get second pop
             pop2 = acc_dict[pop2_key]
             # compute ttest
-            df_ttest_tmp = pg.ttest(
-                pop1, pop2, paired=False, alternative="two-sided", confidence=confidence
-            )
+            df_ttest_tmp = pg.ttest(pop1, pop2, paired=False, alternative="two-sided", confidence=confidence)
             # adjust dataframe
             df_ttest_tmp = df_ttest_tmp.assign(pop1=[pop1_key], pop2=[pop2_key])
             # add current dframe to df_ttest
             df_ttest = df_ttest.append(df_ttest_tmp)
             # compute wmu
             try:
-                df_wmu_tmp = pg.mwu(
-                    pop1, pop2, alternative="two-sided", confidence=confidence
-                )
+                df_wmu_tmp = pg.mwu(pop1, pop2, alternative="two-sided", confidence=confidence)
             except TypeError:
                 # confidence not yet implemented
                 df_wmu_tmp = pg.mwu(pop1, pop2, alternative="two-sided")

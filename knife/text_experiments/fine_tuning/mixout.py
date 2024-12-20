@@ -75,6 +75,7 @@ def mixout(input, target=None, p=0.0, training=False, inplace=False):
 
 class MixLinear(torch.nn.Module):
     __constants__ = ["bias", "in_features", "out_features"]
+
     # If target is None, nn.Sequential(nn.Linear(m, n), MixLinear(m', n', p))
     # is equivalent to nn.Sequential(nn.Linear(m, n), nn.Dropout(p), nn.Linear(m', n')).
     # If you want to change a dropout layer to a mixout layer,

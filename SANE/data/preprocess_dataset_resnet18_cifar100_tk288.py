@@ -1,16 +1,14 @@
 # prepare data
+import logging
 from pathlib import Path
 
-from SANE.git_re_basin.git_re_basin import (
-    resnet18_permutation_spec,
-)
+import torch
 
 from SANE.datasets.dataset_preprocessing import prepare_multiple_datasets
 from SANE.datasets.dataset_properties import PropertyDataset
-from SANE.datasets.dataset_sampling_preprocessed import PreprocessedSamplingDataset
-
-import logging
-import torch
+from SANE.datasets.dataset_sampling_preprocessed import \
+    PreprocessedSamplingDataset
+from SANE.git_re_basin.git_re_basin import resnet18_permutation_spec
 
 logging.basicConfig(level=logging.INFO)
 
@@ -59,9 +57,7 @@ def prep_data():
     dataset_target_path = [
         Path("./dataset_cifar100_token_288_ep60_std/"),
     ]
-    zoo_path = [  
-        Path("./cifar100_resnet18_kaiming_uniform_ep60_no_opt/").absolute()
-    ]
+    zoo_path = [Path("./cifar100_resnet18_kaiming_uniform_ep60_no_opt/").absolute()]
     zoo_path_and_permutation_spec_and_target_path = [
         (zoo_path[0], resnet18_permutation_spec, dataset_target_path[0]),
     ]
@@ -104,10 +100,9 @@ def create_configurations(zoo_path_and_permutation_spec_and_target_path, filter_
     permutation_number_test = 10
     permutations_per_sample_test = 5
 
-
     page_size = 2**27
     splits = ["train", "val", "test"]
-    page_size = 2 ** 27  # (2**23)
+    page_size = 2**27  # (2**23)
 
     result_key_list = ["test_acc", "training_iteration", "ggap"]
     config_key_list = ["model::type"]
@@ -149,7 +144,7 @@ def create_configurations(zoo_path_and_permutation_spec_and_target_path, filter_
                     "filter_fn": filter_fn,
                 }
             )
-    
+
     return configurations
 
 

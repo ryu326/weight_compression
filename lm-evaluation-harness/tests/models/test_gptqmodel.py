@@ -1,8 +1,7 @@
 from typing import List
 
-import pytest
-
 import lm_eval
+import pytest
 
 
 def assert_less_than(value, threshold, desc):

@@ -1,6 +1,5 @@
 from functools import partial
 
-
 choices = [
     "A",
     "B",

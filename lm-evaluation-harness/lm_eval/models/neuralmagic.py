@@ -1,17 +1,15 @@
 import copy
 from typing import List, Optional, Tuple, Union
 
+import lm_eval.models.utils
 import numpy
 import transformers
-from tqdm import tqdm
-
-import lm_eval.models.utils
 from lm_eval import utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
-
+from tqdm import tqdm
 
 eval_logger = utils.eval_logger
 
@@ -40,8 +38,7 @@ class SparseMLLM(HFLM):
             from sparseml.transformers import SparseAutoModelForCausalLM
         except ModuleNotFoundError as exception:
             raise type(exception)(
-                "Package `sparseml` is not installed. "
-                "Please install it via `pip install sparseml[transformers]`"
+                "Package `sparseml` is not installed. " "Please install it via `pip install sparseml[transformers]`"
             )
 
         model_kwargs = kwargs if kwargs else {}
@@ -52,9 +49,7 @@ class SparseMLLM(HFLM):
             # for quantized models now seems to be device_map="auto"
             # which breaks data-parallel mode.
             if hasattr(self, "accelerator"):
-                model_kwargs.update(
-                    {"device_map": {"": f"cuda:{self.accelerator.local_process_index}"}}
-                )
+                model_kwargs.update({"device_map": {"": f"cuda:{self.accelerator.local_process_index}"}})
             else:
                 model_kwargs.update({"device_map": {"": str(self.device)}})
 
@@ -62,9 +57,7 @@ class SparseMLLM(HFLM):
             "offload_folder",
             "device_map",
         ]
-        relevant_kwargs = {
-            k: v for k, v in model_kwargs.items() if k in relevant_kwarg_names
-        }
+        relevant_kwargs = {k: v for k, v in model_kwargs.items() if k in relevant_kwarg_names}
 
         # Log the difference between model_kwargs and relevant_kwargs so we can see
         # what is being ignored
@@ -90,13 +83,10 @@ class SparseMLLM(HFLM):
             from sparseml.transformers import SparseAutoConfig
         except ModuleNotFoundError as exception:
             raise type(exception)(
-                "Package `sparseml` is not installed. "
-                "Please install it via `pip install sparseml[transformers]`"
+                "Package `sparseml` is not installed. " "Please install it via `pip install sparseml[transformers]`"
             )
 
-        self._config = SparseAutoConfig.from_pretrained(
-            pretrained_model_name_or_path=pretrained, **kwargs
-        )
+        self._config = SparseAutoConfig.from_pretrained(pretrained_model_name_or_path=pretrained, **kwargs)
 
     def _create_tokenizer(
         self,
@@ -114,8 +104,7 @@ class SparseMLLM(HFLM):
             from sparseml.transformers import SparseAutoTokenizer
         except ModuleNotFoundError as exception:
             raise type(exception)(
-                "Package `sparseml` is not installed. "
-                "Please install it via `pip install sparseml[transformers]`"
+                "Package `sparseml` is not installed. " "Please install it via `pip install sparseml[transformers]`"
             )
 
         if tokenizer:
@@ -125,9 +114,9 @@ class SparseMLLM(HFLM):
                     **kwargs,
                 )
             else:
-                assert isinstance(
-                    tokenizer, transformers.PreTrainedTokenizer
-                ) or isinstance(tokenizer, transformers.PreTrainedTokenizerFast)
+                assert isinstance(tokenizer, transformers.PreTrainedTokenizer) or isinstance(
+                    tokenizer, transformers.PreTrainedTokenizerFast
+                )
                 self.tokenizer = tokenizer
         else:
             # Get tokenizer based on 'pretrained'
@@ -173,8 +162,7 @@ class DeepSparseLM(LM):
             import deepsparse
         except ModuleNotFoundError as exception:
             raise type(exception)(
-                "Package `deepsparse` is not installed. "
-                "Please install it via `pip install deepsparse[transformers]`"
+                "Package `deepsparse` is not installed. " "Please install it via `pip install deepsparse[transformers]`"
             )
 
         if isinstance(batch_size, str) and not batch_size.isdigit():
@@ -232,9 +220,7 @@ class DeepSparseLM(LM):
         new_reqs = []
         for context, continuation in [req.args for req in requests]:
             if context == "":
-                raise NotImplementedError(
-                    "Implementing empty context is not supported yet"
-                )
+                raise NotImplementedError("Implementing empty context is not supported yet")
             context_enc, continuation_enc = self._encode_pair(context, continuation)
 
             new_reqs.append(((context, continuation), context_enc, continuation_enc))
@@ -291,9 +277,7 @@ class DeepSparseLM(LM):
                 include_prompt_logits=True,
             )
 
-            for resp, continuation_enc, cache_key in zip(
-                response.generations, batch_continuation_enc, batch_cache_key
-            ):
+            for resp, continuation_enc, cache_key in zip(response.generations, batch_continuation_enc, batch_cache_key):
                 # (seq_len, vocab_size)
                 multi_scores = resp.score
 
@@ -307,9 +291,7 @@ class DeepSparseLM(LM):
 
                 # pick out the logits for the continuation tokens
                 # (cont_len,)
-                continuation_logits = continuation_multi_logits[
-                    numpy.arange(len(continuation_enc)), continuation_enc
-                ]
+                continuation_logits = continuation_multi_logits[numpy.arange(len(continuation_enc)), continuation_enc]
                 # check if the tokens generated greedly are the same
                 # as the expected continuation
                 greedy_tokens = continuation_multi_logits.argmax(axis=1)
@@ -329,9 +311,7 @@ class DeepSparseLM(LM):
         return re_ord.get_original(res)
 
     def loglikelihood_rolling(self, requests: List[Instance]) -> List[float]:
-        raise NotImplementedError(
-            "The method not required by any of our current task integrations so far"
-        )
+        raise NotImplementedError("The method not required by any of our current task integrations so far")
 
     def generate_until(self, requests: List[Instance]) -> List[str]:
         """
@@ -366,9 +346,7 @@ class DeepSparseLM(LM):
                 yield ret, lastuntil
 
         pbar = tqdm(total=len(requests))
-        for chunk, request_args in tqdm(
-            list(sameuntil_chunks(re_ord.get_reordered(), self.batch_size))
-        ):
+        for chunk, request_args in tqdm(list(sameuntil_chunks(re_ord.get_reordered(), self.batch_size))):
             inps = []
 
             # make a deepcopy since we are changing arguments
@@ -402,18 +380,14 @@ class DeepSparseLM(LM):
 
                 res.append(text)
 
-                self.cache_hook.add_partial(
-                    "generate_until", (context, {"until": until_}), text
-                )
+                self.cache_hook.add_partial("generate_until", (context, {"until": until_}), text)
                 pbar.update(1)
 
         pbar.close()
 
         return re_ord.get_original(res)
 
-    def _encode_pair(
-        self, context: str, continuation: str
-    ) -> Tuple[List[int], List[int]]:
+    def _encode_pair(self, context: str, continuation: str) -> Tuple[List[int], List[int]]:
         """
         Copied directly from
         https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/models/huggingface.py

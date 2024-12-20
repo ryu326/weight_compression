@@ -3,25 +3,16 @@ from importlib.metadata import version
 from importlib.util import find_spec
 from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
 
-from more_itertools import distribute
-from packaging.version import parse as parse_version
-from tqdm import tqdm
-
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
-from lm_eval.models.utils import (
-    Collator,
-    configure_pad_token,
-    handle_stop_sequences,
-    undistribute,
-)
-from lm_eval.utils import (
-    eval_logger,
-    get_rolling_token_windows,
-    make_disjoint_window,
-)
-
+from lm_eval.models.utils import (Collator, configure_pad_token,
+                                  handle_stop_sequences, undistribute)
+from lm_eval.utils import (eval_logger, get_rolling_token_windows,
+                           make_disjoint_window)
+from more_itertools import distribute
+from packaging.version import parse as parse_version
+from tqdm import tqdm
 
 try:
     import ray
@@ -99,11 +90,7 @@ class VLLM(TemplateLM):
             "seed": int(seed),
         }
         self.model_args.update(kwargs)
-        self.batch_size = (
-            "auto"
-            if isinstance(batch_size, str) and "auto" in batch_size
-            else batch_size
-        )
+        self.batch_size = "auto" if isinstance(batch_size, str) and "auto" in batch_size else batch_size
         if self.data_parallel_size <= 1:
             self.model = LLM(**self.model_args)
         else:
@@ -135,9 +122,7 @@ class VLLM(TemplateLM):
 
         self.custom_prefix_token_id = prefix_token_id
         if prefix_token_id is not None:
-            eval_logger.info(
-                f"Loglikelihood prefix token id used in evaluation: {self.prefix_token_id}"
-            )
+            eval_logger.info(f"Loglikelihood prefix token id used in evaluation: {self.prefix_token_id}")
 
         self._max_gen_toks = max_gen_toks
 
@@ -188,9 +173,7 @@ class VLLM(TemplateLM):
         """
         Method to apply a chat template to a list of chat history between user and model.
         """
-        return self.tokenizer.apply_chat_template(
-            chat_history, tokenize=False, add_generation_prompt=True
-        )
+        return self.tokenizer.apply_chat_template(chat_history, tokenize=False, add_generation_prompt=True)
 
     @property
     def tokenizer_name(self) -> str:
@@ -233,9 +216,7 @@ class VLLM(TemplateLM):
             kwargs = self.modify_gen_kwargs(kwargs)
             sampling_params = SamplingParams(max_tokens=max_tokens, stop=stop, **kwargs)
         else:
-            sampling_params = SamplingParams(
-                temperature=0, prompt_logprobs=1, max_tokens=1, detokenize=False
-            )
+            sampling_params = SamplingParams(temperature=0, prompt_logprobs=1, max_tokens=1, detokenize=False)
         if self.data_parallel_size > 1:
             # vLLM hangs if tensor_parallel > 1 and resources are set in ray.remote
             # also seems to only work with decorator and not with ray.remote() fn
@@ -259,10 +240,7 @@ class VLLM(TemplateLM):
             # dispatch requests to all self.data_parallel_size workers, in interleaved fashion
             # interleaved important to balance context lengths across workers
             requests = [list(x) for x in distribute(self.data_parallel_size, requests)]
-            inputs = (
-                (self.model_args, sampling_params, req, self.lora_request)
-                for req in requests
-            )
+            inputs = ((self.model_args, sampling_params, req, self.lora_request) for req in requests)
             object_refs = [run_inference_one_model.remote(*x) for x in inputs]
             results = ray.get(object_refs)
             # Invoke ray.shutdown() to prevent hang-ups if subsequent calls required.
@@ -278,9 +256,7 @@ class VLLM(TemplateLM):
         )
         return outputs
 
-    def loglikelihood_rolling(
-        self, requests: List[Instance], disable_tqdm: bool = False
-    ) -> List[float]:
+    def loglikelihood_rolling(self, requests: List[Instance], disable_tqdm: bool = False) -> List[float]:
         loglikelihoods = []
 
         for (string,) in tqdm([req.args for req in requests], disable=disable_tqdm):
@@ -314,19 +290,13 @@ class VLLM(TemplateLM):
 
         return loglikelihoods
 
-    def generate_until(
-        self, requests: List[Instance], disable_tqdm: bool = False
-    ) -> List[str]:
+    def generate_until(self, requests: List[Instance], disable_tqdm: bool = False) -> List[str]:
         res = []
 
         # batch tokenize contexts
         context, all_gen_kwargs = zip(*(req.args for req in requests))
-        context_encoding: List[List[int]] = self.tok_encode(
-            context, add_special_tokens=self.add_bos_token
-        )
-        requests = [
-            ((a, b), c) for a, b, c in zip(context, context_encoding, all_gen_kwargs)
-        ]
+        context_encoding: List[List[int]] = self.tok_encode(context, add_special_tokens=self.add_bos_token)
+        requests = [((a, b), c) for a, b, c in zip(context, context_encoding, all_gen_kwargs)]
 
         def _collate_gen(_requests):
             # the negative sign on len(toks) sorts descending - this has a few advantages:
@@ -341,9 +311,7 @@ class VLLM(TemplateLM):
         # so that we don't try to execute e.g. greedy sampling and temp=0.8 sampling
         # in the same batch.
         re_ords = Collator(requests, _collate_gen, group_by="gen_kwargs")
-        chunks = re_ords.get_batched(
-            n=int(self.batch_size) if self.batch_size != "auto" else 0, batch_fn=None
-        )
+        chunks = re_ords.get_batched(n=int(self.batch_size) if self.batch_size != "auto" else 0, batch_fn=None)
 
         pbar = tqdm(
             total=len(requests),
@@ -364,9 +332,7 @@ class VLLM(TemplateLM):
                 # add EOS token to stop sequences
                 until = handle_stop_sequences(kwargs.pop("until", None), eos=eos)
             else:
-                raise ValueError(
-                    f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
-                )
+                raise ValueError(f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}")
             if "max_gen_toks" in kwargs.keys():
                 max_gen_toks = kwargs.pop("max_gen_toks")
             else:
@@ -390,9 +356,7 @@ class VLLM(TemplateLM):
             for output, context in zip(cont, context):
                 generated_text = output.outputs[0].text
                 res.append(generated_text)
-                self.cache_hook.add_partial(
-                    "generate_until", (context, gen_kwargs), generated_text
-                )
+                self.cache_hook.add_partial("generate_until", (context, gen_kwargs), generated_text)
                 pbar.update(1)
 
         pbar.close()
@@ -412,9 +376,7 @@ class VLLM(TemplateLM):
 
         # Reorder requests by length and batch
         re_ord = Collator(requests, sort_fn=_collate)
-        chunks = re_ord.get_batched(
-            n=int(self.batch_size) if self.batch_size != "auto" else 0, batch_fn=None
-        )
+        chunks = re_ord.get_batched(n=int(self.batch_size) if self.batch_size != "auto" else 0, batch_fn=None)
 
         pbar = tqdm(
             total=len(requests),
@@ -426,18 +388,14 @@ class VLLM(TemplateLM):
             ctxlens = []
             for cache_key, context_enc, continuation_enc in chunk:
                 inp = (context_enc + continuation_enc)[-(self.max_length) :]
-                ctxlen = len(context_enc) - max(
-                    0, len(context_enc) + len(continuation_enc) - (self.max_length)
-                )
+                ctxlen = len(context_enc) - max(0, len(context_enc) + len(continuation_enc) - (self.max_length))
 
                 inputs.append(inp)
                 ctxlens.append(ctxlen)
 
             outputs = self._model_generate(requests=inputs, generate=False)
 
-            for output, ctxlen, (cache_key, _, _), inp in zip(
-                outputs, ctxlens, chunk, inputs
-            ):
+            for output, ctxlen, (cache_key, _, _), inp in zip(outputs, ctxlens, chunk, inputs):
                 answer = self._parse_logprobs(
                     tokens=inp,
                     outputs=output,
@@ -486,12 +444,11 @@ class VLLM(TemplateLM):
             return getattr(logprob, "logprob", logprob)
 
         continuation_logprobs_dicts = [
-            {
-                token: coerce_logprob_to_num(logprob)
-                for token, logprob in logprob_dict.items()
-            }
-            if logprob_dict is not None
-            else None
+            (
+                {token: coerce_logprob_to_num(logprob) for token, logprob in logprob_dict.items()}
+                if logprob_dict is not None
+                else None
+            )
             for logprob_dict in continuation_logprobs_dicts
         ]
 
@@ -499,16 +456,12 @@ class VLLM(TemplateLM):
         # assume ctxlen always >= 1
         continuation_logprobs = sum(
             logprob_dict.get(token)
-            for token, logprob_dict in zip(
-                tokens[ctxlen:], continuation_logprobs_dicts[ctxlen:]
-            )
+            for token, logprob_dict in zip(tokens[ctxlen:], continuation_logprobs_dicts[ctxlen:])
         )
 
         # Determine if is_greedy
         is_greedy = True
-        for token, logprob_dict in zip(
-            tokens[ctxlen:], continuation_logprobs_dicts[ctxlen:]
-        ):
+        for token, logprob_dict in zip(tokens[ctxlen:], continuation_logprobs_dicts[ctxlen:]):
             # Get the token with the maximum log probability from the logprob_dict
             if logprob_dict:  # Ensure the logprob_dict is not None
                 top_token = max(logprob_dict, key=logprob_dict.get)
@@ -523,13 +476,9 @@ class VLLM(TemplateLM):
         # sampling_params
         do_sample = kwargs.pop("do_sample", None)
         if do_sample is False and "temperature" not in kwargs:
-            eval_logger.debug(
-                "Got `do_sample=False` and no temperature value, setting VLLM temperature to 0.0 ..."
-            )
+            eval_logger.debug("Got `do_sample=False` and no temperature value, setting VLLM temperature to 0.0 ...")
             kwargs["temperature"] = 0.0
         # hf defaults
         kwargs["skip_special_tokens"] = kwargs.get("skip_special_tokens", False)
-        kwargs["spaces_between_special_tokens"] = kwargs.get(
-            "spaces_between_special_tokens", False
-        )
+        kwargs["spaces_between_special_tokens"] = kwargs.get("spaces_between_special_tokens", False)
         return kwargs

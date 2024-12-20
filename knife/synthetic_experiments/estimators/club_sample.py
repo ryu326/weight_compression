@@ -18,7 +18,7 @@ class CLUBSample(nn.Module):  # Sampled version of the CLUB estimator
 
     def loglikeli(self, z_c, z_d):
         mu, logvar = self.get_mu_logvar(z_c)
-        return (-(mu - z_d) ** 2 / logvar.exp() - logvar).sum(dim=1).mean(dim=0)
+        return (-((mu - z_d) ** 2) / logvar.exp() - logvar).sum(dim=1).mean(dim=0)
 
     def forward(self, z_c, z_d):
         mu, logvar = self.get_mu_logvar(z_c)
@@ -26,10 +26,10 @@ class CLUBSample(nn.Module):  # Sampled version of the CLUB estimator
         sample_size = z_c.shape[0]
         random_index = torch.randperm(sample_size).long()
 
-        positive = - (mu - z_d) ** 2 / logvar.exp()
-        negative = - (mu - z_d[random_index]) ** 2 / logvar.exp()
+        positive = -((mu - z_d) ** 2) / logvar.exp()
+        negative = -((mu - z_d[random_index]) ** 2) / logvar.exp()
         upper_bound = (torch.abs(positive.sum(dim=-1) - negative.sum(dim=-1))).mean()
-        return upper_bound / 2., 0., 0.
+        return upper_bound / 2.0, 0.0, 0.0
 
     def learning_loss(self, z_c, z_d):
-        return - self.loglikeli(z_c, z_d)
+        return -self.loglikeli(z_c, z_d)

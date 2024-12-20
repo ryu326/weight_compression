@@ -101,9 +101,7 @@ def sample_model_evaluation_bootstrapped(
     checkpoint_ref = module.model.state_dict()
 
     # get first anchor embeddings
-    logging.info(
-        f"sampling:: get first anchor embeddings from anchor_ds_path: {anchor_ds_path}"
-    )
+    logging.info(f"sampling:: get first anchor embeddings from anchor_ds_path: {anchor_ds_path}")
     if anchor_ds_path is not None:
         anchor_z, anchor_pos, anchor_w_shape = get_anchor_embeddings(
             anchor_ds_path=anchor_ds_path,
@@ -115,9 +113,7 @@ def sample_model_evaluation_bootstrapped(
             samples=anchor_sample_number,
         )
     else:
-        logging.info(
-            f"no anchor ds provided: draw anchor samples from normal distribution"
-        )
+        logging.info(f"no anchor ds provided: draw anchor samples from normal distribution")
         tokensize = ae_model.config["ae:i_dim"]
         lat_dim = ae_model.config["ae:lat_dim"]
         anchor_z, anchor_pos, anchor_w_shape = get_random_anchor_embeddings(
@@ -158,18 +154,14 @@ def sample_model_evaluation_bootstrapped(
         logging.info("sampling:: de-normalize checkpoints")
         if norm_mode is not None:
             for idx in range(len(checkpoints)):
-                checkpoints[idx] = de_normalize_checkpoint(
-                    checkpoints[idx], layers=layer_norms, mode=norm_mode
-                )
+                checkpoints[idx] = de_normalize_checkpoint(checkpoints[idx], layers=layer_norms, mode=norm_mode)
         if check_equivalence(checkpoints[0], checkpoints[-1]):
             logging.warning(f"monitoring: same checkpoints after normalization")
 
         # condition bn of checkpoints
         if bn_condition_iters > 0:
             logging.info(f"sampling: condition bn layers")
-            checkpoints = condition_checkpoints(
-                checkpoints, sample_config, bn_condition_iters
-            )
+            checkpoints = condition_checkpoints(checkpoints, sample_config, bn_condition_iters)
         if check_equivalence(checkpoints[0], checkpoints[-1]):
             logging.warning(f"monitoring: same checkpoints after conditioning")
 
@@ -299,9 +291,7 @@ def bootstrap_model_evaluation(checkpoints, config, reference_dataset_path):
 
     # sort model_ind_perf by acc_val in descending order
     model_ind_perf = sorted(model_ind_perf, key=lambda x: x[0], reverse=True)
-    assert (
-        model_ind_perf[0][0] >= model_ind_perf[-1][0]
-    ), "model_ind_perf not sorted correctly"
+    assert model_ind_perf[0][0] >= model_ind_perf[-1][0], "model_ind_perf not sorted correctly"
 
     # # extract keep_top_n best models from model_ind_perf
     # model_ind_perf = model_ind_perf[:keep_top_n]

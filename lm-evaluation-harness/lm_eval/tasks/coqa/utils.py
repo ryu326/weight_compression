@@ -7,9 +7,7 @@ def doc_to_text(doc):
     # Given a passage p, the conversation history {q1, a1, . . . qi−1, ai−1}
     # and a question qi, the task is to predict the answer ai
     doc_text = doc["story"] + "\n\n"
-    for q, a in zip_longest(
-        doc["questions"]["input_text"], doc["answers"]["input_text"][:-1]
-    ):  # omit target answer ai
+    for q, a in zip_longest(doc["questions"]["input_text"], doc["answers"]["input_text"][:-1]):  # omit target answer ai
         question = f"Q: {q}\n\n"
         answer = f"A: {a}\n\n" if a is not None else "A:"
         doc_text += question + answer
@@ -26,9 +24,7 @@ def doc_to_target(doc):
     additional_answers = doc.get("additional_answers")
     if additional_answers:
         for key in additional_answers:
-            additional_answer_for_turn = additional_answers[key]["input_text"][
-                turn_id - 1
-            ]
+            additional_answer_for_turn = additional_answers[key]["input_text"][turn_id - 1]
             if additional_answer_for_turn.lower() not in map(str.lower, answers):
                 answers.append(additional_answer_for_turn)
     return answers

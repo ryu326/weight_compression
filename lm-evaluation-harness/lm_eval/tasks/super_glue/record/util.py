@@ -1,7 +1,6 @@
 import datasets
 import numpy as np
 import transformers.data.metrics.squad_metrics as squad_metrics
-
 from lm_eval.api.metrics import metric_max_over_ground_truths
 
 
@@ -47,12 +46,8 @@ def process_results(doc, results):
 
     prediction = doc["entities"][max_idx]
     gold_label_set = doc["answers"]
-    f1 = metric_max_over_ground_truths(
-        squad_metrics.compute_f1, prediction, gold_label_set
-    )
-    em = metric_max_over_ground_truths(
-        squad_metrics.compute_exact, prediction, gold_label_set
-    )
+    f1 = metric_max_over_ground_truths(squad_metrics.compute_f1, prediction, gold_label_set)
+    em = metric_max_over_ground_truths(squad_metrics.compute_exact, prediction, gold_label_set)
 
     return {
         "f1": f1,

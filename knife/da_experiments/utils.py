@@ -24,14 +24,12 @@ def main_process(distributed) -> bool:
         return True
 
 
-def setup(port: int,
-          rank: int,
-          world_size: int) -> None:
+def setup(port: int, rank: int, world_size: int) -> None:
     """
     Used for distributed learning
     """
-    os.environ['MASTER_ADDR'] = 'localhost'
-    os.environ['MASTER_PORT'] = str(port)
+    os.environ["MASTER_ADDR"] = "localhost"
+    os.environ["MASTER_PORT"] = str(port)
 
     # initialize the process group
     dist.init_process_group("nccl", rank=rank, world_size=world_size)
@@ -49,6 +47,7 @@ def find_free_port() -> int:
     Used for distributed learning
     """
     import socket
+
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.bind(("", 0))
     port = sock.getsockname()[1]
@@ -64,17 +63,16 @@ def to_np_image(x):
 
 
 def get_model_dir(args: argparse.Namespace):
-    return os.path.join(args.res_dir,
-                        f'source={str(args.source_data)}',
-                        f'target={str(args.target_data)}',
-                        f'method={args.method}')
+    return os.path.join(
+        args.res_dir, f"source={str(args.source_data)}", f"target={str(args.target_data)}", f"method={args.method}"
+    )
 
 
 def get_logs_path(model_path, method, shot):
-    exp_path = '_'.join(model_path.split('/')[1:])
-    file_path = os.path.join('tmp', exp_path, method)
+    exp_path = "_".join(model_path.split("/")[1:])
+    file_path = os.path.join("tmp", exp_path, method)
     os.makedirs(file_path, exist_ok=True)
-    return os.path.join(file_path, f'{shot}.txt')
+    return os.path.join(file_path, f"{shot}.txt")
 
 
 def get_features(model, samples):
@@ -102,9 +100,9 @@ class AverageMeter(object):
 def setup_logger(filepath):
     file_formatter = logging.Formatter(
         "[%(asctime)s %(filename)s:%(lineno)s] %(levelname)-8s %(message)s",
-        datefmt='%Y-%m-%d %H:%M:%S',
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
-    logger = logging.getLogger('example')
+    logger = logging.getLogger("example")
     # handler = logging.StreamHandler()
     # handler.setFormatter(file_formatter)
     # logger.addHandler(handler)
@@ -112,7 +110,7 @@ def setup_logger(filepath):
     file_handle_name = "file"
     if file_handle_name in [h.name for h in logger.handlers]:
         return
-    if os.path.dirname(filepath) != '':
+    if os.path.dirname(filepath) != "":
         if not os.path.isdir(os.path.dirname(filepath)):
             os.makedirs(os.path.dirname(filepath))
     file_handle = logging.FileHandler(filename=filepath, mode="a")
@@ -132,32 +130,32 @@ def warp_tqdm(data_loader, disable_tqdm):
 
 
 def save_pickle(file, data):
-    with open(file, 'wb') as f:
+    with open(file, "wb") as f:
         pickle.dump(data, f)
 
 
 def load_pickle(file):
-    with open(file, 'rb') as f:
+    with open(file, "rb") as f:
         return pickle.load(f)
 
 
-def save_checkpoint(state, is_best, filename='checkpoint.pth.tar', folder='result/default'):
+def save_checkpoint(state, is_best, filename="checkpoint.pth.tar", folder="result/default"):
     os.makedirs(folder, exist_ok=True)
     torch.save(state, os.path.join(folder, filename))
     if is_best:
-        torch.save(state, os.path.join(folder, 'model_best.pth.tar'))
+        torch.save(state, os.path.join(folder, "model_best.pth.tar"))
 
 
-def load_checkpoint(model, model_path, type='best'):
-    if type == 'best':
-        checkpoint = torch.load('{}/model_best.pth.tar'.format(model_path))
-        print(f'Loaded model from {model_path}/model_best.pth.tar')
-    elif type == 'last':
-        checkpoint = torch.load('{}/checkpoint.pth.tar'.format(model_path))
-        print(f'Loaded model from {model_path}/checkpoint.pth.tar')
+def load_checkpoint(model, model_path, type="best"):
+    if type == "best":
+        checkpoint = torch.load("{}/model_best.pth.tar".format(model_path))
+        print(f"Loaded model from {model_path}/model_best.pth.tar")
+    elif type == "last":
+        checkpoint = torch.load("{}/checkpoint.pth.tar".format(model_path))
+        print(f"Loaded model from {model_path}/checkpoint.pth.tar")
     else:
-        assert False, 'type should be in [best, or last], but got {}'.format(type)
-    state_dict = checkpoint['state_dict']
+        assert False, "type should be in [best, or last], but got {}".format(type)
+    state_dict = checkpoint["state_dict"]
     names = []
     for k, v in state_dict.items():
         names.append(k)
@@ -262,25 +260,22 @@ def _check_and_coerce_cfg_value_type(replacement, original, key, full_key):
     except Exception:
         pass
 
-    for (from_type, to_type) in casts:
+    for from_type, to_type in casts:
         converted, converted_value = conditional_cast(from_type, to_type)
         if converted:
             return converted_value
 
     raise ValueError(
         "Type mismatch ({} vs. {}) with values ({} vs. {}) for config "
-        "key: {}".format(
-            original_type, replacement_type, original, replacement, full_key
-        )
+        "key: {}".format(original_type, replacement_type, original, replacement, full_key)
     )
 
 
 def load_cfg_from_cfg_file(file: str):
     cfg = {}
-    assert os.path.isfile(file) and file.endswith('.yaml'), \
-        '{} is not a yaml file'.format(file)
+    assert os.path.isfile(file) and file.endswith(".yaml"), "{} is not a yaml file".format(file)
 
-    with open(file, 'r') as f:
+    with open(file, "r") as f:
         cfg_from_file = yaml.safe_load(f)
 
     for key in cfg_from_file:
@@ -291,17 +286,14 @@ def load_cfg_from_cfg_file(file: str):
     return cfg
 
 
-def merge_cfg_from_list(cfg: CfgNode,
-                        cfg_list: List[str]):
+def merge_cfg_from_list(cfg: CfgNode, cfg_list: List[str]):
     new_cfg = copy.deepcopy(cfg)
     assert len(cfg_list) % 2 == 0, cfg_list
     for full_key, v in zip(cfg_list[0::2], cfg_list[1::2]):
-        subkey = full_key.split('.')[-1]
-        assert subkey in cfg, 'Non-existent key: {}'.format(full_key)
+        subkey = full_key.split(".")[-1]
+        assert subkey in cfg, "Non-existent key: {}".format(full_key)
         value = _decode_cfg_value(v)
-        value = _check_and_coerce_cfg_value_type(
-            value, cfg[subkey], subkey, full_key
-        )
+        value = _check_and_coerce_cfg_value_type(value, cfg[subkey], subkey, full_key)
         setattr(new_cfg, subkey, value)
 
     return new_cfg

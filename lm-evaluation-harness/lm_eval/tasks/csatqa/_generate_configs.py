@@ -6,10 +6,8 @@ import argparse
 import os
 
 import yaml
-from tqdm import tqdm
-
 from lm_eval.logger import eval_logger
-
+from tqdm import tqdm
 
 SUBSETS = ["WR", "GR", "RCS", "RCSS", "RCH", "LI"]
 
@@ -33,9 +31,7 @@ if __name__ == "__main__":
     for name in tqdm(SUBSETS):
         yaml_dict = {
             "include": base_yaml_name,
-            "task": f"csatqa_{args.task_prefix}_{name}"
-            if args.task_prefix != ""
-            else f"csatqa_{name.lower()}",
+            "task": f"csatqa_{args.task_prefix}_{name}" if args.task_prefix != "" else f"csatqa_{name.lower()}",
             "dataset_name": name,
         }
 

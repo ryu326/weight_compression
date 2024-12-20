@@ -2,20 +2,14 @@ import copy
 from typing import Dict, List, Optional
 
 import transformers
-from more_itertools import distribute
-from tqdm import tqdm
-
 from lm_eval.api.instance import Instance
 from lm_eval.api.registry import register_model
-from lm_eval.models.utils import (
-    Collator,
-    handle_stop_sequences,
-    replace_placeholders,
-    undistribute,
-)
+from lm_eval.models.utils import (Collator, handle_stop_sequences,
+                                  replace_placeholders, undistribute)
 from lm_eval.models.vllm_causallms import VLLM
 from lm_eval.utils import eval_logger
-
+from more_itertools import distribute
+from tqdm import tqdm
 
 try:
     import ray
@@ -102,9 +96,7 @@ class VLLM_VLM(VLLM):
             kwargs = self.modify_gen_kwargs(kwargs)
             sampling_params = SamplingParams(max_tokens=max_tokens, stop=stop, **kwargs)
         else:
-            sampling_params = SamplingParams(
-                temperature=0, prompt_logprobs=1, max_tokens=1, detokenize=False
-            )
+            sampling_params = SamplingParams(temperature=0, prompt_logprobs=1, max_tokens=1, detokenize=False)
         if self.data_parallel_size > 1:
             # vLLM hangs if tensor_parallel > 1 and resources are set in ray.remote
             # also seems to only work with decorator and not with ray.remote() fn
@@ -112,9 +104,7 @@ class VLLM_VLM(VLLM):
             # note: this has changed on 0.3.3, and it only works now if num_gpus are set.
             # but then tensor_parallel breaks
             @ray.remote
-            def run_inference_one_model(
-                model_args: dict, sampling_params, requests: List[List[dict]]
-            ):
+            def run_inference_one_model(model_args: dict, sampling_params, requests: List[List[dict]]):
                 llm = LLM(**model_args)
                 return llm.generate(requests, sampling_params=sampling_params)
 
@@ -152,9 +142,7 @@ class VLLM_VLM(VLLM):
                 text = content["content"]
 
                 # Count and remove image placeholders
-                image_count = min(
-                    self.max_images, text.count(DEFAULT_IMAGE_PLACEHOLDER)
-                )
+                image_count = min(self.max_images, text.count(DEFAULT_IMAGE_PLACEHOLDER))
                 text = text.replace(DEFAULT_IMAGE_PLACEHOLDER, "")
 
                 # Add image entries
@@ -169,9 +157,7 @@ class VLLM_VLM(VLLM):
             for content in chat_history:
                 c = []
                 text = content["content"]
-                expected_image_count = min(
-                    self.max_images, text.count(DEFAULT_IMAGE_PLACEHOLDER)
-                )
+                expected_image_count = min(self.max_images, text.count(DEFAULT_IMAGE_PLACEHOLDER))
                 actual_image_count = 0
 
                 text_parts = text.split(DEFAULT_IMAGE_PLACEHOLDER)
@@ -181,8 +167,8 @@ class VLLM_VLM(VLLM):
                     if part:  # Add non-empty text parts
                         c.append({"type": "text", "text": part})
                     if (
-                        (i < len(text_parts) - 1) and i < self.max_images
-                    ):  # Add image placeholder after each split except the last
+                        i < len(text_parts) - 1
+                    ) and i < self.max_images:  # Add image placeholder after each split except the last
                         c.append({"type": "image"})
                         actual_image_count += 1
 
@@ -193,13 +179,9 @@ class VLLM_VLM(VLLM):
                         f"Mismatch in image placeholder count. Expected: {expected_image_count}, Actual: {actual_image_count}"
                     )
 
-        return self.processor.apply_chat_template(
-            chat_history, add_generation_prompt=True
-        )
+        return self.processor.apply_chat_template(chat_history, add_generation_prompt=True)
 
-    def generate_until(
-        self, requests: List[Instance], disable_tqdm: bool = False
-    ) -> List[str]:
+    def generate_until(self, requests: List[Instance], disable_tqdm: bool = False) -> List[str]:
         # TODO: support text-only reqs
         res = []
 
@@ -251,9 +233,7 @@ class VLLM_VLM(VLLM):
                 # add EOS token to stop sequences
                 until = handle_stop_sequences(kwargs.pop("until", None), eos=eos)
             else:
-                raise ValueError(
-                    f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
-                )
+                raise ValueError(f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}")
             if "max_gen_toks" in kwargs.keys():
                 max_gen_toks = kwargs.pop("max_gen_toks")
             else:
@@ -272,9 +252,7 @@ class VLLM_VLM(VLLM):
             for output, context in zip(cont, contexts):
                 generated_text = output.outputs[0].text
                 res.append(generated_text)
-                self.cache_hook.add_partial(
-                    "generate_until", (context, gen_kwargs), generated_text
-                )
+                self.cache_hook.add_partial("generate_until", (context, gen_kwargs), generated_text)
                 pbar.update(1)
         # reorder this group of results back to original unsorted form
         res = re_ords.get_original(res)

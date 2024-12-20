@@ -3,7 +3,6 @@ from itertools import product
 
 import evaluate
 import transformers.data.metrics.squad_metrics as squad_metrics
-
 from lm_eval.utils import general_detokenize
 
 
@@ -17,19 +16,11 @@ def process_doc_nli(dataset):
         doc["premise"] = general_detokenize(doc["premise"]).strip()
         doc["hypothesis"] = general_detokenize(doc["hypothesis"]).strip()
         # Remove last punctuation mark in the premise
-        doc["premise"] = (
-            doc["premise"][:-1]
-            if doc["premise"].endswith((".", ",", "!", "?"))
-            else doc["premise"]
-        )
+        doc["premise"] = doc["premise"][:-1] if doc["premise"].endswith((".", ",", "!", "?")) else doc["premise"]
         # Lowercase the first letter in the hypothesis
         doc["hypothesis"] = lowercase_first_letter(doc["hypothesis"])
         # Ensure that the hypothesis ends with a dot
-        doc["hypothesis"] = (
-            (doc["hypothesis"] + ".")
-            if not doc["hypothesis"].endswith(".")
-            else doc["hypothesis"]
-        )
+        doc["hypothesis"] = (doc["hypothesis"] + ".") if not doc["hypothesis"].endswith(".") else doc["hypothesis"]
         return doc
 
     return dataset.map(process_fn)
@@ -42,9 +33,7 @@ def process_results_coqcat(doc, results):
     additional_answers_list = doc.get("additional_answers")
     if additional_answers_list:
         for key, additional_answers in additional_answers_list.items():
-            if additional_answers["input_text"][turn_id - 1].lower() not in map(
-                str.lower, answers
-            ):
+            if additional_answers["input_text"][turn_id - 1].lower() not in map(str.lower, answers):
                 answers.append(additional_answers["input_text"][turn_id - 1])
 
     gold_list = answers
@@ -82,12 +71,8 @@ def process_doc_cabreu(dataset):
     def process_fn(doc):
         # Remove duplicate spaces
         doc["content"] = re.sub(r" +", " ", doc["content"])
-        for summary_type, index in product(
-            ["abstractive", "extractive", "extreme"], ["a1", "a2", "a3"]
-        ):
-            doc["summaries"][summary_type][index] = re.sub(
-                r" +", " ", doc["summaries"][summary_type][index]
-            )
+        for summary_type, index in product(["abstractive", "extractive", "extreme"], ["a1", "a2", "a3"]):
+            doc["summaries"][summary_type][index] = re.sub(r" +", " ", doc["summaries"][summary_type][index])
         return doc
 
     return dataset.map(process_fn)
@@ -110,10 +95,9 @@ def process_docs_paraphrases(dataset):
             empty_docs.append(doc)
             return doc
 
-    return dataset.filter(
-        lambda doc: doc["sentence1"] not in [None, ""]
-        and doc["sentence2"] not in [None, ""]
-    ).map(_process_doc)
+    return dataset.filter(lambda doc: doc["sentence1"] not in [None, ""] and doc["sentence2"] not in [None, ""]).map(
+        _process_doc
+    )
 
 
 def process_docs_copa_ca(dataset):

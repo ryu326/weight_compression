@@ -20,18 +20,14 @@ def calculate_score_fullscale(docs, results):
         print(user)
         return {"eqbench": 0, "percent_parseable": 0}
 
-    difference_tally = (
-        0  # Tally of differerence from reference answers for this question
-    )
+    difference_tally = 0  # Tally of differerence from reference answers for this question
 
     # Iterate over each emotion in the user's answers.
     for emotion, user_emotion_score in user.items():
         # If this emotion is in the reference, calculate the difference between the user's score and the reference score.
         for i in range(1, 5):
             if emotion == reference[f"emotion{i}"]:
-                d = abs(
-                    float(user_emotion_score) - float(reference[f"emotion{i}_score"])
-                )
+                d = abs(float(user_emotion_score) - float(reference[f"emotion{i}_score"]))
                 # this will be a value between 0 and 10
                 if d == 0:
                     scaled_difference = 0

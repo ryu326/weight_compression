@@ -14,18 +14,17 @@
 #    limitations under the License.
 
 import os
-import warnings
 import shutil
-import torch
-import torch.nn as nn
+import warnings
 from typing import List, Optional, Tuple, Union
 
+import torch
+import torch.nn as nn
 from transformers import CLIPVisionModel
-
 from transformers.modeling_outputs import CausalLMOutputWithPast
 
-from .llava_base.llava_arch import LlavaMetaModel, LlavaMetaForCausalLM
 from .llama import LlamaForCausalLM, Transformer
+from .llava_base.llava_arch import LlavaMetaForCausalLM, LlavaMetaModel
 
 
 class LlavaLlamaModel(LlavaMetaModel, Transformer):
@@ -52,39 +51,23 @@ class LlavaLlamaForCausalLM(LlamaForCausalLM, LlavaMetaForCausalLM):
         vision_tower = self.get_vision_tower().vision_tower
         from contextlib import nullcontext
 
-        if (
-            vision_tower is not None
-            and (input_ids.shape[1] != 1 or self.training)
-            and images is not None
-        ):
-            from tinychat.utils.constants import LLAVA_DEFAULT_IMAGE_PATCH_TOKEN_IDX
+        if vision_tower is not None and (input_ids.shape[1] != 1 or self.training) and images is not None:
+            from tinychat.utils.constants import \
+                LLAVA_DEFAULT_IMAGE_PATCH_TOKEN_IDX
 
-            with (
-                nullcontext()
-                if getattr(self.config, "tune_vision_encoder", False)
-                else torch.no_grad()
-            ):
+            with nullcontext() if getattr(self.config, "tune_vision_encoder", False) else torch.no_grad():
                 if type(images) is list:
-                    images = [
-                        image.unsqueeze(0) if len(image.shape) == 3 else image
-                        for image in images
-                    ]
+                    images = [image.unsqueeze(0) if len(image.shape) == 3 else image for image in images]
                     images = torch.cat(images, dim=0)
                 dtype = next(vision_tower.parameters()).dtype
                 if "visiontransformer" in vision_tower.__class__.__name__.lower():
                     image_features = vision_tower(images.to(dtype))
                 else:
-                    image_forward_outs = vision_tower(
-                        images.to(dtype), output_hidden_states=True
-                    )
-                    select_hidden_state_layer = getattr(
-                        self.config, "mm_vision_select_layer", -1
-                    )
+                    image_forward_outs = vision_tower(images.to(dtype), output_hidden_states=True)
+                    select_hidden_state_layer = getattr(self.config, "mm_vision_select_layer", -1)
                     if abs(select_hidden_state_layer) > 100:  # TOOD: find a better impl
                         # -212 -> 12,
-                        idx1, idx2 = abs(select_hidden_state_layer) % 100, -(
-                            abs(select_hidden_state_layer) // 100
-                        )
+                        idx1, idx2 = abs(select_hidden_state_layer) % 100, -(abs(select_hidden_state_layer) // 100)
                         # print("selecting multiple indices", idx1, idx2)
                         image_features = torch.cat(
                             (
@@ -94,9 +77,7 @@ class LlavaLlamaForCausalLM(LlamaForCausalLM, LlavaMetaForCausalLM):
                             dim=-1,
                         )
                     else:
-                        image_features = image_forward_outs.hidden_states[
-                            select_hidden_state_layer
-                        ]
+                        image_features = image_forward_outs.hidden_states[select_hidden_state_layer]
                 if isinstance(vision_tower, CLIPVisionModel):  # clip case, not for sam
                     image_features = image_features[:, 1:].to(images.dtype)  # (B, N, D)
 
@@ -106,9 +87,7 @@ class LlavaLlamaForCausalLM(LlamaForCausalLM, LlavaMetaForCausalLM):
                 # print("using neftune tuning with alpha", self.config.neftune_alpha)
                 dims = torch.tensor(image_features.shape[-2] * image_features.shape[-1])
                 mag_norm = self.config.neftune_alpha / torch.sqrt(dims)
-                image_features = image_features + torch.zeros_like(
-                    image_features
-                ).uniform_(-mag_norm, mag_norm)
+                image_features = image_features + torch.zeros_like(image_features).uniform_(-mag_norm, mag_norm)
 
             if self.config.mm_projector_type == "dsresampler":
                 dummy_feat_shape = (1, 1024, 1664)
@@ -122,9 +101,7 @@ class LlavaLlamaForCausalLM(LlamaForCausalLM, LlavaMetaForCausalLM):
                 device=inputs_embeds.device,
                 dtype=inputs_embeds.dtype,
             )
-            dummy_image_features = self.model.mm_projector(dummy_image_features)[
-                0
-            ]  # (1, N, D)
+            dummy_image_features = self.model.mm_projector(dummy_image_features)[0]  # (1, N, D)
 
             new_input_embeds = []
             cur_image_idx = 0
@@ -132,24 +109,16 @@ class LlavaLlamaForCausalLM(LlamaForCausalLM, LlavaMetaForCausalLM):
             image_token_idx = []
 
             num_patches = -1
-            for i_sample, (cur_input_ids, cur_input_embeds) in enumerate(
-                zip(input_ids, inputs_embeds)
-            ):
+            for i_sample, (cur_input_ids, cur_input_embeds) in enumerate(zip(input_ids, inputs_embeds)):
                 if (cur_input_ids == LLAVA_DEFAULT_IMAGE_PATCH_TOKEN_IDX).sum() == 0:
                     # multimodal LLM, but the current sample is not multimodal
-                    cur_input_embeds = (
-                        cur_input_embeds + (0.0 * dummy_image_features).sum()
-                    )
+                    cur_input_embeds = cur_input_embeds + (0.0 * dummy_image_features).sum()
                     new_input_embeds.append(cur_input_embeds)
                     # cur_image_idx += 1
                     continue
                 # TODO: Need to fix if vision_tower.config.use_im_start_end == True
-                num_total_patches = (
-                    (cur_input_ids == LLAVA_DEFAULT_IMAGE_PATCH_TOKEN_IDX).sum().item()
-                )
-                masked_indices = torch.where(
-                    cur_input_ids == LLAVA_DEFAULT_IMAGE_PATCH_TOKEN_IDX
-                )[0]
+                num_total_patches = (cur_input_ids == LLAVA_DEFAULT_IMAGE_PATCH_TOKEN_IDX).sum().item()
+                masked_indices = torch.where(cur_input_ids == LLAVA_DEFAULT_IMAGE_PATCH_TOKEN_IDX)[0]
 
                 while num_total_patches:
                     if cur_image_idx >= image_features.shape[0]:  # SHOULD NOT HAPPEN!!!
@@ -177,9 +146,7 @@ class LlavaLlamaForCausalLM(LlamaForCausalLM, LlavaMetaForCausalLM):
                             (
                                 cur_input_embeds[:mask_index_start].detach(),
                                 cur_image_features,
-                                cur_input_embeds[
-                                    mask_index_start + num_patches :
-                                ].detach(),
+                                cur_input_embeds[mask_index_start + num_patches :].detach(),
                             ),
                             dim=0,
                         )
@@ -241,9 +208,7 @@ class LlavaLlamaForCausalLM(LlamaForCausalLM, LlavaMetaForCausalLM):
                     images,
                 )
             else:
-                inputs_embeds = self.default_inputs_embeds_for_multimodal(
-                    input_ids, inputs_embeds, images
-                )
+                inputs_embeds = self.default_inputs_embeds_for_multimodal(input_ids, inputs_embeds, images)
                 input_ids = None
 
         if start_pos == None:
@@ -267,9 +232,7 @@ class LlavaLlamaForCausalLM(LlamaForCausalLM, LlavaMetaForCausalLM):
             )
         return out
 
-    def prepare_inputs_for_generation(
-        self, input_ids, past_key_values=None, inputs_embeds=None, **kwargs
-    ):
+    def prepare_inputs_for_generation(self, input_ids, past_key_values=None, inputs_embeds=None, **kwargs):
         images = kwargs.pop("images", None)
         _inputs = super().prepare_inputs_for_generation(
             input_ids,

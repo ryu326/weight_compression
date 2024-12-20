@@ -32,13 +32,9 @@ def main():
         ]
     )
 
-    val_and_trainset = datasets.CIFAR100(
-        root=cifar_path, train=True, transform=train_transforms, download=True
-    )
+    val_and_trainset = datasets.CIFAR100(root=cifar_path, train=True, transform=train_transforms, download=True)
 
-    testset = datasets.CIFAR100(
-        root=cifar_path, train=False, transform=test_transforms, download=True
-    )
+    testset = datasets.CIFAR100(root=cifar_path, train=False, transform=test_transforms, download=True)
 
     dataset_seed = 42
     trainset, valset = torch.utils.data.random_split(

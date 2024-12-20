@@ -1,14 +1,10 @@
-import torch
 import gc
 import time
 
+import torch
 from transformers.generation.logits_process import (
-    LogitsProcessorList,
-    RepetitionPenaltyLogitsProcessor,
-    TemperatureLogitsWarper,
-    TopKLogitsWarper,
-    TopPLogitsWarper,
-)
+    LogitsProcessorList, RepetitionPenaltyLogitsProcessor,
+    TemperatureLogitsWarper, TopKLogitsWarper, TopPLogitsWarper)
 
 context_tokens = 0
 context_time = 0.0
@@ -59,9 +55,7 @@ def StreamGenerator(
         top_k = gen_params.n_vocab
     else:
         top_k = gen_params.top_k
-    logits_processor = prepare_logits_processor(
-        gen_params.temp, gen_params.repeat_penalty, gen_params.top_p, top_k
-    )
+    logits_processor = prepare_logits_processor(gen_params.temp, gen_params.repeat_penalty, gen_params.top_p, top_k)
 
     past_key_values = out = None
     stop_token_ids.append(tokenizer.eos_token_id)

@@ -1,11 +1,12 @@
+import gc
+
 import torch
 import torch.nn as nn
 from tqdm import tqdm
-import gc
-from .qmodule import ScaledActivation
-from ..utils.module import set_op_by_name
-
 from transformers.models.bloom.modeling_bloom import BloomBlock
+
+from ..utils.module import set_op_by_name
+from .qmodule import ScaledActivation
 
 EMBEDDING_KEYWORDS = ["embed"]
 LM_HEAD_KEYWORDS = ["lm_head", "embed_out", "output"]
@@ -19,48 +20,36 @@ def scale_activations(module):
         if isinstance(module.mlp.gelu_impl, ScaledActivation):
             return
         c = module.mlp.dense_h_to_4h.out_features
-        act = ScaledActivation(
-            module.mlp.gelu_impl, torch.ones(c, dtype=dtype, device=device)
-        )
+        act = ScaledActivation(module.mlp.gelu_impl, torch.ones(c, dtype=dtype, device=device))
         set_op_by_name(module, "mlp.gelu_impl", act)
     elif "mptblock" in str(module.__class__.__name__).lower():
         if isinstance(module.ffn.act, ScaledActivation):
             return
         c = module.ffn.up_proj.out_features
-        act = ScaledActivation(
-            module.ffn.act, torch.ones(c, dtype=dtype, device=device)
-        )
+        act = ScaledActivation(module.ffn.act, torch.ones(c, dtype=dtype, device=device))
         set_op_by_name(module, "ffn.act", act)
     elif "falcon" in str(module.__class__).lower():
         if isinstance(module.mlp.act, ScaledActivation):
             return
         c = module.mlp.dense_h_to_4h.out_features
-        act = ScaledActivation(
-            module.mlp.act, torch.ones(c, dtype=dtype, device=device)
-        )
+        act = ScaledActivation(module.mlp.act, torch.ones(c, dtype=dtype, device=device))
         set_op_by_name(module, "mlp.act", act)
     elif "bigcode" in str(module.__class__).lower():
         if isinstance(module.mlp.act, ScaledActivation):
             return
         c = module.mlp.c_proj.out_features
-        act = ScaledActivation(
-            module.mlp.act, torch.ones(c, dtype=dtype, device=device)
-        )
+        act = ScaledActivation(module.mlp.act, torch.ones(c, dtype=dtype, device=device))
         set_op_by_name(module, "mlp.act", act)
     elif "neox" in str(module.__class__).lower():
         if isinstance(module.mlp.act, ScaledActivation):
             return
         c = module.mlp.dense_h_to_4h.out_features
-        act = ScaledActivation(
-            module.mlp.act, torch.ones(c, dtype=dtype, device=device)
-        )
+        act = ScaledActivation(module.mlp.act, torch.ones(c, dtype=dtype, device=device))
         set_op_by_name(module, "mlp.act", act)
 
 
 # core quantization method (simulated quantization)
-def pseudo_quantize_tensor(
-    w, n_bit=8, zero_point=True, q_group_size=-1, inplace=False, get_scale_zp=False
-):
+def pseudo_quantize_tensor(w, n_bit=8, zero_point=True, q_group_size=-1, inplace=False, get_scale_zp=False):
     org_w_shape = w.shape
     if q_group_size > 0:
         assert org_w_shape[-1] % q_group_size == 0
@@ -86,13 +75,9 @@ def pseudo_quantize_tensor(
     assert torch.isnan(w).sum() == 0
 
     if inplace:
-        (
-            (w.div_(scales).round_().add_(zeros)).clamp_(min_int, max_int).sub_(zeros)
-        ).mul_(scales)
+        ((w.div_(scales).round_().add_(zeros)).clamp_(min_int, max_int).sub_(zeros)).mul_(scales)
     else:
-        w = (
-            torch.clamp(torch.round(w / scales) + zeros, min_int, max_int) - zeros
-        ) * scales
+        w = (torch.clamp(torch.round(w / scales) + zeros, min_int, max_int) - zeros) * scales
     assert torch.isnan(w).sum() == 0
 
     w = w.reshape(org_w_shape)
@@ -116,16 +101,14 @@ def pseudo_quantize_model_weight(
         named_linears = get_named_linears(layers[i])
         for n, m in named_linears.items():
             m.cuda()
-            m.weight.data = pseudo_quantize_tensor(
-                m.weight.data, n_bit=w_bit, **q_config
-            )
+            m.weight.data = pseudo_quantize_tensor(m.weight.data, n_bit=w_bit, **q_config)
             m.cpu()
 
 
 @torch.no_grad()
 def real_quantize_model_weight(model, w_bit, q_config, init_only=False):
-    from .qmodule import WQLinear
     from .pre_quant import get_blocks, get_named_linears
+    from .qmodule import WQLinear
 
     assert q_config["zero_point"], "We only support zero_point quantization now."
 
@@ -140,9 +123,7 @@ def real_quantize_model_weight(model, w_bit, q_config, init_only=False):
 
         for name, module in named_linears.items():
             if init_only:
-                q_linear = WQLinear.from_linear(
-                    module, w_bit, q_config["q_group_size"], True
-                )
+                q_linear = WQLinear.from_linear(module, w_bit, q_config["q_group_size"], True)
                 q_linear.to(next(layer.parameters()).device)
                 set_op_by_name(layer, name, q_linear)
             else:
@@ -152,9 +133,7 @@ def real_quantize_model_weight(model, w_bit, q_config, init_only=False):
                 )
                 # scales = scales.t().contiguous()
                 # zeros = zeros.t().contiguous()
-                q_linear = WQLinear.from_linear(
-                    module, w_bit, q_config["q_group_size"], False, scales, zeros
-                )
+                q_linear = WQLinear.from_linear(module, w_bit, q_config["q_group_size"], False, scales, zeros)
                 module.cpu()
                 q_linear.to(next(layer.parameters()).device)
                 set_op_by_name(layer, name, q_linear)

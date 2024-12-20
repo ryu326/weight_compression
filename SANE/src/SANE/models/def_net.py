@@ -46,9 +46,7 @@ class MLP(nn.Module):
         # get if bias should be used or not
         for k in range(len(h_dim) - 1):
             # add linear layer
-            self.module_list.append(
-                nn.Linear(h_dim[k], h_dim[k + 1], bias=self.use_bias)
-            )
+            self.module_list.append(nn.Linear(h_dim[k], h_dim[k + 1], bias=self.use_bias))
             # add nonlinearity
             if nlin == "elu":
                 self.module_list.append(nn.ELU())
@@ -442,9 +440,7 @@ class ResCNN(nn.Module):
         super().__init__()
 
         if dropout > 0.0:
-            raise NotImplementedError(
-                "dropout is not yet impemented for the residual connections.|"
-            )
+            raise NotImplementedError("dropout is not yet impemented for the residual connections.|")
         # init module list
         self.module_list = nn.ModuleList()
         ### ASSUMES 28x28 image size
@@ -460,9 +456,7 @@ class ResCNN(nn.Module):
         ## output [15, 8, 12, 12]
         ## residual connection stack 1
         self.res1_pool = nn.MaxPool2d(kernel_size=5, stride=2, padding=0)
-        self.res1_conv = nn.Conv2d(
-            in_channels=channels_in, out_channels=8, kernel_size=1, stride=1, padding=0
-        )
+        self.res1_conv = nn.Conv2d(in_channels=channels_in, out_channels=8, kernel_size=1, stride=1, padding=0)
 
         ## compose layer 2
         self.module_list.append(nn.Conv2d(8, 6, 5))
@@ -473,18 +467,14 @@ class ResCNN(nn.Module):
             self.module_list.append(nn.Dropout(dropout))
         ## output [15, 6, 4, 4]
         self.res2_pool = nn.MaxPool2d(kernel_size=5, stride=2, padding=0)
-        self.res2_conv = nn.Conv2d(
-            in_channels=8, out_channels=6, kernel_size=1, stride=1, padding=0
-        )
+        self.res2_conv = nn.Conv2d(in_channels=8, out_channels=6, kernel_size=1, stride=1, padding=0)
 
         ## compose layer 3
         self.module_list.append(nn.Conv2d(6, 4, 2))
         self.module_list.append(self.get_nonlin(nlin))
         ## output [15, 4, 3, 3]
         self.res3_pool = nn.MaxPool2d(kernel_size=2, stride=1, padding=0)
-        self.res3_conv = nn.Conv2d(
-            in_channels=6, out_channels=4, kernel_size=1, stride=1, padding=0
-        )
+        self.res3_conv = nn.Conv2d(in_channels=6, out_channels=4, kernel_size=1, stride=1, padding=0)
 
         ## add flatten layer
         self.module_list.append(nn.Flatten())
@@ -1083,19 +1073,13 @@ class MiniAlexNet(nn.Module):
     def __init__(self, channels_in=3, num_classes=10, init_type="kaiming_uniform"):
         super(MiniAlexNet, self).__init__()
         # First Convolutional Layer
-        self.conv1 = nn.Conv2d(
-            channels_in, 96, kernel_size=3, stride=1
-        )  # Use padding to keep size 32x32
-        self.maxpool1 = nn.MaxPool2d(
-            kernel_size=3, stride=3
-        )  # Reduce size from 32x32 to 10x10
+        self.conv1 = nn.Conv2d(channels_in, 96, kernel_size=3, stride=1)  # Use padding to keep size 32x32
+        self.maxpool1 = nn.MaxPool2d(kernel_size=3, stride=3)  # Reduce size from 32x32 to 10x10
         self.batchnorm1 = nn.BatchNorm2d(96)
 
         # Second Convolutional Layer
         self.conv2 = nn.Conv2d(96, 256, kernel_size=3, stride=1)  # Keep size 10x10
-        self.maxpool2 = nn.MaxPool2d(
-            kernel_size=2, stride=2
-        )  # Reduce size from 10x10 to 5x5
+        self.maxpool2 = nn.MaxPool2d(kernel_size=2, stride=2)  # Reduce size from 10x10 to 5x5
         self.batchnorm2 = nn.BatchNorm2d(256)
 
         # Fully Connected Layers
@@ -1725,9 +1709,7 @@ class NNmodule(nn.Module):
                     perf_dict["train_accuracy"] = accuracy
                     perf_dict["test_loss"] = loss_test
                     perf_dict["test_accuracy"] = accuracy_test
-                    self.save_model(
-                        epoch="best", perf_dict=perf_dict, path=checkpoint_dir
-                    )
+                    self.save_model(epoch="best", perf_dict=perf_dict, path=checkpoint_dir)
                 logging.info(f"best loss: {self.loss_best} at epoch {self.best_epoch}")
 
             if epoch % output_epoch == 0:

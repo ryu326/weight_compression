@@ -23,7 +23,6 @@ class QuantMatMul(nn.Module):
 
         self.disable_act_quant = disable_act_quant
 
-
     def set_quant_state(self, weight_quant: bool = False, act_quant: bool = False):
         self.use_weight_quant = weight_quant
         self.use_act_quant = act_quant

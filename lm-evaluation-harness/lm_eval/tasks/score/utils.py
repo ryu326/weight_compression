@@ -23,9 +23,7 @@ from typing import Any, Dict, List
 
 import numpy as np
 from datasets import Dataset
-
 from lm_eval.utils import eval_logger
-
 
 NUMERALS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
 ROMAN_NUMERALS = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"]
@@ -61,9 +59,7 @@ def process_docs_add_prompts(
         result["prompt_id"] = list(range(n)) * initial_len
         result["prompt"] = [prompt_templates[i]["prompt"] for i in result["prompt_id"]]
         if "options_format" in prompt_templates[0]:
-            result["options_format"] = [
-                prompt_templates[i]["options_format"] for i in result["prompt_id"]
-            ]
+            result["options_format"] = [prompt_templates[i]["options_format"] for i in result["prompt_id"]]
         return result
 
     return doc.map(process_batch, batched=True)
@@ -99,22 +95,18 @@ def option_order_robustness_process_docs(
 
         for doc_ind in range(initial_len):
             for label_ind, label in enumerate(labels):
-                new_batched_docs["original_answer_index"].append(
-                    batched_docs["answer_index"][doc_ind]
-                )
+                new_batched_docs["original_answer_index"].append(batched_docs["answer_index"][doc_ind])
                 for key in keys:
-                    new_batched_docs[key].append(
-                        copy.deepcopy(batched_docs[key][doc_ind])
-                    )
+                    new_batched_docs[key].append(copy.deepcopy(batched_docs[key][doc_ind]))
                     if label_ind < len(batched_docs["options"][doc_ind]):
                         if key == "options":
                             # Swap correct answer with label_ind option
-                            new_batched_docs[key][-1][label_ind] = batched_docs[
-                                "options"
-                            ][doc_ind][batched_docs["answer_index"][doc_ind]]
-                            new_batched_docs[key][-1][
+                            new_batched_docs[key][-1][label_ind] = batched_docs["options"][doc_ind][
                                 batched_docs["answer_index"][doc_ind]
-                            ] = batched_docs["options"][doc_ind][label_ind]
+                            ]
+                            new_batched_docs[key][-1][batched_docs["answer_index"][doc_ind]] = batched_docs["options"][
+                                doc_ind
+                            ][label_ind]
 
                         if key == "answer_index":
                             new_batched_docs[key][-1] = label_ind
@@ -157,9 +149,7 @@ def robustness_doc_to_text(doc: Dataset) -> str:
 def __postprocess_pred(pred):
     if "the best answer is" not in pred.lower():
         return pred
-    pred_proc = (
-        pred.lower().split("the best answer is ")[-1].split("\n")[0].split(" ")[0]
-    )
+    pred_proc = pred.lower().split("the best answer is ")[-1].split("\n")[0].split(" ")[0]
     pred_proc = re.sub(r"[^a-zA-Z0-9]", "", pred_proc).strip()
     return pred_proc.upper()
 

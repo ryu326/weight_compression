@@ -12,7 +12,7 @@ class ResidualBottleneck(nn.Module):
             act(),
             nn.Conv2d(N // 2, N // 2, kernel_size=3, stride=1, padding=1),
             act(),
-            conv1x1(N // 2, N)
+            conv1x1(N // 2, N),
         )
 
     def forward(self, x):

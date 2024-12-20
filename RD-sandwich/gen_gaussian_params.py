@@ -1,20 +1,21 @@
 # Script to randomly generate loc/var of a Gaussian.
 # Yibo Yang 2021
 
-import numpy as np
 import argparse
 import os
 
+import numpy as np
 
-def gen_params(dim, loc='rand', var='rand', dtype='float32'):
-    assert loc in ('zeros', 'rand')
-    assert var in ('ones', 'rand')
-    if loc == 'zeros':
+
+def gen_params(dim, loc="rand", var="rand", dtype="float32"):
+    assert loc in ("zeros", "rand")
+    assert var in ("ones", "rand")
+    if loc == "zeros":
         loc = np.zeros(dim, dtype=dtype)
     else:
         loc = np.random.uniform(-0.5, 0.5, dim).astype(dtype)
 
-    if var == 'ones':
+    if var == "ones":
         var = np.ones(dim, dtype=dtype)
     else:
         var = np.random.uniform(0, 2, dim).astype(dtype)
@@ -41,8 +42,8 @@ if __name__ == "__main__":
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
-    prefix = 'gaussian_params'
-    save_path = os.path.join(save_dir, f'{prefix}-dim={args.dim}.npz')
+    prefix = "gaussian_params"
+    save_path = os.path.join(save_dir, f"{prefix}-dim={args.dim}.npz")
 
-    np.savez(save_path, loc=loc, var=var, scale=var ** 0.5)
-    print(f'Saved to {save_path}')
+    np.savez(save_path, loc=loc, var=var, scale=var**0.5)
+    print(f"Saved to {save_path}")

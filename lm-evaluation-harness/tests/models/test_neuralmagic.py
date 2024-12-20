@@ -1,8 +1,6 @@
 import pytest
-
 from lm_eval import evaluator
 from lm_eval.api.registry import get_model
-
 
 SPARSEML_MODELS_TASKS = [
     # loglikelihood

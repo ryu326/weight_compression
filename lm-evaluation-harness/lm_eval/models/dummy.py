@@ -1,9 +1,8 @@
 import random
 
-from tqdm import tqdm
-
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
+from tqdm import tqdm
 
 
 @register_model("dummy")

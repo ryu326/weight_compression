@@ -4,22 +4,16 @@ from typing import Dict, List, Optional, Tuple, Union
 import torch
 import torch.nn.functional as F
 import transformers
-from tqdm import tqdm
-from transformers import BatchEncoding
-
 from lm_eval import utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
-from lm_eval.models.utils import (
-    Collator,
-    flatten_image_list,
-    handle_stop_sequences,
-    pad_and_concat,
-    replace_placeholders,
-    stop_sequences_criteria,
-)
-
+from lm_eval.models.utils import (Collator, flatten_image_list,
+                                  handle_stop_sequences, pad_and_concat,
+                                  replace_placeholders,
+                                  stop_sequences_criteria)
+from tqdm import tqdm
+from transformers import BatchEncoding
 
 DEFAULT_IMAGE_PLACEHOLDER = "<image>"
 
@@ -51,9 +45,7 @@ class HFMultimodalLM(HFLM):
         # modify init behavior.
         super().__init__(pretrained, **kwargs)
 
-        assert (
-            self.batch_size != "auto"
-        ), "Batch size 'auto' is not yet supported for hf-multimodal models."
+        assert self.batch_size != "auto", "Batch size 'auto' is not yet supported for hf-multimodal models."
         self.chat_applied: bool = False
         # TODO: phi-3.5 "image placeholders" are <image_1>, <image_2>, ... in order. how to handle this case
 
@@ -68,18 +60,13 @@ class HFMultimodalLM(HFLM):
             self.image_token_id = (
                 int(image_token_id)
                 if image_token_id
-                else (
-                    getattr(self.config, "image_token_id", None)
-                    or getattr(self.config, "image_token_index", None)
-                )
+                else (getattr(self.config, "image_token_id", None) or getattr(self.config, "image_token_index", None))
             )
             assert (
                 self.image_token_id is not None
             ), "Must have a non-None image_token_id to evaluate a Hugging Face AutoModelForVision2Seq model. Please pass `image_token_id` in `--model_args` if model's config does not already specify one."
             # get the string this token ID corresponds to
-            self.image_token = self.tok_decode(
-                [self.image_token_id], skip_special_tokens=False
-            )
+            self.image_token = self.tok_decode([self.image_token_id], skip_special_tokens=False)
             if image_token_id is not None:
                 eval_logger.info(
                     f"A non-default image_token_id with image_token_id={self.image_token_id} and string value '{self.image_token}' was specified manually. Note that using an improper image_token placeholder may lead to ignored image input or errors!"
@@ -119,9 +106,7 @@ class HFMultimodalLM(HFLM):
                     # use_fast=use_fast_tokenizer,
                 )
             else:
-                assert isinstance(
-                    tokenizer, transformers.ProcessorMixin
-                )  # TODO: check this condition
+                assert isinstance(tokenizer, transformers.ProcessorMixin)  # TODO: check this condition
                 return tokenizer
 
         # Get tokenizer based on 'pretrained'
@@ -140,9 +125,7 @@ class HFMultimodalLM(HFLM):
 
         self.tokenizer = self.processor.tokenizer
 
-    def tok_multimodal_encode(
-        self, string, images, left_truncate_len=None, add_special_tokens=None
-    ):
+    def tok_multimodal_encode(self, string, images, left_truncate_len=None, add_special_tokens=None):
         """Helper function which encodes an image + string combo using AutoProcessor"""
         # We inherit special token kwarg setup from HFLM.tok_encode
         # special_tokens_kwargs = {}
@@ -156,9 +139,7 @@ class HFMultimodalLM(HFLM):
 
         # encode text+images
         # TODO: why does (Qwen2-VL) processor error when attempting to add special tokens to text?
-        encoding = self.processor(
-            text=string, images=images, return_tensors=None
-        )  # , **special_tokens_kwargs)
+        encoding = self.processor(text=string, images=images, return_tensors=None)  # , **special_tokens_kwargs)
 
         # remove (and store) our tokenized text
         text_encoding = encoding.pop("input_ids")
@@ -185,9 +166,7 @@ class HFMultimodalLM(HFLM):
 
         # TODO: replace default <image> placeholder with self.image_token, for contexts
 
-        whole_enc, image_enc = self.tok_multimodal_encode(
-            context + continuation, images
-        )
+        whole_enc, image_enc = self.tok_multimodal_encode(context + continuation, images)
         context_enc, _ = self.tok_multimodal_encode(context, images)
 
         # tok_multimodal_encode returns List[List[int]] for tokenized text. Get rid of the batch dim
@@ -208,9 +187,7 @@ class HFMultimodalLM(HFLM):
                 text = content["content"]
 
                 # Count and remove image placeholders
-                image_count = min(
-                    self.max_images, text.count(DEFAULT_IMAGE_PLACEHOLDER)
-                )
+                image_count = min(self.max_images, text.count(DEFAULT_IMAGE_PLACEHOLDER))
                 text = text.replace(DEFAULT_IMAGE_PLACEHOLDER, "")
 
                 # Add image entries
@@ -225,9 +202,7 @@ class HFMultimodalLM(HFLM):
             for content in chat_history:
                 c = []
                 text = content["content"]
-                expected_image_count = min(
-                    self.max_images, text.count(DEFAULT_IMAGE_PLACEHOLDER)
-                )
+                expected_image_count = min(self.max_images, text.count(DEFAULT_IMAGE_PLACEHOLDER))
                 actual_image_count = 0
 
                 text_parts = text.split(DEFAULT_IMAGE_PLACEHOLDER)
@@ -237,8 +212,8 @@ class HFMultimodalLM(HFLM):
                     if part:  # Add non-empty text parts
                         c.append({"type": "text", "text": part})
                     if (
-                        (i < len(text_parts) - 1) and i < self.max_images
-                    ):  # Add image placeholder after each split except the last
+                        i < len(text_parts) - 1
+                    ) and i < self.max_images:  # Add image placeholder after each split except the last
                         c.append({"type": "image"})
                         actual_image_count += 1
 
@@ -249,9 +224,7 @@ class HFMultimodalLM(HFLM):
                         f"Mismatch in image placeholder count. Expected: {expected_image_count}, Actual: {actual_image_count}"
                     )
 
-        return self.processor.apply_chat_template(
-            chat_history, add_generation_prompt=True
-        )
+        return self.processor.apply_chat_template(chat_history, add_generation_prompt=True)
 
     def chat_template(self, chat_template: Union[bool, str] = False) -> Optional[str]:
         if hasattr(self.processor, "apply_chat_template"):
@@ -279,9 +252,7 @@ class HFMultimodalLM(HFLM):
         if not self.chat_applied:
             # TODO<baber>: This still keeps the whitespace in the image placeholder, which is not ideal.
             strings = [
-                replace_placeholders(
-                    string, DEFAULT_IMAGE_PLACEHOLDER, self.image_token, self.max_images
-                )
+                replace_placeholders(string, DEFAULT_IMAGE_PLACEHOLDER, self.image_token, self.max_images)
                 for string in strings
             ]
 
@@ -313,9 +284,7 @@ class HFMultimodalLM(HFLM):
         )  # TODO: This only casts the pixel values. Should they always be float16?
         if left_truncate_len:
             encoding["input_ids"] = encoding["input_ids"][:, -left_truncate_len:]
-            encoding["attention_mask"] = encoding["attention_mask"][
-                :, -left_truncate_len:
-            ]
+            encoding["attention_mask"] = encoding["attention_mask"][:, -left_truncate_len:]
         self.tokenizer.padding_side = old_padding_side
 
         return encoding
@@ -362,12 +331,7 @@ class HFMultimodalLM(HFLM):
         batched_imgs = {}
         for key in image_encs[0].keys():
             batched_imgs[key] = torch.cat(
-                [
-                    torch.tensor(
-                        image_enc[key], device=self.device, dtype=self.model.dtype
-                    )
-                    for image_enc in image_encs
-                ],
+                [torch.tensor(image_enc[key], device=self.device, dtype=self.model.dtype) for image_enc in image_encs],
                 dim=0,
             )
         return batched_imgs
@@ -378,9 +342,7 @@ class HFMultimodalLM(HFLM):
             "this is because we do not support measuring the loglikelihood a model assigns to an image.",
         )
 
-    def loglikelihood(
-        self, requests: List[Instance], disable_tqdm: bool = False
-    ) -> List[Tuple[float, bool]]:
+    def loglikelihood(self, requests: List[Instance], disable_tqdm: bool = False) -> List[Tuple[float, bool]]:
         raise NotImplementedError(
             "'loglikelihood' requests for model type `hf-multimodal` are not yet tested. This feature will be enabled when a loglikelihood-based multiple-choice VQA dataset is added!"
         )
@@ -394,9 +356,7 @@ class HFMultimodalLM(HFLM):
             else:
                 visuals = aux_arguments["visual"]
 
-                context_enc, continuation_enc, image_enc = self._encode_multimodal_pair(
-                    context, continuation, visuals
-                )
+                context_enc, continuation_enc, image_enc = self._encode_multimodal_pair(context, continuation, visuals)
             # TODO: key to pick for caching images
             new_reqs.append(
                 (
@@ -442,28 +402,21 @@ class HFMultimodalLM(HFLM):
         re_ord = Collator(
             requests,
             sort_fn=_collate,
-            group_by="contexts"  # TODO: can't group-by just "contexts" any more, need to incorporate imgs
-            if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM
-            and self.logits_cache
-            else None,
+            group_by=(
+                "contexts"  # TODO: can't group-by just "contexts" any more, need to incorporate imgs
+                if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM and self.logits_cache
+                else None
+            ),
             group_fn=_lookup_one_token_cont,
         )
 
         # automatic (variable) batch size detection for vectorization
         # pull longest context sample from request
         n_reordered_requests = len(re_ord)
-        batch_size = (
-            self.batch_size
-            if self.batch_size != "auto"
-            else override_bs
-            if override_bs is not None
-            else 0
-        )
+        batch_size = self.batch_size if self.batch_size != "auto" else override_bs if override_bs is not None else 0
         batch_fn = (
             self._batch_scheduler
-            if self.batch_size == "auto"
-            and n_reordered_requests > 0
-            and not override_bs
+            if self.batch_size == "auto" and n_reordered_requests > 0 and not override_bs
             else None
         )
 
@@ -507,11 +460,7 @@ class HFMultimodalLM(HFLM):
                 )
                 (inplen,) = inp.shape
 
-                padding_len_inp = (
-                    max(padding_len_inp, inplen)
-                    if padding_len_inp is not None
-                    else inplen
-                )
+                padding_len_inp = max(padding_len_inp, inplen) if padding_len_inp is not None else inplen
 
                 inps.append(inp)  # [1, inp_length]
                 cont_toks_list.append(continuation_enc)
@@ -521,13 +470,9 @@ class HFMultimodalLM(HFLM):
 
             # create encoder attn mask and batched conts, if seq2seq
             call_kwargs = {}
-            batched_inps = pad_and_concat(
-                padding_len_inp, inps, padding_side="right"
-            )  # [batch, padding_len_inp]
+            batched_inps = pad_and_concat(padding_len_inp, inps, padding_side="right")  # [batch, padding_len_inp]
             # batch our examples' image inputs together
-            batched_imgs = self._batch_images(
-                imgs
-            )  # TODO: fix/test for bs>1 case with differently-sized imgs!
+            batched_imgs = self._batch_images(imgs)  # TODO: fix/test for bs>1 case with differently-sized imgs!
 
             multi_logits = F.log_softmax(
                 self._model_multimodal_call(batched_inps, batched_imgs, **call_kwargs),
@@ -535,13 +480,16 @@ class HFMultimodalLM(HFLM):
             )  # [batch, padding_length (inp or cont), vocab]
 
             for (
-                request_str,
-                ctx_tokens,
-                _,
-                image_encs,
-            ), logits, inplen, cont_toks in zip(
-                chunk, multi_logits, inplens, cont_toks_list
-            ):
+                (
+                    request_str,
+                    ctx_tokens,
+                    _,
+                    image_encs,
+                ),
+                logits,
+                inplen,
+                cont_toks,
+            ) in zip(chunk, multi_logits, inplens, cont_toks_list):
                 # Slice to original seq length
                 contlen = len(cont_toks)
                 # take only logits in the continuation
@@ -570,16 +518,12 @@ class HFMultimodalLM(HFLM):
                     cont_toks=cont_toks,
                     logits=logits,
                 ):
-                    cont_toks = torch.tensor(
-                        cont_toks, dtype=torch.long, device=self.device
-                    ).unsqueeze(0)  # [1, seq]
+                    cont_toks = torch.tensor(cont_toks, dtype=torch.long, device=self.device).unsqueeze(0)  # [1, seq]
                     max_equal = (greedy_tokens == cont_toks).all()
 
                     # Obtain log-probs at the corresponding continuation token indices
                     # last_token_slice = logits[:, -1, :].squeeze(0).tolist()
-                    logits = torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(
-                        -1
-                    )  # [1, seq]
+                    logits = torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(-1)  # [1, seq]
 
                     # Answer: (log prob, is-exact-match)
                     answer = (float(logits.sum()), bool(max_equal))
@@ -595,9 +539,7 @@ class HFMultimodalLM(HFLM):
 
         return re_ord.get_original(res)
 
-    def generate_until(
-        self, requests: List[Instance], disable_tqdm: bool = False
-    ) -> List[str]:
+    def generate_until(self, requests: List[Instance], disable_tqdm: bool = False) -> List[str]:
         # TODO: back out to HFLM.generate_until() for all requests without aux_arguments (text-only reqs)
         res = []
 
@@ -652,9 +594,7 @@ class HFMultimodalLM(HFLM):
                 # add EOS token to stop sequences
                 until = handle_stop_sequences(kwargs.pop("until", None), eos=eos)
             else:
-                raise ValueError(
-                    f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
-                )
+                raise ValueError(f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}")
             if "max_gen_toks" in kwargs.keys():
                 max_gen_toks = kwargs.pop("max_gen_toks")
             else:

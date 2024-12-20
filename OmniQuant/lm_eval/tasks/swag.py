@@ -12,6 +12,7 @@ but not humans.
 
 Homepage: https://rowanzellers.com/swag/
 """
+
 from lm_eval.base import MultipleChoiceTask
 
 

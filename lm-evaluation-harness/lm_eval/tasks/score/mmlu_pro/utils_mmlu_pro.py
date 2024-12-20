@@ -17,11 +17,10 @@ from functools import partial
 from typing import Any, Dict, List
 
 import numpy as np
-
 from lm_eval.tasks.score import utils
-from lm_eval.tasks.score.utils import prompt_consistency_rate, robustness_doc_to_text
+from lm_eval.tasks.score.utils import (prompt_consistency_rate,
+                                       robustness_doc_to_text)
 from lm_eval.utils import eval_logger
-
 
 TEMPLATE_FILE_PATH = os.path.join(os.path.dirname(__file__), "prompt_templates.json")
 
@@ -112,9 +111,7 @@ def per_prompt_macro_accuracy(results: List[Dict[str, Any]], p_id=0) -> float:
 
     for key in accuracies:
         accuracies[key] = sum(accuracies[key]) / len(accuracies[key])
-        eval_logger.info(
-            f"Prompt - {prompt_id}, category - {key} accuracy: {accuracies[key]}"
-        )
+        eval_logger.info(f"Prompt - {prompt_id}, category - {key} accuracy: {accuracies[key]}")
 
     return np.round(np.mean([v for v in accuracies.values()]), 4)
 
@@ -143,9 +140,7 @@ def per_option_macro_accuracy(results: List[Dict[str, Any]], always_opt="a") -> 
 
     for key in accuracies:
         accuracies[key] = sum(accuracies[key]) / len(accuracies[key])
-        eval_logger.info(
-            f"Prompt - {always_opt.upper()}, category - {key} accuracy: {accuracies[key]}"
-        )
+        eval_logger.info(f"Prompt - {always_opt.upper()}, category - {key} accuracy: {accuracies[key]}")
 
     return np.round(np.mean([v for v in accuracies.values()]), 4)
 

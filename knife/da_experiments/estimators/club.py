@@ -3,16 +3,16 @@ from .utils import FF
 
 
 class CLUB(nn.Module):  # CLUB: Mutual Information Contrastive Learning Upper Bound
-    '''
-        This class provides the CLUB estimation to I(X,Y)
-        Method:
-            forward() :      provides the estimation with input samples
-            loglikeli() :   provides the log-likelihood of the approximation q(Y|X) with input samples
-        Arguments:
-            zc_dim, zd_dim :         the dimensions of samples from X, Y respectively
-            hidden_size :          the dimension of the hidden layer of the approximation network q(Y|X)
-            z_c, z_d : samples from X and Y, having shape [sample_size, zc_dim/zd_dim]
-    '''
+    """
+    This class provides the CLUB estimation to I(X,Y)
+    Method:
+        forward() :      provides the estimation with input samples
+        loglikeli() :   provides the log-likelihood of the approximation q(Y|X) with input samples
+    Arguments:
+        zc_dim, zd_dim :         the dimensions of samples from X, Y respectively
+        hidden_size :          the dimension of the hidden layer of the approximation network q(Y|X)
+        z_c, z_d : samples from X and Y, having shape [sample_size, zc_dim/zd_dim]
+    """
 
     def __init__(self, args, zc_dim, zd_dim):
         super(CLUB, self).__init__()
@@ -35,19 +35,19 @@ class CLUB(nn.Module):  # CLUB: Mutual Information Contrastive Learning Upper Bo
         mu, logvar = self.get_mu_logvar(z_c)
 
         # log of conditional probability of positive sample pairs
-        positive = - (mu - z_d) ** 2 / 2. / logvar.exp()
+        positive = -((mu - z_d) ** 2) / 2.0 / logvar.exp()
 
         prediction_1 = mu.unsqueeze(1)  # shape [nsample,1,dim]
         z_d_1 = z_d.unsqueeze(0)  # shape [1,nsample,dim]
 
         # log of conditional probability of negative sample pairs
-        negative = - ((z_d_1 - prediction_1) ** 2).mean(dim=1) / 2. / logvar.exp()
+        negative = -((z_d_1 - prediction_1) ** 2).mean(dim=1) / 2.0 / logvar.exp()
         mi = (positive.sum(-1) - negative.sum(-1)).mean()
-        return mi, 0., 0.
+        return mi, 0.0, 0.0
 
     def learning_loss(self, z_c, z_d):  # unnormalized loglikelihood
         mu, logvar = self.get_mu_logvar(z_c)
-        return -(-(mu - z_d) ** 2 / logvar.exp() - logvar).sum(1).mean(0)
+        return -(-((mu - z_d) ** 2) / logvar.exp() - logvar).sum(1).mean(0)
 
     def I(self, *args, **kwargs):
         return self.forward(*args[:2], **kwargs)[0]

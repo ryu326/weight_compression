@@ -32,13 +32,23 @@ class MNIST(VisionDataset):
         ("http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz", "f68b3c2dcbeaaa9fbdd348bbdeb94873"),
         ("http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz", "d53e105ee54ea40749a09fcbcd1e9432"),
         ("http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz", "9fb629c4189551a2d022fa330f9573f3"),
-        ("http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz", "ec29112dd5afa0611ce80d1b7f02629c")
+        ("http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz", "ec29112dd5afa0611ce80d1b7f02629c"),
     ]
 
-    training_file = 'training.pt'
-    test_file = 'test.pt'
-    classes = ['0 - zero', '1 - one', '2 - two', '3 - three', '4 - four',
-               '5 - five', '6 - six', '7 - seven', '8 - eight', '9 - nine']
+    training_file = "training.pt"
+    test_file = "test.pt"
+    classes = [
+        "0 - zero",
+        "1 - one",
+        "2 - two",
+        "3 - three",
+        "4 - four",
+        "5 - five",
+        "6 - six",
+        "7 - seven",
+        "8 - eight",
+        "9 - nine",
+    ]
 
     @property
     def train_labels(self):
@@ -60,19 +70,17 @@ class MNIST(VisionDataset):
         warnings.warn("test_data has been renamed data")
         return self.data
 
-    def __init__(self, root, split, transform=None,
-                 target_transform=None, download=False):
+    def __init__(self, root, split, transform=None, target_transform=None, download=False):
         """Init MNIST-M dataset."""
-        super(MNIST, self).__init__(
-                root, transform=transform,
-                target_transform=target_transform)
+        super(MNIST, self).__init__(root, transform=transform, target_transform=target_transform)
 
-        with open(os.path.join(root, 'MNIST', 'mnist_data.pkl'), 'rb') as f:
+        with open(os.path.join(root, "MNIST", "mnist_data.pkl"), "rb") as f:
             mnist = pickle.load(f, encoding="bytes")
 
-        self.data = mnist[split.encode('utf-8')][b'images']
-        self.targets = mnist[split.encode('utf-8')][b'labels']
+        self.data = mnist[split.encode("utf-8")][b"images"]
+        self.targets = mnist[split.encode("utf-8")][b"labels"]
         print(f"MNIST {split} : {self.data.shape} {self.targets.shape}")
+
     # def __init__(
     #         self,
     #         root: str,
@@ -125,21 +133,20 @@ class MNIST(VisionDataset):
 
     @property
     def raw_folder(self) -> str:
-        return os.path.join(self.root, self.__class__.__name__, 'raw')
+        return os.path.join(self.root, self.__class__.__name__, "raw")
 
     @property
     def processed_folder(self) -> str:
-        return os.path.join(self.root, self.__class__.__name__, 'processed')
+        return os.path.join(self.root, self.__class__.__name__, "processed")
 
     @property
     def class_to_idx(self) -> Dict[str, int]:
         return {_class: i for i, _class in enumerate(self.classes)}
 
     def _check_exists(self) -> bool:
-        return (os.path.exists(os.path.join(self.processed_folder,
-                                            self.training_file)) and
-                os.path.exists(os.path.join(self.processed_folder,
-                                            self.test_file)))
+        return os.path.exists(os.path.join(self.processed_folder, self.training_file)) and os.path.exists(
+            os.path.join(self.processed_folder, self.test_file)
+        )
 
     def download(self) -> None:
         """Download the MNIST data if it doesn't exist in processed_folder already."""
@@ -152,26 +159,26 @@ class MNIST(VisionDataset):
 
         # download files
         for url, md5 in self.resources:
-            filename = url.rpartition('/')[2]
+            filename = url.rpartition("/")[2]
             download_and_extract_archive(url, download_root=self.raw_folder, filename=filename, md5=md5)
 
         # process and save as torch files
-        print('Processing...')
+        print("Processing...")
 
         training_set = (
-            read_image_file(os.path.join(self.raw_folder, 'train-images-idx3-ubyte')),
-            read_label_file(os.path.join(self.raw_folder, 'train-labels-idx1-ubyte'))
+            read_image_file(os.path.join(self.raw_folder, "train-images-idx3-ubyte")),
+            read_label_file(os.path.join(self.raw_folder, "train-labels-idx1-ubyte")),
         )
         test_set = (
-            read_image_file(os.path.join(self.raw_folder, 't10k-images-idx3-ubyte')),
-            read_label_file(os.path.join(self.raw_folder, 't10k-labels-idx1-ubyte'))
+            read_image_file(os.path.join(self.raw_folder, "t10k-images-idx3-ubyte")),
+            read_label_file(os.path.join(self.raw_folder, "t10k-labels-idx1-ubyte")),
         )
-        with open(os.path.join(self.processed_folder, self.training_file), 'wb') as f:
+        with open(os.path.join(self.processed_folder, self.training_file), "wb") as f:
             torch.save(training_set, f)
-        with open(os.path.join(self.processed_folder, self.test_file), 'wb') as f:
+        with open(os.path.join(self.processed_folder, self.test_file), "wb") as f:
             torch.save(test_set, f)
 
-        print('Done!')
+        print("Done!")
 
     def extra_repr(self) -> str:
         return "Split: {}".format("Train" if self.train is True else "Test")

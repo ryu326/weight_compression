@@ -6,14 +6,13 @@ class DomainPredictor(nn.Module):
         super(DomainPredictor, self).__init__()
         self.latent_dim = args.latent_dim_d
         self.activation = nn.ReLU(inplace=True)
-        self.block = nn.Sequential(nn.Linear(input_dim, self.latent_dim),
-                                   self.activation,
-                                   nn.Linear(self.latent_dim, num_domains))
+        self.block = nn.Sequential(
+            nn.Linear(input_dim, self.latent_dim), self.activation, nn.Linear(self.latent_dim, num_domains)
+        )
 
     def forward(self, x):
         x = self.block(x)
         return x
-
 
     # def label_predictor(self):
     #     # with tf.variable_scope('label_predictor_fc1'):
@@ -33,7 +32,6 @@ class DomainPredictor(nn.Module):
     #     with tf.variable_scope('domain_predictor_logits', reuse = reuse):
     #         self.d_logits = layers.fully_connected(inputs=fc_1, num_outputs=self.num_domains,
     #                                           activation_fn=None, weights_initializer=self.initializer)
-
 
     #     logits_real = tf.slice(self.d_logits, [0, 0], [self.batch_size, -1])
     #     logits_fake = tf.slice(self.d_logits, [self.batch_size, 0], [self.batch_size * self.num_targets, -1])

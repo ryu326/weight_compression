@@ -11,8 +11,6 @@ from models.models_utils import truncate_number
 from models.transformation import *
 
 
-
-
 class QuantOPTAttention(nn.Module):
     """Multi-headed attention from 'Attention Is All You Need' paper"""
 
@@ -58,25 +56,15 @@ class QuantOPTAttention(nn.Module):
             args.weight_quant_params,
             args.act_quant_params,
         )
-        self.out_proj = QuantLinear(
-            org_module.out_proj, args.weight_quant_params, args.act_quant_params
-        )
-        self.qkt_matmul = QuantMatMul(
-            args.q_quant_params, args.k_quant_params, matmul_func=torch.bmm
-        )
-        self.pv_matmul = QuantMatMul(
-            args.p_quant_params, args.v_quant_params, matmul_func=torch.bmm
-        )
+        self.out_proj = QuantLinear(org_module.out_proj, args.weight_quant_params, args.act_quant_params)
+        self.qkt_matmul = QuantMatMul(args.q_quant_params, args.k_quant_params, matmul_func=torch.bmm)
+        self.pv_matmul = QuantMatMul(args.p_quant_params, args.v_quant_params, matmul_func=torch.bmm)
 
         self.use_weight_quant = False
         self.use_act_quant = False
 
     def _shape(self, tensor: torch.Tensor, seq_len: int, bsz: int):
-        return (
-            tensor.view(bsz, seq_len, self.num_heads, self.head_dim)
-            .transpose(1, 2)
-            .contiguous()
-        )
+        return tensor.view(bsz, seq_len, self.num_heads, self.head_dim).transpose(1, 2).contiguous()
 
     def forward(
         self,
@@ -150,20 +138,13 @@ class QuantOPTAttention(nn.Module):
                 raise ValueError(
                     f"Attention mask should be of size {(bsz, 1, tgt_len, src_len)}, but is {attention_mask.size()}"
                 )
-            attn_weights = (
-                attn_weights.view(bsz, self.num_heads, tgt_len, src_len)
-                + attention_mask
-            )
-            attn_weights = torch.max(
-                attn_weights, torch.tensor(torch.finfo(attn_weights.dtype).min)
-            )
+            attn_weights = attn_weights.view(bsz, self.num_heads, tgt_len, src_len) + attention_mask
+            attn_weights = torch.max(attn_weights, torch.tensor(torch.finfo(attn_weights.dtype).min))
             attn_weights = attn_weights.view(bsz * self.num_heads, tgt_len, src_len)
 
         # upcast to fp32 if the weights are in fp16. Please see https://github.com/huggingface/transformers/pull/17437
         if attn_weights.dtype == torch.float16:
-            attn_weights = nn.functional.softmax(
-                attn_weights, dim=-1, dtype=torch.float32
-            ).to(torch.float16)
+            attn_weights = nn.functional.softmax(attn_weights, dim=-1, dtype=torch.float32).to(torch.float16)
         else:
             attn_weights = nn.functional.softmax(attn_weights, dim=-1)
 
@@ -173,9 +154,7 @@ class QuantOPTAttention(nn.Module):
                     f"Head mask for a single layer should be of size {(self.num_heads,)}, but is"
                     f" {layer_head_mask.size()}"
                 )
-            attn_weights = layer_head_mask.view(1, -1, 1, 1) * attn_weights.view(
-                bsz, self.num_heads, tgt_len, src_len
-            )
+            attn_weights = layer_head_mask.view(1, -1, 1, 1) * attn_weights.view(bsz, self.num_heads, tgt_len, src_len)
             attn_weights = attn_weights.view(bsz * self.num_heads, tgt_len, src_len)
 
         if output_attentions:
@@ -183,12 +162,8 @@ class QuantOPTAttention(nn.Module):
             # make sure that attn_weights keeps its gradient.
             # In order to do so, attn_weights have to be reshaped
             # twice and have to be reused in the following
-            attn_weights_reshaped = attn_weights.view(
-                bsz, self.num_heads, tgt_len, src_len
-            )
-            attn_weights = attn_weights_reshaped.view(
-                bsz * self.num_heads, tgt_len, src_len
-            )
+            attn_weights_reshaped = attn_weights.view(bsz, self.num_heads, tgt_len, src_len)
+            attn_weights = attn_weights_reshaped.view(bsz * self.num_heads, tgt_len, src_len)
         else:
             attn_probs_reshaped = None
 
@@ -221,12 +196,6 @@ class QuantOPTAttention(nn.Module):
                 m.set_quant_state(weight_quant, act_quant)
 
 
-
-
-
-
-  
-
 class QuantOPTDecoderLayer(nn.Module):
     def __init__(
         self,
@@ -247,9 +216,7 @@ class QuantOPTDecoderLayer(nn.Module):
         )
         self.do_layer_norm_before = config.do_layer_norm_before
         self.dropout = config.dropout
-        self.self_attn_layer_norm = OmniLayerNorm(
-            ori_layer.self_attn_layer_norm
-        )
+        self.self_attn_layer_norm = OmniLayerNorm(ori_layer.self_attn_layer_norm)
         self.fc1 = QuantLinear(
             ori_layer.fc1,
             weight_quant_params=args.weight_quant_params,
@@ -260,9 +227,7 @@ class QuantOPTDecoderLayer(nn.Module):
             weight_quant_params=args.weight_quant_params,
             act_quant_params=args.act_quant_params,
         )
-        self.final_layer_norm = OmniLayerNorm(
-            ori_layer.final_layer_norm
-        )
+        self.final_layer_norm = OmniLayerNorm(ori_layer.final_layer_norm)
         self.type = ori_layer.fc1.weight.dtype
 
     def forward(
@@ -273,7 +238,7 @@ class QuantOPTDecoderLayer(nn.Module):
         output_attentions: Optional[bool] = False,
         use_cache: Optional[bool] = False,
         past_key_value: Optional[Tuple[torch.Tensor]] = None,
-        **kwargs
+        **kwargs,
     ):
         """
         Args:
@@ -323,7 +288,6 @@ class QuantOPTDecoderLayer(nn.Module):
             hidden_states = self.final_layer_norm(hidden_states)
         # hidden_states = self.final_layer_norm(hidden_states.float()).to(self.type)
 
-        
         hidden_states = self.fc1(hidden_states)
         hidden_states = F.relu(hidden_states)
 
@@ -362,19 +326,21 @@ class QuantOPTDecoderLayer(nn.Module):
             for name, module in self.named_parameters():
                 if "smooth_scale" in name:
                     module.data = truncate_number(module)
-            smooth_ln_fcs_inplace(self.self_attn_layer_norm,[self.self_attn.q_proj, self.self_attn.k_proj, self.self_attn.v_proj],
-                                    self.qkv_smooth_scale,self.qkv_smooth_shift)
-            smooth_ln_fcs_inplace(self.final_layer_norm,[self.fc1],
-                                    self.fc1_smooth_scale,self.fc1_smooth_shift)
-            smooth_fc_fc_inplace(self.self_attn.v_proj,self.self_attn.out_proj,
-                                self.out_smooth_scale, self.out_smooth_shift)
-            smooth_q_k_inplace(self.self_attn.q_proj, self.self_attn.k_proj,
-                                self.qkt_smooth_scale)
+            smooth_ln_fcs_inplace(
+                self.self_attn_layer_norm,
+                [self.self_attn.q_proj, self.self_attn.k_proj, self.self_attn.v_proj],
+                self.qkv_smooth_scale,
+                self.qkv_smooth_shift,
+            )
+            smooth_ln_fcs_inplace(self.final_layer_norm, [self.fc1], self.fc1_smooth_scale, self.fc1_smooth_shift)
+            smooth_fc_fc_inplace(
+                self.self_attn.v_proj, self.self_attn.out_proj, self.out_smooth_scale, self.out_smooth_shift
+            )
+            smooth_q_k_inplace(self.self_attn.q_proj, self.self_attn.k_proj, self.qkt_smooth_scale)
         for name, module in self.named_modules():
             if isinstance(module, QuantLinear):
                 module.weight = module.weight_quantizer(module.weight)
-                module.use_temporary_parameter=False
-                
+                module.use_temporary_parameter = False
 
     def clear_temp_variable(self):
         for name, module in self.named_modules():
@@ -388,14 +354,17 @@ class QuantOPTDecoderLayer(nn.Module):
                 for name, module in self.named_parameters():
                     if "smooth_scale" in name:
                         module.data = truncate_number(module)
-            smooth_ln_fcs_temporary(self.self_attn_layer_norm,[self.self_attn.q_proj, self.self_attn.k_proj, self.self_attn.v_proj],
-                                    self.qkv_smooth_scale,self.qkv_smooth_shift)
-            smooth_ln_fcs_temporary(self.final_layer_norm,[self.fc1],
-                                    self.fc1_smooth_scale,self.fc1_smooth_shift)
-            smooth_fc_fc_temporary(self.self_attn.v_proj,self.self_attn.out_proj,
-                                self.out_smooth_scale, self.out_smooth_shift)
-            smooth_q_k_temporary(self.self_attn.q_proj, self.self_attn.k_proj,
-                                self.qkt_smooth_scale)
+            smooth_ln_fcs_temporary(
+                self.self_attn_layer_norm,
+                [self.self_attn.q_proj, self.self_attn.k_proj, self.self_attn.v_proj],
+                self.qkv_smooth_scale,
+                self.qkv_smooth_shift,
+            )
+            smooth_ln_fcs_temporary(self.final_layer_norm, [self.fc1], self.fc1_smooth_scale, self.fc1_smooth_shift)
+            smooth_fc_fc_temporary(
+                self.self_attn.v_proj, self.self_attn.out_proj, self.out_smooth_scale, self.out_smooth_shift
+            )
+            smooth_q_k_temporary(self.self_attn.q_proj, self.self_attn.k_proj, self.qkt_smooth_scale)
             self.fc2.temp_weight = self.fc2.weight
         else:
             for name, module in self.named_modules():
@@ -410,8 +379,7 @@ class QuantOPTDecoderLayer(nn.Module):
                     module.temp_weight = module.weight_quantizer(module.weight)
                 if not hasattr(module, "temp_bias"):
                     module.temp_bias = module.bias
-                module.use_temporary_parameter=True
-
+                module.use_temporary_parameter = True
 
     def let_parameters(self, use_shift=True):
         params = []
@@ -419,34 +387,32 @@ class QuantOPTDecoderLayer(nn.Module):
         for n, m in self.named_parameters():
             if n.find(template) > -1:
                 params.append(m)
-        return iter(params)  
+        return iter(params)
 
     def lwc_parameters(self):
         params = []
         for n, m in self.named_parameters():
-            if n.find('bound_factor') > -1:
+            if n.find("bound_factor") > -1:
                 params.append(m)
-        return iter(params)  
+        return iter(params)
 
     def omni_parameters(self, use_shift=True):
         params = []
         template = "smooth" if use_shift else "smooth_scale"
         for n, m in self.named_parameters():
-            if n.find('bound_factor') > -1 or n.find(template) > -1:
+            if n.find("bound_factor") > -1 or n.find(template) > -1:
                 params.append(m)
-        return iter(params)  
-    
-    def omni_state_dict(self, destination=None, prefix='', keep_vars=False):
+        return iter(params)
+
+    def omni_state_dict(self, destination=None, prefix="", keep_vars=False):
         if destination is None:
             destination = OrderedDict()
         for name, param in self.named_parameters():
-            if name.find('smooth') > -1 or name.find('bound_factor') > -1:
+            if name.find("smooth") > -1 or name.find("bound_factor") > -1:
                 destination[prefix + name] = param if keep_vars else param.detach()
         return destination
-    
 
     def register_scales_and_zeros(self):
         for name, module in self.named_modules():
             if isinstance(module, QuantLinear):
                 module.weight_quantizer.register_scales_and_zeros()
-    

@@ -1,7 +1,8 @@
 import math
+
+import awq_inference_engine  # with CUDA kernels
 import torch
 import torch.nn as nn
-import awq_inference_engine  # with CUDA kernels
 
 
 def make_divisible(c, divisor):
@@ -40,14 +41,10 @@ def pack_intweight(unpacked_qweight, interleave, kstride):
     Packed_Kernel = Packed_Kernel.reshape(N, K)
 
     # interleaving every four rows
-    Packed_Kernel = Packed_Kernel.reshape(
-        N // interleave, interleave, K // kstride, kstride
-    )
+    Packed_Kernel = Packed_Kernel.reshape(N // interleave, interleave, K // kstride, kstride)
     # N // 4, K // 64, 4, 64
     Packed_Kernel = Packed_Kernel.transpose(0, 2, 1, 3)
-    Packed_Kernel = Packed_Kernel.reshape(
-        N // interleave, K // kstride, kstride, interleave
-    )
+    Packed_Kernel = Packed_Kernel.reshape(N // interleave, K // kstride, kstride, interleave)
     # Packing -> (N // 4, K // 64, 64)
     Packed_Kernel = (
         Packed_Kernel[..., 0]
@@ -57,11 +54,7 @@ def pack_intweight(unpacked_qweight, interleave, kstride):
     )
     # reshape to (N // 4, K), FP16 format
     Packed_Kernel = Packed_Kernel.reshape(N // interleave, K)
-    qweight = (
-        torch.tensor(Packed_Kernel.astype("int16"))
-        .to(unpacked_qweight.device)
-        .contiguous()
-    )
+    qweight = torch.tensor(Packed_Kernel.astype("int16")).to(unpacked_qweight.device).contiguous()
     return qweight
 
 
@@ -130,16 +123,12 @@ class WQLinear(nn.Module):
         )
 
         if bias:
-            self.register_buffer(
-                "bias", torch.zeros((out_features), dtype=torch.float16, device=dev)
-            )
+            self.register_buffer("bias", torch.zeros((out_features), dtype=torch.float16, device=dev))
         else:
             self.bias = None
 
     @classmethod
-    def from_linear(
-        cls, linear, w_bit, group_size, init_only=False, scales=None, zeros=None
-    ):
+    def from_linear(cls, linear, w_bit, group_size, init_only=False, scales=None, zeros=None):
         awq_linear = cls(
             w_bit,
             group_size,
@@ -174,23 +163,20 @@ class WQLinear(nn.Module):
         for idx in range(awq_linear.in_features):
             intweight.append(
                 torch.round(
-                    (linear.weight.data[:, idx] + scale_zeros[:, idx // group_size])
-                    / qscales[:, idx // group_size]
+                    (linear.weight.data[:, idx] + scale_zeros[:, idx // group_size]) / qscales[:, idx // group_size]
                 ).to(torch.int)[:, None]
             )
         intweight = torch.cat(intweight, dim=1)
         # intweight = intweight.t().contiguous()
         intweight = intweight.to(dtype=torch.int32)
-        awq_linear.qweight = pack_intweight(
-            intweight.contiguous(), interleave=4, kstride=64
-        )
+        awq_linear.qweight = pack_intweight(intweight.contiguous(), interleave=4, kstride=64)
 
         zeros = zeros.to(dtype=torch.int32)
         scaled_zeros = torch.zeros_like(qscales)
         # scaled_zeros[:, :scales.shape[1]] = -(qscales[:, :scales.shape[1]] * (zeros.to(torch.float32) - 8.0)).to(torch.float16)
-        scaled_zeros[:, : scales.shape[1]] = -(
-            qscales[:, : scales.shape[1]] * (zeros.to(torch.float32))
-        ).to(torch.float16)
+        scaled_zeros[:, : scales.shape[1]] = -(qscales[:, : scales.shape[1]] * (zeros.to(torch.float32))).to(
+            torch.float16
+        )
         awq_linear.scaled_zeros = scaled_zeros.transpose(1, 0).contiguous()
 
         return awq_linear
@@ -221,12 +207,10 @@ class WQLinear(nn.Module):
         return out
 
     def extra_repr(self) -> str:
-        return (
-            "in_features={}, out_features={}, bias={}, w_bit={}, group_size={}".format(
-                self.in_features,
-                self.out_features,
-                self.bias is not None,
-                self.w_bit,
-                self.group_size,
-            )
+        return "in_features={}, out_features={}, bias={}, w_bit={}, group_size={}".format(
+            self.in_features,
+            self.out_features,
+            self.bias is not None,
+            self.w_bit,
+            self.group_size,
         )

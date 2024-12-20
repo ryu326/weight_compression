@@ -1,6 +1,5 @@
 from typing import List
 
-
 letters = ["A", "B", "C", "D"]
 
 
@@ -19,9 +18,7 @@ def doc_to_text_context(doc) -> str:
     if num_choices < 2:
         raise ValueError("Invalid number of candidates")
     choices = letters[:num_choices]
-    formatted_choices = "\n".join(
-        [f"{choice}: {candidates[i]}" for i, choice in enumerate(choices)]
-    )
+    formatted_choices = "\n".join([f"{choice}: {candidates[i]}" for i, choice in enumerate(choices)])
     return f"Pasartea: {doc['context']}\n\nGaldera: {doc['question']}\n{formatted_choices}\nErantzuna:"
 
 

@@ -2,14 +2,13 @@ import os
 from functools import cached_property
 from typing import Any, Dict, List, Tuple, Union
 
-from tqdm import tqdm
-
 from lm_eval import utils
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
 from lm_eval.models.openai_completions import LocalCompletionsAPI
-from lm_eval.models.utils import handle_stop_sequences, retry_on_specific_exceptions
-
+from lm_eval.models.utils import (handle_stop_sequences,
+                                  retry_on_specific_exceptions)
+from tqdm import tqdm
 
 eval_logger = utils.eval_logger
 
@@ -52,9 +51,7 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
         )
 
     def _exception_callback(e: Exception, sleep_time: float) -> None:
-        eval_logger.warning(
-            f"RateLimitError occurred: {e.__cause__}\n Retrying in {sleep_time} seconds"
-        )
+        eval_logger.warning(f"RateLimitError occurred: {e.__cause__}\n Retrying in {sleep_time} seconds")
 
     @retry_on_specific_exceptions(
         on_exceptions=[anthropic.RateLimitError],
@@ -115,9 +112,7 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
         )
 
     def _exception_callback(e: Exception, sleep_time: float) -> None:
-        eval_logger.warning(
-            f"RateLimitError occurred: {e.__cause__}\n Retrying in {sleep_time} seconds"
-        )
+        eval_logger.warning(f"RateLimitError occurred: {e.__cause__}\n Retrying in {sleep_time} seconds")
 
     @retry_on_specific_exceptions(
         on_exceptions=[
@@ -281,12 +276,8 @@ class AnthropicChat(LocalCompletionsAPI):
         tokenizer_backend=None,
         **kwargs,
     ):
-        super().__init__(
-            base_url=base_url, tokenizer_backend=tokenizer_backend, **kwargs
-        )
-        eval_logger.warning(
-            "Chat completions does not support batching. Defaulting to batch size 1."
-        )
+        super().__init__(base_url=base_url, tokenizer_backend=tokenizer_backend, **kwargs)
+        eval_logger.warning("Chat completions does not support batching. Defaulting to batch size 1.")
         self._batch_size = 1
         self.anthropic_version = "2023-06-01"
         eval_logger.warning(
@@ -298,9 +289,7 @@ class AnthropicChat(LocalCompletionsAPI):
         """Override this property to return the API key for the API request."""
         key = os.environ.get("ANTHROPIC_API_KEY", None)
         if key is None:
-            raise ValueError(
-                "API key not found. Please set the ANTHROPIC_API_KEY environment variable."
-            )
+            raise ValueError("API key not found. Please set the ANTHROPIC_API_KEY environment variable.")
         return key
 
     @cached_property
@@ -318,9 +307,7 @@ class AnthropicChat(LocalCompletionsAPI):
         eos="\n\nHuman:",
         **kwargs,
     ) -> dict:
-        system = (
-            messages[0].get("content") if messages[0].get("role") == "system" else None
-        )
+        system = messages[0].get("content") if messages[0].get("role") == "system" else None
         if system:
             messages = messages[1:]
         gen_kwargs.pop("do_sample", False)
@@ -341,9 +328,7 @@ class AnthropicChat(LocalCompletionsAPI):
             out["system"] = system
         return out
 
-    def parse_generations(
-        self, outputs: Union[Dict, List[Dict]], **kwargs
-    ) -> List[str]:
+    def parse_generations(self, outputs: Union[Dict, List[Dict]], **kwargs) -> List[str]:
         res = []
         if not isinstance(outputs, list):
             outputs = [outputs]
@@ -362,6 +347,4 @@ class AnthropicChat(LocalCompletionsAPI):
         return [string]
 
     def loglikelihood(self, requests, **kwargs):
-        raise NotImplementedError(
-            "Anthropic Chat Completions API does not support the return of loglikelihood"
-        )
+        raise NotImplementedError("Anthropic Chat Completions API does not support the return of loglikelihood")

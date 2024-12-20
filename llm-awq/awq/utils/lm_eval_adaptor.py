@@ -1,7 +1,8 @@
-import transformers
-import torch
-from lm_eval.base import BaseLM
 import fnmatch
+
+import torch
+import transformers
+from lm_eval.base import BaseLM
 
 
 class LMEvalAdaptor(BaseLM):
@@ -103,14 +104,10 @@ class LMEvalAdaptor(BaseLM):
             else:
                 kwargs = {}
             out = self.model(inps, **kwargs)[0]
-            if (
-                "opt" in self.model_name
-            ):  # there are a few extra tokens in opt, which we should omit
+            if "opt" in self.model_name:  # there are a few extra tokens in opt, which we should omit
                 return out[:, :, :50257]
             else:
                 return out  # [:, :, :self.tokenizer.vocab_size]
 
     def _model_generate(self, context, max_length, eos_token_id):
-        return self.model.generate(
-            context, max_length=max_length, eos_token_id=eos_token_id, do_sample=False
-        )
+        return self.model.generate(context, max_length=max_length, eos_token_id=eos_token_id, do_sample=False)

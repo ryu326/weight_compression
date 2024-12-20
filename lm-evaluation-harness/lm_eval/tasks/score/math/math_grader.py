@@ -101,9 +101,7 @@ def _check_antlr_version():
                 f"Package {PACKAGE_NAME} version mismatch: {installed_version} (required: {REQUIRED_VERSION})"
             )
     except PackageNotFoundError:
-        raise RuntimeError(
-            f"Package {PACKAGE_NAME} not found. Please install antlr4-python3-runtime==4.11.0."
-        )
+        raise RuntimeError(f"Package {PACKAGE_NAME} not found. Please install antlr4-python3-runtime==4.11.0.")
 
 
 def _fix_fracs(string):
@@ -367,8 +365,7 @@ def normalize(answer) -> str:
 
     # checking if answer is <number>% or <number>\\% and removing %
     if isinstance(answer, str) and (
-        bool(re.match(r"^\d+(\.\d+)?%$", answer))
-        or bool(re.match(r"^\d+(\.\d+)?\\%$", answer))
+        bool(re.match(r"^\d+(\.\d+)?%$", answer)) or bool(re.match(r"^\d+(\.\d+)?\\%$", answer))
     ):
         return answer.replace("\\%", "").replace("%", "")
 
@@ -400,9 +397,7 @@ def math_equal(
     prediction = normalize_answer_string(prediction)
     reference = normalize_answer_string(reference)
 
-    if (
-        isinstance(prediction, str) and len(prediction) > 1000
-    ):  # handling weird corner-cases
+    if isinstance(prediction, str) and len(prediction) > 1000:  # handling weird corner-cases
         prediction = prediction[:1000]
 
     # 0. string comparison
@@ -442,14 +437,8 @@ def math_equal(
     prediction = format_intervals(prediction)
 
     pred_str, ref_str = prediction, reference
-    if (
-        prediction.startswith("[")
-        and prediction.endswith("]")
-        and not reference.startswith("(")
-    ) or (
-        prediction.startswith("(")
-        and prediction.endswith(")")
-        and not reference.startswith("[")
+    if (prediction.startswith("[") and prediction.endswith("]") and not reference.startswith("(")) or (
+        prediction.startswith("(") and prediction.endswith(")") and not reference.startswith("[")
     ):
         pred_str = pred_str.strip("[]()")
         ref_str = ref_str.strip("[]()")
@@ -485,12 +474,7 @@ def math_equal(
 
         if len(pred_parts) == len(ref_parts):
             if all(
-                [
-                    math_equal(
-                        pred_parts[i], ref_parts[i], include_percentage, tolerance
-                    )
-                    for i in range(len(pred_parts))
-                ]
+                [math_equal(pred_parts[i], ref_parts[i], include_percentage, tolerance) for i in range(len(pred_parts))]
             ):
                 return True
             else:

@@ -9,7 +9,6 @@ import os
 import yaml
 from tqdm import tqdm
 
-
 eval_logger = logging.getLogger("lm-eval")
 
 
@@ -106,16 +105,14 @@ if __name__ == "__main__":
         if args.cot_prompt_path is not None:
             description = cot_file[subject]
         else:
-            description = f"The following are multiple choice questions (with answers) about {' '.join(subject.split('_'))}.\n\n"
+            description = (
+                f"The following are multiple choice questions (with answers) about {' '.join(subject.split('_'))}.\n\n"
+            )
 
         yaml_dict = {
             "include": base_yaml_name,
-            "tag": f"mmlu_{args.task_prefix}_{category}"
-            if args.task_prefix != ""
-            else f"mmlu_{category}",
-            "task": f"mmlu_{args.task_prefix}_{subject}"
-            if args.task_prefix != ""
-            else f"mmlu_{subject}",
+            "tag": f"mmlu_{args.task_prefix}_{category}" if args.task_prefix != "" else f"mmlu_{category}",
+            "task": f"mmlu_{args.task_prefix}_{subject}" if args.task_prefix != "" else f"mmlu_{subject}",
             "task_alias": subject.replace("_", " "),
             "dataset_name": subject,
             "description": description,
@@ -132,9 +129,7 @@ if __name__ == "__main__":
             )
 
     if args.task_prefix != "":
-        mmlu_subcategories = [
-            f"mmlu_{args.task_prefix}_{category}" for category in ALL_CATEGORIES
-        ]
+        mmlu_subcategories = [f"mmlu_{args.task_prefix}_{category}" for category in ALL_CATEGORIES]
     else:
         mmlu_subcategories = [f"mmlu_{category}" for category in ALL_CATEGORIES]
 
@@ -147,9 +142,7 @@ if __name__ == "__main__":
     with open(file_save_path, "w", encoding="utf-8") as yaml_file:
         yaml.dump(
             {
-                "group": f"mmlu_{args.task_prefix}"
-                if args.task_prefix != ""
-                else "mmlu",
+                "group": f"mmlu_{args.task_prefix}" if args.task_prefix != "" else "mmlu",
                 "task": mmlu_subcategories,
             },
             yaml_file,

@@ -10,9 +10,7 @@ def process_docs(dataset: datasets.Dataset):
         question = question_map[doc["question"]]
         answer = doc["label"]
 
-        query = "{}، {} :\n0) {}\n1) {}\nالإجابة:".format(
-            premise, question, choices[0], choices[1]
-        )
+        query = "{}، {} :\n0) {}\n1) {}\nالإجابة:".format(premise, question, choices[0], choices[1])
 
         return {"query": query, "choices": choices, "gold": answer}
 

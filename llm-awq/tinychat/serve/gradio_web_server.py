@@ -24,19 +24,12 @@ import requests
 
 LOGDIR = "."
 
-from tinychat.serve.llava_conv import (
-    default_conversation,
-    conv_templates,
-    get_conversation,
-    SeparatorStyle,
-)
-from tinychat.utils.log_utils import (
-    build_logger,
-    server_error_msg,
-    violates_moderation,
-    moderation_msg,
-)
 import hashlib
+
+from tinychat.serve.llava_conv import (SeparatorStyle, conv_templates,
+                                       default_conversation, get_conversation)
+from tinychat.utils.log_utils import (build_logger, moderation_msg,
+                                      server_error_msg, violates_moderation)
 
 IMAGE_BOX_NUM = 3
 BUTTON_LIST_LEN = 2
@@ -49,11 +42,9 @@ no_change_btn = gr.Button.update()
 enable_btn = gr.Button.update(interactive=True)
 disable_btn = gr.Button.update(interactive=False)
 
-from tinychat.utils.constants import (
-    LLAVA_DEFAULT_IMAGE_TOKEN,
-    LLAVA_DEFAULT_IM_TOKEN_PLACE_HOLDER,
-    AUTO_FILL_IM_TOKEN_HOLDER,
-)
+from tinychat.utils.constants import (AUTO_FILL_IM_TOKEN_HOLDER,
+                                      LLAVA_DEFAULT_IM_TOKEN_PLACE_HOLDER,
+                                      LLAVA_DEFAULT_IMAGE_TOKEN)
 
 # IMAGE_TOKEN_VIS = "**[IMAGE]**"
 IMAGE_TOKEN_VIS = "**\<image\>**"
@@ -108,9 +99,7 @@ def load_demo_refresh_model_list(prompt_style_btn, request: gr.Request):
     models = get_model_list()
     state = get_conversation(prompt_style_btn)
     # state = default_conversation.copy()
-    dropdown_update = gr.Dropdown.update(
-        choices=models, value=models[0] if len(models) > 0 else ""
-    )
+    dropdown_update = gr.Dropdown.update(choices=models, value=models[0] if len(models) > 0 else "")
     return state, dropdown_update
 
 
@@ -239,9 +228,7 @@ def add_images(
         duration = frame_count / fps
 
         frame_interval = frame_count // 8
-        print(
-            "duration:", duration, "frames:", frame_count, "intervals:", frame_interval
-        )
+        print("duration:", duration, "frames:", frame_count, "intervals:", frame_interval)
         # frame_interval = 10
 
         def get_frame(max_frames):
@@ -296,9 +283,7 @@ def add_images(
             else:
                 text = ("", image, image_process_mode)
             state.append_message(None, text)
-            state.append_message(
-                None, None
-            )  # in order to match the input-output pair for textbox outputs
+            state.append_message(None, None)  # in order to match the input-output pair for textbox outputs
             # state.append_message(state.roles[0], text)
             # state.append_message(state.roles[1], None)
     # state.skip_next = False
@@ -325,22 +310,16 @@ def add_text_only(state, text, request: gr.Request):
     return (state, "") + (disable_btn,) * BUTTON_LIST_LEN
 
 
-def add_text(
-    state, text, image, image_process_mode, prompt_style_btn, request: gr.Request
-):
+def add_text(state, text, image, image_process_mode, prompt_style_btn, request: gr.Request):
     logger.info(f"add_text. ip: {request.client.host}. len: {len(text)}")
     if len(text) <= 0 and image is None:
         state.skip_next = True
-        return (state, state.to_gradio_chatbot(), "", None) + (
-            no_change_btn,
-        ) * BUTTON_LIST_LEN
+        return (state, state.to_gradio_chatbot(), "", None) + (no_change_btn,) * BUTTON_LIST_LEN
     if args.moderate:
         flagged = violates_moderation(text)
         if flagged:
             state.skip_next = True
-            return (state, state.to_gradio_chatbot(), moderation_msg, None) + (
-                no_change_btn,
-            ) * BUTTON_LIST_LEN
+            return (state, state.to_gradio_chatbot(), moderation_msg, None) + (no_change_btn,) * BUTTON_LIST_LEN
 
     text = text[:1536]  # Hard cut-off
     if image is not None:
@@ -355,9 +334,7 @@ def add_text(
     state.append_message(state.roles[0], text)
     state.append_message(state.roles[1], None)
     state.skip_next = False
-    return (state, state.to_gradio_chatbot(), "", None) + (
-        disable_btn,
-    ) * BUTTON_LIST_LEN
+    return (state, state.to_gradio_chatbot(), "", None) + (disable_btn,) * BUTTON_LIST_LEN
 
 
 def http_bot(
@@ -385,10 +362,7 @@ def http_bot(
             elif "v1" in model_name.lower():
                 if "mmtag" in model_name.lower():
                     template_name = "v1_mmtag"
-                elif (
-                    "plain" in model_name.lower()
-                    and "finetune" not in model_name.lower()
-                ):
+                elif "plain" in model_name.lower() and "finetune" not in model_name.lower():
                     template_name = "v1_mmtag"
                 else:
                     template_name = "llava_v1"
@@ -397,10 +371,7 @@ def http_bot(
             else:
                 if "mmtag" in model_name.lower():
                     template_name = "v0_mmtag"
-                elif (
-                    "plain" in model_name.lower()
-                    and "finetune" not in model_name.lower()
-                ):
+                elif "plain" in model_name.lower() and "finetune" not in model_name.lower():
                     template_name = "v0_mmtag"
                 else:
                     template_name = "llava_v0"
@@ -420,9 +391,7 @@ def http_bot(
 
     # Query worker address
     controller_url = args.controller_url
-    ret = requests.post(
-        controller_url + "/get_worker_address", json={"model": model_name}
-    )
+    ret = requests.post(controller_url + "/get_worker_address", json={"model": model_name})
     worker_addr = ret.json()["address"]
     logger.info(f"model_name: {model_name}, worker_addr: {worker_addr}")
 
@@ -447,9 +416,7 @@ def http_bot(
     all_image_hash = [hashlib.md5(image.tobytes()).hexdigest() for image in all_images]
     for image, hash in zip(all_images, all_image_hash):
         t = datetime.datetime.now()
-        filename = os.path.join(
-            LOGDIR, "serve_images", f"{t.year}-{t.month:02d}-{t.day:02d}", f"{hash}.jpg"
-        )
+        filename = os.path.join(LOGDIR, "serve_images", f"{t.year}-{t.month:02d}-{t.day:02d}", f"{hash}.jpg")
         if not os.path.isfile(filename):
             os.makedirs(os.path.dirname(filename), exist_ok=True)
             image.save(filename)
@@ -461,11 +428,7 @@ def http_bot(
         "temperature": float(temperature),
         "top_p": float(top_p),
         "max_new_tokens": min(int(max_new_tokens), 1536),
-        "stop": (
-            state.sep
-            if state.sep_style in [SeparatorStyle.SINGLE, SeparatorStyle.MPT]
-            else state.sep2
-        ),
+        "stop": (state.sep if state.sep_style in [SeparatorStyle.SINGLE, SeparatorStyle.MPT] else state.sep2),
         "images": f"List of {len(state.get_images())} images: {all_image_hash}",
     }
 
@@ -487,21 +450,15 @@ def http_bot(
 
     count_auto_im_token = prompt.count(AUTO_FILL_IM_TOKEN_HOLDER)
     count_manual_im_token = prompt.count(LLAVA_DEFAULT_IM_TOKEN_PLACE_HOLDER)
-    if (count_auto_im_token == image_num) and (
-        count_manual_im_token == 0
-    ):  # Use default system prompt
+    if (count_auto_im_token == image_num) and (count_manual_im_token == 0):  # Use default system prompt
         prompt = prompt.replace(AUTO_FILL_IM_TOKEN_HOLDER, LLAVA_DEFAULT_IMAGE_TOKEN)
     elif (count_auto_im_token == image_num) and (
         count_manual_im_token == image_num
     ):  # Use <image> token inserted by user
         prompt = prompt.replace(AUTO_FILL_IM_TOKEN_HOLDER, "")
-        prompt = prompt.replace(
-            LLAVA_DEFAULT_IM_TOKEN_PLACE_HOLDER, LLAVA_DEFAULT_IMAGE_TOKEN
-        )
+        prompt = prompt.replace(LLAVA_DEFAULT_IM_TOKEN_PLACE_HOLDER, LLAVA_DEFAULT_IMAGE_TOKEN)
     elif (count_auto_im_token == 0) and (count_manual_im_token == image_num):
-        prompt = prompt.replace(
-            LLAVA_DEFAULT_IM_TOKEN_PLACE_HOLDER, LLAVA_DEFAULT_IMAGE_TOKEN
-        )
+        prompt = prompt.replace(LLAVA_DEFAULT_IM_TOKEN_PLACE_HOLDER, LLAVA_DEFAULT_IMAGE_TOKEN)
     else:
         state.messages[-1][
             -1
@@ -542,17 +499,13 @@ def http_bot(
                     output = data["text"][len(prompt) :].strip()
                     state.messages[-1][-1] = output + "▌"
                     ret = state.to_gradio_chatbot()
-                    ret[0][0] = ret[0][0].replace(
-                        LLAVA_DEFAULT_IM_TOKEN_PLACE_HOLDER, IMAGE_TOKEN_VIS
-                    )
+                    ret[0][0] = ret[0][0].replace(LLAVA_DEFAULT_IM_TOKEN_PLACE_HOLDER, IMAGE_TOKEN_VIS)
                     yield (state, ret) + (disable_btn,) * BUTTON_LIST_LEN
                 else:
                     output = data["text"] + f" (error_code: {data['error_code']})"
                     state.messages[-1][-1] = output
                     ret = state.to_gradio_chatbot()
-                    ret[0][0] = ret[0][0].replace(
-                        LLAVA_DEFAULT_IM_TOKEN_PLACE_HOLDER, IMAGE_TOKEN_VIS
-                    )
+                    ret[0][0] = ret[0][0].replace(LLAVA_DEFAULT_IM_TOKEN_PLACE_HOLDER, IMAGE_TOKEN_VIS)
                     yield (state, ret) + (
                         # disable_btn,
                         # disable_btn,
@@ -630,12 +583,8 @@ block_css = """
 
 
 def build_demo(embed_mode):
-    textbox = gr.Textbox(
-        show_label=False, placeholder="Enter text and press ENTER", container=False
-    )
-    with gr.Blocks(
-        title="VILA on TinyChat", theme=gr.themes.Default(), css=block_css
-    ) as demo:
+    textbox = gr.Textbox(show_label=False, placeholder="Enter text and press ENTER", container=False)
+    with gr.Blocks(title="VILA on TinyChat", theme=gr.themes.Default(), css=block_css) as demo:
         state = gr.State()
 
         if not embed_mode:
@@ -661,20 +610,14 @@ def build_demo(embed_mode):
                     with gr.Column(scale=1, min_width=100):
                         submit_btn = gr.Button(value="Send", variant="primary")
                     with gr.Column(scale=1, min_width=100):
-                        clear_btn = gr.Button(
-                            value="🗑️  Clear", variant="primary", interactive=False
-                        )
+                        clear_btn = gr.Button(value="🗑️  Clear", variant="primary", interactive=False)
                     with gr.Column(scale=1, min_width=100):
-                        regenerate_btn = gr.Button(
-                            value="🔄  Retry", variant="primary", interactive=False
-                        )
+                        regenerate_btn = gr.Button(value="🔄  Retry", variant="primary", interactive=False)
                 with gr.Row():
                     gr.Markdown(
                         "### *** Before changing the current images, uploading new images or switching the prompt style, please click the clear button."
                     )
-                chatbot = gr.Chatbot(
-                    elem_id="chatbot", label="TinyChat Assistant", height=550
-                )
+                chatbot = gr.Chatbot(elem_id="chatbot", label="TinyChat Assistant", height=550)
 
             with gr.Column(scale=4):
                 with gr.Row(equal_height=True):
@@ -1071,15 +1014,12 @@ def build_demo(embed_mode):
             [state, chatbot] + btn_list,
         )
 
-        prompt_style_btn.change(
-            change_prompt_style, [state, prompt_style_btn], [state], queue=False
-        )
+        prompt_style_btn.change(change_prompt_style, [state, prompt_style_btn], [state], queue=False)
 
         clear_btn.click(
             clear_history,
             [prompt_style_btn],
-            [state, chatbot, textbox, imagebox, imagebox_2, imagebox_3, videobox]
-            + btn_list,
+            [state, chatbot, textbox, imagebox, imagebox_2, imagebox_3, videobox] + btn_list,
             queue=False,
         )
 
@@ -1105,16 +1045,12 @@ def build_demo(embed_mode):
         #     queue=False
         # )
 
-        textbox.submit(
-            clear_text_history, [state, prompt_style_btn], [state, chatbot], queue=False
-        ).then(
+        textbox.submit(clear_text_history, [state, prompt_style_btn], [state, chatbot], queue=False).then(
             add_images,
             [state, imagebox, imagebox_2, imagebox_3, videobox, image_process_mode],
             [state],
             queue=False,
-        ).then(
-            add_text_only, [state, textbox], [state, textbox] + btn_list, queue=False
-        ).then(
+        ).then(add_text_only, [state, textbox], [state, textbox] + btn_list, queue=False).then(
             http_bot,
             [
                 state,
@@ -1127,16 +1063,12 @@ def build_demo(embed_mode):
             [state, chatbot] + btn_list,
         )
 
-        submit_btn.click(
-            clear_text_history, [state, prompt_style_btn], [state, chatbot], queue=False
-        ).then(
+        submit_btn.click(clear_text_history, [state, prompt_style_btn], [state, chatbot], queue=False).then(
             add_images,
             [state, imagebox, imagebox_2, imagebox_3, videobox, image_process_mode],
             [state],
             queue=False,
-        ).then(
-            add_text_only, [state, textbox], [state, textbox] + btn_list, queue=False
-        ).then(
+        ).then(add_text_only, [state, textbox], [state, textbox] + btn_list, queue=False).then(
             http_bot,
             [
                 state,
@@ -1176,9 +1108,7 @@ if __name__ == "__main__":
     parser.add_argument("--port", type=int)
     parser.add_argument("--controller-url", type=str, default="http://localhost:21001")
     parser.add_argument("--concurrency-count", type=int, default=10)
-    parser.add_argument(
-        "--model-list-mode", type=str, default="once", choices=["once", "reload"]
-    )
+    parser.add_argument("--model-list-mode", type=str, default="once", choices=["once", "reload"])
     parser.add_argument("--share", action="store_true")
     parser.add_argument("--moderate", action="store_true")
     parser.add_argument("--embed", action="store_true")

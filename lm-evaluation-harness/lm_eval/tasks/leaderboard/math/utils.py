@@ -3,9 +3,7 @@ import signal
 from typing import Dict, List, Optional
 
 import datasets
-
 from lm_eval.utils import eval_logger
-
 
 try:
     import sympy
@@ -31,9 +29,7 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
         out_doc = {
             "problem": doc["problem"],
             "solution": doc["solution"],
-            "answer": normalize_final_answer(
-                remove_boxed(last_boxed_only_string(doc["solution"]))
-            ),
+            "answer": normalize_final_answer(remove_boxed(last_boxed_only_string(doc["solution"]))),
         }
         if getattr(doc, "few_shot", None) is not None:
             out_doc["few_shot"] = True
@@ -178,9 +174,7 @@ def is_equiv(x1: str, x2: str) -> bool:
                 else:
                     return False
             except ValueError:
-                eval_logger.debug(
-                    f"Had some trouble simplifying when comparing {x1} and {x2}"
-                )
+                eval_logger.debug(f"Had some trouble simplifying when comparing {x1} and {x2}")
     except TimeoutError:
         eval_logger.debug(f"Timed out comparing {x1} and {x2}")
         return False

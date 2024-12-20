@@ -7,9 +7,7 @@ from SANE.datasets.def_FastTensorDataLoader import FastTensorDataLoader
 from SANE.sampling.load_dataset import load_datasets_from_config
 
 
-def evaluate_single_model(
-    config: dict, checkpoint: OrderedDict, fintuning_epochs: int = 0
-) -> dict:
+def evaluate_single_model(config: dict, checkpoint: OrderedDict, fintuning_epochs: int = 0) -> dict:
     """
     evaluates a single model on a single task
     Args:

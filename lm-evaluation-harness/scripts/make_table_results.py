@@ -9,7 +9,6 @@ import os
 
 from pytablewriter import LatexTableWriter, MarkdownTableWriter
 
-
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -35,9 +34,7 @@ def make_table(result_dict):
                 if percent or m == "ppl":
                     values.append([k, version, m, "%.2f" % v, "±", "%.2f" % se])
                 else:
-                    values.append(
-                        [k, version, m, "%.2f" % (v * 100), "±", "%.2f" % (se * 100)]
-                    )
+                    values.append([k, version, m, "%.2f" % (v * 100), "±", "%.2f" % (se * 100)])
             else:
                 if percent or m == "ppl":
                     values.append([k, version, m, "%.2f" % v, "", ""])

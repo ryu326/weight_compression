@@ -20,13 +20,13 @@ class LMClass(BaseLM):
         self.batch_size_per_gpu = args.batch_size
 
         self.model_config = args.model
-        config = AutoConfig.from_pretrained(
-            args.model, attn_implementation=args.attn_implementation
-        )
+        config = AutoConfig.from_pretrained(args.model, attn_implementation=args.attn_implementation)
 
-        self.tokenizer = AutoTokenizer.from_pretrained(args.model, use_fast=False,legacy=False)
+        self.tokenizer = AutoTokenizer.from_pretrained(args.model, use_fast=False, legacy=False)
         # self.model = AutoModelForCausalLM.from_pretrained(args.model, config=config, device_map='cpu',torch_dtype=config.torch_dtype)
-        self.model = AutoModelForCausalLM.from_pretrained(args.model, config=config, device_map='cpu',torch_dtype=torch.float16)
+        self.model = AutoModelForCausalLM.from_pretrained(
+            args.model, config=config, device_map="cpu", torch_dtype=torch.float16
+        )
         self.seqlen = self.model.config.max_position_embeddings
         self.model.eval()
         self.vocab_size = self.tokenizer.vocab_size
@@ -92,13 +92,9 @@ class LMClass(BaseLM):
     def model_batched_set(self, inps):
         dataset_logits = []
         for batch in inps:
-            multi_logits = F.log_softmax(
-                self._model_call(batch), dim=-1
-            ).cpu()  # [batch, padding_length, vocab]
+            multi_logits = F.log_softmax(self._model_call(batch), dim=-1).cpu()  # [batch, padding_length, vocab]
             dataset_logits.append(multi_logits)
         return dataset_logits
 
     def _model_generate(self, context, max_length, eos_token_id):
-        return self.model.generate(
-            context, max_length=max_length, eos_token_id=eos_token_id, do_sample=False
-        )
+        return self.model.generate(context, max_length=max_length, eos_token_id=eos_token_id, do_sample=False)

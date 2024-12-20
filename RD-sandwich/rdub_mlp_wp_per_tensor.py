@@ -15,21 +15,19 @@ import sys
 import numpy as np
 import tensorflow as tf
 import tensorflow_compression as tfc
+import tensorflow_probability as tfp
 from absl import app
 from absl.flags import argparse_flags
-
-import tensorflow_probability as tfp
+from utils_wp import MyReduceLROnPlateauCallback, softplus_inv_1
 from wandb.keras import WandbCallback
 
-from utils_wp import softplus_inv_1
-from utils_wp import MyReduceLROnPlateauCallback
 tfd = tfp.distributions
 tfb = tfp.bijectors
 
+import pandas as pd
+import wandb
 from nn_models import get_activation, make_mlp
 
-import wandb
-import pandas as pd
 
 def af_transform(base_distribution, mades, permute=True, iaf=False):
     """
@@ -73,12 +71,13 @@ class Model(tf.keras.Model):
         latent_dim = self.latent_dim
         ar_activation = get_activation(self.ar_activation, dtype)
 
-        if posterior_type in ('gaussian', 'iaf'):
+        if posterior_type in ("gaussian", "iaf"):
             encoder_output_dim = latent_dim * 2  # currently IAF uses a base Gaussian distribution conditioned on x
-            if posterior_type == 'iaf':
+            if posterior_type == "iaf":
                 self._iaf_mades = [
-                    tfb.AutoregressiveNetwork(params=2, activation=ar_activation, hidden_units=self.ar_hidden_units) for
-                    _ in range(self.iaf_stacks)]
+                    tfb.AutoregressiveNetwork(params=2, activation=ar_activation, hidden_units=self.ar_hidden_units)
+                    for _ in range(self.iaf_stacks)
+                ]
         else:
             encoder_output_dim = latent_dim
 
@@ -98,7 +97,7 @@ class Model(tf.keras.Model):
         if check_no_decoder(self.decoder_units):
             decoder = None  # no decoder
             assert self.data_dim == latent_dim
-            print('Not using decoder')
+            print("Not using decoder")
         else:  # decoder_units = [] allowed
             decoder = make_mlp(
                 self.decoder_units + [self.data_dim],
@@ -113,27 +112,30 @@ class Model(tf.keras.Model):
 
         self._prior = None
         if self.prior_type == "deep":  # this implements the deep factorized CDF entropy model
-            self._prior = tfc.DeepFactorized(
-                batch_shape=[self.latent_dim], dtype=self.dtype)
-        elif self.prior_type == 'std_gaussian':  # use 'gmm_1' for gaussian prior with learned mean/scale
-            self._prior = tfd.MultivariateNormalDiag(loc=tf.zeros([self.latent_dim], dtype=self.dtype),
-                                                     scale_diag=tf.ones([self.latent_dim], dtype=self.dtype))
-        elif self.prior_type == 'maf':
+            self._prior = tfc.DeepFactorized(batch_shape=[self.latent_dim], dtype=self.dtype)
+        elif self.prior_type == "std_gaussian":  # use 'gmm_1' for gaussian prior with learned mean/scale
+            self._prior = tfd.MultivariateNormalDiag(
+                loc=tf.zeros([self.latent_dim], dtype=self.dtype),
+                scale_diag=tf.ones([self.latent_dim], dtype=self.dtype),
+            )
+        elif self.prior_type == "maf":
             self._maf_mades = [
-                tfb.AutoregressiveNetwork(params=2, activation=ar_activation, hidden_units=self.ar_hidden_units) for _
-                in range(self.maf_stacks)]
-            base_distribution = tfd.MultivariateNormalDiag(loc=tf.zeros([self.latent_dim], dtype=self.dtype),
-                                                           scale_diag=tf.ones([self.latent_dim], dtype=self.dtype))
+                tfb.AutoregressiveNetwork(params=2, activation=ar_activation, hidden_units=self.ar_hidden_units)
+                for _ in range(self.maf_stacks)
+            ]
+            base_distribution = tfd.MultivariateNormalDiag(
+                loc=tf.zeros([self.latent_dim], dtype=self.dtype),
+                scale_diag=tf.ones([self.latent_dim], dtype=self.dtype),
+            )
             self._prior = af_transform(base_distribution, self._maf_mades, permute=True, iaf=False)
         elif self.prior_type[:4] in ("gsm_", "gmm_", "lsm_", "lmm_"):  # mixture prior; specified like 'gmm_2'
             # This only implements a scalar mixture for each dimension, and the dimensions themselves are factorized
             components = int(self.prior_type[4:])
             shape = (self.latent_dim, components)
             self.logits = tf.Variable(tf.random.normal(shape, dtype=self.dtype))
-            self.log_scale = tf.Variable(
-                tf.random.normal(shape, mean=2., dtype=self.dtype))
+            self.log_scale = tf.Variable(tf.random.normal(shape, mean=2.0, dtype=self.dtype))
             if "s" in self.prior_type:  # scale mixture
-                self.loc = 0.
+                self.loc = 0.0
             else:
                 self.loc = tf.Variable(tf.random.normal(shape, dtype=self.dtype))
         else:
@@ -148,8 +150,7 @@ class Model(tf.keras.Model):
             cls = tfd.Normal if self.prior_type.startswith("g") else tfd.Logistic
             prior = tfd.MixtureSameFamily(
                 mixture_distribution=tfd.Categorical(logits=self.logits),
-                components_distribution=cls(
-                    loc=self.loc, scale=tf.math.softplus(self.log_scale)),
+                components_distribution=cls(loc=self.loc, scale=tf.math.softplus(self.log_scale)),
             )
         if conv_unoise:  # convolve with uniform noise for NTC compression model
             prior = tfc.UniformNoiseAdapter(prior)
@@ -157,31 +158,32 @@ class Model(tf.keras.Model):
 
     def encode_decode(self, x):
         """Given a batch of inputs, perform a full inference -> generative pass through the model."""
-        if self.posterior_type in ('gaussian', 'iaf'):
+        if self.posterior_type in ("gaussian", "iaf"):
             encoder_res = self.encoder(x)
-            qy_loc = encoder_res[..., :self.latent_dim]
-            qy_scale = tf.nn.softplus(encoder_res[..., self.latent_dim:] + softplus_inv_1)
+            qy_loc = encoder_res[..., : self.latent_dim]
+            qy_scale = tf.nn.softplus(encoder_res[..., self.latent_dim :] + softplus_inv_1)
             y_dist = tfd.MultivariateNormalDiag(loc=qy_loc, scale_diag=qy_scale, name="q_y")
-            if self.posterior_type == 'iaf':
+            if self.posterior_type == "iaf":
                 y_dist = af_transform(y_dist, self._iaf_mades, permute=True, iaf=True)
 
             y_tilde = y_dist.sample()  # Y ~ Q(Y|X); batch_size by latent_dim
             log_q_tilde = y_dist.log_prob(y_tilde)  # [batch_size]; should be 0 on avg for uniform distribution
             prior = self.prior(conv_unoise=False)
-        elif self.posterior_type == 'uniform':
+        elif self.posterior_type == "uniform":
             encoder_res = self.encoder(x)
             y_dist = tfd.Uniform(low=encoder_res - 0.5, high=encoder_res + 0.5, name="q_y")
             y_tilde = y_dist.sample()  # Y ~ Q(Y|X); batch_size by latent_dim
-            log_q_tilde = 0.  # [batch_size]; should be 0 on avg for uniform distribution
+            log_q_tilde = 0.0  # [batch_size]; should be 0 on avg for uniform distribution
             prior = self.prior(conv_unoise=True)  # NTC
         else:
-            raise NotImplementedError(f'unknown posterior_type={self.posterior_type}')
+            raise NotImplementedError(f"unknown posterior_type={self.posterior_type}")
 
-        if self.prior_type == 'maf':
+        if self.prior_type == "maf":
             log_prior = prior.log_prob(y_tilde)  # just [batch_size], one number per each x in the batch
         else:
-            log_prior = tf.reduce_sum(prior.log_prob(y_tilde),
-                                      axis=-1)  # sum across latent_dim (since the prior is fully factorized)
+            log_prior = tf.reduce_sum(
+                prior.log_prob(y_tilde), axis=-1
+            )  # sum across latent_dim (since the prior is fully factorized)
         kls = log_q_tilde - log_prior
 
         if self.decoder:
@@ -195,7 +197,7 @@ class Model(tf.keras.Model):
         if self.nats:
             rates = kls
         else:
-            rates = (kls / tf.cast(tf.math.log(2.), self.dtype))  # convert to bits
+            rates = kls / tf.cast(tf.math.log(2.0), self.dtype)  # convert to bits
         if self.rpd:  # normalize by number of data dimension
             rate = tf.reduce_mean(rates) / float(self.data_dim)
         else:
@@ -255,12 +257,25 @@ class Model(tf.keras.Model):
 
 def get_runname(args):
     from utils_wp import config_dict_to_str
+
     model_name = os.path.splitext(os.path.basename(__file__))[0]
-    runname = config_dict_to_str(vars(args),
-                                 record_keys=('data_dim', 'latent_dim', 'lmbda', 'encoder_units', 'decoder_units',
-                                              'prior_type', 'posterior_type',
-                                              'maf_stacks', 'iaf_stacks'), prefix=model_name)
+    runname = config_dict_to_str(
+        vars(args),
+        record_keys=(
+            "data_dim",
+            "latent_dim",
+            "lmbda",
+            "encoder_units",
+            "decoder_units",
+            "prior_type",
+            "posterior_type",
+            "maf_stacks",
+            "iaf_stacks",
+        ),
+        prefix=model_name,
+    )
     return runname
+
 
 def get_lr_scheduler(learning_rate, epochs, decay_factor=0.1, warmup_epochs=0):
     """Returns a learning rate scheduler function for the given configuration."""
@@ -273,12 +288,13 @@ def get_lr_scheduler(learning_rate, epochs, decay_factor=0.1, warmup_epochs=0):
         if epoch < 1 / 2 * epochs:
             return learning_rate
         if epoch < 3 / 4 * epochs:
-            return learning_rate * decay_factor ** 1
+            return learning_rate * decay_factor**1
         if epoch < 7 / 8 * epochs:
-            return learning_rate * decay_factor ** 2
-        return learning_rate * decay_factor ** 3
+            return learning_rate * decay_factor**2
+        return learning_rate * decay_factor**3
 
     return scheduler
+
 
 def train(args):
     """Instantiates and trains the model."""
@@ -289,20 +305,22 @@ def train(args):
     )
     print("##### Start preparing dataset #####")
     from utils_wp import get_wp_tfrecord
+
     # train_dataset, validation_dataset = get_datasets(args, args.dataset, args.use_wp_dataset, args.batchsize, repeat = args.repeat)
     # validation_dataset = validation_dataset.take(
     #     args.max_validation_steps)  # keras crashes without this (would be using an infinite validation set)
-    
     # def get_datasets(args, np_file, use_weight_param, batchsize, repeat, append_channel_dim=False, get_validation_data=True):
     if args.use_wp_dataset:
 
-        train_dataset = get_wp_tfrecord('train', args.dataset, args, num_data=args.num_data, repeat = args.repeat)
-        validation_dataset = get_wp_tfrecord('val', args.dataset.replace('train', 'val') , args, num_data=args.max_validation_steps, repeat = args.repeat)
+        train_dataset = get_wp_tfrecord("train", args.dataset, args, num_data=args.num_data, repeat=args.repeat)
+        validation_dataset = get_wp_tfrecord(
+            "val", args.dataset.replace("train", "val"), args, num_data=args.max_validation_steps, repeat=args.repeat
+        )
 
-    
     validation_dataset = validation_dataset.take(
-        args.max_validation_steps)  # keras crashes without this (would be using an infinite validation set)
-    
+        args.max_validation_steps
+    )  # keras crashes without this (would be using an infinite validation set)
+
     print("##### End preparing dataset #####")
 
     ##################### BEGIN: Good old bookkeeping #########################
@@ -311,36 +329,41 @@ def train(args):
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
     from utils_wp import get_time_str
+
     time_str = get_time_str()
     # log to file during training
-    log_file_path = os.path.join(save_dir, f'record-{time_str}.jsonl')
+    log_file_path = os.path.join(save_dir, f"record-{time_str}.jsonl")
     from utils_wp import get_json_logging_callback
+
     file_log_callback = get_json_logging_callback(log_file_path)
-    print(f'Logging to {log_file_path}')
+    print(f"Logging to {log_file_path}")
     ##################### END: Good old bookkeeping #########################
 
-    tmp_save_dir = os.path.join('./tmp/rdmlp', save_dir)
+    tmp_save_dir = os.path.join("./tmp/rdmlp", save_dir)
     # lr_scheduler = get_lr_scheduler(args.lr, args.epochs, decay_factor=0.2, warmup_epochs = args.warmup)
     if validation_dataset:
-        monitor_loss = 'val_loss'
+        monitor_loss = "val_loss"
     else:  # monitor train loss
-        monitor_loss = 'loss'
-    reduce_lr = MyReduceLROnPlateauCallback(monitor=monitor_loss,
-                                        mode='min',
-                                        factor=args.lr_decay_factor,
-                                        warmup=args.warmup,
-                                        startup=args.startup,
-                                        patience=args.patience,  # patience in terms of epochs
-                                        min_delta=1e-4,
-                                        min_lr=1e-6,
-                                        initial_lr=args.lr,
-                                        verbose=1)
-    
+        monitor_loss = "loss"
+    reduce_lr = MyReduceLROnPlateauCallback(
+        monitor=monitor_loss,
+        mode="min",
+        factor=args.lr_decay_factor,
+        warmup=args.warmup,
+        startup=args.startup,
+        patience=args.patience,  # patience in terms of epochs
+        min_delta=1e-4,
+        min_lr=1e-6,
+        initial_lr=args.lr,
+        verbose=1,
+    )
+
     def log_lr(epoch, logs):
         lr = tf.keras.backend.get_value(model.optimizer.lr)
-        tf.summary.scalar('learning rate', data=lr, step=epoch)
+        tf.summary.scalar("learning rate", data=lr, step=epoch)
+
     lr_logging_callback = tf.keras.callbacks.LambdaCallback(on_epoch_end=log_lr)
-    
+
     print("Start fitting")
     hist = model.fit(
         train_dataset.prefetch(tf.data.AUTOTUNE),
@@ -351,24 +374,22 @@ def train(args):
         verbose=int(args.verbose),
         callbacks=[
             tf.keras.callbacks.TerminateOnNaN(),
-            tf.keras.callbacks.TensorBoard(
-                log_dir=tmp_save_dir,
-                histogram_freq=1, update_freq="epoch"),
+            tf.keras.callbacks.TensorBoard(log_dir=tmp_save_dir, histogram_freq=1, update_freq="epoch"),
             lr_logging_callback,
             tf.keras.callbacks.experimental.BackupAndRestore(tmp_save_dir),
             file_log_callback,
             # tf.keras.callbacks.LearningRateScheduler(lr_scheduler),
             reduce_lr,
-            WandbCallback()
+            WandbCallback(),
         ],
     )
     print("End fitting")
     records = hist.history
     ckpt_path = os.path.join(save_dir, f"ckpt-lmbda={args.lmbda}-epoch={args.epochs}-loss={records['loss'][-1]:.3f}")
     model.save_weights(ckpt_path)
-    print('Saved checkpoint to', ckpt_path)
+    print("Saved checkpoint to", ckpt_path)
 
-    # hist_df = pd.DataFrame(records) 
+    # hist_df = pd.DataFrame(records)
     # hist_path = os.path.join(save_dir, f"hist-lmbda={args.lmbda}-epoch={args.epochs}-loss={records['loss'][-1]:.3f}.json")
     # with open(hist_path, mode='w') as f:
     #     hist_df.to_json(f)
@@ -378,125 +399,142 @@ def train(args):
 
 def parse_args(argv):
     """Parses command line arguments."""
-    parser = argparse_flags.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse_flags.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # High-level options.
     parser.add_argument(
-        "--verbose", "-V", action="store_true",
-        help="Report progress and metrics when training or compressing.")
+        "--verbose", "-V", action="store_true", help="Report progress and metrics when training or compressing."
+    )
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument(
-        "--checkpoint_dir", default="./checkpoints",
-        help="Directory where to save/load model checkpoints.")
+        "--checkpoint_dir", default="./checkpoints", help="Directory where to save/load model checkpoints."
+    )
 
     # Specifying dataset
     parser.add_argument("--data_dim", type=int, default=None, help="Data dimensionality.")
     # parser.add_argument("--dim_mul", type=int, default=1, help="Data dimension multiplier.")
-    parser.add_argument("--dataset", type=str, default="banana",
-                        help="Dataset specifier. This can be known dataset names ('gaussian'|'banana')"
-                             "handled by gen_dataset, or a path to a numpy array of data vectors.")
+    parser.add_argument(
+        "--dataset",
+        type=str,
+        default="banana",
+        help="Dataset specifier. This can be known dataset names ('gaussian'|'banana')"
+        "handled by gen_dataset, or a path to a numpy array of data vectors.",
+    )
     parser.add_argument("--gparams_path", type=str, default=None, help="Path to custom Gaussian loc/scale params. ")
     # Model specific args
     parser.add_argument(
-        "--encoder_units", type=lambda s: [int(i) for i in s.split(',')], default=[],
-        help="A comma delimited list, specifying the number of units per hidden layer in the encoder.")
+        "--encoder_units",
+        type=lambda s: [int(i) for i in s.split(",")],
+        default=[],
+        help="A comma delimited list, specifying the number of units per hidden layer in the encoder.",
+    )
     parser.add_argument(
-        "--decoder_units", type=lambda s: [int(i) for i in s.split(',')], default=[],
+        "--decoder_units",
+        type=lambda s: [int(i) for i in s.split(",")],
+        default=[],
         help="A comma delimited list, specifying the number of units per hidden layer in the decoder;"
-             "set to 0 to not use decoder (for quantization experiments).")
+        "set to 0 to not use decoder (for quantization experiments).",
+    )
     parser.add_argument("--encoder_activation", type=str, default="softplus", help="Activation in encoder MLP")
     parser.add_argument("--decoder_activation", type=str, default="softplus", help="Activation in decoder MLP")
 
-    parser.add_argument("--latent_dim", type=int, help="Latent space dimensionality."
-                                                       "Will be automatically set to be the same as data_dim if decoder_units=0.")
     parser.add_argument(
-        "--posterior_type", type=str, default='gaussian', help="Posterior type. One of 'gaussian|iaf|uniform'.")
+        "--latent_dim",
+        type=int,
+        help="Latent space dimensionality." "Will be automatically set to be the same as data_dim if decoder_units=0.",
+    )
     parser.add_argument(
-        "--prior_type", type=str, default='deep', help="Prior type. Can be 'deep|maf|std_gaussian' or a factorized"
-                                                       "mixture model specified like 'gmm_2'. Use prior_type='deep' with"
-                                                       "posterior_type='uniform' for a compressive autoencoder (NTC).")
+        "--posterior_type", type=str, default="gaussian", help="Posterior type. One of 'gaussian|iaf|uniform'."
+    )
     parser.add_argument(
-        "--ar_hidden_units", type=lambda s: [int(i) for i in s.split(',')], default=[10, 10],
+        "--prior_type",
+        type=str,
+        default="deep",
+        help="Prior type. Can be 'deep|maf|std_gaussian' or a factorized"
+        "mixture model specified like 'gmm_2'. Use prior_type='deep' with"
+        "posterior_type='uniform' for a compressive autoencoder (NTC).",
+    )
+    parser.add_argument(
+        "--ar_hidden_units",
+        type=lambda s: [int(i) for i in s.split(",")],
+        default=[10, 10],
         help="A comma delimited list, specifying the number of hidden units per MLP layer in the AutoregressiveNetworks"
-             "for normalizing flow.")
+        "for normalizing flow.",
+    )
     parser.add_argument(
-        "--ar_activation", type=str, default=None,
+        "--ar_activation",
+        type=str,
+        default=None,
         help="Activation function to use in the AutoregressiveNetworks"
-             "for normalizing flow. No need to worry about output activation as tfb.MaskedAutoregressiveFlow operates on"
-             "log_scale outputted by the AutoregressiveNetworks.")
+        "for normalizing flow. No need to worry about output activation as tfb.MaskedAutoregressiveFlow operates on"
+        "log_scale outputted by the AutoregressiveNetworks.",
+    )
     parser.add_argument(
-        "--maf_stacks", type=int, default=0, help="Number of stacks of transforms to use for MAF prior.")
+        "--maf_stacks", type=int, default=0, help="Number of stacks of transforms to use for MAF prior."
+    )
     parser.add_argument(
-        "--iaf_stacks", type=int, default=0, help="Number of stacks of transforms to use for IAF posterior.")
+        "--iaf_stacks", type=int, default=0, help="Number of stacks of transforms to use for IAF posterior."
+    )
+    parser.add_argument("--lambda", type=float, dest="lmbda", help="Lambda for rate-distortion tradeoff.")
+    parser.add_argument("--lambdas", type=lambda s: [float(i) for i in s.split(",")], default=[])
     parser.add_argument(
-        "--lambda", type=float, dest="lmbda",
-        help="Lambda for rate-distortion tradeoff.")
+        "--rpd",
+        default=False,
+        action="store_true",
+        help="Whether to normalize the rate (per sample) by the number of data dimensions; default is False, i.e., bits/nats per sample.",
+    )
     parser.add_argument(
-        "--lambdas", type=lambda s: [float(i) for i in s.split(',')], default=[])
-    parser.add_argument(
-        "--rpd", default=False, action='store_true',
-        help="Whether to normalize the rate (per sample) by the number of data dimensions; default is False, i.e., bits/nats per sample.")
-    parser.add_argument(
-        "--nats", default=False, action='store_true',
-        help="Whether to compute rate in terms of nats (instead of bits)")
-    parser.add_argument(
-        "--test", default=False, action='store_true')
-    parser.add_argument(
-        "--use_wp_dataset", default=False, action='store_true')
-    parser.add_argument('--model_filter', nargs='+', type=str, default=None, 
-                        help="Model filter list")
-    parser.add_argument(
-        "--normalize", default=False, action='store_true')
+        "--nats", default=False, action="store_true", help="Whether to compute rate in terms of nats (instead of bits)"
+    )
+    parser.add_argument("--test", default=False, action="store_true")
+    parser.add_argument("--use_wp_dataset", default=False, action="store_true")
+    parser.add_argument("--model_filter", nargs="+", type=str, default=None, help="Model filter list")
+    parser.add_argument("--normalize", default=False, action="store_true")
     subparsers = parser.add_subparsers(
-        title="commands", dest="command",
+        title="commands",
+        dest="command",
         help="What to do: 'train' loads training data and trains (or continues "
-             "to train) a new model. Invoke '<command> -h' for more information.")
+        "to train) a new model. Invoke '<command> -h' for more information.",
+    )
 
     # 'train' subcommand.
     train_cmd = subparsers.add_parser(
         "train",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         description="Trains (or continues to train) a new model."
-                    "When training on an infinite data stream produced by"
-                    "a generator (see gen_dataset method), the validation set"
-                    "is created from a number of random batches (max_validation_steps)"
-                    "from the generator and kept fixed throughout training."
-                    "When training on a numpy array dataset, the code looks for a corresponding"
-                    "val/test dataset as the validation data; if not found, a random subset of"
-                    "training data is used as validation data.")
+        "When training on an infinite data stream produced by"
+        "a generator (see gen_dataset method), the validation set"
+        "is created from a number of random batches (max_validation_steps)"
+        "from the generator and kept fixed throughout training."
+        "When training on a numpy array dataset, the code looks for a corresponding"
+        "val/test dataset as the validation data; if not found, a random subset of"
+        "training data is used as validation data.",
+    )
 
+    train_cmd.add_argument("--batchsize", type=int, default=1024, help="Batch size for training and validation.")
+    train_cmd.add_argument("--lr", type=float, default=1e-3, help="Learning rate.")
     train_cmd.add_argument(
-        "--batchsize", type=int, default=1024,
-        help="Batch size for training and validation.")
-    train_cmd.add_argument(
-        "--lr", type=float, default=1e-3,
-        help="Learning rate.")
-    train_cmd.add_argument(
-        "--epochs", type=int, default=100,
+        "--epochs",
+        type=int,
+        default=100,
         help="Train up to this number of epochs. (One epoch is here defined as "
-             "the number of steps given by --steps_per_epoch, not iterations "
-             "over the full training dataset.)")
+        "the number of steps given by --steps_per_epoch, not iterations "
+        "over the full training dataset.)",
+    )
     train_cmd.add_argument(
-        "--steps_per_epoch", type=int, default=1000,
-        help="Perform validation and produce logs after this many batches.")
+        "--steps_per_epoch", type=int, default=1000, help="Perform validation and produce logs after this many batches."
+    )
     train_cmd.add_argument(
-        "--max_validation_steps", type=int, default=10,
-        help="Maximum number of batches to use for validation.")
+        "--max_validation_steps", type=int, default=10, help="Maximum number of batches to use for validation."
+    )
+    train_cmd.add_argument("--num_data", type=int, default=0)
+    train_cmd.add_argument("--repeat", action="store_true", default=False)
+    train_cmd.add_argument("--warmup", type=int, default=50)
+    train_cmd.add_argument("--startup", type=int, default=200)
     train_cmd.add_argument(
-        "--num_data", type=int, default=0)
-    train_cmd.add_argument(
-        "--repeat", action='store_true', default=False)
-    train_cmd.add_argument(
-        "--warmup", type=int, default=50)
-    train_cmd.add_argument(
-        "--startup", type=int, default=200)
-    train_cmd.add_argument(
-        "--patience", type=int, default=10,
-        help="Number of epochs of non-improvement before reducing lr.")
-    train_cmd.add_argument(
-        "--lr_decay_factor", type=float, default=0.5,
-        help="Mult lr by this everytime lr is reduced")
+        "--patience", type=int, default=10, help="Number of epochs of non-improvement before reducing lr."
+    )
+    train_cmd.add_argument("--lr_decay_factor", type=float, default=0.5, help="Mult lr by this everytime lr is reduced")
     # Parse arguments.
     args = parser.parse_args(argv[1:])
     if args.command is None:
@@ -506,35 +544,44 @@ def parse_args(argv):
 
 
 def main(args):
-    
+
     dataset_base = args.dataset
     dataset_list = os.listdir(dataset_base)
     for dataset in dataset_list:
-        if 'layers-0-' in dataset and ('q_proj' in dataset):
-            print('dataset:' , dataset)
-            args.dataset = os.path.join(dataset_base, dataset, 'd16', dataset + '_d16_train_out.tfrecord')
-            args.checkpoint_dir = 'checkpoints_v3/llama3_8B_per_tensor/' + dataset + '/llama3-8B_d16_b1024_e150_lr1e-5_normalize'
+        if "layers-0-" in dataset and ("q_proj" in dataset):
+            print("dataset:", dataset)
+            args.dataset = os.path.join(dataset_base, dataset, "d16", dataset + "_d16_train_out.tfrecord")
+            args.checkpoint_dir = (
+                "checkpoints_v3/llama3_8B_per_tensor/" + dataset + "/llama3-8B_d16_b1024_e150_lr1e-5_normalize"
+            )
             # Invoke subcommand.
             lambdas = args.lambdas
             for lmbda in lambdas:
                 args.lmbda = lmbda
                 if check_no_decoder(args.decoder_units):
-                    print(f'Using Z=Y; resetting latent_dim={args.latent_dim} to data_dim={args.data_dim}')
+                    print(f"Using Z=Y; resetting latent_dim={args.latent_dim} to data_dim={args.data_dim}")
                     args.latent_dim = args.data_dim
 
                 seed = args.seed
                 np.random.seed(seed)
                 tf.random.set_seed(seed)
-                
+
                 runname = get_runname(args)
                 # wandb.init(project="RDsandwich", config=args, name=runname, mode="disabled" if args.test else "online")
-                wandb.init(project="RDsandwich_v2", config=args, sync_tensorboard=True, name=runname, mode="disabled" if args.test else "online")
+                wandb.init(
+                    project="RDsandwich_v2",
+                    config=args,
+                    sync_tensorboard=True,
+                    name=runname,
+                    mode="disabled" if args.test else "online",
+                )
                 wandb.config.update(args)
-                
+
                 if args.command == "train":
                     train(args)
-                    
+
                 wandb.finish()
+
 
 if __name__ == "__main__":
     app.run(main, flags_parser=parse_args)

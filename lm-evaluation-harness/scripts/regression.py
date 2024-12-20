@@ -8,7 +8,6 @@ from pathlib import Path
 from lm_eval import utils
 from lm_eval.api.registry import ALL_TASKS
 
-
 seq2seq_models = ["google/flan-t5-small"]
 causal_models = [
     "gpt2",
@@ -56,13 +55,7 @@ def eval_models(args, branch=None):
     results = {}
 
     for model in args.models:
-        model_type = (
-            "hf-causal"
-            if model in causal_models
-            else "hf-seq2seq"
-            if model in seq2seq_models
-            else args.model
-        )
+        model_type = "hf-causal" if model in causal_models else "hf-seq2seq" if model in seq2seq_models else args.model
         model_args = f"pretrained={model},{args.model_args}"
         # TODO: split_and_pad_windows in AutoSeq2SeqLM doesn"t exist, #527
         tasks = (
@@ -74,13 +67,9 @@ def eval_models(args, branch=None):
         batch_size = (
             args.batch_size
             if model in causal_models or model_type == "hf-causal"
-            else 64
-            if args.batch_size == "auto"
-            else args.batch_size
+            else 64 if args.batch_size == "auto" else args.batch_size
         )
-        output_path = (
-            f"data/regression/{int(start_time)}-{branch}-{Path(model).name}.json"
-        )
+        output_path = f"data/regression/{int(start_time)}-{branch}-{Path(model).name}.json"
 
         command = (
             f"python3 main.py --model {model_type} --model_args {model_args} --tasks {','.join(tasks)} "
@@ -88,17 +77,11 @@ def eval_models(args, branch=None):
             f"--batch_size {batch_size} --no_cache --output_path {output_path}"
         )
 
-        print(
-            f"{'=' * 80}\nEvaluating {model} on {', '.join(tasks)} at {branch} with:\n\n{command}\n{'=' * 80}"
-        )
+        print(f"{'=' * 80}\nEvaluating {model} on {', '.join(tasks)} at {branch} with:\n\n{command}\n{'=' * 80}")
 
         ret = os.system(command)
 
-        results[model] = (
-            json.load(open(output_path, encoding="utf-8"))
-            if ret == 0
-            else {"results": {}}
-        )
+        results[model] = json.load(open(output_path, encoding="utf-8")) if ret == 0 else {"results": {}}
 
     end_time = time.time()
 
@@ -117,9 +100,7 @@ def extract_value(args, results, model, task, err=False):
     if "acc,none" in results:
         return results["acc,none"] if not err else results["acc_stderr,none"]
     if (args.perplexity or "word_perplexity") + ",none" in results:
-        return (
-            results[(args.perplexity or "word_perplexity") + ",none"] if not err else 0
-        )
+        return results[(args.perplexity or "word_perplexity") + ",none"] if not err else 0
     return 0
 
 
@@ -139,26 +120,16 @@ def format_diff(args, results1, results2, model, task):
 def main():
     args = parse_args()
 
-    args.branches = (
-        args.branches.split(",") if isinstance(args.branches, str) else args.branches
-    )
-    args.models = (
-        args.models.split(",") if isinstance(args.models, str) else args.models
-    )
+    args.branches = args.branches.split(",") if isinstance(args.branches, str) else args.branches
+    args.models = args.models.split(",") if isinstance(args.models, str) else args.models
     args.tasks = (
         ALL_TASKS
         if args.tasks == "all_tasks"
-        else utils.pattern_match(args.tasks.split(","), ALL_TASKS)
-        if isinstance(args.tasks, str)
-        else args.tasks
+        else utils.pattern_match(args.tasks.split(","), ALL_TASKS) if isinstance(args.tasks, str) else args.tasks
     )
 
     global initial_branch
-    initial_branch = (
-        subprocess.check_output("git branch --show-current", shell=True)
-        .decode("ascii")
-        .strip()
-    )
+    initial_branch = subprocess.check_output("git branch --show-current", shell=True).decode("ascii").strip()
 
     # TODO: implement proper timing for each task
     # TODO: reduce IO by sharing tasks between models?

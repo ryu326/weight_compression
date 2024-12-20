@@ -2,9 +2,7 @@ import hashlib
 import os
 
 import dill
-
 from lm_eval.utils import eval_logger
-
 
 MODULE_DIR = os.path.dirname(os.path.realpath(__file__))
 

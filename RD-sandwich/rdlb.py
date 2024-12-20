@@ -7,16 +7,16 @@
 # Yibo Yang, 2021
 
 import argparse
+import math
 import os
 import sys
-import math
 
 import numpy as np
 import tensorflow as tf
 from absl import app
 from absl.flags import argparse_flags
-from utils import MyJSONEncoder, preprocess_float_dict
 from tensorflow_compression.python.ops import math_ops
+from utils import MyJSONEncoder, preprocess_float_dict
 
 upper_bound = math_ops.upper_bound
 lower_bound = math_ops.lower_bound
@@ -35,12 +35,13 @@ def compute_Ckobj(log_u_fun, x, y, lamb, return_log=True):
     :return:
     """
     x_shape = tf.shape(x)
-    mse = tf.reduce_mean(tf.math.squared_difference(x, y),
-                         axis=list(range(1, len(x_shape))))  # squared error avged over all dims except batch, i.e., MSE
+    mse = tf.reduce_mean(
+        tf.math.squared_difference(x, y), axis=list(range(1, len(x_shape)))
+    )  # squared error avged over all dims except batch, i.e., MSE
     log_u = log_u_fun(x)  # [B, 1]
     log_u = tf.squeeze(log_u)  # drop the vacuous "channel" dimension
-    batchsize = tf.cast(x_shape[0], 'float32')
-    Ckobj = tf.reduce_logsumexp(- lamb * mse - log_u) - tf.math.log(batchsize)
+    batchsize = tf.cast(x_shape[0], "float32")
+    Ckobj = tf.reduce_logsumexp(-lamb * mse - log_u) - tf.math.log(batchsize)
     if not return_log:  # usually a bad idea and get overflow/underlow from exp
         Ckobj = tf.exp(Ckobj)
     return Ckobj, log_u
@@ -62,26 +63,29 @@ def batch_mse(x, y, chunksize=None):
     xs = tf.expand_dims(x, axis=1)  # [B, 1, d1, d2, ...]
     axes_except_first_two = list(range(2, 2 + num_data_dims))
     if not chunksize:
-        mse = tf.reduce_mean(tf.math.squared_difference(xs, y),
-                             axis=axes_except_first_two)  # [B, P, d1, d2, ...] -> [B, P]
+        mse = tf.reduce_mean(
+            tf.math.squared_difference(xs, y), axis=axes_except_first_two
+        )  # [B, P, d1, d2, ...] -> [B, P]
     else:
         batchsize = x_shape[0]
         mse_chunks = []
-        num_chunks = tf.cast(tf.math.ceil(batchsize / chunksize), dtype='int32')
+        num_chunks = tf.cast(tf.math.ceil(batchsize / chunksize), dtype="int32")
         for i in tf.range(num_chunks):
             beg = i * chunksize
             end = beg + chunksize
-            x_chunk = xs[beg: end]
-            mse_chunk = tf.reduce_mean(tf.math.squared_difference(x_chunk, y),
-                                       axis=axes_except_first_two)  # [C, P, d1, d2, ...] -> [C, P]
+            x_chunk = xs[beg:end]
+            mse_chunk = tf.reduce_mean(
+                tf.math.squared_difference(x_chunk, y), axis=axes_except_first_two
+            )  # [C, P, d1, d2, ...] -> [C, P]
             mse_chunks.append(mse_chunk)
         mse = tf.concat(mse_chunks, axis=0)
 
     return mse
 
 
-def optimize_y(log_u_fun, lamb, x, num_steps=500, lr=1e-2, tol=1e-6, init='quick',
-               quick_topn=10, verbose=False, chunksize=None):
+def optimize_y(
+    log_u_fun, lamb, x, num_steps=500, lr=1e-2, tol=1e-6, init="quick", quick_topn=10, verbose=False, chunksize=None
+):
     """
     Find the y that (approximately) achieves the sup in the definition of the sup-partition function.
     :param log_u_fun:
@@ -101,24 +105,24 @@ def optimize_y(log_u_fun, lamb, x, num_steps=500, lr=1e-2, tol=1e-6, init='quick
         opt_y = tf.reduce_mean(x, axis=0)
         return dict(opt_y=opt_y)
     assert num_steps > 0
-    assert init in ('exhaustive', 'quick')
+    assert init in ("exhaustive", "quick")
 
-    y = tf.Variable(tf.zeros(x.shape[1:], dtype=x.dtype), trainable=True, name='y')
+    y = tf.Variable(tf.zeros(x.shape[1:], dtype=x.dtype), trainable=True, name="y")
 
     # do some setup/precomputation for the inner optimization
     x_shape = tf.shape(x)
-    batchsize = tf.cast(x_shape[0], 'float32')  # 'k' in the paper
+    batchsize = tf.cast(x_shape[0], "float32")  # 'k' in the paper
     log_batchsize = tf.math.log(batchsize)
     mse_reduction_axes = tf.range(1, len(x_shape))
     log_u = log_u_fun(x)  # [B, 1]
     log_u = tf.squeeze(log_u)  # drop the vacuous "channel" dimension
 
-    if init == 'exhaustive':
+    if init == "exhaustive":
         init_ys = x  # an array of values to initialize y to
-    elif init == 'quick':  # only run t gradient ascent attempts, starting from the top t most promising x data points
+    elif init == "quick":  # only run t gradient ascent attempts, starting from the top t most promising x data points
         # log_supobj_at_x_vals = - log_u  # using 1 / g(x_k) (actually just the log) for x_k in batch as a cheap approximation
         mse = batch_mse(x, x, chunksize)
-        log_supobj_at_x_vals = tf.reduce_logsumexp(- lamb * mse - log_u, axis=1) - log_batchsize
+        log_supobj_at_x_vals = tf.reduce_logsumexp(-lamb * mse - log_u, axis=1) - log_batchsize
         # get index of the top_n x vals with the highest objective vals
         top_n_indices = np.argsort(log_supobj_at_x_vals)[-quick_topn:]
         init_ys = tf.gather(x, top_n_indices)
@@ -128,16 +132,17 @@ def optimize_y(log_u_fun, lamb, x, num_steps=500, lr=1e-2, tol=1e-6, init='quick
     log_supobj_vals = []  # values of the log supremum objective valuated at each local mode found by gradient ascent
     for i, init_y in enumerate(init_ys):
         if verbose:
-            print(f'\tGrad ascent from init #{i}')
+            print(f"\tGrad ascent from init #{i}")
         y.assign(init_y)
         prev_loss = np.inf
         y_optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
         for step in range(num_steps):
             with tf.GradientTape() as tape:
-                mse = tf.reduce_mean(tf.math.squared_difference(x, y),
-                                     axis=mse_reduction_axes)  # squared error avged over all dims except batch, i.e., MSE
-                log_supobj = tf.reduce_logsumexp(- lamb * mse - log_u) - log_batchsize  # optimize in log domain
-                loss = - log_supobj
+                mse = tf.reduce_mean(
+                    tf.math.squared_difference(x, y), axis=mse_reduction_axes
+                )  # squared error avged over all dims except batch, i.e., MSE
+                log_supobj = tf.reduce_logsumexp(-lamb * mse - log_u) - log_batchsize  # optimize in log domain
+                loss = -log_supobj
 
             loss_val = float(loss)
             if np.isinf(loss_val):
@@ -145,7 +150,7 @@ def optimize_y(log_u_fun, lamb, x, num_steps=500, lr=1e-2, tol=1e-6, init='quick
                 break
             elif abs((prev_loss - loss_val)) < tol:
                 if verbose:
-                    print(f'\tOptimization w.r.t. y converged after {step} steps')
+                    print(f"\tOptimization w.r.t. y converged after {step} steps")
                 break
             else:
                 prev_loss = loss_val
@@ -166,16 +171,23 @@ def optimize_y(log_u_fun, lamb, x, num_steps=500, lr=1e-2, tol=1e-6, init='quick
 
 
 def get_model(**kwargs):
-    from nn_models import make_mlp, get_activation, get_convnet
-    n = kwargs['data_dim']
-    if kwargs['model'] == 'mlp':
-        model = make_mlp(units=kwargs['units'] + [1], activation=get_activation(kwargs['activation']),
-                         name='mlp', input_shape=[n])
-    elif kwargs['model'] == 'cnn':
-        model = get_convnet(num_units=kwargs['units'], kernel_dims=kwargs['kernel_dims'],
-                            activation='selu', preoutput_activation=None,
-                            output_scale=None, output_bias=None,
-                            raw_pixel_input=False)  # assumes img data is always in [0, 1]
+    from nn_models import get_activation, get_convnet, make_mlp
+
+    n = kwargs["data_dim"]
+    if kwargs["model"] == "mlp":
+        model = make_mlp(
+            units=kwargs["units"] + [1], activation=get_activation(kwargs["activation"]), name="mlp", input_shape=[n]
+        )
+    elif kwargs["model"] == "cnn":
+        model = get_convnet(
+            num_units=kwargs["units"],
+            kernel_dims=kwargs["kernel_dims"],
+            activation="selu",
+            preoutput_activation=None,
+            output_scale=None,
+            output_bias=None,
+            raw_pixel_input=False,
+        )  # assumes img data is always in [0, 1]
     else:
         raise NotImplementedError
 
@@ -186,9 +198,13 @@ def get_model(**kwargs):
 def get_runname(args):
     script_name = os.path.splitext(os.path.basename(__file__))[0]
     from utils import config_dict_to_str
-    runname = config_dict_to_str(vars(args),
-                                 record_keys=('data_dim', 'model', 'units', 'lamb', 'batchsize', 'seed'),
-                                 prefix=script_name, use_abbr=True)
+
+    runname = config_dict_to_str(
+        vars(args),
+        record_keys=("data_dim", "model", "units", "lamb", "batchsize", "seed"),
+        prefix=script_name,
+        use_abbr=True,
+    )
     return runname
 
 
@@ -198,10 +214,10 @@ def lr_scheduler(epoch, total_epochs, base_lr, decay_factor=0.2, warmup_epochs=0
     if epoch < 1 / 2 * total_epochs:
         return base_lr
     if epoch < 3 / 4 * total_epochs:
-        return base_lr * decay_factor ** 1
+        return base_lr * decay_factor**1
     if epoch < 7 / 8 * total_epochs:
-        return base_lr * decay_factor ** 2
-    return base_lr * decay_factor ** 3
+        return base_lr * decay_factor**2
+    return base_lr * decay_factor**3
 
 
 def linear_schedule(epoch, total_epochs, base_val, final_val, warmup_epochs=0, cooldown_epochs=0):
@@ -215,7 +231,7 @@ def linear_schedule(epoch, total_epochs, base_val, final_val, warmup_epochs=0, c
     return val
 
 
-def get_dataset(dataset_spec: str, data_dim: int, batchsize: int, preprocess_threads=8, dtype='float32', **kwargs):
+def get_dataset(dataset_spec: str, data_dim: int, batchsize: int, preprocess_threads=8, dtype="float32", **kwargs):
     """
     This returns an 'infinite' batched dataset representing the data source.
     :param dataset_spec: a string specifying the dataset
@@ -223,43 +239,47 @@ def get_dataset(dataset_spec: str, data_dim: int, batchsize: int, preprocess_thr
     :param batchsize:
     :return:
     """
-    if dataset_spec in ('gaussian', 'banana'):
-        if dataset_spec == 'gaussian':
-            if kwargs.get('gparams_path', None):
-                gparams = np.load(kwargs['gparams_path'])
-                loc = gparams['loc'].astype(dtype)
-                scale = gparams['scale'].astype(dtype)
+    if dataset_spec in ("gaussian", "banana"):
+        if dataset_spec == "gaussian":
+            if kwargs.get("gparams_path", None):
+                gparams = np.load(kwargs["gparams_path"])
+                loc = gparams["loc"].astype(dtype)
+                scale = gparams["scale"].astype(dtype)
             else:
                 loc = np.zeros(data_dim, dtype=dtype)
                 scale = np.ones(data_dim, dtype=dtype)
             import tensorflow_probability
+
             source = tensorflow_probability.distributions.Normal(loc=loc, scale=scale)
             map_sample_fun = lambda _: source.sample(batchsize)
-        elif dataset_spec == 'banana':
+        elif dataset_spec == "banana":
             import ntc_sources
+
             source = ntc_sources.get_banana()  # a tfp.distributions.TransformedDistribution object
             if data_dim == 2:
                 map_sample_fun = lambda _: source.sample(batchsize)
             else:
                 from ntc_sources import get_nd_banana
-                map_sample_fun, _ = get_nd_banana(data_dim, batchsize, kwargs.get('seed', 0))
+
+                map_sample_fun, _ = get_nd_banana(data_dim, batchsize, kwargs.get("seed", 0))
         else:
             raise NotImplementedError
         dataset = tf.data.Dataset.from_tensors([])
         dataset = dataset.repeat()
         dataset = dataset.map(map_sample_fun)
-    elif dataset_spec == 'mnist':
+    elif dataset_spec == "mnist":
         patchsize = data_dim
         (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
         arr = np.vstack([x_train, x_test])
         arr = arr[..., None]  # model expects channel dim
-        arr = arr.astype(dtype) / 255.
+        arr = arr.astype(dtype) / 255.0
         dataset = tf.data.Dataset.from_tensor_slices(arr)
         dataset = dataset.shuffle(len(arr), reshuffle_each_iteration=True)
         dataset = dataset.repeat()
         if patchsize is not None and patchsize < 28:
-            dataset = dataset.map(lambda x: tf.image.random_crop(x, (patchsize, patchsize, 1)),
-                                  num_parallel_calls=preprocess_threads)
+            dataset = dataset.map(
+                lambda x: tf.image.random_crop(x, (patchsize, patchsize, 1)), num_parallel_calls=preprocess_threads
+            )
         dataset = dataset.batch(batchsize)
     else:
         raise NotImplementedError
@@ -277,14 +297,19 @@ def get_dataset_iter(args):
     if gan_src:
         # with tf.device("/gpu:0"):
         import biggan
-        sampler = biggan.get_sampler(args.dataset, args.data_dim,
-                                     post_process_fun=lambda x: (x + 1.) * 0.5)  # map from [-1, 1] to [0, 1]
+
+        sampler = biggan.get_sampler(
+            args.dataset, args.data_dim, post_process_fun=lambda x: (x + 1.0) * 0.5
+        )  # map from [-1, 1] to [0, 1]
 
         if not args.chunksize:
+
             def dataset():
                 while True:
                     yield sampler(args.batchsize)
+
         else:  # sample each batch in small chunks then combine (otherwise can get OOM on GPU)
+
             def dataset():
                 biggan_chunksize = 64  # this seems to work well on our Titan RTX GPU
                 while True:
@@ -293,17 +318,22 @@ def get_dataset_iter(args):
                         chunk = sampler(biggan_chunksize)
                         chunks.append(chunk)
                     x = tf.concat(chunks, axis=0)
-                    x = x[:args.batchsize]
+                    x = x[: args.batchsize]
                     yield x
 
         dataset_iter = dataset()
     else:
-        if args.dataset.endswith('.npy') or args.dataset.endswith('.npz'):
+        if args.dataset.endswith(".npy") or args.dataset.endswith(".npz"):
             from utils import get_np_datasets
+
             dataset = get_np_datasets(args.dataset, args.batchsize, get_validation_data=False)
         else:
-            dataset = get_dataset(dataset_spec=args.dataset, data_dim=args.data_dim, batchsize=args.batchsize,
-                                  gparams_path=args.gparams_path)
+            dataset = get_dataset(
+                dataset_spec=args.dataset,
+                data_dim=args.data_dim,
+                batchsize=args.batchsize,
+                gparams_path=args.gparams_path,
+            )
         dataset_iter = iter(dataset)
     return dataset_iter
 
@@ -323,33 +353,35 @@ def train(args):
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
     import json
+
     from utils import get_time_str
+
     time_str = get_time_str()
-    log_file_path = os.path.join(save_dir, f'record-{time_str}.jsonl')
-    print(f'Logging to {log_file_path}')
+    log_file_path = os.path.join(save_dir, f"record-{time_str}.jsonl")
+    print(f"Logging to {log_file_path}")
 
     # For continued training.
     if args.cont is not None:
-        if args.cont == '':  # if flag specified but no value given, use the latest ckpt in save_dir
+        if args.cont == "":  # if flag specified but no value given, use the latest ckpt in save_dir
             restore_ckpt_path = tf.train.latest_checkpoint(save_dir)
             if not restore_ckpt_path:
-                print(f'No checkpoints found in {save_dir}; training from scratch!')
+                print(f"No checkpoints found in {save_dir}; training from scratch!")
         else:  # then the supplied ckpt path had better be valid
             if os.path.isdir(args.cont):
                 ckpt_dir = args.cont
                 restore_ckpt_path = tf.train.latest_checkpoint(ckpt_dir)
-                assert restore_ckpt_path is not None, f'No checkpoints found in {ckpt_dir}'
+                assert restore_ckpt_path is not None, f"No checkpoints found in {ckpt_dir}"
             else:  # assuming this is a checkpoint name
                 restore_ckpt_path = args.cont
         if restore_ckpt_path:
             load_status = log_u_model.load_weights(restore_ckpt_path).expect_partial()
             # load_status.assert_consumed()
-            print('Loaded model weights from', restore_ckpt_path)
+            print("Loaded model weights from", restore_ckpt_path)
 
     # optional tensorboard logging
     step_counter = nn_optimizer.iterations
     tf.summary.experimental.set_step(step_counter)
-    if args.logdir != '':
+    if args.logdir != "":
         tf_log_dir = os.path.join(args.logdir, runname)
         writer = tf.summary.create_file_writer(tf_log_dir)
     #### END: boilerplate for training logistics ####
@@ -360,8 +392,8 @@ def train(args):
         target_lambs = list(sorted(args.target_lambs))  # this will be mutated throughout and contains the lambs to save
         warmup_epochs = cooldown_epochs = args.ready_steps
         # linear schedule
-        base_lamb = tf.constant(target_lambs[0], dtype='float32')
-        final_lamb = tf.constant(target_lambs[-1], dtype='float32')
+        base_lamb = tf.constant(target_lambs[0], dtype="float32")
+        final_lamb = tf.constant(target_lambs[-1], dtype="float32")
 
         def lamb_schedule(epoch):
             lamb = linear_schedule(epoch, args.last_step, base_lamb, final_lamb, warmup_epochs, cooldown_epochs)
@@ -371,7 +403,7 @@ def train(args):
         next_target_lamb = target_lambs.pop(0)
 
     else:
-        lamb = tf.constant(args.lamb, dtype='float32')
+        lamb = tf.constant(args.lamb, dtype="float32")
     ### END: Set up lamb scheduler
 
     if not args.num_Ck_samples:
@@ -390,12 +422,21 @@ def train(args):
             x = next(train_dataset_iter)
             x_M_batch.append(x)
 
-            res = optimize_y(log_u_fun=log_u_model, x=x, lamb=lamb, num_steps=args.y_steps,
-                             lr=args.y_lr, tol=args.y_tol, init=args.y_init,
-                             quick_topn=args.y_quick_topn, verbose=args.verbose, chunksize=args.chunksize)
-            opt_y = res['opt_y']
+            res = optimize_y(
+                log_u_fun=log_u_model,
+                x=x,
+                lamb=lamb,
+                num_steps=args.y_steps,
+                lr=args.y_lr,
+                tol=args.y_tol,
+                init=args.y_init,
+                quick_topn=args.y_quick_topn,
+                verbose=args.verbose,
+                chunksize=args.chunksize,
+            )
+            opt_y = res["opt_y"]
             opt_ys.append(opt_y)
-            log_Ck_samples.append(res['opt_log_supobj'])
+            log_Ck_samples.append(res["opt_log_supobj"])
 
         if step == -1:  # the initial run is just to set the log expansion point alpha
             # 'log_avg_Ck' here is just the avg of the M samples of Ck in log domain, for numerical reasons
@@ -411,7 +452,8 @@ def train(args):
             else:  # retain beta fraction of its current value, and update alpha with (1-beta) fraction of prev_log_Ck
                 # alpha = beta * alpha + (1-beta) * prev E[C_k]
                 log_alpha = tf.reduce_logsumexp(
-                    [log_alpha + tf.math.log(beta), prev_log_avg_Ck + tf.math.log(1 - beta)])
+                    [log_alpha + tf.math.log(beta), prev_log_avg_Ck + tf.math.log(1 - beta)]
+                )
 
         # Estimate the RD LB objective and do gradient update
         with tf.GradientTape() as tape:
@@ -429,16 +471,18 @@ def train(args):
             log_avg_Ck = lower_bound(log_avg_Ck, prev_log_avg_Ck - args.log_E_Ck_max_delta)
             log_us = tf.concat(log_us, axis=0)
             E_log_u = tf.reduce_mean(log_us)
-            log_E_Ck_est = tf.math.exp(
-                log_avg_Ck - log_alpha) + log_alpha - 1  # overestimator of log(E[C_k]) by linearization
+            log_E_Ck_est = (
+                tf.math.exp(log_avg_Ck - log_alpha) + log_alpha - 1
+            )  # overestimator of log(E[C_k]) by linearization
             loss = E_log_u + log_E_Ck_est
 
         prev_log_avg_Ck = log_avg_Ck  # for next iter
         trainable_vars = log_u_model.trainable_variables
         grads = tape.gradient(loss, trainable_vars)
         nn_optimizer.apply_gradients(zip(grads, trainable_vars))
-        step_rcd = dict(log_alpha=log_alpha, log_avg_Ck=log_avg_Ck, E_log_u=E_log_u,
-                        log_E_Ck_est=log_E_Ck_est, loss=loss)
+        step_rcd = dict(
+            log_alpha=log_alpha, log_avg_Ck=log_avg_Ck, E_log_u=E_log_u, log_E_Ck_est=log_E_Ck_est, loss=loss
+        )
 
         # Log to console/file
         print_to_console = args.verbose
@@ -446,32 +490,34 @@ def train(args):
             str_to_print = f"step {step}:\t\tloss = {loss:.4g}, log_alpha = {log_alpha:.4g}, log_avg_Ck = {log_avg_Ck:.4g}, log_E_Ck_est = {log_E_Ck_est:.4g}, "
             str_to_print += f"E_log_u = {E_log_u:.4}"
             if args.anneal_lamb:
-                str_to_print += f', lamb = {lamb:.5g}'
+                str_to_print += f", lamb = {lamb:.5g}"
             print(str_to_print)
-        step_rcd['step'] = step
+        step_rcd["step"] = step
         if args.anneal_lamb:
-            step_rcd['lamb'] = lamb
+            step_rcd["lamb"] = lamb
         step_rcd = preprocess_float_dict(step_rcd)  # to mollify json.dump
-        with open(log_file_path, 'a') as f:  # write one line to the json log
+        with open(log_file_path, "a") as f:  # write one line to the json log
             json.dump(step_rcd, f, cls=MyJSONEncoder)
-            f.write('\n')
+            f.write("\n")
 
         # tensorboard logging
-        if args.logdir != '':
+        if args.logdir != "":
             with writer.as_default():
-                for (k, v) in step_rcd.items():
+                for k, v in step_rcd.items():
                     tf.summary.scalar(k, v, step=step_counter)
             writer.flush()
 
         # Update lr
         if args.lr_schedule:
             old_lr = float(nn_optimizer.lr)
-            lr = lr_scheduler(epoch=step, total_epochs=args.last_step, base_lr=args.lr, decay_factor=0.2,
-                              warmup_epochs=0)
+            lr = lr_scheduler(
+                epoch=step, total_epochs=args.last_step, base_lr=args.lr, decay_factor=0.2, warmup_epochs=0
+            )
             if abs(old_lr - lr) > 1e-6:  # if should update
                 from keras import backend
+
                 backend.set_value(nn_optimizer.lr, lr)
-                print(f'Reset lr from {old_lr:.4g} to {float(nn_optimizer.lr):.4g}')
+                print(f"Reset lr from {old_lr:.4g} to {float(nn_optimizer.lr):.4g}")
 
         # Manually save model
         # At this point we've actually already taken (step + 1) gradient steps
@@ -479,20 +525,20 @@ def train(args):
         pop_lamb_flag = args.anneal_lamb and lamb_schedule(step + 1) >= next_target_lamb
         save_model_flag = save_model_flag or pop_lamb_flag
         if save_model_flag:
-            save_path = os.path.join(save_dir, f'step={step + 1}-lamb={lamb:.5g}-loss={float(loss):.3f}-kerasckpt')
+            save_path = os.path.join(save_dir, f"step={step + 1}-lamb={lamb:.5g}-loss={float(loss):.3f}-kerasckpt")
             log_u_model.save_weights(save_path)
             if pop_lamb_flag:
-                print(f'Right before reaching target lamb {next_target_lamb}, saved to {save_path}')
+                print(f"Right before reaching target lamb {next_target_lamb}, saved to {save_path}")
                 if len(target_lambs) > 0:
                     next_target_lamb = target_lambs.pop(0)
                 else:
                     next_target_lamb = np.Inf  # done, no more lambda values to target/save
 
-        finished = (step + 1 >= args.last_step)
+        finished = step + 1 >= args.last_step
         if finished:
             break
 
-    print(f'Logged to {log_file_path}')
+    print(f"Logged to {log_file_path}")
 
 
 def est_R_(log_u_fun, lamb, dataset_iter, args):
@@ -513,11 +559,19 @@ def est_R_(log_u_fun, lamb, dataset_iter, args):
     assert M >= 1
     for n in range(2 * M):
         x = next(dataset_iter)
-        res = optimize_y(log_u_fun=log_u_fun, x=x, lamb=lamb, num_steps=args.y_steps,
-                         lr=args.y_lr, tol=args.y_tol,
-                         init=args.y_init, quick_topn=args.y_quick_topn,
-                         verbose=args.verbose, chunksize=args.chunksize)
-        log_Ck_samples.append(res['opt_log_supobj'])
+        res = optimize_y(
+            log_u_fun=log_u_fun,
+            x=x,
+            lamb=lamb,
+            num_steps=args.y_steps,
+            lr=args.y_lr,
+            tol=args.y_tol,
+            init=args.y_init,
+            quick_topn=args.y_quick_topn,
+            verbose=args.verbose,
+            chunksize=args.chunksize,
+        )
+        log_Ck_samples.append(res["opt_log_supobj"])
         if args.verbose:
             print(f"GOP run {n} opt_log_supobj = {res['opt_log_supobj']}")
 
@@ -534,8 +588,9 @@ def est_R_(log_u_fun, lamb, dataset_iter, args):
     xi_samples = -E_log_us[M:] - np.exp(log_Ck_samples[M:] - log_alpha) - log_alpha + 1
     R_ = tf.reduce_mean(xi_samples)
 
-    res = dict(E_log_us=E_log_us, log_Ck_samples=np.array(log_Ck_samples), xi_samples=xi_samples, log_alpha=log_alpha,
-               R_=R_)
+    res = dict(
+        E_log_us=E_log_us, log_Ck_samples=np.array(log_Ck_samples), xi_samples=xi_samples, log_alpha=log_alpha, R_=R_
+    )
 
     return res
 
@@ -552,193 +607,242 @@ def eval(args):
         ckpt_dir = os.path.join(args.checkpoint_dir, runname)  # run dir
         save_dir = ckpt_dir
         restore_ckpt_path = tf.train.latest_checkpoint(ckpt_dir)
-        assert restore_ckpt_path is not None, f'No checkpoints found in {ckpt_dir}'
+        assert restore_ckpt_path is not None, f"No checkpoints found in {ckpt_dir}"
     else:
         if os.path.isdir(args.ckpt):
             ckpt_dir = args.ckpt
             save_dir = ckpt_dir
             restore_ckpt_path = tf.train.latest_checkpoint(ckpt_dir)
-            assert restore_ckpt_path is not None, f'No checkpoints found in {ckpt_dir}'
+            assert restore_ckpt_path is not None, f"No checkpoints found in {ckpt_dir}"
         else:
             restore_ckpt_path = args.ckpt
-            if restore_ckpt_path.endswith('.index'):
+            if restore_ckpt_path.endswith(".index"):
                 restore_ckpt_path = os.path.splitext(restore_ckpt_path)[0]  # remove extension for tf
             save_dir = os.path.dirname(restore_ckpt_path)
 
     log_u_model = model = get_model(**vars(args))
     load_status = model.load_weights(restore_ckpt_path).expect_partial()
-    print('Loaded model weights from', restore_ckpt_path)
+    print("Loaded model weights from", restore_ckpt_path)
 
     dataset_iter = get_dataset_iter(args)
 
     if not args.lamb:
-        print('Non-effective lamb provided in args; will try to use lamb in ckpt name')
+        print("Non-effective lamb provided in args; will try to use lamb in ckpt name")
         try:
             from utils import parse_lamb
+
             lamb_str = parse_lamb(restore_ckpt_path, strip_pardir=True)
             lamb = float(lamb_str)
-            lamb = tf.constant(lamb, dtype='float32')
-            print(f'Defaulting lamb to ckpt value = {lamb} instead')
+            lamb = tf.constant(lamb, dtype="float32")
+            print(f"Defaulting lamb to ckpt value = {lamb} instead")
         except Exception as e:
-            print('Failed to get valid lamb!')
+            print("Failed to get valid lamb!")
             raise e
     else:
         lamb = args.lamb
     assert lamb > 0
 
-    assert args.y_init == 'exhaustive', 'Should run full global optimization procedure to be correct.'
+    assert args.y_init == "exhaustive", "Should run full global optimization procedure to be correct."
     res = est_R_(log_u_model, lamb, dataset_iter, args)
-    R_ = res['R_']
-    save_path = os.path.join(save_dir,
-                             f'rd-seed={args.seed}-k={args.batchsize}-M={args.num_Ck_samples}-lamb={lamb:.5g}-R_={R_:.3f}.npz')
+    R_ = res["R_"]
+    save_path = os.path.join(
+        save_dir, f"rd-seed={args.seed}-k={args.batchsize}-M={args.num_Ck_samples}-lamb={lamb:.5g}-R_={R_:.3f}.npz"
+    )
     np.savez(save_path, **res)
-    print(f'Saved final R_ est to {save_path}')
+    print(f"Saved final R_ est to {save_path}")
 
     return None
 
 
 def parse_args(argv):
     """Parses command line arguments."""
-    parser = argparse_flags.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse_flags.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # High-level options.
     parser.add_argument(
-        "--verbose", "-V", action="store_true",
-        help="Report bitrate and distortion when training or compressing.")
+        "--verbose", "-V", action="store_true", help="Report bitrate and distortion when training or compressing."
+    )
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument(
-        "--checkpoint_dir", default="./checkpoints",
-        help="Parent directory for model checkpoints; each run creates a subdirectory based on runname and saves checkpoints there.")
-    parser.add_argument("--chunksize", type=int, default=None,
-                        help="Do things in chunks to avoid running out of memory.")
+        "--checkpoint_dir",
+        default="./checkpoints",
+        help="Parent directory for model checkpoints; each run creates a subdirectory based on runname and saves checkpoints there.",
+    )
+    parser.add_argument(
+        "--chunksize", type=int, default=None, help="Do things in chunks to avoid running out of memory."
+    )
 
     # Dataset.
-    parser.add_argument("--data_dim", type=int, help="Data dimension. For Gaussian toy source, this is simply the"
-                                                     "dimensionality; for images, this is the crop dim/height/width.")
+    parser.add_argument(
+        "--data_dim",
+        type=int,
+        help="Data dimension. For Gaussian toy source, this is simply the"
+        "dimensionality; for images, this is the crop dim/height/width.",
+    )
     parser.add_argument(
         "--dataset",
         help="Dataset specifier. 'gaussian' or a glob pattern identifying training data. This pattern must expand "
-             "to a list of RGB images in PNG format.")
+        "to a list of RGB images in PNG format.",
+    )
     parser.add_argument("--gparams_path", type=str, default=None, help="Path to Gaussian loc/scale params. ")
 
     # Model settings
-    parser.add_argument(
-        "--lamb", type=float,
-        help="lambda; should be positive float.")
-    parser.add_argument("--model", type=str, default='mlp', help='Type of log_u model to use.')
+    parser.add_argument("--lamb", type=float, help="lambda; should be positive float.")
+    parser.add_argument("--model", type=str, default="mlp", help="Type of log_u model to use.")
     # For NN model
     parser.add_argument(
-        "--units", type=lambda s: [int(i) for i in s.split(',')], default=[],
-        help="A comma delimited list, specifying the number of hidden units per NN layer (if using NN model).")
-    parser.add_argument(
-        "--activation", type=str, default='selu',
-        help="Activation for hidden layers of the NN model.")
+        "--units",
+        type=lambda s: [int(i) for i in s.split(",")],
+        default=[],
+        help="A comma delimited list, specifying the number of hidden units per NN layer (if using NN model).",
+    )
+    parser.add_argument("--activation", type=str, default="selu", help="Activation for hidden layers of the NN model.")
     # For CNN specifically
     parser.add_argument(
-        "--kernel_dims", type=lambda s: tuple(int(i) for i in s.split(',')),
+        "--kernel_dims",
+        type=lambda s: tuple(int(i) for i in s.split(",")),
         default=tuple(),
-        help="A comma delimited list, specifying the kernel dim of each conv layer; no effect if not using a conv net")
+        help="A comma delimited list, specifying the kernel dim of each conv layer; no effect if not using a conv net",
+    )
 
     subparsers = parser.add_subparsers(
-        title="commands", dest="command",
+        title="commands",
+        dest="command",
         help="What to do: 'train' loads training data and trains (or continues "
-             "to train) a new model. 'compress' reads an image file (lossless "
-             "PNG format) and writes a compressed binary file. 'decompress' "
-             "reads a binary file and reconstructs the image (in PNG format). "
-             "input and output filenames need to be provided for the latter "
-             "two options. Invoke '<command> -h' for more information.")
+        "to train) a new model. 'compress' reads an image file (lossless "
+        "PNG format) and writes a compressed binary file. 'decompress' "
+        "reads a binary file and reconstructs the image (in PNG format). "
+        "input and output filenames need to be provided for the latter "
+        "two options. Invoke '<command> -h' for more information.",
+    )
 
     # 'train' subcommand.
     train_cmd = subparsers.add_parser(
         "train",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        description="Trains (or continues to train) a new model.")
+        description="Trains (or continues to train) a new model.",
+    )
+    train_cmd.add_argument("--lr", type=float, default=1e-4, help="Main optimizer lr.")
+    train_cmd.add_argument("--lr_schedule", default=False, action="store_true", help="Whether to use lr schedule")
     train_cmd.add_argument(
-        "--lr", type=float, default=1e-4,
-        help="Main optimizer lr.")
+        "--global_clipnorm",
+        type=float,
+        default=100.0,
+        help="Implement global_clipnorm to this value for the main optimizer.",
+    )
+    train_cmd.add_argument("--last_step", type=int, default=10000, help="Train up to this number of steps.")
     train_cmd.add_argument(
-        "--lr_schedule", default=False, action='store_true',
-        help="Whether to use lr schedule")
+        "--preprocess_threads",
+        type=int,
+        default=16,
+        help="Number of CPU threads to use for parallel decoding of training " "images.",
+    )
     train_cmd.add_argument(
-        "--global_clipnorm", type=float, default=100.,
-        help="Implement global_clipnorm to this value for the main optimizer.")
+        "--checkpoint_interval",
+        type=int,
+        default=500,
+        help="Write a checkpoint every `checkpoint_interval` training steps.",
+    )
     train_cmd.add_argument(
-        "--last_step", type=int, default=10000,
-        help="Train up to this number of steps.")
-    train_cmd.add_argument(
-        "--preprocess_threads", type=int, default=16,
-        help="Number of CPU threads to use for parallel decoding of training "
-             "images.")
-    train_cmd.add_argument(
-        "--checkpoint_interval", type=int, default=500,
-        help="Write a checkpoint every `checkpoint_interval` training steps.")
-    train_cmd.add_argument(
-        "--logdir", default="",  # '--log_dir' seems to conflict with absl.flags's existing
-        help="Directory for storing Tensorboard logging files; set to empty string '' to disable Tensorboard logging.")
+        "--logdir",
+        default="",  # '--log_dir' seems to conflict with absl.flags's existing
+        help="Directory for storing Tensorboard logging files; set to empty string '' to disable Tensorboard logging.",
+    )
 
     train_cmd.add_argument(
-        "--cont", nargs='?', default=None, const='',  # see https://docs.python.org/3/library/argparse.html#nargs
+        "--cont",
+        nargs="?",
+        default=None,
+        const="",  # see https://docs.python.org/3/library/argparse.html#nargs
         help="Path to the checkpoint (either the directory containing the checkpoint (will use the latest), or"
-             "full checkpoint name (should not have the .index extension)) to continue training from;"
-             "if no path is given, will try to use the latest ckpt in the run dir.")
+        "full checkpoint name (should not have the .index extension)) to continue training from;"
+        "if no path is given, will try to use the latest ckpt in the run dir.",
+    )
     train_cmd.add_argument(
-        "--beta", type=float, default=0.2,
-        help="Fraction of historic value to use in the moving average estimation of alpha; set to 0 to disable history.")
+        "--beta",
+        type=float,
+        default=0.2,
+        help="Fraction of historic value to use in the moving average estimation of alpha; set to 0 to disable history.",
+    )
     train_cmd.add_argument(
-        "--log_E_Ck_max_delta", type=float, default=1.0,
-        help="Allow log_Ck to differ by at most this number across steps to prevent drastic updates in log_u resulting in NaN.")
+        "--log_E_Ck_max_delta",
+        type=float,
+        default=1.0,
+        help="Allow log_Ck to differ by at most this number across steps to prevent drastic updates in log_u resulting in NaN.",
+    )
 
     train_cmd.add_argument(
-        "--anneal_lamb", default=False, action='store_true',
+        "--anneal_lamb",
+        default=False,
+        action="store_true",
         help="Whether to use lambda annealing; if specified, the --lamb argument sets the final lambda value, and"
-             "a linear schedule is used to interpolate .")
+        "a linear schedule is used to interpolate .",
+    )
     train_cmd.add_argument(
-        "--ready_steps", type=int, default=50,
-        help="Number of steps to get ready (warmup or cooldown) before/after lambda annealing.")
+        "--ready_steps",
+        type=int,
+        default=50,
+        help="Number of steps to get ready (warmup or cooldown) before/after lambda annealing.",
+    )
     train_cmd.add_argument(
         "--target_lambs",
-        type=lambda s: tuple(float(i) for i in s.split(',')),
+        type=lambda s: tuple(float(i) for i in s.split(",")),
         default=tuple(),
         help="A comma delimited list of floats, specifiying the lambda values at which to save model checkpoints."
-             "The first and last values will be used to set a linear annealing schedule, and a new checkpoint"
-             "will be saved every time the current value of lambda reaches one of the values on the list.")
+        "The first and last values will be used to set a linear annealing schedule, and a new checkpoint"
+        "will be saved every time the current value of lambda reaches one of the values on the list.",
+    )
 
     # 'eval' subcommand.
     eval_cmd = subparsers.add_parser(
         "eval",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        description="Evaluates model saves results in .npz.")
+        description="Evaluates model saves results in .npz.",
+    )
     eval_cmd.add_argument(
-        "--ckpt", type=str, default=None,
+        "--ckpt",
+        type=str,
+        default=None,
         help="Path to the checkpoint (either the directory containing the checkpoint (will use the latest), or"
-             "full checkpoint name (with optional .index extension)) to load;"
-             "by default (None) uses the latest ckpt in the auto-generated run dir in checkpoint_dir/runname")
+        "full checkpoint name (with optional .index extension)) to load;"
+        "by default (None) uses the latest ckpt in the auto-generated run dir in checkpoint_dir/runname",
+    )
 
     for cmd in (train_cmd, eval_cmd):
+        cmd.add_argument("--batchsize", "-k", type=int, default=16, help="Batch size of x samples.")
         cmd.add_argument(
-            "--batchsize", "-k", type=int, default=16,
-            help="Batch size of x samples.")
-        cmd.add_argument(
-            "--num_Ck_samples", "-M", type=int, default=None,
+            "--num_Ck_samples",
+            "-M",
+            type=int,
+            default=None,
             help="Number of samples of Ck used to estimate E[C_k] or the log expansion point. Drawing each C_k sample"
-                 "requires a global optimization run.")
+            "requires a global optimization run.",
+        )
         # Settings for global optimization of Gaussian mixture density.
         cmd.add_argument(
-            "--y_init", type=str, default='quick',
-            help="How to initialize inner optimization w.r.t. y, exhaustive|quick.")
+            "--y_init",
+            type=str,
+            default="quick",
+            help="How to initialize inner optimization w.r.t. y, exhaustive|quick.",
+        )
         cmd.add_argument(
-            "--y_quick_topn", type=int, default=10,
-            help="When using 'quick' for y init, only run hill climbing from this many 'best' centroids.")
+            "--y_quick_topn",
+            type=int,
+            default=10,
+            help="When using 'quick' for y init, only run hill climbing from this many 'best' centroids.",
+        )
         cmd.add_argument(
-            "--y_steps", type=int, default=1000,
-            help="Max number of steps to run inner gradient ascent w.r.t. y to compute C_k sample.")
+            "--y_steps",
+            type=int,
+            default=1000,
+            help="Max number of steps to run inner gradient ascent w.r.t. y to compute C_k sample.",
+        )
         cmd.add_argument(
-            "--y_tol", type=float, default=1e-6,
-            help="Convergence threshold for inner gradient ascent w.r.t. y.")
+            "--y_tol", type=float, default=1e-6, help="Convergence threshold for inner gradient ascent w.r.t. y."
+        )
         cmd.add_argument(
-            "--y_lr", type=float, default=1e-2,
-            help="Optimizer lr for the inner gradient ascent w.r.t. y.")
+            "--y_lr", type=float, default=1e-2, help="Optimizer lr for the inner gradient ascent w.r.t. y."
+        )
 
     # Parse arguments.
     args = parser.parse_args(argv[1:])

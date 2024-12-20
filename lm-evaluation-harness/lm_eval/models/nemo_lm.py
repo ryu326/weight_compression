@@ -20,23 +20,16 @@ from typing import List, Literal
 import filelock
 import numpy as np
 import torch
-from tqdm import tqdm
-
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import Collator
-from lm_eval.utils import (
-    eval_logger,
-    get_rolling_token_windows,
-    make_disjoint_window,
-    simple_parse_args_string,
-)
+from lm_eval.utils import (eval_logger, get_rolling_token_windows,
+                           make_disjoint_window, simple_parse_args_string)
+from tqdm import tqdm
 
 
-def _patch_pretrained_cfg(
-    pretrained_cfg, trainer, tensor_model_parallel_size, pipeline_model_parallel_size
-):
+def _patch_pretrained_cfg(pretrained_cfg, trainer, tensor_model_parallel_size, pipeline_model_parallel_size):
     try:
         import omegaconf
     except ModuleNotFoundError as exception:
@@ -75,10 +68,10 @@ def load_model(
     pipeline_model_parallel_size: int,
 ) -> torch.nn.Module:
     try:
-        from nemo.collections.nlp.models.language_modeling.megatron_gpt_model import (
-            MegatronGPTModel,
-        )
-        from nemo.collections.nlp.parts.nlp_overrides import NLPSaveRestoreConnector
+        from nemo.collections.nlp.models.language_modeling.megatron_gpt_model import \
+            MegatronGPTModel
+        from nemo.collections.nlp.parts.nlp_overrides import \
+            NLPSaveRestoreConnector
     except ModuleNotFoundError as exception:
         raise type(exception)(
             "Attempted to use 'nemo_lm' model type, but package `nemo` is not installed"
@@ -187,9 +180,8 @@ class NeMoLM(LM):
         **kwargs,
     ):
         try:
-            from nemo.collections.nlp.modules.common.text_generation_utils import (
-                generate,
-            )
+            from nemo.collections.nlp.modules.common.text_generation_utils import \
+                generate
             from nemo.collections.nlp.parts.nlp_overrides import NLPDDPStrategy
             from pytorch_lightning.trainer.trainer import Trainer
 
@@ -203,18 +195,10 @@ class NeMoLM(LM):
 
         super().__init__()
 
-        if (
-            tensor_model_parallel_size == 1
-            and pipeline_model_parallel_size == 1
-            and devices > 1
-        ):
-            eval_logger.info(
-                f"The number of data replicas for evaluation is {devices}."
-            )
+        if tensor_model_parallel_size == 1 and pipeline_model_parallel_size == 1 and devices > 1:
+            eval_logger.info(f"The number of data replicas for evaluation is {devices}.")
             eval_logger.info(f"The total number of devices is {devices}.")
-            eval_logger.info(
-                "No tensor parallelism or pipeline parallelism is applied."
-            )
+            eval_logger.info("No tensor parallelism or pipeline parallelism is applied.")
 
         elif tensor_model_parallel_size * pipeline_model_parallel_size == devices:
             eval_logger.info(
@@ -230,9 +214,7 @@ class NeMoLM(LM):
             )
 
         if num_nodes > 1:
-            raise ValueError(
-                "A number of nodes greater than 1 is not supported yet. Please set num_nodes as 1."
-            )
+            raise ValueError("A number of nodes greater than 1 is not supported yet. Please set num_nodes as 1.")
 
         trainer = Trainer(
             strategy=NLPDDPStrategy(),
@@ -245,11 +227,7 @@ class NeMoLM(LM):
             use_distributed_sampler=False,
         )
         # Modify the following flags only for data replication
-        if (
-            tensor_model_parallel_size == 1
-            and pipeline_model_parallel_size == 1
-            and devices > 1
-        ):
+        if tensor_model_parallel_size == 1 and pipeline_model_parallel_size == 1 and devices > 1:
             self._device = torch.device(f"cuda:{trainer.global_rank}")
             self._rank = trainer.global_rank
             self._world_size = trainer.world_size
@@ -317,10 +295,7 @@ class NeMoLM(LM):
             torch.distributed.barrier()
 
         def gather(self, local_tensor):
-            gathered_tensors = [
-                torch.zeros(1, dtype=local_tensor.dtype).cuda()
-                for _ in range(self.world_size)
-            ]
+            gathered_tensors = [torch.zeros(1, dtype=local_tensor.dtype).cuda() for _ in range(self.world_size)]
             torch.distributed.all_gather(gathered_tensors, local_tensor)
             return torch.cat(gathered_tensors)
 
@@ -357,9 +332,7 @@ class NeMoLM(LM):
 
         return self._loglikelihood_tokens(new_reqs)
 
-    def loglikelihood_rolling(
-        self, requests: List[Instance], disable_tqdm: bool = False
-    ) -> List[float]:
+    def loglikelihood_rolling(self, requests: List[Instance], disable_tqdm: bool = False) -> List[float]:
         loglikelihoods = []
 
         for (string,) in tqdm([req.args for req in requests], disable=disable_tqdm):
@@ -414,9 +387,7 @@ class NeMoLM(LM):
                 # Leave one token for generation. Tokens_to_generate = 0 breaks NeMo.
                 inp = (context_enc + continuation_enc)[-(self.max_length - 1) :]
 
-                ctxlen = len(context_enc) - max(
-                    0, len(context_enc) + len(continuation_enc) - (self.max_length - 1)
-                )
+                ctxlen = len(context_enc) - max(0, len(context_enc) + len(continuation_enc) - (self.max_length - 1))
                 ctxlens.append(ctxlen)
                 contlens.append(len(continuation_enc))
 
@@ -440,16 +411,19 @@ class NeMoLM(LM):
             min_ctxlen = min(ctxlens)
 
             # Use min_ctxlen-1 instead of min_ctxlen since full_logprobs are not returns for the first token.
-            batch_greedy_tokens = (
-                torch.argmax(batch_full_logprob[:, min_ctxlen - 1 :, :], -1)
-                .cpu()
-                .numpy()
-            )
+            batch_greedy_tokens = torch.argmax(batch_full_logprob[:, min_ctxlen - 1 :, :], -1).cpu().numpy()
 
-            for token_ids, greedy_tokens, logprobs, ctxlen, contlen, (
-                cache_key,
-                _,
-                _,
+            for (
+                token_ids,
+                greedy_tokens,
+                logprobs,
+                ctxlen,
+                contlen,
+                (
+                    cache_key,
+                    _,
+                    _,
+                ),
             ) in zip(
                 batch_token_ids,
                 batch_greedy_tokens,
@@ -499,9 +473,7 @@ class NeMoLM(LM):
             toks = self.tok_encode(x[0])
             return len(toks), x[0]
 
-        re_ords = Collator(
-            [reg.args for reg in requests], sort_fn=_collate, group_by="gen_kwargs"
-        )
+        re_ords = Collator([reg.args for reg in requests], sort_fn=_collate, group_by="gen_kwargs")
         chunks = re_ords.get_batched(n=self.batch_size, batch_fn=None)
         for chunk in chunks:
             contexts, all_gen_kwargs = zip(*chunk)

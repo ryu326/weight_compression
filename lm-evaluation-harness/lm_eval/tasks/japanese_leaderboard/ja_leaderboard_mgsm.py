@@ -1,6 +1,5 @@
 import re
 
-
 _INVALID_ANSWER = "[invalid]"
 
 _ANSWER_REGEX = re.compile(r"(\-?[0-9\.\,]+)")
@@ -23,9 +22,7 @@ def _extract_answer(completion):
 
 
 def process_results(doc, results):
-    assert (
-        len(results) == 1
-    ), f"results should be a list with 1 str element, but is {results}"
+    assert len(results) == 1, f"results should be a list with 1 str element, but is {results}"
 
     completion = results[0]
     extracted_answer = _extract_answer(completion)

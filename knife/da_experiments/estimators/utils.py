@@ -20,15 +20,13 @@ class FF(nn.Module):
             if self.layer_norm:
                 layer.append(nn.LayerNorm(dim_input if l == 0 else dim_hidden))
 
-            layer.append(nn.Linear(dim_input if l == 0 else dim_hidden,
-                                   dim_hidden))
-            layer.append({'tanh': nn.Tanh(), 'relu': nn.ReLU()}[self.activation])
+            layer.append(nn.Linear(dim_input if l == 0 else dim_hidden, dim_hidden))
+            layer.append({"tanh": nn.Tanh(), "relu": nn.ReLU()}[self.activation])
             layer.append(nn.Dropout(dropout_rate))
 
             self.stack.append(nn.Sequential(*layer))
 
-        self.out = nn.Linear(dim_input if self.num_layers < 1 else dim_hidden,
-                             dim_output)
+        self.out = nn.Linear(dim_input if self.num_layers < 1 else dim_hidden, dim_output)
 
     def forward(self, x):
         for layer in self.stack:

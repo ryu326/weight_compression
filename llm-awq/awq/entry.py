@@ -1,27 +1,22 @@
-from lm_eval import evaluator, tasks
-from transformers import AutoModelForCausalLM, AutoTokenizer, AutoConfig
-import torch
 import argparse
-import os
 import json
-from accelerate import (
-    init_empty_weights,
-    infer_auto_device_map,
-    dispatch_model,
-    load_checkpoint_in_model,
-)
+import os
+
+import torch
+import tqdm
+from accelerate import (dispatch_model, infer_auto_device_map,
+                        init_empty_weights, load_checkpoint_in_model)
 from accelerate.utils.modeling import get_balanced_memory
-from awq.utils.parallel import auto_parallel
-from awq.quantize.pre_quant import run_awq, apply_awq
-from awq.quantize.quantizer import (
-    pseudo_quantize_model_weight,
-    real_quantize_model_weight,
-)
+from awq.quantize.pre_quant import apply_awq, run_awq
+from awq.quantize.quantizer import (pseudo_quantize_model_weight,
+                                    real_quantize_model_weight)
 from awq.utils.lm_eval_adaptor import LMEvalAdaptor
+from awq.utils.parallel import auto_parallel
 from awq.utils.utils import simple_dispatch_model
 from datasets import load_dataset
+from lm_eval import evaluator, tasks
 from torch import nn
-import tqdm
+from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--model_path", type=str, help="path of the hf model")
@@ -57,12 +52,8 @@ parser.add_argument("--dump_fake", type=str, default=None, help="save fake-quant
 parser.add_argument("--load_quant", type=str, default=None, help="load quantized model")
 # apply/save/load awq
 parser.add_argument("--run_awq", action="store_true", help="perform awq search process")
-parser.add_argument(
-    "--dump_awq", type=str, default=None, help="save the awq search results"
-)
-parser.add_argument(
-    "--load_awq", type=str, default=None, help="load the awq search results"
-)
+parser.add_argument("--dump_awq", type=str, default=None, help="save the awq search results")
+parser.add_argument("--load_awq", type=str, default=None, help="load the awq search results")
 parser.add_argument(
     "--vila-15",
     action="store_true",
@@ -94,38 +85,30 @@ def build_model_and_enc(model_path):
 
     # all hf model
     if vila_10_quant_mode:
-        from llava.model.builder import load_pretrained_model
         from llava.mm_utils import get_model_name_from_path
+        from llava.model.builder import load_pretrained_model
 
         enc, model, image_processor, context_len = load_pretrained_model(
             model_path=model_path,
             model_base=None,
             model_name=get_model_name_from_path(model_path),
             device="cpu",
-            **{"use_cache": False}
+            **{"use_cache": False},
         )
     else:
         config = AutoConfig.from_pretrained(model_path, trust_remote_code=True)
         # Note (Haotian): To avoid OOM after huggingface transformers 4.36.2
         config.use_cache = False
         if "mpt" in config.__class__.__name__.lower():
-            enc = AutoTokenizer.from_pretrained(
-                config.tokenizer_name, trust_remote_code=True
-            )
+            enc = AutoTokenizer.from_pretrained(config.tokenizer_name, trust_remote_code=True)
         else:
-            enc = AutoTokenizer.from_pretrained(
-                model_path, use_fast=False, trust_remote_code=True
-            )
+            enc = AutoTokenizer.from_pretrained(model_path, use_fast=False, trust_remote_code=True)
 
     if args.load_quant:  # directly load quantized weights
         print("Loading pre-computed quantized weights...")
         with init_empty_weights():
-            model = AutoModelForCausalLM.from_config(
-                config=config, torch_dtype=torch.float16, trust_remote_code=True
-            )
-        real_quantize_model_weight(
-            model, w_bit=args.w_bit, q_config=q_config, init_only=True
-        )
+            model = AutoModelForCausalLM.from_config(config=config, torch_dtype=torch.float16, trust_remote_code=True)
+        real_quantize_model_weight(model, w_bit=args.w_bit, q_config=q_config, init_only=True)
 
         model.tie_weights()
 
@@ -158,9 +141,7 @@ def build_model_and_enc(model_path):
         # Init model on CPU:
         kwargs = {"torch_dtype": torch.float16, "low_cpu_mem_usage": True}
         if not vila_10_quant_mode:
-            model = AutoModelForCausalLM.from_pretrained(
-                model_path, config=config, trust_remote_code=True, **kwargs
-            )
+            model = AutoModelForCausalLM.from_pretrained(model_path, config=config, trust_remote_code=True, **kwargs)
 
         model.eval()
 
@@ -192,9 +173,7 @@ def build_model_and_enc(model_path):
         # weight quantization
         if args.w_bit is not None:
             if args.q_backend == "fake":
-                assert (
-                    args.dump_quant is None
-                ), "Need to use real quantization to dump quantized weights"
+                assert args.dump_quant is None, "Need to use real quantization to dump quantized weights"
                 pseudo_quantize_model_weight(model, w_bit=args.w_bit, q_config=q_config)
                 if args.dump_fake:
                     model.save_pretrained(args.dump_fake)
@@ -215,11 +194,7 @@ def build_model_and_enc(model_path):
                 raise NotImplementedError
 
         # Move the model to GPU (as much as possible) for LM evaluation
-        kwargs = {
-            "max_memory": get_balanced_memory(
-                model, max_memory if len(max_memory) > 0 else None
-            )
-        }
+        kwargs = {"max_memory": get_balanced_memory(model, max_memory if len(max_memory) > 0 else None)}
         device_map = infer_auto_device_map(
             model,
             # TODO: can we remove this?
@@ -261,19 +236,13 @@ def main():
             model = model.eval()
             nlls = []
             for i in tqdm.tqdm(range(nsamples), desc="evaluating..."):
-                batch = testenc[:, (i * model.seqlen) : ((i + 1) * model.seqlen)].to(
-                    model.device
-                )
+                batch = testenc[:, (i * model.seqlen) : ((i + 1) * model.seqlen)].to(model.device)
                 with torch.no_grad():
                     lm_logits = model(batch).logits
                 shift_logits = lm_logits[:, :-1, :].contiguous().float()
-                shift_labels = testenc[
-                    :, (i * model.seqlen) : ((i + 1) * model.seqlen)
-                ][:, 1:]
+                shift_labels = testenc[:, (i * model.seqlen) : ((i + 1) * model.seqlen)][:, 1:]
                 loss_fct = nn.CrossEntropyLoss()
-                loss = loss_fct(
-                    shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1)
-                )
+                loss = loss_fct(shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1))
                 neg_log_likelihood = loss.float() * model.seqlen
                 nlls.append(neg_log_likelihood)
 

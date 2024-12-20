@@ -1,7 +1,6 @@
 import random
 
 import transformers
-
 from lm_eval import evaluator, tasks
 from lm_eval.api.model import LM
 

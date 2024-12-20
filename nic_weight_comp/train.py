@@ -20,6 +20,7 @@ from torch.utils.data import DataLoader
 from datasets_Imagenet_best_worst import Imagenet_best_worst
 from datasets_ImageNet import ImageNet_dataset
 from datasets_WeightParam import WParam_dataset
+
 # from datasets_openimages_v6 import Openimages_v6_dataset
 
 from pytorch_msssim import ms_ssim as ms_ssim_func
@@ -30,96 +31,98 @@ from models.ELIC import ELIC, model_config
 
 from utils.optimizers import *
 from utils.util import *
-        
-def test(total_iter, test_dataset, model, save_path, logger, loss_fn_alex, node_rank = 0):
+
+
+def test(total_iter, test_dataset, model, save_path, logger, loss_fn_alex, node_rank=0):
 
     avg_bpp = 0.0
     mean_PSNR = 0
     mean_MS_SSIM_prob = 0
     mean_LPIPS = 0
-    
+
     device = next(model.parameters()).device
 
     loss_fn_alex = loss_fn_alex.to(device)
 
     # for idx, (image_name, image) in enumerate(test_dataset) :
-    for idx, image in enumerate(test_dataset) :
+    for idx, image in enumerate(test_dataset):
 
         img = image.to(device)
         x = img.unsqueeze(0).to(device)
-            
+
         if type(model) == TCM:
-        
+
             try:
-                x_paddeimg, padding = pad(x, p = 128)
+                x_paddeimg, padding = pad(x, p=128)
                 out_enc = model.compress(x_paddeimg.to(device))
             except:
-                x_paddeimg, padding = pad(x, p = 256)
+                x_paddeimg, padding = pad(x, p=256)
                 out_enc = model.compress(x_paddeimg.to(device))
-            
+
             out_dec = model.decompress(out_enc["strings"], out_enc["shape"])
-            
+
             num_pixels = x.size(0) * x.size(2) * x.size(3)
-            
+
             bpp = 0
 
             for s in out_enc["strings"]:
-                if s != [0]: #  
-                    bpp += len(s[0]) * 8.0 / num_pixels 
+                if s != [0]:  #
+                    bpp += len(s[0]) * 8.0 / num_pixels
 
             x_hat = crop(out_dec["x_hat"], padding).clone().detach()
-            
+
         elif type(model) == FrequencyAwareTransFormer:
-            
-            x_paddeimg, padding = pad(x, p = 256)
+
+            x_paddeimg, padding = pad(x, p=256)
             out_net = model(x_paddeimg.to(device))
 
-            x_hat = out_net['x_hat'].clamp_(0, 1)
+            x_hat = out_net["x_hat"].clamp_(0, 1)
             x_hat = crop(x_hat, padding)
-            
+
             bpp = compute_bpp(out_net)
-        
+
         elif type(model) == ELIC:
             x = x.to(device)
             B, C, H, W = x.shape
-            num_pixels = B*H*W
+            num_pixels = B * H * W
             pad_h = 0
             pad_w = 0
             if H % 64 != 0:
                 pad_h = 64 * (H // 64 + 1) - H
             if W % 64 != 0:
                 pad_w = 64 * (W // 64 + 1) - W
-                
-            x_paddeimg = F.pad(img, (0, pad_w, 0, pad_h), mode='constant', value=0).unsqueeze(0)
+
+            x_paddeimg = F.pad(img, (0, pad_w, 0, pad_h), mode="constant", value=0).unsqueeze(0)
 
             out = model.compress(x_paddeimg.to(device))
-            
+
             shape = out["shape"]
-            
+
             bpp = 0
             for s in out["strings"]:
-                if s != [0]: #  
-                    bpp += len(s[0]) * 8.0 / num_pixels 
-            
+                if s != [0]:  #
+                    bpp += len(s[0]) * 8.0 / num_pixels
+
             out = model.decompress(out["strings"], shape)
-            
+
             x_hat = out["x_hat"]
-            x_hat = x_hat[:, :, 0 : H, 0 : W]
-        
-        ms_ssim_prob = ms_ssim_func(x, x_hat, data_range=1.).item()
+            x_hat = x_hat[:, :, 0:H, 0:W]
+
+        ms_ssim_prob = ms_ssim_func(x, x_hat, data_range=1.0).item()
         psnr = compute_psnr(x, x_hat)
         lpips_score = loss_fn_alex(x, x_hat).item()
-            
-           
+
         avg_bpp += bpp
         mean_PSNR += psnr
         mean_MS_SSIM_prob += ms_ssim_prob
         mean_LPIPS += lpips_score
 
         if node_rank == 0:
-        
-            logger.info(f"Test total_iter: {total_iter}, File name: {idx}, PSNR: {psnr}, MS-SSIM: {ms_ssim_prob}, LPIPS: {lpips_score}, BPP: {bpp}")
-        
+
+            logger.info(
+                f"Test total_iter: {total_iter}, File name: {idx}, PSNR: {psnr}, MS-SSIM: {ms_ssim_prob}, LPIPS: {lpips_score}, BPP: {bpp}"
+            )
+
             # output_path = os.path.join(save_path, f'{idx}')
             # torchvision.utils.save_image(x_hat, output_path, nrow=1)
 
@@ -129,25 +132,28 @@ def test(total_iter, test_dataset, model, save_path, logger, loss_fn_alex, node_
     mean_LPIPS /= len(test_dataset)
 
     if node_rank == 0:
-    
-        logger.info(f'Average_PSNR: {mean_PSNR:.4f}dB, Average_MS-SSIM: {mean_MS_SSIM_prob:.4f}, Average_LPIPS: {mean_LPIPS:.4f}, Average_Bit-rate: {avg_bpp:.4f} bpp')
+
+        logger.info(
+            f"Average_PSNR: {mean_PSNR:.4f}dB, Average_MS-SSIM: {mean_MS_SSIM_prob:.4f}, Average_LPIPS: {mean_LPIPS:.4f}, Average_Bit-rate: {avg_bpp:.4f} bpp"
+        )
 
     return avg_bpp, mean_PSNR, mean_MS_SSIM_prob, mean_LPIPS
 
+
 def main(opts):
-    
+
     gpu_num = getattr(opts, "dev.num_gpus")
-    
+
     if gpu_num > 1:
         node_rank = getattr(opts, "ddp.rank", 0)
         device_id = getattr(opts, "dev.device_id", torch.device("cpu"))
-        logger = logger_setup(log_file_name = 'logs', log_file_folder_name = opts.save_path)
-        
+        logger = logger_setup(log_file_name="logs", log_file_folder_name=opts.save_path)
+
     else:
         node_rank = 0
-        device_id = 'cuda'
+        device_id = "cuda"
         logger = opts.logger
-    
+
     random.seed(opts.seed)
     np.random.seed(int(opts.seed))
     torch.manual_seed(opts.seed)
@@ -157,19 +163,37 @@ def main(opts):
     torch.backends.cudnn.benchmark = False
     torch.backends.cuda.matmul.allow_tf32 = False
     torch.backends.cudnn.allow_tf32 = False
-    
-    os.environ["CUBLAS_WORKSPACE_CONFIG"]=":4096:8"
+
+    os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
 
     if node_rank == 0:
         logger.info("Create experiment save folder")
 
-    csv_file = pd.DataFrame(None, index = ['Best_PSNR','Best_LPIPS','Best_MS-SSIM','Best_bpp'], columns=['bpp', 'PSNR', 'MS-SSIM', 'LPIPS', 'iter'])
+    csv_file = pd.DataFrame(
+        None,
+        index=["Best_PSNR", "Best_LPIPS", "Best_MS-SSIM", "Best_bpp"],
+        columns=["bpp", "PSNR", "MS-SSIM", "LPIPS", "iter"],
+    )
 
     if opts.slurm == True:
-        train_dataset = WParam_dataset(dataset_folder= opts.dataset_dir, split='train', param_type = 'attn', image_size = opts.patch_size, seed = opts.seed, slurm=opts.slurm)
+        train_dataset = WParam_dataset(
+            dataset_folder=opts.dataset_dir,
+            split="train",
+            param_type="attn",
+            image_size=opts.patch_size,
+            seed=opts.seed,
+            slurm=opts.slurm,
+        )
         # train_dataset = ImageNet_dataset(dataset_folder='/public-dataset/ILSVRC2012', split='train', image_size = opts.patch_size, seed = opts.seed, slurm=opts.slurm)
     else:
-        train_dataset = WParam_dataset(dataset_folder= opts.dataset_dir, split='train', param_type = 'attn', image_size = opts.patch_size, seed = opts.seed, slurm=opts.slurm)
+        train_dataset = WParam_dataset(
+            dataset_folder=opts.dataset_dir,
+            split="train",
+            param_type="attn",
+            image_size=opts.patch_size,
+            seed=opts.seed,
+            slurm=opts.slurm,
+        )
         # train_dataset = ImageNet_dataset(dataset_folder='/data/ILSVRC2012', split='train', image_size = opts.patch_size, seed = opts.seed, slurm=opts.slurm)
     # train_dataset = Openimages_v6_dataset(image_size=opts.patch_size)
 
@@ -180,10 +204,7 @@ def main(opts):
         batch_sampler_train = torch.utils.data.BatchSampler(train_sampler, opts.batch_size, drop_last=True)
 
         train_dataloader = DataLoader(
-            train_dataset,
-            batch_sampler=batch_sampler_train,
-            num_workers=opts.num_workers,
-            pin_memory=True
+            train_dataset, batch_sampler=batch_sampler_train, num_workers=opts.num_workers, pin_memory=True
         )
 
     else:
@@ -193,55 +214,69 @@ def main(opts):
             num_workers=opts.num_workers,
             pin_memory=True,
             shuffle=True,
-            drop_last=True
+            drop_last=True,
         )
-    
-    if opts.model_name == 'TCM':
-        net = TCM(config=[2,2,2,2,2,2], head_dim=[8, 16, 32, 32, 16, 8], drop_path_rate=0.0, N=64, M=320, radius_denominator = opts.radius_denominator)
-    elif opts.model_name == 'FTIC':
-        net = FrequencyAwareTransFormer(radius_denominator = opts.radius_denominator)
-    elif opts.model_name == 'ELIC':
+
+    if opts.model_name == "TCM":
+        net = TCM(
+            config=[2, 2, 2, 2, 2, 2],
+            head_dim=[8, 16, 32, 32, 16, 8],
+            drop_path_rate=0.0,
+            N=64,
+            M=320,
+            radius_denominator=opts.radius_denominator,
+        )
+    elif opts.model_name == "FTIC":
+        net = FrequencyAwareTransFormer(radius_denominator=opts.radius_denominator)
+    elif opts.model_name == "ELIC":
         config = model_config()
-        net = ELIC(config, radius_denominator = opts.radius_denominator)
-    
+        net = ELIC(config, radius_denominator=opts.radius_denominator)
+
     net = net.to(device)
-    
+
     if gpu_num > 1:
         net = torch.nn.parallel.DistributedDataParallel(
-                net,
-                device_ids=[device_id],
-                output_device=device_id,
-                find_unused_parameters=False,
-            )
-    
+            net,
+            device_ids=[device_id],
+            output_device=device_id,
+            find_unused_parameters=False,
+        )
+
     optimizer, aux_optimizer = configure_optimizers(net, opts)
-    
-    if opts.model_name == 'TCM':
-        milestones = [int((opts.iter/gpu_num) * 0.9), int((opts.iter/gpu_num) * 0.96)]
+
+    if opts.model_name == "TCM":
+        milestones = [int((opts.iter / gpu_num) * 0.9), int((opts.iter / gpu_num) * 0.96)]
         lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=milestones, gamma=0.1)
-    elif opts.model_name == 'FTIC':
+    elif opts.model_name == "FTIC":
         lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, "min", factor=0.3, patience=16)
-    elif opts.model_name == 'ELIC':
+    elif opts.model_name == "ELIC":
         milestones = [2000000]
         lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=milestones, gamma=0.1)
 
-    criterion = RateDistortionLoss(lmbda=opts.lmbda, radius_denominator = opts.radius_denominator)
+    criterion = RateDistortionLoss(lmbda=opts.lmbda, radius_denominator=opts.radius_denominator)
 
     ########################################
     # test 준비
     # test_dataset = Imagenet_best_worst(best_group_folder = './imagenet_val_best_class', folder = './imagenet_val_worst_class')
-    test_dataset = WParam_dataset(dataset_folder=opts.dataset_dir, split='val', param_type = 'attn', image_size = opts.patch_size, seed = opts.seed, slurm=opts.slurm)
+    test_dataset = WParam_dataset(
+        dataset_folder=opts.dataset_dir,
+        split="val",
+        param_type="attn",
+        image_size=opts.patch_size,
+        seed=opts.seed,
+        slurm=opts.slurm,
+    )
 
-    loss_fn_alex = lpips.LPIPS(net='alex')
+    loss_fn_alex = lpips.LPIPS(net="alex")
     loss_fn_alex.requires_grad_(False)
     mse = nn.MSELoss()
 
-    if node_rank == 0:  
+    if node_rank == 0:
         logger.info("Training mode : scratch!")
         logger.info(f"image quality : {opts.image_quality}")
 
         logger.info(f"batch_size : {opts.batch_size}")
-        
+
         logger.info(f"num of gpus: {gpu_num}")
     ########################################
 
@@ -250,12 +285,12 @@ def main(opts):
     best_bpp = float("inf")
     best_lpips = float("inf")
 
-    recent_saved_model_path = ''
-    best_psnr_model_path = ''
-    best_ms_ssim_model_path = ''
-    best_bpp_model_path = ''
-    best_lpips_model_path = ''
-    
+    recent_saved_model_path = ""
+    best_psnr_model_path = ""
+    best_ms_ssim_model_path = ""
+    best_bpp_model_path = ""
+    best_lpips_model_path = ""
+
     total_iter = 0
 
     log_loss = {
@@ -265,17 +300,17 @@ def main(opts):
         "bpp_loss": [],
         "bpp_loss_low_freq": [],
     }
-    
+
     checkpoint = opts.checkpoint
     if checkpoint != "None":  # load from previous checkpoint
 
-        if node_rank == 0:  
+        if node_rank == 0:
             logger.info(f"Loading {checkpoint}")
 
         checkpoint = torch.load(checkpoint)
         total_iter = checkpoint["total_iter"]
         log_loss = checkpoint["log_loss"]
-        
+
         try:
             try:
                 net.load_state_dict(checkpoint["state_dict"])
@@ -292,12 +327,12 @@ def main(opts):
                 for k, v in checkpoint["state_dict"].items():
                     new_state_dict[k.replace("module.", "")] = v
                 net.module.load_state_dict(new_state_dict)
-            
+
         optimizer.load_state_dict(checkpoint["optimizer"])
         aux_optimizer.load_state_dict(checkpoint["aux_optimizer"])
-        
+
         lr_scheduler.load_state_dict(checkpoint["lr_scheduler"])
-        
+
         criterion.load_state_dict(checkpoint["criterion"])
 
         best_psnr = checkpoint["best_psnr"]
@@ -311,27 +346,27 @@ def main(opts):
         best_ms_ssim_model_path = checkpoint["best_ms_ssim_model_path"]
         best_bpp_model_path = checkpoint["best_bpp_model_path"]
         best_lpips_model_path = checkpoint["best_lpips_model_path"]
-        
+
         del checkpoint
 
     save_path = opts.save_path
-    
+
     if gpu_num > 1:
         dist.barrier()
 
     # dummy run
-    dummy_image = torch.randn(1,3,256,256).to('cuda')
-    
+    dummy_image = torch.randn(1, 3, 256, 256).to("cuda")
+
     for _ in range(10):
         _ = net(dummy_image)
 
     optimizer.zero_grad()
     aux_optimizer.zero_grad()
-    
+
     training_starter = torch.cuda.Event(enable_timing=True)
     training_ender = torch.cuda.Event(enable_timing=True)
-    
-    while(1):
+
+    while 1:
         net.train()
         device = next(net.parameters()).device
 
@@ -339,44 +374,44 @@ def main(opts):
             break
 
         for i, (img) in enumerate(train_dataloader):
-            
+
             if total_iter >= opts.iter:
                 break
-            
+
             with torch.autograd.detect_anomaly():
                 img = img.to(device)
-                
+
                 optimizer.zero_grad()
                 aux_optimizer.zero_grad()
-        
+
                 out_net = net(img)
-                
+
                 torch.cuda.synchronize()
-                
+
                 if gpu_num > 1:
                     dist.barrier()
 
                 updating_time = {}
-                
+
                 training_starter.record()
-                
+
                 # leraning_percentage = float(total_iter)/float(opts.iter)
-                
+
                 out_criterion = criterion(out_net)
                 training_ender.record()
                 torch.cuda.synchronize()
                 updating_time["loss"] = training_starter.elapsed_time(training_ender)
-                
+
                 training_starter.record()
                 out_criterion["loss"].backward()
-                
+
                 if opts.clip_max_norm > 0:
                     torch.nn.utils.clip_grad_norm_(net.parameters(), opts.clip_max_norm)
                 optimizer.step()
                 training_ender.record()
                 torch.cuda.synchronize()
                 updating_time["update"] = training_starter.elapsed_time(training_ender)
-                
+
                 training_starter.record()
                 # aux loss
                 try:
@@ -393,26 +428,25 @@ def main(opts):
                 training_ender.record()
                 torch.cuda.synchronize()
                 updating_time["aux_update"] = training_starter.elapsed_time(training_ender)
-                
-                if (opts.model_name == 'TCM') or (opts.model_name == 'ELIC'):
+
+                if (opts.model_name == "TCM") or (opts.model_name == "ELIC"):
                     lr_scheduler.step()
-                elif opts.model_name == 'FTIC':
-                    if (total_iter  + (1 * gpu_num) % 5000 == 0 and total_iter > 0):
+                elif opts.model_name == "FTIC":
+                    if total_iter + (1 * gpu_num) % 5000 == 0 and total_iter > 0:
                         lr_scheduler.step(loss)
-                    
-                
+
             optimizer.zero_grad()
             aux_optimizer.zero_grad()
-            
-            total_iter += (1 * gpu_num)
+
+            total_iter += 1 * gpu_num
 
             if ((total_iter % 5000 == 0) or (total_iter == (1 * gpu_num))) and node_rank == 0:
-                
+
                 # log_loss["mse_loss_high_freq"].append(out_criterion["mse_loss_high_freq"].mean().item())
                 # log_loss["mse_loss_low_freq"].append(out_criterion["mse_loss_low_freq"].mean().item())
                 log_loss["mse_loss"].append(out_criterion["mse_loss"].mean().item())
                 log_loss["bpp_loss"].append(out_criterion["bpp_loss"].item())
-                
+
                 logger.info(
                     f"Train iter. {total_iter}/{opts.iter} ({100. * total_iter / opts.iter:.4f}%): "
                     f'\tLoss: {out_criterion["loss"].item():.6f} |'
@@ -424,19 +458,19 @@ def main(opts):
                     f'\tBpp loss: {out_criterion["bpp_loss"].item():.2f} |'
                     f"\tAux loss: {aux_loss.item():.2f}"
                 )
-                
+
             if gpu_num > 1:
                 dist.barrier()
-            
-            # 몇 번마다 성능 측정할까? 만 번마다 해보자 + 맨 첨에도 해보자. 궁금하니까. 
+
+            # 몇 번마다 성능 측정할까? 만 번마다 해보자 + 맨 첨에도 해보자. 궁금하니까.
             if (total_iter % 50000 == 0) or (total_iter == (1 * gpu_num)):
                 torch.cuda.empty_cache()
-                
+
                 if gpu_num > 1:
                     dist.barrier()
 
-                with torch.no_grad() :
-                    if (node_rank == 0):
+                with torch.no_grad():
+                    if node_rank == 0:
                         # 결과 이미지 저장하는 경로
                         if os.path.exists(f"{save_path}/figures/total_iter_{total_iter}"):
                             shutil.rmtree(f"{save_path}/figures/total_iter_{total_iter}")
@@ -448,14 +482,21 @@ def main(opts):
                             os.makedirs(f"{save_path}/figures/total_iter_{total_iter}/best_group")
                             os.makedirs(f"{save_path}/figures/total_iter_{total_iter}/worst_group")
 
-                    if opts.model_name == 'TCM':
-                        net_eval = TCM(config=[2,2,2,2,2,2], head_dim=[8, 16, 32, 32, 16, 8], drop_path_rate=0.0, N=64, M=320, radius_denominator = opts.radius_denominator)
-                    elif opts.model_name == 'FTIC':
-                        net_eval = FrequencyAwareTransFormer(radius_denominator = opts.radius_denominator)
-                    elif opts.model_name == 'ELIC':
+                    if opts.model_name == "TCM":
+                        net_eval = TCM(
+                            config=[2, 2, 2, 2, 2, 2],
+                            head_dim=[8, 16, 32, 32, 16, 8],
+                            drop_path_rate=0.0,
+                            N=64,
+                            M=320,
+                            radius_denominator=opts.radius_denominator,
+                        )
+                    elif opts.model_name == "FTIC":
+                        net_eval = FrequencyAwareTransFormer(radius_denominator=opts.radius_denominator)
+                    elif opts.model_name == "ELIC":
                         config = model_config()
-                        net_eval = ELIC(config, radius_denominator = opts.radius_denominator)
-                    
+                        net_eval = ELIC(config, radius_denominator=opts.radius_denominator)
+
                     try:
                         net_eval.load_state_dict(net.module.state_dict())
                     except:
@@ -465,182 +506,258 @@ def main(opts):
                     net_eval.requires_grad_(False)
                     net_eval.update()
                     # def test(total_iter, test_dataset, model, save_path, logger, loss_fn_alex, node_rank = 0):
-                    if (node_rank == 0):
-                        avg_bpp, mean_PSNR, mean_MS_SSIM_prob, mean_LPIPS = test(total_iter, test_dataset, net_eval, f"{save_path}/figures/total_iter_{total_iter}", logger, loss_fn_alex, node_rank)
+                    if node_rank == 0:
+                        avg_bpp, mean_PSNR, mean_MS_SSIM_prob, mean_LPIPS = test(
+                            total_iter,
+                            test_dataset,
+                            net_eval,
+                            f"{save_path}/figures/total_iter_{total_iter}",
+                            logger,
+                            loss_fn_alex,
+                            node_rank,
+                        )
                     else:
-                        _ = test(total_iter, test_dataset, net_eval, f"{save_path}/figures/total_iter_{total_iter}", logger, loss_fn_alex, node_rank)
-                    
+                        _ = test(
+                            total_iter,
+                            test_dataset,
+                            net_eval,
+                            f"{save_path}/figures/total_iter_{total_iter}",
+                            logger,
+                            loss_fn_alex,
+                            node_rank,
+                        )
+
                 torch.cuda.empty_cache()
                 # 모델 저장
-                if (node_rank == 0):
+                if node_rank == 0:
                     try:
                         state_dict = net.module.state_dict()
                     except:
                         state_dict = net.state_dict()
 
-                    if mean_PSNR > best_psnr :
+                    if mean_PSNR > best_psnr:
                         best_psnr = mean_PSNR
 
-                        try :
-                            os.remove(best_psnr_model_path) # 이전에 최고였던 모델 삭제
-                        except :
+                        try:
+                            os.remove(best_psnr_model_path)  # 이전에 최고였던 모델 삭제
+                        except:
                             logger.info("can not find prev_bpp_best_model!")
 
-                        csv_file.loc['Best_PSNR',:] = [round(avg_bpp, 8), round(mean_PSNR, 8), round(mean_MS_SSIM_prob, 8), round(mean_LPIPS, 8), total_iter]
+                        csv_file.loc["Best_PSNR", :] = [
+                            round(avg_bpp, 8),
+                            round(mean_PSNR, 8),
+                            round(mean_MS_SSIM_prob, 8),
+                            round(mean_LPIPS, 8),
+                            total_iter,
+                        ]
 
-                        best_psnr_model_path = save_path + '/' + f'best_psnr_model_PSNR_{round(mean_PSNR, 5)}_MS_SSIM_{round(mean_MS_SSIM_prob, 5)}_BPP_{round(avg_bpp, 5)}_LPIPS_{round(mean_LPIPS, 5)}_total_iter_{total_iter}.pth.tar'
+                        best_psnr_model_path = (
+                            save_path
+                            + "/"
+                            + f"best_psnr_model_PSNR_{round(mean_PSNR, 5)}_MS_SSIM_{round(mean_MS_SSIM_prob, 5)}_BPP_{round(avg_bpp, 5)}_LPIPS_{round(mean_LPIPS, 5)}_total_iter_{total_iter}.pth.tar"
+                        )
 
                         # recon_damaged_optimizer, comp_optimizer, comp_aux_optimizer
-                        torch.save({
-                            "state_dict": state_dict,
-                            "optimizer": optimizer.state_dict(),
-                            "aux_optimizer": aux_optimizer.state_dict(),
-                            "lr_scheduler": lr_scheduler.state_dict(),
-                            "criterion": criterion.state_dict(),
-                            "best_psnr":best_psnr,
-                            "best_ms_ssim":best_ms_ssim,
-                            "best_bpp":best_bpp,
-                            "best_lpips":best_lpips,
-                            "recent_saved_model_path":recent_saved_model_path,
-                            "best_psnr_model_path":best_psnr_model_path,
-                            "best_ms_ssim_model_path":best_ms_ssim_model_path,
-                            "best_bpp_model_path":best_bpp_model_path,
-                            "best_lpips_model_path":best_lpips_model_path,
-                            "log_loss": log_loss,
-                            "total_iter": total_iter
-                            }, best_psnr_model_path)
+                        torch.save(
+                            {
+                                "state_dict": state_dict,
+                                "optimizer": optimizer.state_dict(),
+                                "aux_optimizer": aux_optimizer.state_dict(),
+                                "lr_scheduler": lr_scheduler.state_dict(),
+                                "criterion": criterion.state_dict(),
+                                "best_psnr": best_psnr,
+                                "best_ms_ssim": best_ms_ssim,
+                                "best_bpp": best_bpp,
+                                "best_lpips": best_lpips,
+                                "recent_saved_model_path": recent_saved_model_path,
+                                "best_psnr_model_path": best_psnr_model_path,
+                                "best_ms_ssim_model_path": best_ms_ssim_model_path,
+                                "best_bpp_model_path": best_bpp_model_path,
+                                "best_lpips_model_path": best_lpips_model_path,
+                                "log_loss": log_loss,
+                                "total_iter": total_iter,
+                            },
+                            best_psnr_model_path,
+                        )
 
-                    if mean_MS_SSIM_prob > best_ms_ssim :
+                    if mean_MS_SSIM_prob > best_ms_ssim:
                         best_ms_ssim = mean_MS_SSIM_prob
 
-                        try :
-                            os.remove(best_ms_ssim_model_path) # 이전에 최고였던 모델 삭제
-                        except :
+                        try:
+                            os.remove(best_ms_ssim_model_path)  # 이전에 최고였던 모델 삭제
+                        except:
                             logger.info("can not find prev_ms_ssim_best_model!")
 
-                        csv_file.loc['Best_MS-SSIM',:] = [round(avg_bpp, 8), round(mean_PSNR, 8), round(mean_MS_SSIM_prob, 8), round(mean_LPIPS, 8), total_iter]
+                        csv_file.loc["Best_MS-SSIM", :] = [
+                            round(avg_bpp, 8),
+                            round(mean_PSNR, 8),
+                            round(mean_MS_SSIM_prob, 8),
+                            round(mean_LPIPS, 8),
+                            total_iter,
+                        ]
 
-                        best_ms_ssim_model_path = save_path + '/' + f'best_ms_ssim_model_PSNR_{round(mean_PSNR, 5)}_MS_SSIM_{round(mean_MS_SSIM_prob, 5)}_BPP_{round(avg_bpp, 5)}_LPIPS_{round(mean_LPIPS, 5)}_total_iter_{total_iter}.pth.tar'
-                        
-                        torch.save({
-                            "state_dict": state_dict,
-                            "optimizer": optimizer.state_dict(),
-                            "aux_optimizer": aux_optimizer.state_dict(),
-                            "lr_scheduler": lr_scheduler.state_dict(),
-                            "criterion": criterion.state_dict(),
-                            "best_psnr":best_psnr,
-                            "best_ms_ssim":best_ms_ssim,
-                            "best_bpp":best_bpp,
-                            "best_lpips":best_lpips,
-                            "recent_saved_model_path":recent_saved_model_path,
-                            "best_psnr_model_path":best_psnr_model_path,
-                            "best_ms_ssim_model_path":best_ms_ssim_model_path,
-                            "best_bpp_model_path":best_bpp_model_path,
-                            "best_lpips_model_path":best_lpips_model_path,
-                            "log_loss": log_loss,
-                            "total_iter": total_iter
-                            }, best_ms_ssim_model_path)
+                        best_ms_ssim_model_path = (
+                            save_path
+                            + "/"
+                            + f"best_ms_ssim_model_PSNR_{round(mean_PSNR, 5)}_MS_SSIM_{round(mean_MS_SSIM_prob, 5)}_BPP_{round(avg_bpp, 5)}_LPIPS_{round(mean_LPIPS, 5)}_total_iter_{total_iter}.pth.tar"
+                        )
 
-                    if avg_bpp < best_bpp : 
+                        torch.save(
+                            {
+                                "state_dict": state_dict,
+                                "optimizer": optimizer.state_dict(),
+                                "aux_optimizer": aux_optimizer.state_dict(),
+                                "lr_scheduler": lr_scheduler.state_dict(),
+                                "criterion": criterion.state_dict(),
+                                "best_psnr": best_psnr,
+                                "best_ms_ssim": best_ms_ssim,
+                                "best_bpp": best_bpp,
+                                "best_lpips": best_lpips,
+                                "recent_saved_model_path": recent_saved_model_path,
+                                "best_psnr_model_path": best_psnr_model_path,
+                                "best_ms_ssim_model_path": best_ms_ssim_model_path,
+                                "best_bpp_model_path": best_bpp_model_path,
+                                "best_lpips_model_path": best_lpips_model_path,
+                                "log_loss": log_loss,
+                                "total_iter": total_iter,
+                            },
+                            best_ms_ssim_model_path,
+                        )
+
+                    if avg_bpp < best_bpp:
                         best_bpp = avg_bpp
 
-                        try :
-                            os.remove(best_bpp_model_path) # 이전에 최고였던 모델 삭제
-                        except :
+                        try:
+                            os.remove(best_bpp_model_path)  # 이전에 최고였던 모델 삭제
+                        except:
                             logger.info("can not find prev_bpp_best_model!")
 
-                        csv_file.loc['Best_bpp',:] = [round(avg_bpp, 8), round(mean_PSNR, 8), round(mean_MS_SSIM_prob, 8), round(mean_LPIPS, 8), total_iter]
+                        csv_file.loc["Best_bpp", :] = [
+                            round(avg_bpp, 8),
+                            round(mean_PSNR, 8),
+                            round(mean_MS_SSIM_prob, 8),
+                            round(mean_LPIPS, 8),
+                            total_iter,
+                        ]
 
-                        best_bpp_model_path = save_path + '/' + f'best_bpp_model_PSNR_{round(mean_PSNR, 5)}_MS_SSIM_{round(mean_MS_SSIM_prob, 5)}_BPP_{round(avg_bpp, 5)}_LPIPS_{round(mean_LPIPS, 5)}_total_iter_{total_iter}.pth.tar'
-                        torch.save({
-                            "state_dict": state_dict,
-                            "optimizer": optimizer.state_dict(),
-                            "aux_optimizer": aux_optimizer.state_dict(),
-                            "lr_scheduler": lr_scheduler.state_dict(),
-                            "criterion": criterion.state_dict(),
-                            "best_psnr":best_psnr,
-                            "best_ms_ssim":best_ms_ssim,
-                            "best_bpp":best_bpp,
-                            "best_lpips":best_lpips,
-                            "recent_saved_model_path":recent_saved_model_path,
-                            "best_psnr_model_path":best_psnr_model_path,
-                            "best_ms_ssim_model_path":best_ms_ssim_model_path,
-                            "best_bpp_model_path":best_bpp_model_path,
-                            "best_lpips_model_path":best_lpips_model_path,
-                            "log_loss": log_loss,
-                            "total_iter": total_iter
-                            }, best_bpp_model_path)
-                    
-                    if mean_LPIPS < best_lpips : 
+                        best_bpp_model_path = (
+                            save_path
+                            + "/"
+                            + f"best_bpp_model_PSNR_{round(mean_PSNR, 5)}_MS_SSIM_{round(mean_MS_SSIM_prob, 5)}_BPP_{round(avg_bpp, 5)}_LPIPS_{round(mean_LPIPS, 5)}_total_iter_{total_iter}.pth.tar"
+                        )
+                        torch.save(
+                            {
+                                "state_dict": state_dict,
+                                "optimizer": optimizer.state_dict(),
+                                "aux_optimizer": aux_optimizer.state_dict(),
+                                "lr_scheduler": lr_scheduler.state_dict(),
+                                "criterion": criterion.state_dict(),
+                                "best_psnr": best_psnr,
+                                "best_ms_ssim": best_ms_ssim,
+                                "best_bpp": best_bpp,
+                                "best_lpips": best_lpips,
+                                "recent_saved_model_path": recent_saved_model_path,
+                                "best_psnr_model_path": best_psnr_model_path,
+                                "best_ms_ssim_model_path": best_ms_ssim_model_path,
+                                "best_bpp_model_path": best_bpp_model_path,
+                                "best_lpips_model_path": best_lpips_model_path,
+                                "log_loss": log_loss,
+                                "total_iter": total_iter,
+                            },
+                            best_bpp_model_path,
+                        )
+
+                    if mean_LPIPS < best_lpips:
                         best_lpips = mean_LPIPS
 
-                        try :
-                            os.remove(best_lpips_model_path) # 이전에 최고였던 모델 삭제
-                        except :
+                        try:
+                            os.remove(best_lpips_model_path)  # 이전에 최고였던 모델 삭제
+                        except:
                             logger.info("can not find prev_lpips_best_model!")
 
-                        csv_file.loc['Best_LPIPS',:] = [round(avg_bpp, 8), round(mean_PSNR, 8), round(mean_MS_SSIM_prob, 8), round(mean_LPIPS, 8), total_iter]
+                        csv_file.loc["Best_LPIPS", :] = [
+                            round(avg_bpp, 8),
+                            round(mean_PSNR, 8),
+                            round(mean_MS_SSIM_prob, 8),
+                            round(mean_LPIPS, 8),
+                            total_iter,
+                        ]
 
-                        best_lpips_model_path = save_path + '/' + f'best_lpips_model_PSNR_{round(mean_PSNR, 5)}_MS_SSIM_{round(mean_MS_SSIM_prob, 5)}_BPP_{round(avg_bpp, 5)}_LPIPS_{round(mean_LPIPS, 5)}_total_iter_{total_iter}.pth.tar'
-                        torch.save({
-                            "state_dict": state_dict,
-                            "optimizer": optimizer.state_dict(),
-                            "aux_optimizer": aux_optimizer.state_dict(),
-                            "lr_scheduler": lr_scheduler.state_dict(),
-                            "criterion": criterion.state_dict(),
-                            "best_psnr":best_psnr,
-                            "best_ms_ssim":best_ms_ssim,
-                            "best_bpp":best_bpp,
-                            "best_lpips":best_lpips,
-                            "recent_saved_model_path":recent_saved_model_path,
-                            "best_psnr_model_path":best_psnr_model_path,
-                            "best_ms_ssim_model_path":best_ms_ssim_model_path,
-                            "best_bpp_model_path":best_bpp_model_path,
-                            "best_lpips_model_path":best_lpips_model_path,
-                            "log_loss": log_loss,
-                            "total_iter": total_iter
-                            }, best_lpips_model_path)
+                        best_lpips_model_path = (
+                            save_path
+                            + "/"
+                            + f"best_lpips_model_PSNR_{round(mean_PSNR, 5)}_MS_SSIM_{round(mean_MS_SSIM_prob, 5)}_BPP_{round(avg_bpp, 5)}_LPIPS_{round(mean_LPIPS, 5)}_total_iter_{total_iter}.pth.tar"
+                        )
+                        torch.save(
+                            {
+                                "state_dict": state_dict,
+                                "optimizer": optimizer.state_dict(),
+                                "aux_optimizer": aux_optimizer.state_dict(),
+                                "lr_scheduler": lr_scheduler.state_dict(),
+                                "criterion": criterion.state_dict(),
+                                "best_psnr": best_psnr,
+                                "best_ms_ssim": best_ms_ssim,
+                                "best_bpp": best_bpp,
+                                "best_lpips": best_lpips,
+                                "recent_saved_model_path": recent_saved_model_path,
+                                "best_psnr_model_path": best_psnr_model_path,
+                                "best_ms_ssim_model_path": best_ms_ssim_model_path,
+                                "best_bpp_model_path": best_bpp_model_path,
+                                "best_lpips_model_path": best_lpips_model_path,
+                                "log_loss": log_loss,
+                                "total_iter": total_iter,
+                            },
+                            best_lpips_model_path,
+                        )
 
-                    csv_file.to_csv(save_path + '/' + 'best_res.csv')
+                    csv_file.to_csv(save_path + "/" + "best_res.csv")
 
                     # 이번 epoch에 학습한 친구도 저장하기
-                    try :
-                        os.remove(recent_saved_model_path) # 이전 에폭에서 저장했던 모델 삭제
-                    except :
+                    try:
+                        os.remove(recent_saved_model_path)  # 이전 에폭에서 저장했던 모델 삭제
+                    except:
                         logger.info("can not find recent_saved_model!")
 
-                    recent_saved_model_path = save_path + '/' + f'recent_model_PSNR_{round(mean_PSNR, 5)}_MS_SSIM_{round(mean_MS_SSIM_prob, 5)}_BPP_{round(avg_bpp, 5)}_LPIPS_{round(mean_LPIPS, 5)}_total_iter_{total_iter}.pth.tar'
+                    recent_saved_model_path = (
+                        save_path
+                        + "/"
+                        + f"recent_model_PSNR_{round(mean_PSNR, 5)}_MS_SSIM_{round(mean_MS_SSIM_prob, 5)}_BPP_{round(avg_bpp, 5)}_LPIPS_{round(mean_LPIPS, 5)}_total_iter_{total_iter}.pth.tar"
+                    )
 
-                    torch.save({
+                    torch.save(
+                        {
                             "state_dict": state_dict,
                             "optimizer": optimizer.state_dict(),
                             "aux_optimizer": aux_optimizer.state_dict(),
                             "lr_scheduler": lr_scheduler.state_dict(),
                             "criterion": criterion.state_dict(),
-                            "best_psnr":best_psnr,
-                            "best_ms_ssim":best_ms_ssim,
-                            "best_bpp":best_bpp,
-                            "best_lpips":best_lpips,
-                            "recent_saved_model_path":recent_saved_model_path,
-                            "best_psnr_model_path":best_psnr_model_path,
-                            "best_ms_ssim_model_path":best_ms_ssim_model_path,
-                            "best_bpp_model_path":best_bpp_model_path,
-                            "best_lpips_model_path":best_lpips_model_path,
+                            "best_psnr": best_psnr,
+                            "best_ms_ssim": best_ms_ssim,
+                            "best_bpp": best_bpp,
+                            "best_lpips": best_lpips,
+                            "recent_saved_model_path": recent_saved_model_path,
+                            "best_psnr_model_path": best_psnr_model_path,
+                            "best_ms_ssim_model_path": best_ms_ssim_model_path,
+                            "best_bpp_model_path": best_bpp_model_path,
+                            "best_lpips_model_path": best_lpips_model_path,
                             "log_loss": log_loss,
-                            "total_iter": total_iter
-                        }, recent_saved_model_path)
+                            "total_iter": total_iter,
+                        },
+                        recent_saved_model_path,
+                    )
 
                 del net_eval
 
                 torch.cuda.empty_cache()
-            if gpu_num > 1:   
+            if gpu_num > 1:
                 dist.barrier()
-        
+
+
 def distributed_init(opts) -> int:
     ddp_url = getattr(opts, "ddp.dist_url", None)
 
     node_rank = getattr(opts, "ddp.rank", 0)
-    is_master_node = (node_rank == 0)
+    is_master_node = node_rank == 0
 
     if ddp_url is None:
         # 따로 지정한게 없어서 무조건 이쪽으로 들어옴
@@ -662,11 +779,7 @@ def distributed_init(opts) -> int:
         if dist_backend is None and dist.is_nccl_available():
             dist_backend = "nccl"
             if is_master_node:
-                print(
-                    "Using NCCL as distributed backend with version={}".format(
-                        torch.cuda.nccl.version()
-                    )
-                )
+                print("Using NCCL as distributed backend with version={}".format(torch.cuda.nccl.version()))
         elif dist_backend is None:
             dist_backend = "gloo"
 
@@ -685,12 +798,13 @@ def distributed_init(opts) -> int:
     setattr(opts, "ddp.rank", node_rank)
     return node_rank
 
+
 def distributed_worker(i, main, opts):
     setattr(opts, "dev.device_id", i)
     torch.cuda.set_device(i)
     setattr(opts, "dev.device", torch.device(f"cuda:{i}"))
 
-    ddp_rank =  i
+    ddp_rank = i
     setattr(opts, "ddp.rank", ddp_rank)
 
     node_rank = distributed_init(opts)
@@ -703,36 +817,37 @@ def ddp_or_single_process(argvs):
     opts = parse_args(argvs)
 
     checkpoint = "None"
-    save_path = './'
+    save_path = "./"
     if opts.seed is not None:
-        save_path = f'./checkpoint/exp2_NIC_Fair_model_{opts.model_name}_image_quality_{opts.image_quality}_seed_{opts.seed}_batch_size_{opts.batch_size}_radius_denominator_{opts.radius_denominator}_total_iter_{opts.iter}'
-        
+        save_path = f"./checkpoint/exp2_NIC_Fair_model_{opts.model_name}_image_quality_{opts.image_quality}_seed_{opts.seed}_batch_size_{opts.batch_size}_radius_denominator_{opts.radius_denominator}_total_iter_{opts.iter}"
+
         if os.path.exists(save_path):
-            logger = logger_setup(log_file_name = 'logs', log_file_folder_name = save_path)
+            logger = logger_setup(log_file_name="logs", log_file_folder_name=save_path)
             logger.info("find checkpoint...")
-            
+
             file_list = os.listdir(save_path)
 
             for file_name in file_list:
-                if ('recent_model' in file_name) and ('.pth.tar' in file_name):
+                if ("recent_model" in file_name) and (".pth.tar" in file_name):
                     logger.info(f"checkpoint exist, name: {file_name}")
-                    checkpoint = f'{save_path}/{file_name}'
-            
-            if checkpoint == 'None':
+                    checkpoint = f"{save_path}/{file_name}"
+
+            if checkpoint == "None":
                 logger.info("no checkpoint is here")
-            
+
         else:
             create_exp_folder(save_path)
-            logger = logger_setup(log_file_name = 'logs', log_file_folder_name = save_path)
+            logger = logger_setup(log_file_name="logs", log_file_folder_name=save_path)
             logger.info("Create new exp folder!")
 
         logger.info(f"seed : {opts.seed}")
-        logger.info(f"exp name : exp_NIC_Fair_model_{opts.model_name}_image_quality_{opts.image_quality}_seed_{opts.seed}_batch_size_{opts.batch_size}_radius_denominator_{opts.radius_denominator}_total_iter_{opts.iter}")
+        logger.info(
+            f"exp name : exp_NIC_Fair_model_{opts.model_name}_image_quality_{opts.image_quality}_seed_{opts.seed}_batch_size_{opts.batch_size}_radius_denominator_{opts.radius_denominator}_total_iter_{opts.iter}"
+        )
 
     setattr(opts, "checkpoint", checkpoint)
-    
 
-    if opts.model_name == 'TCM':
+    if opts.model_name == "TCM":
         if opts.image_quality == 1:
             setattr(opts, "lmbda", 0.0025)
         elif opts.image_quality == 2:
@@ -745,7 +860,7 @@ def ddp_or_single_process(argvs):
             setattr(opts, "lmbda", 0.025)
         elif opts.image_quality == 6:
             setattr(opts, "lmbda", 0.05)
-    elif opts.model_name == 'FTIC':
+    elif opts.model_name == "FTIC":
         if opts.image_quality == 1:
             setattr(opts, "lmbda", 0.0483)
         elif opts.image_quality == 2:
@@ -758,7 +873,7 @@ def ddp_or_single_process(argvs):
             setattr(opts, "lmbda", 0.0035)
         elif opts.image_quality == 6:
             setattr(opts, "lmbda", 0.0018)
-    elif opts.model_name == 'ELIC':
+    elif opts.model_name == "ELIC":
         if opts.image_quality == 1:
             setattr(opts, "lmbda", 0.004)
         elif opts.image_quality == 2:
@@ -771,23 +886,24 @@ def ddp_or_single_process(argvs):
             setattr(opts, "lmbda", 0.15)
         elif opts.image_quality == 6:
             setattr(opts, "lmbda", 0.45)
-    
+
     setattr(opts, "save_path", save_path)
     setattr(opts, "dev.num_gpus", torch.cuda.device_count())
-    
+
     if torch.cuda.device_count() > 1:
         setattr(opts, "ddp.world_size", torch.cuda.device_count())
 
         logger.info(f"opts: {opts}")
 
         torch.multiprocessing.spawn(
-                fn=distributed_worker,
-                args=(main, opts),
-                nprocs=getattr(opts, "dev.num_gpus"),
-            )   
+            fn=distributed_worker,
+            args=(main, opts),
+            nprocs=getattr(opts, "dev.num_gpus"),
+        )
     else:
         setattr(opts, "logger", logger)
         main(opts)
+
 
 if __name__ == "__main__":
 

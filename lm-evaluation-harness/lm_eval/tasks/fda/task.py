@@ -2,7 +2,6 @@ import re
 from typing import List
 
 import numpy as np
-
 from lm_eval.api.instance import Instance
 from lm_eval.api.task import ConfigurableTask
 
@@ -92,7 +91,4 @@ class FDA(ConfigurableTask):
 
 
 def contains_score(prediction: str, labels: List[str]):
-    return max(
-        int(bool(re.search(re.compile(re.escape(label), re.IGNORECASE), prediction)))
-        for label in labels
-    )
+    return max(int(bool(re.search(re.compile(re.escape(label), re.IGNORECASE), prediction))) for label in labels)

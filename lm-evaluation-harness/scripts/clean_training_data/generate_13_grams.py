@@ -31,12 +31,10 @@ import sys
 from pathlib import Path
 from signal import SIGINT
 
-from tqdm import tqdm
-from tqdm_multiprocess.logger import setup_logger_tqdm
-
 from lm_eval.decontamination.archiver import Reader, TextArchive
 from lm_eval.decontamination.janitor import Janitor, word_ngrams
-
+from tqdm import tqdm
+from tqdm_multiprocess.logger import setup_logger_tqdm
 
 logger = logging.getLogger(__name__)
 
@@ -52,9 +50,7 @@ def yield_pile(start_offsets=None, checkpoint_offset=None):
     directory = "pile"
 
     if not os.path.exists(directory):
-        print(
-            "We expect the pile archives to be in the 'pile' directory, but this was not found."
-        )
+        print("We expect the pile archives to be in the 'pile' directory, but this was not found.")
         raise FileNotFoundError("Pile directory not found.")
 
     files = list(sorted(glob.glob(os.path.join(directory, "*.jsonl.zst*"))))
@@ -85,9 +81,7 @@ def yield_pile(start_offsets=None, checkpoint_offset=None):
 # the buckets are simply truncated at your last checkpoint.
 class Buckets:
     def __init__(self, directory, num_buckets):
-        self.bucket_files = [
-            os.path.join(directory, f"ngrams_{i}.bkt.txt") for i in range(num_buckets)
-        ]
+        self.bucket_files = [os.path.join(directory, f"ngrams_{i}.bkt.txt") for i in range(num_buckets)]
         self.buckets = list(map(TextArchive, self.bucket_files))
         self.checkpoint_file = os.path.join(directory, "bucket_offsets.ckpt")
 

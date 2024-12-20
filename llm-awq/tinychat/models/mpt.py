@@ -1,19 +1,19 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # This software may be used and distributed according to the terms of the GNU General Public License version 3.
 
-from typing import Optional, Tuple
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
+from typing import Optional, Tuple
 
-import torch
-from torch import nn
-import torch.nn.functional as F
 import awq_inference_engine
+import tinychat.utils.constants
+import torch
+import torch.nn.functional as F
+from torch import nn
 from transformers.models.llama.modeling_llama import LlamaRotaryEmbedding
 
 # from flash_attn.flash_attn_interface import flash_attn_unpadded_func
 
-import tinychat.utils.constants
 
 max_batch_size = tinychat.utils.constants.max_batch_size
 global_max_seq_len = tinychat.utils.constants.max_seq_len
@@ -29,14 +29,10 @@ def gen_slopes(n_heads, alibi_bias_max=8):
     return slopes.view(1, n_heads, 1, 1)
 
 
-def build_alibi_bias(
-    n_heads, seq_len, full=False, alibi_bias_max=8, dtype=torch.float32
-):
+def build_alibi_bias(n_heads, seq_len, full=False, alibi_bias_max=8, dtype=torch.float32):
     alibi_bias = torch.arange(1 - seq_len, 1, dtype=torch.int32).view(1, 1, 1, seq_len)
     if full:
-        alibi_bias = alibi_bias - torch.arange(1 - seq_len, 1, dtype=torch.int32).view(
-            1, 1, seq_len, 1
-        )
+        alibi_bias = alibi_bias - torch.arange(1 - seq_len, 1, dtype=torch.int32).view(1, 1, seq_len, 1)
         alibi_bias = alibi_bias.abs().mul(-1)
     slopes = gen_slopes(n_heads, alibi_bias_max)
     alibi_bias = alibi_bias * slopes
@@ -67,14 +63,8 @@ class LPLayerNorm(torch.nn.LayerNorm):
     def forward(self, x):
         module_device = x.device
         downcast_x = _cast_if_autocast_enabled(x)
-        downcast_weight = (
-            _cast_if_autocast_enabled(self.weight)
-            if self.weight is not None
-            else self.weight
-        )
-        downcast_bias = (
-            _cast_if_autocast_enabled(self.bias) if self.bias is not None else self.bias
-        )
+        downcast_weight = _cast_if_autocast_enabled(self.weight) if self.weight is not None else self.weight
+        downcast_bias = _cast_if_autocast_enabled(self.bias) if self.bias is not None else self.bias
         with torch.autocast(enabled=False, device_type=module_device.type):
             return torch.nn.functional.layer_norm(
                 downcast_x,
@@ -141,9 +131,7 @@ class MPTAttentionFused(nn.Module):
             .half()
         )  # added to half
 
-        alibi_slopes, alibi_bias = build_alibi_bias(
-            self.n_local_heads, args.max_seq_len
-        )
+        alibi_slopes, alibi_bias = build_alibi_bias(self.n_local_heads, args.max_seq_len)
         # TODO (Haotian): fix device
         self.alibi_slopes = alibi_slopes.float().to("cuda:0")
         self.alibi_bias = alibi_bias.to("cuda:0")
@@ -171,9 +159,7 @@ class MPTAttentionFused(nn.Module):
 
             values_store = xv.transpose(2, 1)
             keys_store = (
-                xk.reshape(bsz, seqlen, self.n_local_heads, self.head_dim // 8, 8)
-                .permute(0, 2, 3, 1, 4)
-                .contiguous()
+                xk.reshape(bsz, seqlen, self.n_local_heads, self.head_dim // 8, 8).permute(0, 2, 3, 1, 4).contiguous()
             )
 
             self.cache_v[:bsz, :, start_pos : start_pos + seqlen, :] = values_store
@@ -277,9 +263,7 @@ class Transformer(nn.Module):
 
         mask = None
         if seqlen > 1:
-            mask = torch.full(
-                (1, 1, seqlen, seqlen), float("-inf"), device=tokens.device
-            )
+            mask = torch.full((1, 1, seqlen, seqlen), float("-inf"), device=tokens.device)
             mask = torch.triu(mask, diagonal=start_pos + 1).type_as(h)
         for layer in self.blocks:
             h = layer(h, start_pos, mask)

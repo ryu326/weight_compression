@@ -2,12 +2,10 @@ import argparse
 import os
 
 import yaml
-from promptsource.templates import DatasetTemplates
-from tqdm import tqdm
-
 # from lm_eval.api.registry import ALL_TASKS
 from lm_eval.logger import eval_logger
-
+from promptsource.templates import DatasetTemplates
+from tqdm import tqdm
 
 # from lm_eval.tasks import include_task_folder
 
@@ -43,9 +41,7 @@ if __name__ == "__main__":
             if subset_name is None:
                 prompts = DatasetTemplates(dataset_name=dataset_name)
             else:
-                prompts = DatasetTemplates(
-                    dataset_name=dataset_name, subset_name=subset_name
-                )
+                prompts = DatasetTemplates(dataset_name=dataset_name, subset_name=subset_name)
 
             for idx, prompt_name in enumerate(prompts.all_template_names):
                 full_file_name = f"promptsource_{idx}.yaml"

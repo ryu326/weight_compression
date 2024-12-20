@@ -2,19 +2,18 @@
 # Please first install awq/kernels
 # then directly run CUDA_VISIBLE_DEVICES=0 python benchmark.py
 import argparse
-import torch
 import time
+
 import numpy as np
-from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig, modeling_utils
 import tinychat.utils.constants
-from tinychat.utils.load_quant import load_awq_model
+import torch
 from awq.quantize.quantizer import real_quantize_model_weight
-from tinychat.utils.tune import (
-    tune_all_wqlinears,
-    device_warmup,
-    tune_llava_patch_embedding,
-)
-from tinychat.modules import make_quant_norm, make_quant_attn, make_fused_mlp
+from tinychat.modules import make_fused_mlp, make_quant_attn, make_quant_norm
+from tinychat.utils.load_quant import load_awq_model
+from tinychat.utils.tune import (device_warmup, tune_all_wqlinears,
+                                 tune_llava_patch_embedding)
+from transformers import (AutoConfig, AutoModelForCausalLM, AutoTokenizer,
+                          modeling_utils)
 
 
 def skip(*args, **kwargs):
@@ -23,9 +22,7 @@ def skip(*args, **kwargs):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--model_type", type=str, default="LLaMa", help="type of the model"
-    )
+    parser.add_argument("--model_type", type=str, default="LLaMa", help="type of the model")
     parser.add_argument(
         "--model_path",
         type=str,
@@ -45,9 +42,7 @@ def main():
         default=2048,
         help="maximum sequence length for kv cache",
     )
-    parser.add_argument(
-        "--max_batch_size", type=int, default=1, help="maximum batch size for kv cache"
-    )
+    parser.add_argument("--max_batch_size", type=int, default=1, help="maximum batch size for kv cache")
     parser.add_argument(
         "--flash_attn",
         action="store_true",
@@ -72,27 +67,22 @@ def main():
     )
     args = parser.parse_args()
     # some checks
-    assert (args.question_length is not None and args.chunk_prefilling) or (
-        not args.chunk_prefilling
-    )
+    assert (args.question_length is not None and args.chunk_prefilling) or (not args.chunk_prefilling)
 
     # We support fixing a certain kind of length
     if args.chunk_prefilling:
         if len(args.context_length) == 1 and len(args.question_length) > 1:
-            args.context_length = [
-                args.context_length[0] for _ in range(len(args.question_length))
-            ]
+            args.context_length = [args.context_length[0] for _ in range(len(args.question_length))]
         elif len(args.question_length) == 1 and len(args.context_length) > 1:
-            args.question_length = [
-                args.question_length[0] for _ in range(len(args.context_length))
-            ]
+            args.question_length = [args.question_length[0] for _ in range(len(args.context_length))]
         elif len(args.question_length) != len(args.context_length):
             raise ValueError(
                 "The number of items in the question_length and context_length is expected to be either one or equal!"
             )
     tinychat.utils.constants.max_batch_size = args.max_batch_size
     tinychat.utils.constants.max_seq_len = args.max_seq_len
-    from tinychat.models import FalconForCausalLM, LlamaForCausalLM, MPTForCausalLM
+    from tinychat.models import (FalconForCausalLM, LlamaForCausalLM,
+                                 MPTForCausalLM)
     from tinychat.models.vila_llama import VilaLlamaForCausalLM
 
     modeling_utils._init_weights = False
@@ -144,9 +134,7 @@ def main():
         # warming up
         input_ids = [1 for _ in range(2048)]
         inputs = torch.as_tensor([input_ids], device=device)
-        out = model(
-            inputs, start_pos=0, chunk_prefilling=args.chunk_prefilling
-        )  # warmup
+        out = model(inputs, start_pos=0, chunk_prefilling=args.chunk_prefilling)  # warmup
 
         if not args.chunk_prefilling:
             for i, context_length in enumerate(args.context_length):
@@ -161,11 +149,7 @@ def main():
                     images = None
                     input_ids = [1 for _ in range(context_length)]
                 print("-" * 80)
-                print(
-                    "Context length: {} with {} pictures".format(
-                        context_length, image_num[i]
-                    )
-                )
+                print("Context length: {} with {} pictures".format(context_length, image_num[i]))
                 with torch.inference_mode():
                     for i in range(10):  # Run ten times and get the average value
                         start_pos = 0
@@ -188,9 +172,7 @@ def main():
                     print(f"Time To First Token: {np.mean(time_lis):.5f} s.")
                     print("-" * 80)
         else:
-            for i, (context_length, question_length) in enumerate(
-                zip(args.context_length, args.question_length)
-            ):
+            for i, (context_length, question_length) in enumerate(zip(args.context_length, args.question_length)):
                 context_length = int("".join(context_length))
                 question_length = int("".join(question_length))
                 input_ids_old = [1 for _ in range(context_length)]
@@ -198,11 +180,7 @@ def main():
                 input_ids_new = [1 for _ in range(question_length)]
                 time_lis = []
                 print("-" * 80)
-                print(
-                    "History length: {} ; Question length: {}".format(
-                        context_length, question_length
-                    )
-                )
+                print("History length: {} ; Question length: {}".format(context_length, question_length))
                 with torch.inference_mode():
                     for i in range(10):  # Run ten times and get the average value
                         # history rounds
@@ -234,9 +212,7 @@ def main():
                         time_lis.append(t_ed - t_st)
                         if args.verbose:
                             print(i, t_ed - t_st)
-                    print(
-                        f"Time To First Token of this round: {np.mean(time_lis):.5f} s."
-                    )
+                    print(f"Time To First Token of this round: {np.mean(time_lis):.5f} s.")
                     print("-" * 80)
     else:
         model = model_type_dict[args.model_type.lower()](config).half()
@@ -259,9 +235,7 @@ def main():
         # warming up
         input_ids = [1 for _ in range(2048)]
         inputs = torch.as_tensor([input_ids], device=device)
-        out = model(
-            inputs, start_pos=0, chunk_prefilling=args.chunk_prefilling
-        )  # warmup
+        out = model(inputs, start_pos=0, chunk_prefilling=args.chunk_prefilling)  # warmup
 
         if not args.chunk_prefilling:
             for context_length in args.context_length:
@@ -291,20 +265,14 @@ def main():
                     print(f"Time To First Token: {np.mean(time_lis):.5f} s.")
                     print("-" * 80)
         else:
-            for context_length, question_length in zip(
-                args.context_length, args.question_length
-            ):
+            for context_length, question_length in zip(args.context_length, args.question_length):
                 context_length = int("".join(context_length))
                 question_length = int("".join(question_length))
                 input_ids_old = [1 for _ in range(context_length)]
                 input_ids_new = [1 for _ in range(question_length)]
                 time_lis = []
                 print("-" * 80)
-                print(
-                    "History length: {} ; Question length: {}".format(
-                        context_length, question_length
-                    )
-                )
+                print("History length: {} ; Question length: {}".format(context_length, question_length))
                 with torch.inference_mode():
                     for i in range(10):  # Run ten times and get the average value
                         # history rounds
@@ -335,9 +303,7 @@ def main():
                         time_lis.append(t_ed - t_st)
                         if args.verbose:
                             print(i, t_ed - t_st)
-                    print(
-                        f"Time To First Token of this round: {np.mean(time_lis):.5f} s."
-                    )
+                    print(f"Time To First Token of this round: {np.mean(time_lis):.5f} s.")
                     print("-" * 80)
 
 

@@ -71,22 +71,12 @@ def process_hellaswag(dataset: datasets.Dataset) -> datasets.Dataset:
 
         long_prompt = ""
         for shot in range(1, 11):
-            ctx = (
-                doc[f"hellaswag_ctx_a_shot_{shot}"]
-                + " "
-                + doc[f"hellaswag_ctx_b_shot_{shot}"].capitalize()
-            )
+            ctx = doc[f"hellaswag_ctx_a_shot_{shot}"] + " " + doc[f"hellaswag_ctx_b_shot_{shot}"].capitalize()
             doc.pop(f"hellaswag_ctx_a_shot_{shot}")
             doc.pop(f"hellaswag_ctx_b_shot_{shot}")
             doc.pop(f"hellaswag_ctx_shot_{shot}")
-            question = process_txt(
-                doc[f"hellaswag_activity_labels_shot_{shot}"] + ": " + ctx
-            )
-            ending = process_txt(
-                doc[f"hellaswag_endings_shot_{shot}"][
-                    int(doc[f"hellaswag_label_shot_{shot}"])
-                ]
-            )
+            question = process_txt(doc[f"hellaswag_activity_labels_shot_{shot}"] + ": " + ctx)
+            ending = process_txt(doc[f"hellaswag_endings_shot_{shot}"][int(doc[f"hellaswag_label_shot_{shot}"])])
             doc.pop(f"hellaswag_activity_labels_shot_{shot}")
             doc.pop(f"hellaswag_endings_shot_{shot}")
             doc.pop(f"hellaswag_label_shot_{shot}")

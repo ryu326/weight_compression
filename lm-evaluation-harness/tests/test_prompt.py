@@ -3,11 +3,9 @@ from typing import List
 
 import numpy as np
 import pytest
-
 from lm_eval import tasks
 from lm_eval.tasks import TaskManager
 from lm_eval.utils import join_iters
-
 
 MMLU_ANATOMY_ZERO_SHOT = """The following are multiple choice questions (with answers) about anatomy.
 
@@ -108,9 +106,7 @@ def test_mmlu_prompt_rendering(
 
         docs = join_iters(iters)
 
-        for i, doc in (
-            zip(range(num_examples), docs) if num_examples > 0 else enumerate(docs)
-        ):
+        for i, doc in zip(range(num_examples), docs) if num_examples > 0 else enumerate(docs):
             ctx = task.fewshot_context(
                 doc=doc,
                 num_fewshot=num_fewshot,

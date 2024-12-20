@@ -8,7 +8,6 @@ import argparse
 import yaml
 from langcodes import Language
 
-
 # constants
 _LANGUAGES = [
     "ace_Arab",
@@ -216,9 +215,7 @@ _LANGUAGES = [
     "som_Latn",
     "tum_Latn",
 ]
-LANGUAGE_PAIRS = [
-    (a, b) for idx, a in enumerate(_LANGUAGES) for b in _LANGUAGES[idx + 1 :]
-]
+LANGUAGE_PAIRS = [(a, b) for idx, a in enumerate(_LANGUAGES) for b in _LANGUAGES[idx + 1 :]]
 
 LANGUAGES_OF_INTEREST = [
     "cat_Latn",
@@ -235,9 +232,7 @@ MAIN_LANG = "cat_Latn"
 LANGUAGE_PAIRS = [
     (a, b)
     for (a, b) in LANGUAGE_PAIRS
-    if a in LANGUAGES_OF_INTEREST
-    and b in LANGUAGES_OF_INTEREST
-    and "cat_Latn" in (a, b)
+    if a in LANGUAGES_OF_INTEREST and b in LANGUAGES_OF_INTEREST and "cat_Latn" in (a, b)
 ]
 
 # auxiliary functions
@@ -322,9 +317,7 @@ def main() -> None:
         action="store_true",
         help="Overwrite files if they already exist",
     )
-    parser.add_argument(
-        "--output-dir", default=".", help="Directory to write yaml files to"
-    )
+    parser.add_argument("--output-dir", default=".", help="Directory to write yaml files to")
     args = parser.parse_args()
 
     gen_lang_yamls(output_dir=args.output_dir, overwrite=args.overwrite)

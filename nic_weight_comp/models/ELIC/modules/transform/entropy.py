@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 class EntropyParametersEX(nn.Module):
     def __init__(self, in_dim, out_dim, act=nn.GELU) -> None:
         super().__init__()
@@ -23,4 +24,3 @@ class EntropyParametersEX(nn.Module):
         gaussian_params = self.fusion(params)
 
         return gaussian_params
-

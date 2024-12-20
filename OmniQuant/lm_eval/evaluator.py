@@ -8,12 +8,16 @@ import lm_eval.tasks
 import lm_eval.base
 from lm_eval.utils import positional_deprecated, run_task_tests
 import fnmatch
+
+
 def pattern_match(patterns, source_list):
     task_names = set()
     for pattern in patterns:
         for matching in fnmatch.filter(source_list, pattern):
             task_names.add(matching)
     return list(task_names)
+
+
 @positional_deprecated
 def simple_evaluate(
     lm,
@@ -24,9 +28,7 @@ def simple_evaluate(
     bootstrap_iters=100000,
     description_dict=None,
     decontamination_ngrams_path=None,
-
 ):
-
     """Instantiate and evaluate a model on a list of tasks.
 
     :param model: Union[str, LM]
@@ -64,7 +66,6 @@ def simple_evaluate(
     assert tasks != [], "No tasks specified"
     print(f"Selected Tasks: {task_names}")
     task_dict = lm_eval.tasks.get_task_dict(task_names)
-
 
     results = evaluate(
         lm=lm,
@@ -135,11 +136,9 @@ def evaluate(
     decontaminate = decontamination_ngrams_path is not None
 
     task_dict_items = [
-        (name, task)
-        for name, task in task_dict.items()
-        if (task.has_validation_docs() or task.has_test_docs())
+        (name, task) for name, task in task_dict.items() if (task.has_validation_docs() or task.has_test_docs())
     ]
-    #[('lambada_openai', <lm_eval.tasks.lambada.LambadaOpenAI object at 0x7f9831a186a0>)]
+    # [('lambada_openai', <lm_eval.tasks.lambada.LambadaOpenAI object at 0x7f9831a186a0>)]
     results = collections.defaultdict(dict)
     versions = collections.defaultdict(dict)
 
@@ -180,31 +179,23 @@ def evaluate(
         rnd.seed(42)
         rnd.shuffle(task_docs)
 
-        description = (
-            description_dict[task_name]
-            if description_dict and task_name in description_dict
-            else ""
-        )
-
+        description = description_dict[task_name] if description_dict and task_name in description_dict else ""
 
         for doc_id, doc in enumerate(itertools.islice(task_docs, 0, limit)):
-        # for doc_id, doc in enumerate(itertools.islice(task_docs, 0, 3)):
+            # for doc_id, doc in enumerate(itertools.islice(task_docs, 0, 3)):
 
             if decontaminate and task.should_decontaminate():
-                docs_for_decontamination[(task_name, task_set)].append(
-                    task.doc_to_decontamination_query(doc)
-                )
+                docs_for_decontamination[(task_name, task_set)].append(task.doc_to_decontamination_query(doc))
             docs[(task_name, doc_id)] = doc
-            ctx = task.fewshot_context(
-                doc=doc, num_fewshot=num_fewshot, rnd=rnd, description=description
-            )
-            reqs = task.construct_requests(doc, ctx) #(Req_loglikelihood('Car...at', ' Carlos')[1], Req_loglikelihood('Car...at', ' Carlos')[0] )
-
+            ctx = task.fewshot_context(doc=doc, num_fewshot=num_fewshot, rnd=rnd, description=description)
+            reqs = task.construct_requests(
+                doc, ctx
+            )  # (Req_loglikelihood('Car...at', ' Carlos')[1], Req_loglikelihood('Car...at', ' Carlos')[0] )
 
             if not isinstance(reqs, (list, tuple)):
                 reqs = [reqs]
             for i, req in enumerate(reqs):
-                requests[req.request_type].append(req)  #req.request_type: loglikelihood
+                requests[req.request_type].append(req)  # req.request_type: loglikelihood
                 # i: index in requests for a single task instance
                 # doc_id: unique id that we can get back to a doc using `docs`
                 requests_origin[req.request_type].append((i, task_name, doc, doc_id))
@@ -214,9 +205,7 @@ def evaluate(
         from lm_eval.decontamination.decontaminate import get_train_overlap
 
         print("Finding train/test overlap, please wait...")
-        overlaps = get_train_overlap(
-            docs_for_decontamination, decontamination_ngrams_path, limit
-        )
+        overlaps = get_train_overlap(docs_for_decontamination, decontamination_ngrams_path, limit)
 
     # all responses for each (task, doc)
     process_res_queue = collections.defaultdict(list)
@@ -229,9 +218,7 @@ def evaluate(
 
         print("Running", reqtype, "requests")
         resps = getattr(lm, reqtype)([req.args for req in reqs])
-        resps = [
-            x if req.index is None else x[req.index] for x, req in zip(resps, reqs)
-        ]
+        resps = [x if req.index is None else x[req.index] for x, req in zip(resps, reqs)]
 
         for resp, (i, task_name, doc, doc_id) in zip(resps, requests_origin[reqtype]):
             process_res_queue[(task_name, doc_id)].append((i, resp))
@@ -260,9 +247,7 @@ def evaluate(
         task = task_dict[task_name]
         real_metric = metric  # key when looking up the metric with task.aggregation
         if metric.endswith(decontaminate_suffix):
-            real_metric = metric.replace(
-                decontaminate_suffix, ""
-            )  # decontaminated still uses the same metric
+            real_metric = metric.replace(decontaminate_suffix, "")  # decontaminated still uses the same metric
         results[task_name][metric] = task.aggregation()[real_metric](items)
 
         # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
@@ -270,9 +255,7 @@ def evaluate(
 
         stderr = lm_eval.metrics.stderr_for_metric(
             metric=task.aggregation()[real_metric],
-            bootstrap_iters=min(bootstrap_iters, 1000)
-            if metric in ["bleu", "chrf", "ter"]
-            else bootstrap_iters,
+            bootstrap_iters=min(bootstrap_iters, 1000) if metric in ["bleu", "chrf", "ter"] else bootstrap_iters,
         )
 
         if stderr is not None:

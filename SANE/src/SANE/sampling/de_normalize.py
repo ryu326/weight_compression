@@ -37,22 +37,18 @@ def de_normalize_checkpoint(checkpoint, layers, mode="minmax"):
             checkpoint[key] = checkpoint[key] * sigma + mu
             # de-noramlize bias
             if key.replace("weight", "bias") in checkpoint:
-                checkpoint[key.replace("weight", "bias")] = (
-                    checkpoint[key.replace("weight", "bias")] * sigma + mu
-                )
+                checkpoint[key.replace("weight", "bias")] = checkpoint[key.replace("weight", "bias")] * sigma + mu
         elif mode == "minmax":
             # get global min and max values
             min_glob = layers[key]["min"]
             max_glob = layers[key]["max"]
             # reverse of min-max normalization (mapped to range [-1,1])
             # returns weights exactly to original range
-            checkpoint[key] = (checkpoint[key] + 1) * (
-                max_glob - min_glob
-            ) / 2 + min_glob
+            checkpoint[key] = (checkpoint[key] + 1) * (max_glob - min_glob) / 2 + min_glob
             # de-normalize bais
             if key.replace("weight", "bias") in checkpoint:
-                checkpoint[key.replace("weight", "bias")] = (
-                    checkpoint[key.replace("weight", "bias")] + 1
-                ) * (max_glob - min_glob) / 2 + min_glob
+                checkpoint[key.replace("weight", "bias")] = (checkpoint[key.replace("weight", "bias")] + 1) * (
+                    max_glob - min_glob
+                ) / 2 + min_glob
 
     return checkpoint

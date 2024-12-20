@@ -15,9 +15,7 @@ class PreprocessedSamplingDataset(Dataset):
     def load_datasets(self, zoo_paths):
         datasets = []
         for path in zoo_paths:
-            directory_path = (
-                Path(path).joinpath(f"dataset_torch.{self.split}").absolute()
-            )
+            directory_path = Path(path).joinpath(f"dataset_torch.{self.split}").absolute()
             if os.path.isdir(directory_path):
                 datasets.append(directory_path)
             else:

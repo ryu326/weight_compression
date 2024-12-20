@@ -9,7 +9,6 @@ import os
 import yaml
 from tqdm import tqdm
 
-
 eval_logger = logging.getLogger("lm-eval")
 
 
@@ -89,8 +88,7 @@ if __name__ == "__main__":
         }
 
         file_save_path = (
-            args.save_prefix_path
-            + f"_{subject.lower().replace(' ', '_').replace('(', '').replace(')', '')}.yaml"
+            args.save_prefix_path + f"_{subject.lower().replace(' ', '_').replace('(', '').replace(')', '')}.yaml"
         )
         eval_logger.info(f"Saving yaml for subset {subject} to {file_save_path}")
         with open(file_save_path, "w", encoding="utf-8") as yaml_file:

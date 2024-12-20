@@ -1,4 +1,5 @@
 from typing import Dict
+
 import numpy as np
 from attributedict.collections import AttributeDict
 
@@ -58,9 +59,7 @@ class TimeStats:
             return
 
         print("*" * 50)
-        print(
-            f"Speed of Generation : {np.average(self.generation_time_list) * 1000:.2f} ms/token"
-        )
+        print(f"Speed of Generation : {np.average(self.generation_time_list) * 1000:.2f} ms/token")
         print("*" * 50)
 
         # print("=" * 50)

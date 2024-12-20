@@ -43,23 +43,55 @@ class AnalysisTransform(tf.keras.Sequential):
 
     def __init__(self, num_filters):
         super().__init__(name="analysis")
-        self.add(tf.keras.layers.Lambda(lambda x: x / 255.))
-        self.add(tfc.SignalConv2D(
-            num_filters, (5, 5), name="layer_0", corr=True, strides_down=2,
-            padding="same_zeros", use_bias=True,
-            activation=tfc.GDN(name="gdn_0")))
-        self.add(tfc.SignalConv2D(
-            num_filters, (5, 5), name="layer_1", corr=True, strides_down=2,
-            padding="same_zeros", use_bias=True,
-            activation=tfc.GDN(name="gdn_1")))
-        self.add(tfc.SignalConv2D(
-            num_filters, (5, 5), name="layer_2", corr=True, strides_down=2,
-            padding="same_zeros", use_bias=True,
-            activation=tfc.GDN(name="gdn_2")))
-        self.add(tfc.SignalConv2D(
-            num_filters, (5, 5), name="layer_3", corr=True, strides_down=2,
-            padding="same_zeros", use_bias=True,
-            activation=None))
+        self.add(tf.keras.layers.Lambda(lambda x: x / 255.0))
+        self.add(
+            tfc.SignalConv2D(
+                num_filters,
+                (5, 5),
+                name="layer_0",
+                corr=True,
+                strides_down=2,
+                padding="same_zeros",
+                use_bias=True,
+                activation=tfc.GDN(name="gdn_0"),
+            )
+        )
+        self.add(
+            tfc.SignalConv2D(
+                num_filters,
+                (5, 5),
+                name="layer_1",
+                corr=True,
+                strides_down=2,
+                padding="same_zeros",
+                use_bias=True,
+                activation=tfc.GDN(name="gdn_1"),
+            )
+        )
+        self.add(
+            tfc.SignalConv2D(
+                num_filters,
+                (5, 5),
+                name="layer_2",
+                corr=True,
+                strides_down=2,
+                padding="same_zeros",
+                use_bias=True,
+                activation=tfc.GDN(name="gdn_2"),
+            )
+        )
+        self.add(
+            tfc.SignalConv2D(
+                num_filters,
+                (5, 5),
+                name="layer_3",
+                corr=True,
+                strides_down=2,
+                padding="same_zeros",
+                use_bias=True,
+                activation=None,
+            )
+        )
 
 
 class SynthesisTransform(tf.keras.Sequential):
@@ -67,23 +99,55 @@ class SynthesisTransform(tf.keras.Sequential):
 
     def __init__(self, num_filters):
         super().__init__(name="synthesis")
-        self.add(tfc.SignalConv2D(
-            num_filters, (5, 5), name="layer_0", corr=False, strides_up=2,
-            padding="same_zeros", use_bias=True,
-            activation=tfc.GDN(name="igdn_0", inverse=True)))
-        self.add(tfc.SignalConv2D(
-            num_filters, (5, 5), name="layer_1", corr=False, strides_up=2,
-            padding="same_zeros", use_bias=True,
-            activation=tfc.GDN(name="igdn_1", inverse=True)))
-        self.add(tfc.SignalConv2D(
-            num_filters, (5, 5), name="layer_2", corr=False, strides_up=2,
-            padding="same_zeros", use_bias=True,
-            activation=tfc.GDN(name="igdn_2", inverse=True)))
-        self.add(tfc.SignalConv2D(
-            3, (5, 5), name="layer_3", corr=False, strides_up=2,
-            padding="same_zeros", use_bias=True,
-            activation=None))
-        self.add(tf.keras.layers.Lambda(lambda x: x * 255.))
+        self.add(
+            tfc.SignalConv2D(
+                num_filters,
+                (5, 5),
+                name="layer_0",
+                corr=False,
+                strides_up=2,
+                padding="same_zeros",
+                use_bias=True,
+                activation=tfc.GDN(name="igdn_0", inverse=True),
+            )
+        )
+        self.add(
+            tfc.SignalConv2D(
+                num_filters,
+                (5, 5),
+                name="layer_1",
+                corr=False,
+                strides_up=2,
+                padding="same_zeros",
+                use_bias=True,
+                activation=tfc.GDN(name="igdn_1", inverse=True),
+            )
+        )
+        self.add(
+            tfc.SignalConv2D(
+                num_filters,
+                (5, 5),
+                name="layer_2",
+                corr=False,
+                strides_up=2,
+                padding="same_zeros",
+                use_bias=True,
+                activation=tfc.GDN(name="igdn_2", inverse=True),
+            )
+        )
+        self.add(
+            tfc.SignalConv2D(
+                3,
+                (5, 5),
+                name="layer_3",
+                corr=False,
+                strides_up=2,
+                padding="same_zeros",
+                use_bias=True,
+                activation=None,
+            )
+        )
+        self.add(tf.keras.layers.Lambda(lambda x: x * 255.0))
 
 
 class HyperAnalysisTransform(tf.keras.Sequential):
@@ -93,18 +157,42 @@ class HyperAnalysisTransform(tf.keras.Sequential):
         super().__init__(name="hyper_analysis")
         if not num_output_filters:
             num_output_filters = num_filters
-        self.add(tfc.SignalConv2D(
-            num_filters, (3, 3), name="layer_0", corr=True, strides_down=1,
-            padding="same_zeros", use_bias=True,
-            activation=tf.nn.relu))
-        self.add(tfc.SignalConv2D(
-            num_filters, (5, 5), name="layer_1", corr=True, strides_down=2,
-            padding="same_zeros", use_bias=True,
-            activation=tf.nn.relu))
-        self.add(tfc.SignalConv2D(
-            num_output_filters, (5, 5), name="layer_2", corr=True, strides_down=2,
-            padding="same_zeros", use_bias=False,
-            activation=None))
+        self.add(
+            tfc.SignalConv2D(
+                num_filters,
+                (3, 3),
+                name="layer_0",
+                corr=True,
+                strides_down=1,
+                padding="same_zeros",
+                use_bias=True,
+                activation=tf.nn.relu,
+            )
+        )
+        self.add(
+            tfc.SignalConv2D(
+                num_filters,
+                (5, 5),
+                name="layer_1",
+                corr=True,
+                strides_down=2,
+                padding="same_zeros",
+                use_bias=True,
+                activation=tf.nn.relu,
+            )
+        )
+        self.add(
+            tfc.SignalConv2D(
+                num_output_filters,
+                (5, 5),
+                name="layer_2",
+                corr=True,
+                strides_down=2,
+                padding="same_zeros",
+                use_bias=False,
+                activation=None,
+            )
+        )
 
 
 # Architecture (mean-scale, no context model) based on Table 1 of https://papers.nips.cc/paper/8275-joint-autoregressive-and-hierarchical-priors-for-learned-image-compression.pdf
@@ -115,18 +203,45 @@ class HyperSynthesisTransform(tf.keras.Sequential):
         super().__init__(name="hyper_synthesis")
         if not num_output_filters:
             num_output_filters = num_filters * 2
-        self.add(tfc.SignalConv2D(
-            num_filters, (5, 5), name="layer_0", corr=False, strides_up=2,
-            padding="same_zeros", use_bias=True, kernel_parameter="variable",
-            activation=tf.nn.relu))
-        self.add(tfc.SignalConv2D(
-            int(num_filters * 1.5), (5, 5), name="layer_1", corr=False, strides_up=2,
-            padding="same_zeros", use_bias=True, kernel_parameter="variable",
-            activation=tf.nn.relu))
-        self.add(tfc.SignalConv2D(
-            num_output_filters, (3, 3), name="layer_2", corr=False, strides_up=1,
-            padding="same_zeros", use_bias=True, kernel_parameter="variable",
-            activation=None))
+        self.add(
+            tfc.SignalConv2D(
+                num_filters,
+                (5, 5),
+                name="layer_0",
+                corr=False,
+                strides_up=2,
+                padding="same_zeros",
+                use_bias=True,
+                kernel_parameter="variable",
+                activation=tf.nn.relu,
+            )
+        )
+        self.add(
+            tfc.SignalConv2D(
+                int(num_filters * 1.5),
+                (5, 5),
+                name="layer_1",
+                corr=False,
+                strides_up=2,
+                padding="same_zeros",
+                use_bias=True,
+                kernel_parameter="variable",
+                activation=tf.nn.relu,
+            )
+        )
+        self.add(
+            tfc.SignalConv2D(
+                num_output_filters,
+                (3, 3),
+                name="layer_2",
+                corr=False,
+                strides_up=1,
+                padding="same_zeros",
+                use_bias=True,
+                kernel_parameter="variable",
+                activation=None,
+            )
+        )
 
 
 class MBT2018Model(tf.keras.Model):
@@ -137,8 +252,7 @@ class MBT2018Model(tf.keras.Model):
         self.lmbda = lmbda
         self.num_scales = num_scales
         offset = tf.math.log(scale_min)
-        factor = (tf.math.log(scale_max) - tf.math.log(scale_min)) / (
-                num_scales - 1.)
+        factor = (tf.math.log(scale_max) - tf.math.log(scale_min)) / (num_scales - 1.0)
         self.scale_fn = lambda i: tf.math.exp(offset + factor * i)
         self.analysis_transform = AnalysisTransform(num_filters)
         self.synthesis_transform = SynthesisTransform(num_filters)
@@ -154,10 +268,9 @@ class MBT2018Model(tf.keras.Model):
     def call(self, x, training):
         """Computes rate and distortion losses."""
         entropy_model = tfc.LocationScaleIndexedEntropyModel(
-            tfc.NoisyNormal, self.num_scales, self.scale_fn, coding_rank=3,
-            compression=False)
-        side_entropy_model = tfc.ContinuousBatchedEntropyModel(
-            self.hyperprior, coding_rank=3, compression=False)
+            tfc.NoisyNormal, self.num_scales, self.scale_fn, coding_rank=3, compression=False
+        )
+        side_entropy_model = tfc.ContinuousBatchedEntropyModel(self.hyperprior, coding_rank=3, compression=False)
 
         y = self.analysis_transform(x)
         z = self.hyper_analysis_transform(y)  # no need for abs(y) as in bmshj2018.py
@@ -192,7 +305,7 @@ class MBT2018Model(tf.keras.Model):
         with tf.GradientTape() as tape:
             res = self(x, training=True)
         variables = self.trainable_variables
-        loss = res['loss']
+        loss = res["loss"]
         gradients = tape.gradient(loss, variables)
         self.optimizer.apply_gradients(zip(gradients, variables))
         for m in self.my_metrics:
@@ -216,7 +329,7 @@ class MBT2018Model(tf.keras.Model):
             weighted_metrics=None,
             **kwargs,
         )
-        self.metric_names = ('loss', 'bpp', 'psnr')
+        self.metric_names = ("loss", "bpp", "psnr")
         self.my_metrics = [tf.keras.metrics.Mean(name=name) for name in self.metric_names]  # can't use self.metrics
 
     def fit(self, *args, **kwargs):
@@ -227,14 +340,15 @@ class MBT2018Model(tf.keras.Model):
 
     def set_entropy_model(self):
         self.entropy_model = tfc.LocationScaleIndexedEntropyModel(
-            tfc.NoisyNormal, self.num_scales, self.scale_fn, coding_rank=3,
-            compression=True)
-        self.side_entropy_model = tfc.ContinuousBatchedEntropyModel(
-            self.hyperprior, coding_rank=3, compression=True)
+            tfc.NoisyNormal, self.num_scales, self.scale_fn, coding_rank=3, compression=True
+        )
+        self.side_entropy_model = tfc.ContinuousBatchedEntropyModel(self.hyperprior, coding_rank=3, compression=True)
 
-    @tf.function(input_signature=[
-        tf.TensorSpec(shape=(None, None, 3), dtype=tf.uint8),
-    ])
+    @tf.function(
+        input_signature=[
+            tf.TensorSpec(shape=(None, None, 3), dtype=tf.uint8),
+        ]
+    )
     def compress(self, x):
         """Compresses an image."""
         # Add batch dimension and cast to float.
@@ -249,47 +363,52 @@ class MBT2018Model(tf.keras.Model):
         z_hat, _ = self.side_entropy_model(z, training=False)
         mu, sigma = tf.split(self.hyper_synthesis_transform(z_hat), num_or_size_splits=2, axis=-1)
         sigma = tf.exp(
-            sigma)  # make positive; will be clipped then quantized to scale_table anyway; see https://github.com/tensorflow/compression/blob/f9edc949fa58381ffafa5aa8cb37dc8c3ce50e7f/tensorflow_compression/python/entropy_models/continuous_indexed.py#L255
+            sigma
+        )  # make positive; will be clipped then quantized to scale_table anyway; see https://github.com/tensorflow/compression/blob/f9edc949fa58381ffafa5aa8cb37dc8c3ce50e7f/tensorflow_compression/python/entropy_models/continuous_indexed.py#L255
         loc, indexes = mu, sigma
-        indexes = indexes[:, :y_shape[0], :y_shape[1], :]
-        loc = loc[:, :y_shape[0], :y_shape[1], :]
+        indexes = indexes[:, : y_shape[0], : y_shape[1], :]
+        loc = loc[:, : y_shape[0], : y_shape[1], :]
         side_string = self.side_entropy_model.compress(z)
         string = self.entropy_model.compress(y, indexes, loc=loc)
         return string, side_string, x_shape, y_shape, z_shape
 
-    @tf.function(input_signature=[
-        tf.TensorSpec(shape=(1,), dtype=tf.string),
-        tf.TensorSpec(shape=(1,), dtype=tf.string),
-        tf.TensorSpec(shape=(2,), dtype=tf.int32),
-        tf.TensorSpec(shape=(2,), dtype=tf.int32),
-        tf.TensorSpec(shape=(2,), dtype=tf.int32),
-    ])
+    @tf.function(
+        input_signature=[
+            tf.TensorSpec(shape=(1,), dtype=tf.string),
+            tf.TensorSpec(shape=(1,), dtype=tf.string),
+            tf.TensorSpec(shape=(2,), dtype=tf.int32),
+            tf.TensorSpec(shape=(2,), dtype=tf.int32),
+            tf.TensorSpec(shape=(2,), dtype=tf.int32),
+        ]
+    )
     def decompress(self, string, side_string, x_shape, y_shape, z_shape):
         """Decompresses an image."""
         z_hat = self.side_entropy_model.decompress(side_string, z_shape)
         mu, sigma = tf.split(self.hyper_synthesis_transform(z_hat), num_or_size_splits=2, axis=-1)
         sigma = tf.exp(sigma)  # make positive; will be clipped then quantized to scale_table anyway
         loc, indexes = mu, sigma
-        indexes = indexes[:, :y_shape[0], :y_shape[1], :]
-        loc = loc[:, :y_shape[0], :y_shape[1], :]
+        indexes = indexes[:, : y_shape[0], : y_shape[1], :]
+        loc = loc[:, : y_shape[0], : y_shape[1], :]
         y_hat = self.entropy_model.decompress(string, indexes, loc=loc)
         x_hat = self.synthesis_transform(y_hat)
         # Remove batch dimension, and crop away any extraneous padding.
-        x_hat = x_hat[0, :x_shape[0], :x_shape[1], :]
+        x_hat = x_hat[0, : x_shape[0], : x_shape[1], :]
         # Then cast back to 8-bit integer.
         return tf.saturate_cast(tf.round(x_hat), tf.uint8)
 
 
 def get_runname(args):
     from utils import config_dict_to_str
+
     model_name = os.path.splitext(os.path.basename(__file__))[0]
-    runname = config_dict_to_str(vars(args), record_keys=('num_filters', 'lmbda'), prefix=model_name)
+    runname = config_dict_to_str(vars(args), record_keys=("num_filters", "lmbda"), prefix=model_name)
     return runname
 
 
+from functools import partial
+
 # Unavoidable boilerplate below.
 import boilerplate
-from functools import partial
 
 # Note: needed to specify as kwargs in partial; o/w would be incorrect ('argv' would receive the value for create_model)
 main = partial(boilerplate.main, create_model=MBT2018Model.create_model, get_runname=get_runname)

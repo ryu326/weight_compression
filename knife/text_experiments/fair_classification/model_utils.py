@@ -7,17 +7,23 @@ import itertools
 
 
 class Classifier(torch.nn.Module):
-    '''
+    """
     General Classifier with Leaky Relu as activation function
-    '''
+    """
 
     def __init__(self, input_dim, output_dim, use_complex_classifier=False):
         super(Classifier, self).__init__()
         if use_complex_classifier:
-            self.net = nn.Sequential(nn.Linear(input_dim, input_dim), nn.LeakyReLU(), nn.Linear(input_dim, input_dim),
-                                     nn.LeakyReLU(), nn.Linear(input_dim, input_dim),
-                                     nn.LeakyReLU(), nn.Linear(input_dim, output_dim),
-                                     nn.LogSoftmax())
+            self.net = nn.Sequential(
+                nn.Linear(input_dim, input_dim),
+                nn.LeakyReLU(),
+                nn.Linear(input_dim, input_dim),
+                nn.LeakyReLU(),
+                nn.Linear(input_dim, input_dim),
+                nn.LeakyReLU(),
+                nn.Linear(input_dim, output_dim),
+                nn.LogSoftmax(),
+            )
         else:
             self.net = nn.Sequential(nn.Linear(input_dim, output_dim), nn.LogSoftmax())
 
@@ -34,16 +40,21 @@ class Classifier(torch.nn.Module):
 
 
 class ClassifierGamma(torch.nn.Module):
-    '''
+    """
     General Classifier with Leaky Relu as activation function
-    '''
+    """
 
     def __init__(self, input_dim, output_dim):
         super(ClassifierGamma, self).__init__()
-        self.net = nn.Sequential(nn.Linear(input_dim, input_dim), nn.LeakyReLU(), nn.Linear(input_dim, input_dim),
-                                 torch.nn.Dropout(p=0.1, inplace=False),
-                                 nn.LeakyReLU(), nn.Linear(input_dim, output_dim),
-                                 nn.LogSoftmax())
+        self.net = nn.Sequential(
+            nn.Linear(input_dim, input_dim),
+            nn.LeakyReLU(),
+            nn.Linear(input_dim, input_dim),
+            torch.nn.Dropout(p=0.1, inplace=False),
+            nn.LeakyReLU(),
+            nn.Linear(input_dim, output_dim),
+            nn.LogSoftmax(),
+        )
 
     def forward(self, input):
         input = torch.sum(input, dim=0)
@@ -62,8 +73,7 @@ class ClassifierGamma(torch.nn.Module):
 def update_target(ma_net, net, update_rate=1e-1):
     # update moving average network parameters using network
     for ma_net_param, net_param in zip(ma_net.parameters(), net.parameters()):
-        ma_net_param.data.copy_((1.0 - update_rate) \
-                                * ma_net_param.data + update_rate * net_param.data)
+        ma_net_param.data.copy_((1.0 - update_rate) * ma_net_param.data + update_rate * net_param.data)
 
 
 # control which parameters are frozen / free for optimization
@@ -77,7 +87,7 @@ def comput_gradient_norm(model):
     for p in model.parameters():
         param_norm = p.grad.data.norm(2)
         total_norm += param_norm.item() ** 2
-    total_norm = total_norm ** (1. / 2)
+    total_norm = total_norm ** (1.0 / 2)
     return torch.tensor(total_norm)
 
 
@@ -93,8 +103,14 @@ class EncoderRNN(nn.Module):
         self.args = args
 
         self.embedding = nn.Embedding(input_size, hidden_size)
-        self.gru = nn.GRU(hidden_size, hidden_size, batch_first=True, bidirectional=True, num_layers=number_of_layers,
-                          dropout=args.dropout)
+        self.gru = nn.GRU(
+            hidden_size,
+            hidden_size,
+            batch_first=True,
+            bidirectional=True,
+            num_layers=number_of_layers,
+            dropout=args.dropout,
+        )
 
     def forward(self, input, hidden):
         embedded = self.embedding(input)
@@ -103,8 +119,9 @@ class EncoderRNN(nn.Module):
         return output, hidden
 
     def initHidden(self):
-        return torch.zeros(2 * self.args.number_of_layers, self.args.batch_size, self.hidden_size,
-                           device=self.args.device)
+        return torch.zeros(
+            2 * self.args.number_of_layers, self.args.batch_size, self.hidden_size, device=self.args.device
+        )
 
 
 class DecoderRNN(nn.Module):
@@ -129,8 +146,8 @@ class DecoderRNN(nn.Module):
         return torch.zeros(1, self.args.batch_size, self.hidden_size, device=self.args.device)
 
 
-class EMA():
-    '''inspired from http://www.programmersought.com/article/28492072406/'''
+class EMA:
+    """inspired from http://www.programmersought.com/article/28492072406/"""
 
     def __init__(self, model, args, decay=0.99):
         self.model = model
@@ -148,15 +165,18 @@ class EMA():
             if param.requires_grad:
                 assert name in self.shadow
                 new_average = (1.0 - self.decay) * param.data.to(self.args.device) + self.decay * self.shadow[name].to(
-                    self.args.device)
+                    self.args.device
+                )
                 self.shadow[name] = new_average.clone()
 
 
 def corrupt_input(model, input_tensor):
-    ''' pqs de premiere sequcnce pas de pad '''
-    pad_indices = (input_tensor == model.args.tokenizer.pad_token_id) + (
-            input_tensor == model.args.tokenizer.sep_token_id) + (
-                          input_tensor == model.args.tokenizer.cls_token_id)
+    """pqs de premiere sequcnce pas de pad"""
+    pad_indices = (
+        (input_tensor == model.args.tokenizer.pad_token_id)
+        + (input_tensor == model.args.tokenizer.sep_token_id)
+        + (input_tensor == model.args.tokenizer.cls_token_id)
+    )
     pad_indices.to(model.args.device)
     ### MASK TOKEN ###
     """
@@ -170,8 +190,7 @@ def corrupt_input(model, input_tensor):
     input_tensor_to_corrupt = input_tensor.clone()
     probability_matrix = torch.full(input_tensor_to_corrupt.shape, model.args.noise_p).to(model.args.device)
     random_indices = torch.bernoulli(probability_matrix).byte() & (~pad_indices).byte()
-    random_words = torch.randint(len(model.args.tokenizer), input_tensor.shape, dtype=torch.long).to(
-        model.args.device)
+    random_words = torch.randint(len(model.args.tokenizer), input_tensor.shape, dtype=torch.long).to(model.args.device)
     input_tensor_to_corrupt[random_indices] = random_words[random_indices]
 
     ### RANDOMLY SWAP ORDER OF TOKENS ###
@@ -189,8 +208,10 @@ def corrupt_input(model, input_tensor):
             except:
                 print("Corruption Error Empty")
         input_tensor_corrupted_.append(
-            torch.index_select(input_tensor_to_corrupt[b, :].unsqueeze(0), 1,
-                               torch.LongTensor(index_).to(model.args.device)))
+            torch.index_select(
+                input_tensor_to_corrupt[b, :].unsqueeze(0), 1, torch.LongTensor(index_).to(model.args.device)
+            )
+        )
 
     input_tensor_corrupted = torch.cat(input_tensor_corrupted_, dim=0)
 

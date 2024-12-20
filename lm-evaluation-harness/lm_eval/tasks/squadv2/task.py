@@ -18,11 +18,9 @@ from functools import partial
 from math import exp
 
 import datasets
-from packaging import version
-
 from lm_eval.api.instance import Instance
 from lm_eval.api.task import ConfigurableTask
-
+from packaging import version
 
 _CITATION = """
 @misc{rajpurkar2018know,
@@ -199,30 +197,18 @@ class SQuAD2(ConfigurableTask):
             functions that aggregate a list of metrics
         """
         return {
-            "exact": partial(
-                _squad_agg, "exact"
-            ),  # Exact match (the normalized answer exactly match the gold answer)
-            "f1": partial(
-                _squad_agg, "f1"
-            ),  # The F-score of predicted tokens versus the gold answer
+            "exact": partial(_squad_agg, "exact"),  # Exact match (the normalized answer exactly match the gold answer)
+            "f1": partial(_squad_agg, "f1"),  # The F-score of predicted tokens versus the gold answer
             "HasAns_exact": partial(
                 _squad_agg, "HasAns_exact"
             ),  # Exact match (the normalized answer exactly match the gold answer)
-            "HasAns_f1": partial(
-                _squad_agg, "HasAns_f1"
-            ),  # The F-score of predicted tokens versus the gold answer
+            "HasAns_f1": partial(_squad_agg, "HasAns_f1"),  # The F-score of predicted tokens versus the gold answer
             "NoAns_exact": partial(
                 _squad_agg, "NoAns_exact"
             ),  # Exact match (the normalized answer exactly match the gold answer)
-            "NoAns_f1": partial(
-                _squad_agg, "NoAns_f1"
-            ),  # The F-score of predicted tokens versus the gold answer
-            "best_exact": partial(
-                _squad_agg, "best_exact"
-            ),  # Best exact match (with varying threshold)
-            "best_f1": partial(
-                _squad_agg, "best_f1"
-            ),  # Best F1 (with varying threshold)
+            "NoAns_f1": partial(_squad_agg, "NoAns_f1"),  # The F-score of predicted tokens versus the gold answer
+            "best_exact": partial(_squad_agg, "best_exact"),  # Best exact match (with varying threshold)
+            "best_f1": partial(_squad_agg, "best_f1"),  # Best F1 (with varying threshold)
         }
 
     def higher_is_better(self):

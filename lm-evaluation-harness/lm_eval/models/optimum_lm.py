@@ -6,7 +6,6 @@ from lm_eval import utils
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
 
-
 eval_logger = utils.eval_logger
 
 
@@ -29,9 +28,7 @@ class OptimumLM(HFLM):
     ) -> None:
         if "backend" in kwargs:
             # optimum currently only supports causal models
-            assert (
-                kwargs["backend"] == "causal"
-            ), "Currently, only OVModelForCausalLM is supported."
+            assert kwargs["backend"] == "causal", "Currently, only OVModelForCausalLM is supported."
 
         self.openvino_device = device
 
@@ -59,14 +56,10 @@ class OptimumLM(HFLM):
         model_kwargs = kwargs if kwargs else {}
         if "ov_config" in model_kwargs:
             if not Path(model_kwargs["ov_config"]).exists():
-                raise ValueError(
-                    "ov_config should point to a .json file containing an OpenVINO config"
-                )
+                raise ValueError("ov_config should point to a .json file containing an OpenVINO config")
             with open(model_kwargs["ov_config"]) as f:
                 model_kwargs["ov_config"] = json.load(f)
-                eval_logger.info(
-                    f"Using custom OpenVINO config: {model_kwargs['ov_config']}"
-                )
+                eval_logger.info(f"Using custom OpenVINO config: {model_kwargs['ov_config']}")
 
         else:
             model_kwargs["ov_config"] = {}

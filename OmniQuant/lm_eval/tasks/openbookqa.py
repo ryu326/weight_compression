@@ -14,6 +14,7 @@ based algorithm and a word co-occurrence algorithm.
 
 Homepage: https://allenai.org/data/open-book-qa
 """
+
 from lm_eval.base import MultipleChoiceTask
 
 

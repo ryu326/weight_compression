@@ -6,9 +6,8 @@ import evaluate
 import numpy as np
 import sacrebleu
 import transformers.data.metrics.squad_metrics as squad_metrics
-from rouge_score import rouge_scorer, scoring
-
 from lm_eval.utils import general_detokenize
+from rouge_score import rouge_scorer, scoring
 
 
 def lowercase_first_letter(text):
@@ -47,10 +46,9 @@ def process_docs_paraphrases(dataset):
         print(
             f"Found {len_empty_docs} empty documents out of the {len(dataset)} total docs in the dataset: {empty_docs}"
         )
-    return dataset.filter(
-        lambda doc: doc["Frase"] not in [None, ""]
-        and doc["Paráfrase"] not in [None, ""]
-    ).map(_process_doc)
+    return dataset.filter(lambda doc: doc["Frase"] not in [None, ""] and doc["Paráfrase"] not in [None, ""]).map(
+        _process_doc
+    )
 
 
 def process_docs_paws(dataset):
@@ -75,10 +73,9 @@ def process_docs_paws(dataset):
         print(
             f"Found {len_empty_docs} empty documents out of the {len(dataset)} total docs in the dataset: {empty_docs}"
         )
-    return dataset.filter(
-        lambda doc: doc["sentence1"] not in [None, ""]
-        and doc["sentence2"] not in [None, ""]
-    ).map(_process_doc)
+    return dataset.filter(lambda doc: doc["sentence1"] not in [None, ""] and doc["sentence2"] not in [None, ""]).map(
+        _process_doc
+    )
 
 
 def rouge1(items):
@@ -147,18 +144,12 @@ def process_doc_nli(dataset):
         doc["sentence2"] = general_detokenize(doc["sentence2"]).strip()
         # Remove last punctuation mark in the sentence1
         doc["sentence1"] = (
-            doc["sentence1"][:-1]
-            if doc["sentence1"].endswith((".", ",", "!", "?"))
-            else doc["sentence1"]
+            doc["sentence1"][:-1] if doc["sentence1"].endswith((".", ",", "!", "?")) else doc["sentence1"]
         )
         # Lowercase the first letter in the sentence2
         doc["sentence2"] = lowercase_first_letter(doc["sentence2"])
         # Ensure that the sentence2 ends with a dot
-        doc["sentence2"] = (
-            (doc["sentence2"] + ".")
-            if not doc["sentence2"].endswith(".")
-            else doc["sentence2"]
-        )
+        doc["sentence2"] = (doc["sentence2"] + ".") if not doc["sentence2"].endswith(".") else doc["sentence2"]
         # map label names to int
         label_to_int = {"entailment": 0, "neutral": 1, "contradiction": 2}
         doc["gold_label"] = label_to_int[doc["gold_label"]]

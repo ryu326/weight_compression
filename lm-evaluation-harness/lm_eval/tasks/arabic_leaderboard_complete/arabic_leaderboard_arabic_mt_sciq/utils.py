@@ -5,9 +5,7 @@ import numpy as np
 
 
 def doc_to_text(doc):
-    instruction = (
-        "بناءً على السياق أدناه، اختر الإجابة الصحيحة للسؤال التالي من قائمة الاقتراحات"
-    )
+    instruction = "بناءً على السياق أدناه، اختر الإجابة الصحيحة للسؤال التالي من قائمة الاقتراحات"
     support = doc["support"]
     question = doc["question"]
     query = f"""{instruction}

@@ -1,20 +1,18 @@
+import gc
 import math
+from typing import Optional
+
+import awq_inference_engine
+import tinychat.utils.constants
 import torch
 import torch.nn as nn
-from torch.nn import functional as F
-from transformers.models.llama.modeling_llama import (
-    LlamaAttention,
-    LlamaRotaryEmbedding,
-    apply_rotary_pos_emb,
-)
-from typing import Optional
 from awq.quantize.qmodule import WQLinear
-import awq_inference_engine
-from tinychat.models.llama import apply_rotary_emb
-import gc
-
-import tinychat.utils.constants
 from flash_attn import flash_attn_func
+from tinychat.models.llama import apply_rotary_emb
+from torch.nn import functional as F
+from transformers.models.llama.modeling_llama import (LlamaAttention,
+                                                      LlamaRotaryEmbedding,
+                                                      apply_rotary_pos_emb)
 
 max_batch_size = tinychat.utils.constants.max_batch_size
 max_seq_len = tinychat.utils.constants.max_seq_len
@@ -27,9 +25,7 @@ class QuantLlamaRotaryEmbedding(nn.Module):
         self.dim = dim
         self.max_position_embeddings = max_position_embeddings
         self.base = base
-        inv_freq = 1.0 / (
-            self.base ** (torch.arange(0, self.dim, 2).float().to(device) / self.dim)
-        )
+        inv_freq = 1.0 / (self.base ** (torch.arange(0, self.dim, 2).float().to(device) / self.dim))
         self.register_buffer("inv_freq", inv_freq)
         # Build here to make `torch.jit.trace` work.
         self._set_cos_sin_cache(
@@ -40,9 +36,7 @@ class QuantLlamaRotaryEmbedding(nn.Module):
 
     def _set_cos_sin_cache(self, seq_len, device, dtype):
         self.max_seq_len_cached = seq_len
-        t = torch.arange(
-            self.max_seq_len_cached, device=device, dtype=self.inv_freq.dtype
-        )
+        t = torch.arange(self.max_seq_len_cached, device=device, dtype=self.inv_freq.dtype)
 
         freqs = torch.einsum("i,j->ij", t, self.inv_freq)
         # Different from paper, but it uses a different permutation in order to obtain the same calculation
@@ -93,9 +87,7 @@ class QuantLlamaAttention(nn.Module):
             )
         self.qkv_proj = qkv_proj
         self.o_proj = o_proj
-        self.rotary_emb = QuantLlamaRotaryEmbedding(
-            self.head_dim, max_position_embeddings=2048, device=dev
-        )
+        self.rotary_emb = QuantLlamaRotaryEmbedding(self.head_dim, max_position_embeddings=2048, device=dev)
 
     def forward(
         self,
@@ -115,20 +107,12 @@ class QuantLlamaAttention(nn.Module):
 
         # This updates the query and key states in-place, saving VRAM.
         query_states, key_states, value_states = torch.split(qkv_states, 1, dim=2)
-        query_states, key_states = self.rotary_emb(
-            query_states, key_states, position_ids
-        )
+        query_states, key_states = self.rotary_emb(query_states, key_states, position_ids)
 
         del qkv_states
-        query_states = query_states.view(
-            bsz, q_len, self.num_heads, self.head_dim
-        ).transpose(1, 2)
-        key_states = key_states.view(
-            bsz, q_len, self.num_heads, self.head_dim
-        ).transpose(1, 2)
-        value_states = value_states.view(
-            bsz, q_len, self.num_heads, self.head_dim
-        ).transpose(1, 2)
+        query_states = query_states.view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
+        key_states = key_states.view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
+        value_states = value_states.view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
 
         is_causal = past_key_value is None
 
@@ -153,9 +137,7 @@ class QuantLlamaAttention(nn.Module):
         past_key_value = (key_states, value_states) if use_cache else None
 
         # with torch.backends.cuda.sdp_kernel(enable_math=False):
-        attn_output = F.scaled_dot_product_attention(
-            query_states, key_states, value_states, is_causal=is_causal
-        )
+        attn_output = F.scaled_dot_product_attention(query_states, key_states, value_states, is_causal=is_causal)
         del query_states, key_states, value_states
 
         attn_output = attn_output.transpose(1, 2).reshape(bsz, q_len, self.hidden_size)
@@ -218,9 +200,7 @@ class QuantLlamaAttentionFused(nn.Module):
         )  # added to half
 
         # dummy
-        self.rotary_emb = QuantLlamaRotaryEmbedding(
-            self.head_dim, max_position_embeddings=2048, device="cuda:0"
-        )
+        self.rotary_emb = QuantLlamaRotaryEmbedding(self.head_dim, max_position_embeddings=2048, device="cuda:0")
 
     def forward(
         self,
@@ -239,9 +219,7 @@ class QuantLlamaAttentionFused(nn.Module):
             self.head_dim,
         )
         xq = xqkv[:, :, 0 : self.n_local_heads]
-        xk = xqkv[
-            :, :, self.n_local_heads : (self.n_local_heads + self.num_key_value_heads)
-        ]
+        xk = xqkv[:, :, self.n_local_heads : (self.n_local_heads + self.num_key_value_heads)]
         xv = xqkv[:, :, -self.num_key_value_heads :]
 
         if seqlen > 1:
@@ -273,21 +251,15 @@ class QuantLlamaAttentionFused(nn.Module):
                 keys = torch.cat((keys, xk), dim=1)
                 values = self.cache_v[:, :, 0:start_pos, :]
                 values = (
-                    values.transpose(2, 1)
-                    .reshape(bsz, start_pos, self.num_key_value_heads, self.head_dim)
-                    .contiguous()
+                    values.transpose(2, 1).reshape(bsz, start_pos, self.num_key_value_heads, self.head_dim).contiguous()
                 )
                 values = torch.cat((values, xv), dim=1)
             else:
                 keys = xk
                 values = xv
 
-            keys = torch.repeat_interleave(
-                keys, dim=2, repeats=self.num_key_value_groups
-            )
-            values = torch.repeat_interleave(
-                values, dim=2, repeats=self.num_key_value_groups
-            )
+            keys = torch.repeat_interleave(keys, dim=2, repeats=self.num_key_value_groups)
+            values = torch.repeat_interleave(values, dim=2, repeats=self.num_key_value_groups)
 
             xq = xq.transpose(1, 2)
             keys = keys.transpose(1, 2)
@@ -380,9 +352,7 @@ class QuantLlamaAttentionFusedFlash(nn.Module):
         )  # added to half
 
         # dummy
-        self.rotary_emb = QuantLlamaRotaryEmbedding(
-            self.head_dim, max_position_embeddings=2048, device="cuda:0"
-        )
+        self.rotary_emb = QuantLlamaRotaryEmbedding(self.head_dim, max_position_embeddings=2048, device="cuda:0")
 
     def forward(
         self,
@@ -401,9 +371,7 @@ class QuantLlamaAttentionFusedFlash(nn.Module):
             self.head_dim,
         )
         xq = xqkv[:, :, 0 : self.n_local_heads]
-        xk = xqkv[
-            :, :, self.n_local_heads : (self.n_local_heads + self.num_key_value_heads)
-        ]
+        xk = xqkv[:, :, self.n_local_heads : (self.n_local_heads + self.num_key_value_heads)]
         xv = xqkv[:, :, -self.num_key_value_heads :]
 
         if seqlen > 1:
@@ -426,29 +394,21 @@ class QuantLlamaAttentionFusedFlash(nn.Module):
                 keys = self.cache_k[:, :, :, 0 : start_pos + seqlen, :]
                 keys = (
                     keys.permute(0, 3, 1, 2, 4)
-                    .reshape(
-                        bsz, start_pos + seqlen, self.num_key_value_heads, self.head_dim
-                    )
+                    .reshape(bsz, start_pos + seqlen, self.num_key_value_heads, self.head_dim)
                     .contiguous()
                 )
                 values = self.cache_v[:, :, 0 : start_pos + seqlen, :]
                 values = (
                     values.transpose(2, 1)
-                    .reshape(
-                        bsz, start_pos + seqlen, self.num_key_value_heads, self.head_dim
-                    )
+                    .reshape(bsz, start_pos + seqlen, self.num_key_value_heads, self.head_dim)
                     .contiguous()
                 )
             else:
                 keys = xk
                 values = xv
 
-            keys = torch.repeat_interleave(
-                keys, dim=2, repeats=self.num_key_value_groups
-            )
-            values = torch.repeat_interleave(
-                values, dim=2, repeats=self.num_key_value_groups
-            )
+            keys = torch.repeat_interleave(keys, dim=2, repeats=self.num_key_value_groups)
+            values = torch.repeat_interleave(values, dim=2, repeats=self.num_key_value_groups)
             output = flash_attn_func(
                 q=xq,
                 k=keys,
@@ -494,19 +454,11 @@ def make_quant_attn(model, dev, flash_attn=0):
         v_proj = m.v_proj
 
         qweights = torch.cat([q_proj.qweight, k_proj.qweight, v_proj.qweight], dim=0)
-        scaled_zeros = torch.cat(
-            [q_proj.scaled_zeros, k_proj.scaled_zeros, v_proj.scaled_zeros], dim=1
-        ).contiguous()
-        scales = torch.cat(
-            [q_proj.scales, k_proj.scales, v_proj.scales], dim=1
-        ).contiguous()
+        scaled_zeros = torch.cat([q_proj.scaled_zeros, k_proj.scaled_zeros, v_proj.scaled_zeros], dim=1).contiguous()
+        scales = torch.cat([q_proj.scales, k_proj.scales, v_proj.scales], dim=1).contiguous()
         # g_idx = torch.cat([q_proj.g_idx, k_proj.g_idx, v_proj.g_idx], dim=0)
         g_idx = None
-        bias = (
-            torch.cat([q_proj.bias, k_proj.bias, v_proj.bias], dim=0)
-            if q_proj.bias is not None
-            else None
-        )
+        bias = torch.cat([q_proj.bias, k_proj.bias, v_proj.bias], dim=0) if q_proj.bias is not None else None
 
         qkv_layer = WQLinear(
             q_proj.w_bit,
@@ -524,9 +476,7 @@ def make_quant_attn(model, dev, flash_attn=0):
         qkv_layer.split_k_iters = q_proj.split_k_iters
         # We're dropping the rotary embedding layer m.rotary_emb here. We don't need it in the triton branch.
         if isinstance(m, LlamaAttention):
-            attn = QuantLlamaAttention(
-                m.hidden_size, m.num_heads, qkv_layer, m.o_proj, dev
-            )
+            attn = QuantLlamaAttention(m.hidden_size, m.num_heads, qkv_layer, m.o_proj, dev)
         else:
             if flash_attn:
                 attn = QuantLlamaAttentionFusedFlash(

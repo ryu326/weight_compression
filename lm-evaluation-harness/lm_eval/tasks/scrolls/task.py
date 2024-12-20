@@ -5,12 +5,10 @@ from functools import reduce
 import numpy as np
 import transformers.data.metrics.squad_metrics as squad_metrics
 from datasets import Dataset, load_metric
-from transformers import AutoTokenizer
-
 from lm_eval.api.instance import Instance
 from lm_eval.api.metrics import mean
 from lm_eval.api.task import ConfigurableTask
-
+from transformers import AutoTokenizer
 
 _CITATION = """
 @inproceedings{shaham-etal-2022-scrolls,
@@ -47,13 +45,9 @@ def _download_metric():
 
     from huggingface_hub import hf_hub_download
 
-    scrolls_metric_path = hf_hub_download(
-        repo_id="tau/scrolls", repo_type="dataset", filename="metrics/scrolls.py"
-    )
+    scrolls_metric_path = hf_hub_download(repo_id="tau/scrolls", repo_type="dataset", filename="metrics/scrolls.py")
     updated_scrolls_metric_path = (
-        os.path.dirname(scrolls_metric_path)
-        + os.path.basename(scrolls_metric_path).replace(".", "_")
-        + ".py"
+        os.path.dirname(scrolls_metric_path) + os.path.basename(scrolls_metric_path).replace(".", "_") + ".py"
     )
     shutil.copy(scrolls_metric_path, updated_scrolls_metric_path)
     return updated_scrolls_metric_path
@@ -81,9 +75,7 @@ def _drop_duplicates_in_input(untokenized_dataset):
     indices_to_keep = []
     id_to_idx = {}
     outputs = []
-    for i, (id_, output) in enumerate(
-        zip(untokenized_dataset["id"], untokenized_dataset["output"])
-    ):
+    for i, (id_, output) in enumerate(zip(untokenized_dataset["id"], untokenized_dataset["output"])):
         if id_ in id_to_idx:
             outputs[id_to_idx[id_]].append(output)
             continue
@@ -135,9 +127,7 @@ class _SCROLLSTask(ConfigurableTask):
 
         # Flatten the list of lists since _process_doc returns a list of one element.
         processed_docs = [item for sublist in processed_docs for item in sublist]
-        processed_dict = {
-            key: [d[key] for d in processed_docs] for key in processed_docs[0]
-        }
+        processed_dict = {key: [d[key] for d in processed_docs] for key in processed_docs[0]}
 
         return Dataset.from_dict(processed_dict)
 
@@ -146,9 +136,7 @@ class _SCROLLSTask(ConfigurableTask):
 
         # Flatten the list of lists since _process_doc returns a list of one element.
         processed_docs = [item for sublist in processed_docs for item in sublist]
-        processed_dict = {
-            key: [d[key] for d in processed_docs] for key in processed_docs[0]
-        }
+        processed_dict = {key: [d[key] for d in processed_docs] for key in processed_docs[0]}
 
         return Dataset.from_dict(processed_dict)
 
@@ -174,10 +162,7 @@ class _SCROLLSTask(ConfigurableTask):
         that are less than `max_tokens` when tokenized by each tokenizer
         """
 
-        tokenizers = [
-            AutoTokenizer.from_pretrained(tokenizer)
-            for tokenizer in self.PRUNE_TOKENIZERS
-        ]
+        tokenizers = [AutoTokenizer.from_pretrained(tokenizer) for tokenizer in self.PRUNE_TOKENIZERS]
         cache = {}
 
         def _filter(sample):
@@ -211,18 +196,13 @@ class _SCROLLSTask(ConfigurableTask):
     def _make_compute_metrics(self, value):
         def compute_metrics(samples):
             predictions, references = zip(*samples)  # unzip, if you will
-            computed = self.metric.compute(
-                predictions=predictions, references=references
-            )
+            computed = self.metric.compute(predictions=predictions, references=references)
             return computed[value]
 
         return compute_metrics
 
     def aggregation(self):
-        return {
-            key: self._make_compute_metrics(value)
-            for key, value in self._scrolls_metrics().items()
-        }
+        return {key: self._make_compute_metrics(value) for key, value in self._scrolls_metrics().items()}
 
 
 class _SCROLLSMultipleChoiceTask(_SCROLLSTask):
@@ -307,8 +287,7 @@ class Qasper(_SCROLLSTask):
     def _process_doc(self, doc):
         doc = _process_doc_prepended_question(doc)
         doc["is_yes_no"] = reduce(
-            lambda prev, cur: prev
-            and squad_metrics.normalize_answer(cur) in ["yes", "no"],
+            lambda prev, cur: prev and squad_metrics.normalize_answer(cur) in ["yes", "no"],
             doc["outputs"],
             True,
         )
@@ -374,8 +353,7 @@ class QuALITY(_SCROLLSMultipleChoiceTask):
 
         doc["text"] = doc["text"][split:].strip()
         doc["choices"] = [
-            QuALITY._normalize_answer(choice)
-            for choice in re.split(QuALITY._multiple_choice_pattern, choices_text)[1:]
+            QuALITY._normalize_answer(choice) for choice in re.split(QuALITY._multiple_choice_pattern, choices_text)[1:]
         ]
         doc["gold"] = doc["choices"].index(QuALITY._normalize_answer(doc["outputs"][0]))
 

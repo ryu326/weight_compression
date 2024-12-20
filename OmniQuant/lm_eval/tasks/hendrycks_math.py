@@ -8,6 +8,7 @@ models to generate answer derivations and explanations.
 
 Homepage: https://github.com/hendrycks/math
 """
+
 import inspect
 import lm_eval.datasets.hendrycks_math.hendrycks_math
 from lm_eval.metrics import mean
@@ -73,9 +74,7 @@ class Math(Task):
         else:
             answer = results[0][indices[0] + 1 : indices[-1]]
 
-        if self.is_equiv(
-            answer, self.remove_boxed(self.last_boxed_only_string(doc["solution"]))
-        ):
+        if self.is_equiv(answer, self.remove_boxed(self.last_boxed_only_string(doc["solution"]))):
             retval = 1
         return {"acc": retval}
 

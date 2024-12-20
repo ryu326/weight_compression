@@ -21,16 +21,10 @@ def doc_to_text(doc):
     country = "" if not doc["Country"] else " in " + doc["Country"]
     main_meta_data = f"{doc['Subject']} question{level}{country}"
 
-    question = (
-        doc["Question"]
-        if doc["Context"] == ""
-        else f"{doc['Context']}\n\n{doc['Question']}"
-    )
+    question = doc["Question"] if doc["Context"] == "" else f"{doc['Context']}\n\n{doc['Question']}"
 
     options = []
-    for i, opt in enumerate(
-        ["Option 1", "Option 2", "Option 3", "Option 4", "Option 5"]
-    ):
+    for i, opt in enumerate(["Option 1", "Option 2", "Option 3", "Option 4", "Option 5"]):
         if not doc[opt]:
             break
         options.append(f"{alpa[i]} {doc[opt]}")

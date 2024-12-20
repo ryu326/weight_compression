@@ -7,9 +7,7 @@ from lm_eval.api.registry import get_filter
 from . import extraction, selection, transformation
 
 
-def build_filter_ensemble(
-    filter_name: str, components: List[List[str]]
-) -> FilterEnsemble:
+def build_filter_ensemble(filter_name: str, components: List[List[str]]) -> FilterEnsemble:
     """
     Create a filtering pipeline.
     """

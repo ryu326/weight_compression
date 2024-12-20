@@ -112,14 +112,10 @@ def load_datasets_from_config(config):
             shuffle=True,
             # num_workers=config.get("testloader::workers", 2),
         )
-        testloader = FastTensorDataLoader(
-            dataset=testset, batch_size=len(testset), shuffle=False
-        )
+        testloader = FastTensorDataLoader(dataset=testset, batch_size=len(testset), shuffle=False)
         valloader = None
         if valset is not None:
-            valloader = FastTensorDataLoader(
-                dataset=valset, batch_size=len(valset), shuffle=False
-            )
+            valloader = FastTensorDataLoader(dataset=valset, batch_size=len(valset), shuffle=False)
 
     else:
         trainloader = torch.utils.data.DataLoader(

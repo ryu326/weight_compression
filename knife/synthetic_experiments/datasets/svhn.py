@@ -33,24 +33,33 @@ class SVHN(VisionDataset):
     """
 
     split_list = {
-        'train': ["http://ufldl.stanford.edu/housenumbers/train_32x32.mat",
-                  "train_32x32.mat", "e26dedcc434d2e4c54c9b2d4a06d8373"],
-        'test': ["http://ufldl.stanford.edu/housenumbers/test_32x32.mat",
-                 "test_32x32.mat", "eb5a983be6a315427106f1b164d9cef3"],
-        'extra': ["http://ufldl.stanford.edu/housenumbers/extra_32x32.mat",
-                  "extra_32x32.mat", "a93ce644f1a588dc4d68dda5feec44a7"]}
+        "train": [
+            "http://ufldl.stanford.edu/housenumbers/train_32x32.mat",
+            "train_32x32.mat",
+            "e26dedcc434d2e4c54c9b2d4a06d8373",
+        ],
+        "test": [
+            "http://ufldl.stanford.edu/housenumbers/test_32x32.mat",
+            "test_32x32.mat",
+            "eb5a983be6a315427106f1b164d9cef3",
+        ],
+        "extra": [
+            "http://ufldl.stanford.edu/housenumbers/extra_32x32.mat",
+            "extra_32x32.mat",
+            "a93ce644f1a588dc4d68dda5feec44a7",
+        ],
+    }
 
     def __init__(
-            self,
-            root: str,
-            split: str,
-            transform: Optional[Callable] = None,
-            target_transform: Optional[Callable] = None,
-            download: bool = False,
+        self,
+        root: str,
+        split: str,
+        transform: Optional[Callable] = None,
+        target_transform: Optional[Callable] = None,
+        download: bool = False,
     ) -> None:
-        super(SVHN, self).__init__(root, transform=transform,
-                                   target_transform=target_transform)
-        split_tmp = 'test' if split == 'test' else 'train'
+        super(SVHN, self).__init__(root, transform=transform, target_transform=target_transform)
+        split_tmp = "test" if split == "test" else "train"
         self.split = verify_str_arg(split_tmp, "split", tuple(self.split_list.keys()))
         self.url = self.split_list[split_tmp][0]
         self.filename = self.split_list[split_tmp][1]
@@ -60,8 +69,7 @@ class SVHN(VisionDataset):
             self.download()
 
         if not self._check_integrity():
-            raise RuntimeError('Dataset not found or corrupted.' +
-                               ' You can use download=True to download it')
+            raise RuntimeError("Dataset not found or corrupted." + " You can use download=True to download it")
 
         # import here rather than at top of file because this is
         # an optional dependency for torchvision
@@ -69,13 +77,13 @@ class SVHN(VisionDataset):
 
         # reading(loading) mat file as array
         loaded_mat = sio.loadmat(os.path.join(self.root, self.filename))
-        X = loaded_mat['X']
-        Y = loaded_mat['y'].astype(np.int64).squeeze()
+        X = loaded_mat["X"]
+        Y = loaded_mat["y"].astype(np.int64).squeeze()
         X = np.transpose(X, (3, 2, 0, 1))
-        if split == 'train':
+        if split == "train":
             self.data = X[:-5000]
             self.targets = Y[:-5000]
-        elif split == 'valid':
+        elif split == "valid":
             self.data = X[-5000:]
             self.targets = Y[-5000:]
         else:
@@ -112,7 +120,6 @@ class SVHN(VisionDataset):
             target = self.target_transform(target)
 
         return img, target
-
 
     def __len__(self) -> int:
         return len(self.data)

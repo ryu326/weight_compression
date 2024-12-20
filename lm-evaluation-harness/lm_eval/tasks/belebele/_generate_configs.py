@@ -7,10 +7,8 @@ import os
 
 import requests
 import yaml
-from tqdm import tqdm
-
 from lm_eval.utils import logging
-
+from tqdm import tqdm
 
 API_URL = "https://datasets-server.huggingface.co/splits?dataset=facebook/belebele"
 
@@ -48,9 +46,7 @@ if __name__ == "__main__":
     for lang in tqdm([lang for lang in languages if "default" not in lang]):
         yaml_dict = {
             "include": base_yaml_name,
-            "task": f"belebele_{args.task_prefix}_{lang}"
-            if args.task_prefix != ""
-            else f"belebele_{lang}",
+            "task": f"belebele_{args.task_prefix}_{lang}" if args.task_prefix != "" else f"belebele_{lang}",
             "test_split": lang,
             "fewshot_split": lang,
         }
@@ -69,15 +65,9 @@ if __name__ == "__main__":
     # write group config out
 
     group_yaml_dict = {
-        "group": f"belebele_{args.task_prefix}"
-        if args.task_prefix != ""
-        else "belebele",
+        "group": f"belebele_{args.task_prefix}" if args.task_prefix != "" else "belebele",
         "task": [
-            (
-                f"belebele_{args.task_prefix}_{lang}"
-                if args.task_prefix != ""
-                else f"belebele_{lang}"
-            )
+            (f"belebele_{args.task_prefix}_{lang}" if args.task_prefix != "" else f"belebele_{lang}")
             for lang in languages
             if "default" not in lang
         ],

@@ -1,8 +1,9 @@
 import argparse
-import torch
-import numpy as np
-from typing import List
 from collections import OrderedDict
+from typing import List
+
+import numpy as np
+import torch
 
 
 def qweight_unpack(qweight):
@@ -36,14 +37,10 @@ def packing_v2_from_unpacked(unpacked_qweight, interleave, kstride):
     Packed_Kernel = Packed_Kernel.reshape(N, K)
 
     # interleaving every four rows
-    Packed_Kernel = Packed_Kernel.reshape(
-        N // interleave, interleave, K // kstride, kstride
-    )
+    Packed_Kernel = Packed_Kernel.reshape(N // interleave, interleave, K // kstride, kstride)
     # N // 4, K // 64, 4, 64
     Packed_Kernel = Packed_Kernel.transpose(0, 2, 1, 3)
-    Packed_Kernel = Packed_Kernel.reshape(
-        N // interleave, K // kstride, kstride, interleave
-    )
+    Packed_Kernel = Packed_Kernel.reshape(N // interleave, K // kstride, kstride, interleave)
     # Packing -> (N // 4, K // 64, 64)
     Packed_Kernel = (
         Packed_Kernel[..., 0]
@@ -53,11 +50,7 @@ def packing_v2_from_unpacked(unpacked_qweight, interleave, kstride):
     )
     # reshape to (N // 4, K), FP16 format
     Packed_Kernel = Packed_Kernel.reshape(N // interleave, K)
-    qweight_v2 = (
-        torch.tensor(Packed_Kernel.astype("int16"))
-        .to(unpacked_qweight.device)
-        .contiguous()
-    )
+    qweight_v2 = torch.tensor(Packed_Kernel.astype("int16")).to(unpacked_qweight.device).contiguous()
     return qweight_v2
 
 
@@ -92,12 +85,7 @@ def ckpt_check():
     for key in keys:
         param = model_dict1[key]
         assert type(param) == torch.Tensor
-        if (
-            "qweight" in key
-            or "scales" in key
-            or "qzeros" in key
-            or "scaled_zeros" in key
-        ):
+        if "qweight" in key or "scales" in key or "qzeros" in key or "scaled_zeros" in key:
             print("=" * 50)
             print(key)
             # print(model_dict1[key])

@@ -16,7 +16,7 @@ from models_transfert_style import *
 from tokenizer_custom import ClassifTokenizer
 
 try:
-    from transformers import (get_linear_schedule_with_warmup, get_constant_schedule_with_warmup)
+    from transformers import get_linear_schedule_with_warmup, get_constant_schedule_with_warmup
 except:
     from transformers import WarmupLinearSchedule as get_linear_schedule_with_warmup
 from models import *
@@ -30,49 +30,50 @@ class TextDataset(Dataset):
     def __init__(self, args, dev, reny_ds=False):
         # TODO : this should be simplified before release + dict
         self.args = args
-        logger.info("Loading dataset {}".format('Validation' if dev else 'Train'))
-        suffix = 'dev' if dev else 'train'
+        logger.info("Loading dataset {}".format("Validation" if dev else "Train"))
+        suffix = "dev" if dev else "train"
         if args.classif:
+
             def open_classif(path):
-                with open(path, 'r') as file:
+                with open(path, "r") as file:
                     lines = file.readlines()
 
-                lines = [line.replace('\n', '') for line in lines]
+                lines = [line.replace("\n", "") for line in lines]
                 texts = []
                 label_downstream = []
                 label_protected = []
                 for line in lines:
-                    text = [int(w_id) for w_id in line.split('\t')[0].split(' ')]
+                    text = [int(w_id) for w_id in line.split("\t")[0].split(" ")]
                     text += (args.max_length - len(text)) * [args.padding_idx]
-                    texts.append(text)  
-                    label_downstream.append(int(line.split('\t')[1]))
-                    label_protected.append(int(line.split('\t')[2]))
+                    texts.append(text)
+                    label_downstream.append(int(line.split("\t")[1]))
+                    label_protected.append(int(line.split("\t")[2]))
                 return texts, label_downstream, label_protected
 
-            file_name = 'x_val' if dev else 'x_train'
+            file_name = "x_val" if dev else "x_train"
             if args.use_mention:
-                file_path = os.path.join('processed_mention_splitted', file_name)
+                file_path = os.path.join("processed_mention_splitted", file_name)
             elif args.use_bio:
-                file_path = os.path.join('biais_bios', file_name)
+                file_path = os.path.join("biais_bios", file_name)
             else:
-                file_path = os.path.join('processed_sentiment_splitted', file_name)
-            self.lines, self.label_downstream, self.label = open_classif(
-                os.path.join('data/classification', file_path))
-
+                file_path = os.path.join("processed_sentiment_splitted", file_name)
+            self.lines, self.label_downstream, self.label = open_classif(os.path.join("data/classification", file_path))
 
     def __len__(self):
         return len(self.label)
 
     def __getitem__(self, item):
         if self.args.classif:
-            return {'line': torch.tensor(self.lines[item], dtype=torch.long),
-                    'label': torch.tensor(self.label[item], dtype=torch.long),
-                    'downstream_labels': torch.tensor(self.label_downstream[item], dtype=torch.long)
-                    }
+            return {
+                "line": torch.tensor(self.lines[item], dtype=torch.long),
+                "label": torch.tensor(self.label[item], dtype=torch.long),
+                "downstream_labels": torch.tensor(self.label_downstream[item], dtype=torch.long),
+            }
         else:
-            return {'line': torch.tensor(self.lines[item], dtype=torch.long),
-                    'label': torch.tensor(self.label[item], dtype=torch.long)
-                    }
+            return {
+                "line": torch.tensor(self.lines[item], dtype=torch.long),
+                "label": torch.tensor(self.label[item], dtype=torch.long),
+            }
 
 
 def set_seed(args):
@@ -84,11 +85,10 @@ def set_seed(args):
 
 
 def train(args, train_dataset, model):
-    """ Train the model """
-    tb_writer = SummaryWriter('runs/{}'.format(args.output_dir))
+    """Train the model"""
+    tb_writer = SummaryWriter("runs/{}".format(args.output_dir))
     train_sampler = RandomSampler(train_dataset)
-    train_dataloader = DataLoader(
-        train_dataset, sampler=train_sampler, batch_size=args.batch_size, drop_last=True)
+    train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.batch_size, drop_last=True)
     t_total = len(train_dataloader) * args.num_train_epochs
     optimizer = AdamW(model.parameters(), lr=args.learning_rate, eps=args.adam_epsilon, weight_decay=args.weight_decay)
     if args.no_scheduler:
@@ -122,17 +122,17 @@ def train(args, train_dataset, model):
             # model.training_all_except_encoder = True
             if global_step > 40000 if args.classif else 100000:
                 break
-            inputs = batch['line'].to(args.device)
-            labels = batch['label'].to(args.device)
+            inputs = batch["line"].to(args.device)
+            labels = batch["label"].to(args.device)
             model.train()
             if args.classif:
-                downstream_labels = batch['downstream_labels'].to(args.device)
+                downstream_labels = batch["downstream_labels"].to(args.device)
                 outputs = model(inputs, labels, downstream_labels)
             else:
                 outputs = model(inputs, labels, teacher_ratio=1)
             dict_loss = outputs[0]
             if len(tr_loss_dic) == 0:
-                logger.info('Initialization of training tensorboard dictionary')
+                logger.info("Initialization of training tensorboard dictionary")
                 for key, value in dict_loss.items():
                     tr_loss_dic[key] = 0
                     logging_loss_dic[key] = 0
@@ -148,17 +148,15 @@ def train(args, train_dataset, model):
                 for key, value in results.items():
                     tb_writer.add_scalar("eval_{}".format(key), value, global_step)
 
-                tb_writer.add_text('Sentences', sentences, global_step)
+                tb_writer.add_text("Sentences", sentences, global_step)
 
                 tb_writer.add_scalar("lr", scheduler.get_lr()[0], global_step)
                 for key, value in tr_loss_dic.items():
-                    tb_writer.add_scalar("train_{}".format(key),
-                                         (tr_loss_dic[key]) / args.eval_step, global_step)
+                    tb_writer.add_scalar("train_{}".format(key), (tr_loss_dic[key]) / args.eval_step, global_step)
 
                 logger.info("  lr = %5f", scheduler.get_lr()[0])
                 for key, value in tr_loss_dic.items():
-                    logger.info("  Training {} = %5f".format(key),
-                                (tr_loss_dic[key]) / args.eval_step)
+                    logger.info("  Training {} = %5f".format(key), (tr_loss_dic[key]) / args.eval_step)
 
                 for key, value in dict_loss.items():
                     tr_loss_dic[key] = 0
@@ -175,8 +173,8 @@ def train(args, train_dataset, model):
                 # Save model checkpoint
                 output_dir = os.path.join(args.output_dir, "{}-{}".format(checkpoint_prefix, global_step))
                 os.makedirs(output_dir, exist_ok=True)
-                torch.save(model.state_dict(), os.path.join(output_dir, 'model.pt'))
-                with open(os.path.join(output_dir, 'training_args.txt'), 'w') as f:
+                torch.save(model.state_dict(), os.path.join(output_dir, "model.pt"))
+                with open(os.path.join(output_dir, "training_args.txt"), "w") as f:
                     dict_to_save = copy.copy(args.__dict__)
                     for key, value in dict_to_save.items():
                         if value is None:
@@ -197,8 +195,7 @@ def train(args, train_dataset, model):
 def evaluate(args, model, prefix=""):
     eval_dataset = TextDataset(args, True)
     eval_sampler = SequentialSampler(eval_dataset)
-    eval_dataloader = DataLoader(
-        eval_dataset, sampler=eval_sampler, batch_size=args.batch_size, drop_last=True)
+    eval_dataloader = DataLoader(eval_dataset, sampler=eval_sampler, batch_size=args.batch_size, drop_last=True)
 
     # Eval!
     logger.info("***** Running evaluation {} *****".format(prefix))
@@ -209,20 +206,20 @@ def evaluate(args, model, prefix=""):
     model.eval()
     eval_loss_dic = dict()
     for batch in tqdm(eval_dataloader, desc="Evaluating"):
-        inputs = batch['line'].to(args.device)
-        labels = batch['label'].to(args.device)
+        inputs = batch["line"].to(args.device)
+        labels = batch["label"].to(args.device)
 
         with torch.no_grad():
             model = model.eval()
             if args.classif:
-                downstream_labels = batch['downstream_labels'].to(args.device)
+                downstream_labels = batch["downstream_labels"].to(args.device)
                 outputs = model(inputs, labels, downstream_labels)
             else:
                 outputs = model(inputs, labels, teacher_ratio=0)
             dict_loss = outputs[0]
             model = model.train()
             if len(eval_loss_dic) == 0:
-                logger.info('Initialization of validation tensorboard dictionary')
+                logger.info("Initialization of validation tensorboard dictionary")
                 for key, value in dict_loss.items():
                     eval_loss_dic[key] = 0
 
@@ -244,34 +241,36 @@ def evaluate(args, model, prefix=""):
                 outputs = outputs[-1][index_sentences, :].tolist()
             sentences_generated = [args.tokenizer.decode(output) for output in outputs]
             sentences_golden = [args.tokenizer.decode(inputs.tolist()[index]) for index in index_sentences]
-            logger.info('Example of sentences')
+            logger.info("Example of sentences")
             for i in range(10):
-                logger.info('I : {}'.format(sentences_golden[i]))
-                logger.info('G : {}'.format(sentences_generated[i]))
-            sentences = ''
+                logger.info("I : {}".format(sentences_golden[i]))
+                logger.info("G : {}".format(sentences_generated[i]))
+            sentences = ""
             for index, (s_gen, s_gol) in enumerate(zip(sentences_generated, sentences_golden)):
-                sentences += 'Golden: {}\n\n\n Generated:{}\n\n\n ---------------------------------- \n\n\n'.format(
-                    s_gol,
-                    s_gen)
+                sentences += "Golden: {}\n\n\n Generated:{}\n\n\n ---------------------------------- \n\n\n".format(
+                    s_gol, s_gen
+                )
         except:
             outputs_g = outputs[-2][index_sentences, :].tolist()
             outputs_c = outputs[-1][index_sentences, :].tolist()
             sentences_generated = [args.tokenizer.decode(output) for output in outputs_g]
             sentences_corrupted = [args.tokenizer.decode(output) for output in outputs_c]
             sentences_golden = [args.tokenizer.decode(inputs.tolist()[index]) for index in index_sentences]
-            logger.info('Example of sentences')
+            logger.info("Example of sentences")
             for i in range(10):
-                logger.info('I : {}'.format(sentences_golden[i]))
-                logger.info('C : {}'.format(sentences_corrupted[i]))
-                logger.info('G : {}'.format(sentences_generated[i]))
-            sentences = ''
+                logger.info("I : {}".format(sentences_golden[i]))
+                logger.info("C : {}".format(sentences_corrupted[i]))
+                logger.info("G : {}".format(sentences_generated[i]))
+            sentences = ""
             for index, (s_gen, s_corr, s_gol) in enumerate(
-                    zip(sentences_generated, sentences_corrupted, sentences_golden)):
-                sentences += 'Golden: {}\n\n\n Corrupted: {}\n\n\n Generated:{}\n\n\n ---------------------------------- \n\n\n'.format(
-                    s_gol, s_corr, s_gen)
+                zip(sentences_generated, sentences_corrupted, sentences_golden)
+            ):
+                sentences += "Golden: {}\n\n\n Corrupted: {}\n\n\n Generated:{}\n\n\n ---------------------------------- \n\n\n".format(
+                    s_gol, s_corr, s_gen
+                )
         model.training_all_except_encoder = True
     else:
-        sentences = ''
+        sentences = ""
     return eval_loss_dic, sentences
 
 
@@ -279,16 +278,20 @@ def main():
     parser = argparse.ArgumentParser()
 
     # Required parameters
-    parser.add_argument("--dataset", default='yelp', type=str, help="The input training data file (a text file).")
-    parser.add_argument("--output_dir", default='debug',
-                        help="The output directory where the model predictions and checkpoints will be written.")
+    parser.add_argument("--dataset", default="yelp", type=str, help="The input training data file (a text file).")
+    parser.add_argument(
+        "--output_dir",
+        default="debug",
+        help="The output directory where the model predictions and checkpoints will be written.",
+    )
     parser.add_argument("--batch_size", default=32, type=int, help="Batch size per GPU/CPU for training.")
     parser.add_argument("--learning_rate", default=1e-3, type=float, help="The initial learning rate for Adam.")
     parser.add_argument("--weight_decay", default=5e-2, type=float, help="Weight decay if we apply some.")
     parser.add_argument("--adam_epsilon", default=1e-8, type=float, help="Epsilon for Adam optimizer.")
     parser.add_argument("--max_grad_norm", default=1.0, type=float, help="Max gradient norm.")
-    parser.add_argument("--num_train_epochs", default=10, type=float,
-                        help="Total number of training epochs to perform.")
+    parser.add_argument(
+        "--num_train_epochs", default=10, type=float, help="Total number of training epochs to perform."
+    )
     parser.add_argument("--warmup_steps", default=1000, type=int, help="Linear warmup over warmup_steps.")
     parser.add_argument("--max_length", default=43, type=int, help="Linear warmup over warmup_steps.")
     parser.add_argument("--eval_step", type=int, default=100, help="Log every X updates steps.")
@@ -297,18 +300,27 @@ def main():
 
     # kernels
     parser.add_argument("--kernel_size", type=int, default=128, help="random seed for initialization")  # change of seed
-    parser.add_argument("--loss_wasserstein", type=str, default="gaussian",
-                        choices=["sinkhorn", "hausdorff", "energy", "gaussian", "laplacian"])
+    parser.add_argument(
+        "--loss_wasserstein",
+        type=str,
+        default="gaussian",
+        choices=["sinkhorn", "hausdorff", "energy", "gaussian", "laplacian"],
+    )
     parser.add_argument("--power", type=int, default=2, choices=[1, 2])
     parser.add_argument("--blur", type=float, default=0.05)
 
-    parser.add_argument("--loss_type", type=str, default="wasserstein",
-                        choices=['rao', 'frechet', 'js', 'wasserstein'])  # change of seed
-    parser.add_argument("--mi_estimator_name", type=str, default="MINE",
-                        choices=["NWJ", "MINE", "InfoNCE", "L1OutUB", "CLUB","KNIFE","DOE"])  # change of seed
+    parser.add_argument(
+        "--loss_type", type=str, default="wasserstein", choices=["rao", "frechet", "js", "wasserstein"]
+    )  # change of seed
+    parser.add_argument(
+        "--mi_estimator_name",
+        type=str,
+        default="MINE",
+        choices=["NWJ", "MINE", "InfoNCE", "L1OutUB", "CLUB", "KNIFE", "DOE"],
+    )  # change of seed
 
     # Architecture
-    parser.add_argument("--model", default='reny_desantanglement', help="random seed for initialization")
+    parser.add_argument("--model", default="reny_desantanglement", help="random seed for initialization")
     parser.add_argument("--style_dim", type=int, default=32, help="random seed for initialization")
     parser.add_argument("--content_dim", type=int, default=480, help="random seed for initialization")
     parser.add_argument("--number_of_layers", type=int, default=2, help="random seed for initialization")
@@ -332,9 +344,12 @@ def main():
     parser.add_argument("--number_of_perm", type=int, default=3, help="random seed for initialization")
     parser.add_argument("--load_seq2seq", action="store_true", help="random seed for initialization")
     parser.add_argument("--alternative_hs", action="store_true", help="random seed for initialization")
-    parser.add_argument("--loading_path", type=str,
-                        default='vanilla_seq2seq_h256/checkpoint-130000',
-                        help="random seed for initialization")
+    parser.add_argument(
+        "--loading_path",
+        type=str,
+        default="vanilla_seq2seq_h256/checkpoint-130000",
+        help="random seed for initialization",
+    )
 
     parser.add_argument("--no_minimization_of_mi_training", action="store_true")
     parser.add_argument("--special_clement", action="store_true")
@@ -380,8 +395,8 @@ def main():
 
     # Setup logging
     logging.basicConfig(
-        format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s", datefmt="%m/%d/%Y %H:%M:%S",
-        level=logging.INFO)
+        format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s", datefmt="%m/%d/%Y %H:%M:%S", level=logging.INFO
+    )
     # Set seed
     set_seed(args)
     args.logger = logger
@@ -391,13 +406,15 @@ def main():
 
     if args.classif and not args.use_bio:
         tokenizer = ClassifTokenizer(
-            'data/classification/processed_mention' if args.use_mention else 'data/classification/processed_sentiment')
+            "data/classification/processed_mention" if args.use_mention else "data/classification/processed_sentiment"
+        )
     else:
         try:
-            tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+            tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
         except:
             tokenizer = BertTokenizer.from_pretrained(
-                '/gpfswork/rech/tts/unm25jp/transformers_models/bert-base-uncased/')
+                "/gpfswork/rech/tts/unm25jp/transformers_models/bert-base-uncased/"
+            )
 
     args.sos_token = tokenizer.sep_token_id
     args.number_of_tokens = tokenizer.vocab_size
@@ -405,18 +422,17 @@ def main():
     args.padding_idx = tokenizer.pad_token_id
     reny_dataset = TextDataset(args, False)
     reny_sampler = RandomSampler(reny_dataset)
-    reny_dataloader = DataLoader(
-        reny_dataset, sampler=reny_sampler, batch_size=args.batch_size, drop_last=True)
+    reny_dataloader = DataLoader(reny_dataset, sampler=reny_sampler, batch_size=args.batch_size, drop_last=True)
 
     if args.classif:
         ##################
         # Classification #
         ##################
-        if args.model == 'mi_baseline':
+        if args.model == "mi_baseline":
             model = MIClassificationStyleEmdedding(args, reny_dataloader)
-        elif args.model == 'knife':
+        elif args.model == "knife":
             model = KernelClassificationStyleEmdedding(args, reny_dataloader)
-        elif args.model == 'rao_regularizer':
+        elif args.model == "rao_regularizer":
             model = RaoClassificationStyleEmdedding(args, reny_dataloader)
         else:
             model = ClassificationStyleEmdedding(args, reny_dataloader)
@@ -424,35 +440,35 @@ def main():
         ##############
         # Generation #
         ##############
-        if args.model == 'reny_desantanglement':
+        if args.model == "reny_desantanglement":
             model = RenySeq2Seq(args, reny_dataloader)
             if args.load_seq2seq:
                 weights_encoder = model.encoder.embedding.weight.tolist()
-                model_baseline = torch.load(os.path.join(args.loading_path, 'model.pt'), map_location=args.device)
+                model_baseline = torch.load(os.path.join(args.loading_path, "model.pt"), map_location=args.device)
                 model.load_state_dict(model_baseline, strict=False)
                 assert weights_encoder != model.encoder.embedding.weight.tolist()
-        elif args.model == 'baseline_desantanglement':
+        elif args.model == "baseline_desantanglement":
             model = BaselineDisentanglement(args)
             if args.load_seq2seq:
                 weights_encoder = model.encoder.embedding.weight.tolist()
                 try:
                     logger.info("Loading %s", args.loading_path)
-                    model_baseline = torch.load(os.path.join(args.loading_path, 'model.pt'), map_location=args.device)
+                    model_baseline = torch.load(os.path.join(args.loading_path, "model.pt"), map_location=args.device)
                 except:
                     logger.info("Error in Loading %s", args.loading_path)
-                    args.loading_path = 'models/vanilla_seq2seq_h256/checkpoint-130000'
-                    model_baseline = torch.load(os.path.join(args.loading_path, 'model.pt'), map_location=args.device)
+                    args.loading_path = "models/vanilla_seq2seq_h256/checkpoint-130000"
+                    model_baseline = torch.load(os.path.join(args.loading_path, "model.pt"), map_location=args.device)
                 model.load_state_dict(model_baseline, strict=False)
                 assert weights_encoder != model.encoder.embedding.weight.tolist()
 
-        elif args.model == 'multi_dec':
+        elif args.model == "multi_dec":
             model = MultiDec(args, reny_dataloader)
-        elif args.model == 'style_emb':
+        elif args.model == "style_emb":
             if args.use_category:
                 model = MultiStyleEmdedding(args, reny_dataloader)
             else:
                 model = StyleEmdedding(args, reny_dataloader)
-        elif args.model == 'dae':
+        elif args.model == "dae":
             model = DAE(args, reny_dataloader)
         else:
             model = VanillaSeq2seq(args)
@@ -469,15 +485,18 @@ def main():
             all_directories = os.listdir(args.output_dir)
             checkpoints = []
             for directory in all_directories:
-                checkpoints.append(int(directory.split('-')[-1]))
+                checkpoints.append(int(directory.split("-")[-1]))
             checkpoints = sorted(checkpoints)
             args.global_step = int(checkpoints[-1])
 
             model.load_state_dict(
-                torch.load(os.path.join(args.output_dir, 'checkpoint-{}'.format(args.global_step), 'model.pt'),
-                           map_location=torch.device(args.device)))
+                torch.load(
+                    os.path.join(args.output_dir, "checkpoint-{}".format(args.global_step), "model.pt"),
+                    map_location=torch.device(args.device),
+                )
+            )
             logger.info("Loading model %s", args.output_dir)
-            logger.info("Epoch %s", 'checkpoint-{}'.format(args.global_step))
+            logger.info("Epoch %s", "checkpoint-{}".format(args.global_step))
 
             if checkpoints[-1] > 120000:
                 logger.info("Checkpoint is greater than 120000")

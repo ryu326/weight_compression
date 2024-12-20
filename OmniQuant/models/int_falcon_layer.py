@@ -14,16 +14,13 @@ from models.transformation import *
 from quantize.omni_norm import OmniLayerNorm
 
 
-
-
-    
 class QuantFalconMLP(nn.Module):
-    def __init__(self, org_module: nn.Module,args=None):
+    def __init__(self, org_module: nn.Module, args=None):
         super().__init__()
 
-        self.dense_h_to_4h = QuantLinear(org_module.dense_h_to_4h,args.weight_quant_params,args.act_quant_params)
+        self.dense_h_to_4h = QuantLinear(org_module.dense_h_to_4h, args.weight_quant_params, args.act_quant_params)
         self.act = nn.GELU()
-        self.dense_4h_to_h = QuantLinear(org_module.dense_4h_to_h,args.weight_quant_params,args.act_quant_params)
+        self.dense_4h_to_h = QuantLinear(org_module.dense_4h_to_h, args.weight_quant_params, args.act_quant_params)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.act(self.dense_h_to_4h(x))
@@ -31,9 +28,8 @@ class QuantFalconMLP(nn.Module):
         return x
 
 
-                
 class QuantFalconAttention(nn.Module):
-    def __init__(self,  config: FalconConfig, org_module: nn.Module, args=None):
+    def __init__(self, config: FalconConfig, org_module: nn.Module, args=None):
         super().__init__()
 
         self.config = config
@@ -54,13 +50,12 @@ class QuantFalconAttention(nn.Module):
         # Layer-wise attention scaling
         self.inv_norm_factor = 1.0 / math.sqrt(self.head_dim)
         self.beta = self.inv_norm_factor
-        self.query_key_value = QuantLinear(org_module.query_key_value,args.weight_quant_params,args.act_quant_params)
+        self.query_key_value = QuantLinear(org_module.query_key_value, args.weight_quant_params, args.act_quant_params)
         self.new_decoder_architecture = config.new_decoder_architecture
         self.multi_query = config.multi_query
-        self.dense =QuantLinear(org_module.dense,args.weight_quant_params,args.act_quant_params)
+        self.dense = QuantLinear(org_module.dense, args.weight_quant_params, args.act_quant_params)
         self.attention_dropout = nn.Dropout(config.attention_dropout)
         self.num_kv_heads = config.num_kv_heads if (self.new_decoder_architecture or not self.multi_query) else 1
-
 
     def _split_heads(self, fused_qkv: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
@@ -178,9 +173,7 @@ class QuantFalconAttention(nn.Module):
                 attention_scores = query_layer_ @ key_layer_.transpose(-1, -2)
                 attention_scores /= math.sqrt(self.head_dim)
 
-                attention_scores = F.softmax(
-                    attention_scores + attention_mask_float, dim=-1, dtype=hidden_states.dtype
-                )
+                attention_scores = F.softmax(attention_scores + attention_mask_float, dim=-1, dtype=hidden_states.dtype)
                 attn_output = attention_scores @ value_layer_
 
             attn_output = attn_output.view(batch_size, self.num_heads, query_length, self.head_dim)
@@ -235,11 +228,8 @@ class QuantFalconAttention(nn.Module):
                 return output_tensor, present
 
 
-    
 class QuantFalconDecoderLayer(nn.Module):
-    def __init__(self, config: FalconConfig,
-                 ori_layer,
-                 args):
+    def __init__(self, config: FalconConfig, ori_layer, args):
         super().__init__()
         hidden_size = config.hidden_size
         self.num_heads = config.num_attention_heads
@@ -252,7 +242,7 @@ class QuantFalconDecoderLayer(nn.Module):
             # The layer norm before self-attention
             self.ln_attn = OmniLayerNorm(ori_layer.ln_attn)
             # The layer norm before the MLP
-            self.ln_mlp =  OmniLayerNorm(ori_layer.ln_mlp)
+            self.ln_mlp = OmniLayerNorm(ori_layer.ln_mlp)
         else:
             self.input_layernorm = OmniLayerNorm(ori_layer.input_layernorm)
             if not config.parallel_attn:
@@ -267,7 +257,7 @@ class QuantFalconDecoderLayer(nn.Module):
         head_mask: Optional[torch.Tensor] = None,
         use_cache: bool = False,
         output_attentions: bool = False,
-        **kwargs
+        **kwargs,
     ):
         residual = hidden_states
         if self.config.new_decoder_architecture:
@@ -332,8 +322,7 @@ class QuantFalconDecoderLayer(nn.Module):
         for name, module in self.named_modules():
             if isinstance(module, QuantLinear):
                 module.weight = module.weight_quantizer(module.weight)
-                module.use_temporary_parameter=False
-                
+                module.use_temporary_parameter = False
 
     def clear_temp_variable(self):
         for name, module in self.named_modules():
@@ -357,8 +346,7 @@ class QuantFalconDecoderLayer(nn.Module):
                     module.temp_weight = module.weight_quantizer(module.weight)
                 if not hasattr(module, "temp_bias"):
                     module.temp_bias = module.bias
-                module.use_temporary_parameter=True
-
+                module.use_temporary_parameter = True
 
     def let_parameters(self, use_shift=True):
         params = []
@@ -366,33 +354,32 @@ class QuantFalconDecoderLayer(nn.Module):
         for n, m in self.named_parameters():
             if n.find(template) > -1:
                 params.append(m)
-        return iter(params)  
+        return iter(params)
 
     def lwc_parameters(self):
         params = []
         for n, m in self.named_parameters():
-            if n.find('bound_factor') > -1:
+            if n.find("bound_factor") > -1:
                 params.append(m)
-        return iter(params)  
+        return iter(params)
 
     def omni_parameters(self, use_shift=True):
         params = []
         template = "smooth" if use_shift else "smooth_scale"
         for n, m in self.named_parameters():
-            if n.find('bound_factor') > -1 or n.find(template) > -1:
+            if n.find("bound_factor") > -1 or n.find(template) > -1:
                 params.append(m)
-        return iter(params)  
-    
-    def omni_state_dict(self, destination=None, prefix='', keep_vars=False):
+        return iter(params)
+
+    def omni_state_dict(self, destination=None, prefix="", keep_vars=False):
         if destination is None:
             destination = OrderedDict()
         for name, param in self.named_parameters():
-            if name.find('smooth') > -1 or name.find('bound_factor') > -1:
+            if name.find("smooth") > -1 or name.find("bound_factor") > -1:
                 destination[prefix + name] = param if keep_vars else param.detach()
         return destination
-    
+
     def register_scales_and_zeros(self):
         for name, module in self.named_modules():
             if isinstance(module, QuantLinear):
                 module.weight_quantizer.register_scales_and_zeros()
-    

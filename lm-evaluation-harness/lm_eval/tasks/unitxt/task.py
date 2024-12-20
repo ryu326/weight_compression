@@ -11,10 +11,8 @@ from functools import partial
 from typing import Any, Dict, Optional
 
 import datasets
-
 from lm_eval.api.instance import Instance
 from lm_eval.api.task import ConfigurableTask
-
 
 _CITATION = """
 @misc{bandel2024unitxt,
@@ -160,10 +158,7 @@ class Unitxt(ConfigurableTask):
         predictions = continuation
 
         references = doc
-        return {
-            metric.replace("metrics.", ""): (predictions, references)
-            for metric in self.metrics
-        }
+        return {metric.replace("metrics.", ""): (predictions, references) for metric in self.metrics}
 
     def aggregation(self):
         """
@@ -171,10 +166,7 @@ class Unitxt(ConfigurableTask):
             A dictionary where keys are the names of submetrics and values are
             functions that aggregate a list of metrics
         """
-        return {
-            metric.replace("metrics.", ""): partial(score, metric=metric)
-            for metric in self.metrics
-        }
+        return {metric.replace("metrics.", ""): partial(score, metric=metric) for metric in self.metrics}
 
     def higher_is_better(self):
         """

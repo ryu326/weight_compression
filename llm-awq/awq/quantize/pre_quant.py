@@ -1,18 +1,18 @@
-import torch
-import torch.nn as nn
-import tqdm
-import gc
 import functools
+import gc
 from collections import defaultdict
 from typing import List
 
-from transformers.models.bloom.modeling_bloom import BloomForCausalLM
-from transformers.models.opt.modeling_opt import OPTForCausalLM
-from transformers.models.llama.modeling_llama import LlamaForCausalLM
+import torch
+import torch.nn as nn
+import tqdm
 from tinychat.models import LlavaLlamaForCausalLM
+from transformers.models.bloom.modeling_bloom import BloomForCausalLM
+from transformers.models.llama.modeling_llama import LlamaForCausalLM
+from transformers.models.opt.modeling_opt import OPTForCausalLM
 
-from .auto_scale import auto_scale_block, apply_scale
-from .auto_clip import auto_clip_block, apply_clip
+from .auto_clip import apply_clip, auto_clip_block
+from .auto_scale import apply_scale, auto_scale_block
 
 __all__ = ["run_awq"]
 
@@ -52,14 +52,10 @@ def move_embed(model, device):
         model.model.vision_tower.vision_tower.vision_model.embeddings.to(device)
     elif isinstance(model, OPTForCausalLM):
         model.model.decoder.embed_tokens = model.model.decoder.embed_tokens.to(device)
-        model.model.decoder.embed_positions = model.model.decoder.embed_positions.to(
-            device
-        )
+        model.model.decoder.embed_positions = model.model.decoder.embed_positions.to(device)
     elif isinstance(model, BloomForCausalLM):
         model.transformer.word_embeddings = model.transformer.word_embeddings.to(device)
-        model.transformer.word_embeddings_layernorm = (
-            model.transformer.word_embeddings_layernorm.to(device)
-        )
+        model.transformer.word_embeddings_layernorm = model.transformer.word_embeddings_layernorm.to(device)
     elif "mpt" in str(model.__class__).lower():
         model.transformer.wte = model.transformer.wte.to(device)
         model.transformer.emb_drop = model.transformer.emb_drop.to(device)
@@ -99,9 +95,7 @@ def run_awq(
 
     layers = get_blocks(model)
 
-    samples = get_calib_dataset(
-        data=calib_data, tokenizer=enc, n_samples=n_samples, block_size=seqlen
-    )
+    samples = get_calib_dataset(data=calib_data, tokenizer=enc, n_samples=n_samples, block_size=seqlen)
     samples = torch.cat(samples, dim=0)
 
     inps = []
@@ -175,9 +169,7 @@ def run_awq(
         # Clear GPU memory
         torch.cuda.empty_cache()
 
-        if (
-            auto_scale
-        ):  # if it applies, we should also modify the input_feat with scales
+        if auto_scale:  # if it applies, we should also modify the input_feat with scales
             scales_list = auto_scale_block(
                 layer,
                 layer_kwargs,
@@ -188,9 +180,7 @@ def run_awq(
             # apply_scale(layer, scales_list, input_feat_dict=input_feat)
             apply_scale(layers[i], scales_list, input_feat_dict=input_feat)
             # append prefix to make names global
-            awq_results["scale"] += append_str_prefix(
-                scales_list, get_op_name(model, layer) + "."
-            )
+            awq_results["scale"] += append_str_prefix(scales_list, get_op_name(model, layer) + ".")
 
         # Clear GPU memory
         torch.cuda.empty_cache()
@@ -204,9 +194,7 @@ def run_awq(
             )
             apply_clip(layer, clip_list)
             # append prefix to make names global
-            awq_results["clip"] += append_str_prefix(
-                clip_list, get_op_name(model, layer) + "."
-            )
+            awq_results["clip"] += append_str_prefix(clip_list, get_op_name(model, layer) + ".")
 
         layer = layer.cpu()
         # Haotian: check activation replacement

@@ -7,6 +7,7 @@ modified from Chinese high school English listening comprehension test data.
 
 Homepage: https://github.com/Nealcly/MuTual
 """
+
 import numpy as np
 import inspect
 import lm_eval.datasets.mutual.mutual

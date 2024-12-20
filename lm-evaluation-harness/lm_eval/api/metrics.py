@@ -8,9 +8,7 @@ from typing import List
 
 import numpy as np
 import sacrebleu
-
 from lm_eval.api.registry import register_aggregation, register_metric
-
 
 eval_logger = logging.getLogger("lm-eval")
 
@@ -519,17 +517,15 @@ def pooled_sample_stderr(stderrs: List[float], sizes: List[int]):
     # and: https://stats.stackexchange.com/a/4841331
     # this empirically seems to match running `stderr_for_metric` on all instances
     # from the subtasks concatenated with each other.
-    pooled_sample_var = (
-        sum([(size - 1) * stderr**2 * size for size, stderr in zip(sizes, stderrs)])
-    ) / (sum(sizes) - len(sizes))
+    pooled_sample_var = (sum([(size - 1) * stderr**2 * size for size, stderr in zip(sizes, stderrs)])) / (
+        sum(sizes) - len(sizes)
+    )
 
     return np.sqrt(pooled_sample_var / sum(sizes))
 
 
 def combined_sample_stderr(stderrs: List[float], sizes: List[int], metrics=None):
-    assert (
-        metrics is not None
-    ), "Need to pass a list of each subtask's metric for this stderr aggregation"
+    assert metrics is not None, "Need to pass a list of each subtask's metric for this stderr aggregation"
     assert len(stderrs) == len(sizes) and len(sizes) == len(metrics)
 
     # See https://github.com/EleutherAI/lm-evaluation-harness/pull/1390 for more documentation.
@@ -551,9 +547,7 @@ def combined_sample_stderr(stderrs: List[float], sizes: List[int], metrics=None)
 
         variance = ((curr_size - 1) * variance + (size - 1) * (stderr**2)) / (
             curr_size + size - 1
-        ) + curr_size * size / ((curr_size + size) * (curr_size + size - 1)) * (
-            curr_score - score
-        ) ** 2
+        ) + curr_size * size / ((curr_size + size) * (curr_size + size - 1)) * (curr_score - score) ** 2
 
     return np.sqrt(variance)
 

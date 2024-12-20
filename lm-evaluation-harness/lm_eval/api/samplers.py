@@ -7,9 +7,7 @@ class ContextSampler:
     def __init__(self, docs, task, fewshot_indices=None, rnd=None) -> None:
         self.rnd = rnd
         if not self.rnd:
-            raise ValueError(
-                "A `random.Random` generator argument must be provided to `rnd` of FewShotSampler!"
-            )
+            raise ValueError("A `random.Random` generator argument must be provided to `rnd` of FewShotSampler!")
 
         self.task = task
         self.config = task._config
@@ -17,10 +15,7 @@ class ContextSampler:
         self.target_delimiter = self.config.target_delimiter
         self.fewshot_delimiter = self.config.fewshot_delimiter
 
-        if (
-            self.config.fewshot_config is not None
-            and self.config.fewshot_config.get("doc_to_text", None) is not None
-        ):
+        if self.config.fewshot_config is not None and self.config.fewshot_config.get("doc_to_text", None) is not None:
             self.doc_to_text = partial(
                 self.task.doc_to_text,
                 doc_to_text=self.config.fewshot_config.get("doc_to_text", None),
@@ -28,10 +23,7 @@ class ContextSampler:
         else:
             self.doc_to_text = self.task.doc_to_text
 
-        if (
-            self.config.fewshot_config is not None
-            and self.config.fewshot_config.get("doc_to_target", None) is not None
-        ):
+        if self.config.fewshot_config is not None and self.config.fewshot_config.get("doc_to_target", None) is not None:
             self.doc_to_target = partial(
                 self.task.doc_to_target,
                 doc_to_target=self.config.fewshot_config.get("doc_to_target", None),
@@ -39,10 +31,7 @@ class ContextSampler:
         else:
             self.doc_to_target = self.task.doc_to_target
 
-        if (
-            self.config.fewshot_config is not None
-            and self.config.fewshot_config.get("doc_to_choice", None) is not None
-        ):
+        if self.config.fewshot_config is not None and self.config.fewshot_config.get("doc_to_choice", None) is not None:
             self.doc_to_choice = partial(
                 self.task.doc_to_choice,
                 doc_to_choice=self.config.fewshot_config.get("doc_to_choice", None),
@@ -60,11 +49,7 @@ class ContextSampler:
 
     def get_context(self, doc, num_fewshot):
         # draw an extra fewshot sample if using same split as evaluating on
-        n_samples = (
-            num_fewshot + 1
-            if self.config.fewshot_split == self.config.test_split
-            else num_fewshot
-        )
+        n_samples = num_fewshot + 1 if self.config.fewshot_split == self.config.test_split else num_fewshot
 
         # draw `n_samples` docs from fewshot_docs
         fewshotex = self.sample(n_samples)
@@ -88,9 +73,11 @@ class ContextSampler:
                 labeled_examples += (
                     str(doc_target[0])
                     if isinstance(doc_target, list)
-                    else doc_target
-                    if self.config.doc_to_choice is None or isinstance(doc_target, str)
-                    else str(self.doc_to_choice(doc)[doc_target])
+                    else (
+                        doc_target
+                        if self.config.doc_to_choice is None or isinstance(doc_target, str)
+                        else str(self.doc_to_choice(doc)[doc_target])
+                    )
                 )
                 labeled_examples += self.fewshot_delimiter
 
@@ -104,11 +91,7 @@ class ContextSampler:
     ):
         chat_history = []
         # draw an extra fewshot sample if using same split as evaluating on
-        n_samples = (
-            num_fewshot + 1
-            if self.config.fewshot_split == self.config.test_split
-            else num_fewshot
-        )
+        n_samples = num_fewshot + 1 if self.config.fewshot_split == self.config.test_split else num_fewshot
         # draw `n_samples` docs from fewshot_docs
         fewshotex = self.sample(n_samples)
 
@@ -123,28 +106,30 @@ class ContextSampler:
                 chat_history.append(
                     {
                         "role": "user",
-                        "content": doc_content
-                        if self.config.doc_to_choice is None
-                        or isinstance(doc_content, str)
-                        else self.doc_to_choice(doc)[doc_content],
+                        "content": (
+                            doc_content
+                            if self.config.doc_to_choice is None or isinstance(doc_content, str)
+                            else self.doc_to_choice(doc)[doc_content]
+                        ),
                     }
                 )
                 chat_history.append(
                     {
                         "role": "assistant",
-                        "content": str(doc_target[0])
-                        if isinstance(doc_target, list)
-                        else doc_target
-                        if self.config.doc_to_choice is None
-                        or isinstance(doc_target, str)
-                        else str(self.doc_to_choice(doc)[doc_target]),
+                        "content": (
+                            str(doc_target[0])
+                            if isinstance(doc_target, list)
+                            else (
+                                doc_target
+                                if self.config.doc_to_choice is None or isinstance(doc_target, str)
+                                else str(self.doc_to_choice(doc)[doc_target])
+                            )
+                        ),
                     }
                 )
         else:
             # get fewshot context as one user turn
-            chat_history.append(
-                {"role": "user", "content": self.get_context(doc, num_fewshot)}
-            )
+            chat_history.append({"role": "user", "content": self.get_context(doc, num_fewshot)})
 
         return chat_history
 
@@ -162,8 +147,8 @@ class FirstNSampler(ContextSampler):
         Draw the first `n` samples in order from the specified split.
         Used for tasks with "canonical" ordered fewshot examples, such as MMLU and CMMLU.
         """
-        assert (
-            n <= len(self.docs)
+        assert n <= len(
+            self.docs
         ), f"Error: number of fewshot samples requested exceeds the {len(self.docs)} that are available."
         return self.docs[:n]
 

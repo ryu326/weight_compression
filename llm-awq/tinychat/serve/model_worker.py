@@ -19,44 +19,35 @@ A model worker executes the model.
 import argparse
 import asyncio
 import json
-import time
 import threading
+import time
 import uuid
+from functools import partial
 
-from fastapi import FastAPI, Request, BackgroundTasks
-from fastapi.responses import StreamingResponse
 import requests
+import tinychat.utils.constants
 import torch
 import uvicorn
-from functools import partial
-from tqdm import tqdm
-
-import tinychat.utils.constants
-from tinychat.utils.constants import (
-    WORKER_HEART_BEAT_INTERVAL,
-    LLAVA_DEFAULT_IMAGE_TOKEN_IDX,
-    LLAVA_DEFAULT_IMAGE_TOKEN,
-    LLAVA_DEFAULT_IM_START_TOKEN,
-    LLAVA_DEFAULT_IM_END_TOKEN,
-)
-from tinychat.utils.log_utils import (
-    build_logger,
-    server_error_msg,
-    pretty_print_semaphore,
-)
-from tinychat.stream_generators.llava_stream_gen import tokenizer_image_token
-from tinychat.utils.llava_image_processing import process_images, load_image_from_base64
-from tinychat.models.llava_llama import LlavaLlamaForCausalLM
-from tinychat.stream_generators.llava_stream_gen import LlavaStreamGenerator
-from tinychat.utils.prompt_templates import (
-    get_prompter,
-    get_stop_token_ids,
-    get_image_token,
-)
-from tinychat.utils.conversation_utils import gen_params
-
-from transformers import AutoConfig, AutoTokenizer
 from accelerate import load_checkpoint_and_dispatch
+from fastapi import BackgroundTasks, FastAPI, Request
+from fastapi.responses import StreamingResponse
+from tinychat.models.llava_llama import LlavaLlamaForCausalLM
+from tinychat.stream_generators.llava_stream_gen import (LlavaStreamGenerator,
+                                                         tokenizer_image_token)
+from tinychat.utils.constants import (LLAVA_DEFAULT_IM_END_TOKEN,
+                                      LLAVA_DEFAULT_IM_START_TOKEN,
+                                      LLAVA_DEFAULT_IMAGE_TOKEN,
+                                      LLAVA_DEFAULT_IMAGE_TOKEN_IDX,
+                                      WORKER_HEART_BEAT_INTERVAL)
+from tinychat.utils.conversation_utils import gen_params
+from tinychat.utils.llava_image_processing import (load_image_from_base64,
+                                                   process_images)
+from tinychat.utils.log_utils import (build_logger, pretty_print_semaphore,
+                                      server_error_msg)
+from tinychat.utils.prompt_templates import (get_image_token, get_prompter,
+                                             get_stop_token_ids)
+from tqdm import tqdm
+from transformers import AutoConfig, AutoTokenizer
 
 # import os
 # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -124,11 +115,9 @@ class ModelWorker:
         torch.nn.init.normal_ = skip
 
         self.tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=False)
-        tinychat.utils.constants.LLAVA_DEFAULT_IMAGE_PATCH_TOKEN_IDX = (
-            self.tokenizer.convert_tokens_to_ids(
-                [tinychat.utils.constants.LLAVA_DEFAULT_IMAGE_PATCH_TOKEN]
-            )[0]
-        )
+        tinychat.utils.constants.LLAVA_DEFAULT_IMAGE_PATCH_TOKEN_IDX = self.tokenizer.convert_tokens_to_ids(
+            [tinychat.utils.constants.LLAVA_DEFAULT_IMAGE_PATCH_TOKEN]
+        )[0]
         config = AutoConfig.from_pretrained(args.model_path, trust_remote_code=True)
         config.min_max_range_path = args.model_path + "/emb_min_max.pt"
         model = LlavaLlamaForCausalLM(config, args.device).half()
@@ -158,10 +147,7 @@ class ModelWorker:
             from tinychat.utils.load_quant import load_awq_model
 
             model = load_awq_model(model, quant_path, 4, 128, device)
-            from tinychat.modules import (
-                make_quant_norm,
-                make_quant_attn,
-            )
+            from tinychat.modules import make_quant_attn, make_quant_norm
 
             make_quant_attn(model, device)
             make_quant_norm(model)
@@ -170,15 +156,11 @@ class ModelWorker:
             raise NotImplementedError(f"Precision {precision} is not supported.")
 
         self.model = model
-        self.is_multimodal = (
-            "llava" in self.model_name.lower() or "vila" in self.model_name.lower()
-        )
+        self.is_multimodal = "llava" in self.model_name.lower() or "vila" in self.model_name.lower()
 
         if not no_register:
             self.register_to_controller()
-            self.heart_beat_thread = threading.Thread(
-                target=heart_beat_worker, args=(self,)
-            )
+            self.heart_beat_thread = threading.Thread(target=heart_beat_worker, args=(self,))
             self.heart_beat_thread.start()
 
     def register_to_controller(self):
@@ -228,11 +210,7 @@ class ModelWorker:
             return (
                 args.limit_model_concurrency
                 - model_semaphore._value
-                + (
-                    len(model_semaphore._waiters)
-                    if model_semaphore._waiters is not None
-                    else 0
-                )
+                + (len(model_semaphore._waiters) if model_semaphore._waiters is not None else 0)
             )
 
     def get_status(self):
@@ -256,27 +234,19 @@ class ModelWorker:
         if images is not None and len(images) > 0 and self.is_multimodal:
             if len(images) > 0:
                 if len(images) != prompt.count(LLAVA_DEFAULT_IMAGE_TOKEN):
-                    raise ValueError(
-                        "Number of images does not match number of <image> tokens in prompt"
-                    )
+                    raise ValueError("Number of images does not match number of <image> tokens in prompt")
 
                 images = [load_image_from_base64(image) for image in images]
                 images = process_images(images, image_processor, model.config)
 
                 if type(images) is list:
-                    images = [
-                        image.to(model.device, dtype=torch.float16) for image in images
-                    ]
+                    images = [image.to(model.device, dtype=torch.float16) for image in images]
                 else:
                     images = images.to(model.device, dtype=torch.float16)
 
                 replace_token = LLAVA_DEFAULT_IMAGE_TOKEN
                 if getattr(model.config, "mm_use_im_start_end", False):
-                    replace_token = (
-                        LLAVA_DEFAULT_IM_START_TOKEN
-                        + replace_token
-                        + LLAVA_DEFAULT_IM_END_TOKEN
-                    )
+                    replace_token = LLAVA_DEFAULT_IM_START_TOKEN + replace_token + LLAVA_DEFAULT_IM_END_TOKEN
                 prompt = prompt.replace(LLAVA_DEFAULT_IMAGE_TOKEN, replace_token)
             else:
                 images = None
@@ -290,9 +260,7 @@ class ModelWorker:
         stream_generator = LlavaStreamGenerator
         stop_token_ids = get_stop_token_ids(self.model_type, self.model_path)
         image_token = get_image_token(model, self.model_path)
-        image_token_holder = (
-            tinychat.utils.constants.LLAVA_DEFAULT_IM_TOKEN_PLACE_HOLDER
-        )
+        image_token_holder = tinychat.utils.constants.LLAVA_DEFAULT_IM_TOKEN_PLACE_HOLDER
         prompt = prompt.replace(image_token_holder, image_token)
 
         # print("=" * 50)
@@ -316,9 +284,7 @@ class ModelWorker:
             now = len(output_text) - 1
             if now > pre:
                 generated_text += " ".join(output_text[pre:now]) + " "
-                yield json.dumps(
-                    {"text": generated_text, "error_code": 0}
-                ).encode() + b"\0"
+                yield json.dumps({"text": generated_text, "error_code": 0}).encode() + b"\0"
                 pre = now
         generated_text += " ".join(output_text[pre:])
         yield json.dumps({"text": generated_text, "error_code": 0}).encode() + b"\0"
@@ -371,9 +337,7 @@ async def generate_stream(request: Request):
     worker.send_heart_beat()
     generator = worker.generate_stream_gate(params)
     background_tasks = BackgroundTasks()
-    background_tasks.add_task(
-        partial(release_model_semaphore, fn=worker.send_heart_beat)
-    )
+    background_tasks.add_task(partial(release_model_semaphore, fn=worker.send_heart_beat))
     return StreamingResponse(generator, background=background_tasks)
 
 
@@ -387,9 +351,7 @@ if __name__ == "__main__":
     parser.add_argument("--host", type=str, default="localhost")
     parser.add_argument("--port", type=int, default=21002)
     parser.add_argument("--worker-address", type=str, default="http://localhost:21002")
-    parser.add_argument(
-        "--controller-address", type=str, default="http://localhost:21001"
-    )
+    parser.add_argument("--controller-address", type=str, default="http://localhost:21001")
     parser.add_argument(
         "--model-type",
         type=str,

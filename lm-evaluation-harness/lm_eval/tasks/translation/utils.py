@@ -2,7 +2,6 @@ import argparse
 
 import yaml
 
-
 try:
     import pycountry
 except ModuleNotFoundError:
@@ -71,19 +70,16 @@ def gen_lang_yamls(output_dir: str, overwrite: bool) -> None:
                                 "include": "wmt_common_yaml",
                                 "group": groups,
                                 "dataset_path": lang,
-                                "dataset_name": dataset_name
-                                if not (lang == "iwslt2017")
-                                else "iwslt2017-" + dataset_name,
+                                "dataset_name": (
+                                    dataset_name if not (lang == "iwslt2017") else "iwslt2017-" + dataset_name
+                                ),
                                 "task": f"{lang}-{lang_pair}",
                                 "doc_to_text": f"{source} phrase: "
                                 + "{{translation["
                                 + f'"{src}"'
                                 + "]}}\n"
                                 + f"{target} phrase:",
-                                "doc_to_target": " {{"
-                                + "translation["
-                                + f'"{tgt}"]'
-                                + "}}",
+                                "doc_to_target": " {{" + "translation[" + f'"{tgt}"]' + "}}",
                             },
                             f,
                         )
@@ -92,8 +88,7 @@ def gen_lang_yamls(output_dir: str, overwrite: bool) -> None:
 
     if len(err) > 0:
         raise FileExistsError(
-            "Files were not created because they already exist (use --overwrite flag):"
-            f" {', '.join(err)}"
+            "Files were not created because they already exist (use --overwrite flag):" f" {', '.join(err)}"
         )
 
 
@@ -106,9 +101,7 @@ def main() -> None:
         action="store_true",
         help="Overwrite files if they already exist",
     )
-    parser.add_argument(
-        "--output-dir", default=".", help="Directory to write yaml files to"
-    )
+    parser.add_argument("--output-dir", default=".", help="Directory to write yaml files to")
     args = parser.parse_args()
 
     gen_lang_yamls(output_dir=args.output_dir, overwrite=args.overwrite)

@@ -1,7 +1,8 @@
+import argparse
 import os
 import re
+
 import torch
-import argparse
 
 
 def split(
@@ -41,9 +42,7 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    assert (
-        args.input_path is not None
-    ), "Please specify the path to the original checkpoint."
+    assert args.input_path is not None, "Please specify the path to the original checkpoint."
     if args.output_path is None:
         suffix = r"\.pt$"
         args.output_path = re.sub(suffix, "", args.input_path)

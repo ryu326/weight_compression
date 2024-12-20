@@ -23,7 +23,6 @@ import nltk
 import pkg_resources
 from packaging import version
 
-
 # Downloading 'punkt' with nltk<3.9 has a remote code vuln.
 # see  https://github.com/EleutherAI/lm-evaluation-harness/issues/2210
 # and https://github.com/nltk/nltk/issues/3266
@@ -34,8 +33,8 @@ NLTK_MIN_VERSION = "3.9.1"
 def download_nltk_resources():
     """Download 'punkt' if not already installed"""
     nltk_version = pkg_resources.get_distribution("nltk").version
-    assert (
-        version.parse(nltk_version) >= version.parse(NLTK_MIN_VERSION)
+    assert version.parse(nltk_version) >= version.parse(
+        NLTK_MIN_VERSION
     ), f"`nltk` version {nltk_version} is not >= {NLTK_MIN_VERSION}. Please update `nltk` before proceeding--older versions are vulnerable to a remote code execution vulnerability."
 
     try:
@@ -1613,7 +1612,9 @@ LANGUAGE_CODES = immutabledict.immutabledict(
 _ALPHABETS = "([A-Za-z])"
 _PREFIXES = "(Mr|St|Mrs|Ms|Dr)[.]"
 _SUFFIXES = "(Inc|Ltd|Jr|Sr|Co)"
-_STARTERS = r"(Mr|Mrs|Ms|Dr|Prof|Capt|Cpt|Lt|He\s|She\s|It\s|They\s|Their\s|Our\s|We\s|But\s|However\s|That\s|This\s|Wherever)"
+_STARTERS = (
+    r"(Mr|Mrs|Ms|Dr|Prof|Capt|Cpt|Lt|He\s|She\s|It\s|They\s|Their\s|Our\s|We\s|But\s|However\s|That\s|This\s|Wherever)"
+)
 _ACRONYMS = "([A-Z][.][A-Z][.](?:[A-Z][.])?)"
 _WEBSITES = "[.](com|net|org|io|gov|edu|me)"
 _DIGITS = "([0-9])"

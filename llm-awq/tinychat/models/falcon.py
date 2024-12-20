@@ -1,16 +1,15 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # This software may be used and distributed according to the terms of the GNU General Public License version 3.
 
-from typing import Optional, Tuple
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
+from typing import Optional, Tuple
 
-import torch
-from torch import nn
-import torch.nn.functional as F
 import awq_inference_engine
-
 import tinychat.utils.constants
+import torch
+import torch.nn.functional as F
+from torch import nn
 
 max_batch_size = tinychat.utils.constants.max_batch_size
 max_seq_len = tinychat.utils.constants.max_seq_len
@@ -19,9 +18,7 @@ max_seq_len = tinychat.utils.constants.max_seq_len
 # rotary pos emb helpers (torch.jit.script does not seem to support staticmethod...)
 def rotate_half(x):
     x1, x2 = x[..., : x.shape[-1] // 2], x[..., x.shape[-1] // 2 :]
-    return torch.cat(
-        (-x2, x1), dim=x1.ndim - 1
-    )  # dim=-1 triggers a bug in torch < 1.8.0
+    return torch.cat((-x2, x1), dim=x1.ndim - 1)  # dim=-1 triggers a bug in torch < 1.8.0
 
 
 class RotaryEmbedding(nn.Module):
@@ -151,26 +148,14 @@ class FalconAttentionFused(nn.Module):
             xv = xv.view(bsz, seqlen, 1, self.head_dim)
 
             xq, xk = self.rotary_emb(xq, xk)
-            xq = (
-                xq.reshape(bsz, self.n_local_heads, seqlen, self.head_dim)
-                .permute(0, 2, 1, 3)
-                .contiguous()
-            )
-            xk = (
-                xk.reshape(bsz, 1, seqlen, self.head_dim)
-                .permute(0, 2, 1, 3)
-                .contiguous()
-            )
+            xq = xq.reshape(bsz, self.n_local_heads, seqlen, self.head_dim).permute(0, 2, 1, 3).contiguous()
+            xk = xk.reshape(bsz, 1, seqlen, self.head_dim).permute(0, 2, 1, 3).contiguous()
 
             self.cache_k = self.cache_k.to(xq)
             self.cache_v = self.cache_v.to(xq)
 
             values_store = xv.transpose(2, 1)
-            keys_store = (
-                xk.reshape(bsz, seqlen, 1, self.head_dim // 8, 8)
-                .permute(0, 2, 3, 1, 4)
-                .contiguous()
-            )
+            keys_store = xk.reshape(bsz, seqlen, 1, self.head_dim // 8, 8).permute(0, 2, 3, 1, 4).contiguous()
 
             self.cache_v[:bsz, :, start_pos : start_pos + seqlen, :] = values_store
             self.cache_k[:bsz, :, :, start_pos : start_pos + seqlen, :] = keys_store
@@ -240,9 +225,7 @@ class TransformerBlock(nn.Module):
         self.self_attention = FalconAttentionFused(args)
         self.mlp = FalconMLP(dim=args.hidden_size)
         self.layer_id = layer_id
-        self.input_layernorm = nn.LayerNorm(
-            args.hidden_size, eps=args.layer_norm_epsilon
-        )
+        self.input_layernorm = nn.LayerNorm(args.hidden_size, eps=args.layer_norm_epsilon)
         # self.post_attention_layernorm = nn.LayerNorm(args.dim, eps=args.norm_eps)
 
     def forward(
@@ -280,9 +263,7 @@ class Transformer(nn.Module):
 
         mask = None
         if seqlen > 1:
-            mask = torch.full(
-                (1, 1, seqlen, seqlen), float("-inf"), device=tokens.device
-            )
+            mask = torch.full((1, 1, seqlen, seqlen), float("-inf"), device=tokens.device)
             mask = torch.triu(mask, diagonal=start_pos + 1).type_as(h)
         for layer in self.h:
             h = layer(h, start_pos, mask)

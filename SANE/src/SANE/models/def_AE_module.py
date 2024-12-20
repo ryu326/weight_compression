@@ -80,9 +80,7 @@ class AEModule(nn.Module):
         self.set_optimizer(config)
 
         # automatic mixed precision
-        self.use_amp = (
-            True if config.get("training::precision", "full") == "amp" else False
-        )
+        self.use_amp = True if config.get("training::precision", "full") == "amp" else False
         if self.use_amp:
             print(f"++++++ USE AUTOMATIC MIXED PRECISION +++++++")
             self.scaler = torch.cuda.amp.GradScaler(enabled=self.use_amp)
@@ -119,9 +117,7 @@ class AEModule(nn.Module):
         # nn.utils.clip_grad_value_(self.params, self.clipping_value)
         nn.utils.clip_grad_value_(self.parameters(), self.clipping_value)
 
-    def set_transforms(
-        self, transforms_train=None, transforms_test=None, transforms_downstream=None
-    ):
+    def set_transforms(self, transforms_train=None, transforms_test=None, transforms_downstream=None):
         if transforms_train is not None:
             self.transforms_train = transforms_train
         else:
@@ -180,12 +176,8 @@ class AEModule(nn.Module):
         ]
         num_decay_params = sum(p.numel() for p in decay_params)
         num_nodecay_params = sum(p.numel() for p in nodecay_params)
-        print(
-            f"num decayed parameter tensors: {len(decay_params)}, with {num_decay_params:,} parameters"
-        )
-        print(
-            f"num non-decayed parameter tensors: {len(nodecay_params)}, with {num_nodecay_params:,} parameters"
-        )
+        print(f"num decayed parameter tensors: {len(decay_params)}, with {num_decay_params:,} parameters")
+        print(f"num non-decayed parameter tensors: {len(nodecay_params)}, with {num_nodecay_params:,} parameters")
         if config.get("optim::optimizer", "adamw") == "sgd":
             self.optimizer = torch.optim.SGD(
                 params=self.parameters(),

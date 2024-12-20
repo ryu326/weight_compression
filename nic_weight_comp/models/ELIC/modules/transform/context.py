@@ -1,5 +1,6 @@
 import torch.nn as nn
 
+
 class ChannelContextEX(nn.Module):
     def __init__(self, in_dim, out_dim, act=nn.ReLU) -> None:
         super().__init__()
@@ -8,7 +9,7 @@ class ChannelContextEX(nn.Module):
             act(),
             nn.Conv2d(224, 128, kernel_size=5, stride=1, padding=2),
             act(),
-            nn.Conv2d(128, out_dim, kernel_size=5, stride=1, padding=2)
+            nn.Conv2d(128, out_dim, kernel_size=5, stride=1, padding=2),
         )
 
     def forward(self, channel_params):
@@ -21,4 +22,3 @@ class ChannelContextEX(nn.Module):
         channel_params = self.fushion(channel_params)
 
         return channel_params
-

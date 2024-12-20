@@ -96,9 +96,7 @@ def process_results(docs: dict, resps: List):
 
         # Handle cases where the prediction is "fuzzy bunny" and the referent is
         # "bunny".
-        predicted_referent = prediction_words.issubset(
-            referent_words
-        ) or referent_words.issubset(prediction_words)
+        predicted_referent = prediction_words.issubset(referent_words) or referent_words.issubset(prediction_words)
 
     acc = 1.0 if predicted_referent == docs["label"] else 0.0
     return {"accuracy": acc}

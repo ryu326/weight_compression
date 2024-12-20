@@ -24,7 +24,6 @@ import immutabledict
 import nltk
 from packaging.version import parse as parse_version
 
-
 # Downloading 'punkt' with nltk<3.9 has a remote code vuln.
 # see  https://github.com/EleutherAI/lm-evaluation-harness/issues/2210
 # and https://github.com/nltk/nltk/issues/3266
@@ -35,9 +34,8 @@ RANK = os.environ.get("LOCAL_RANK", "0")
 
 def download_nltk_resources():
     """Download 'punkt' if not already installed"""
-    assert (
-        (nltk_version := parse_version(version("nltk")))
-        >= parse_version(NLTK_MIN_VERSION)
+    assert (nltk_version := parse_version(version("nltk"))) >= parse_version(
+        NLTK_MIN_VERSION
     ), f"`nltk` version {nltk_version} is not >= {NLTK_MIN_VERSION}. Please update `nltk` before proceeding--older versions are vulnerable to a remote code execution vulnerability."
 
     try:
@@ -1617,7 +1615,9 @@ LANGUAGE_CODES = immutabledict.immutabledict(
 _ALPHABETS = "([A-Za-z])"
 _PREFIXES = "(Mr|St|Mrs|Ms|Dr)[.]"
 _SUFFIXES = "(Inc|Ltd|Jr|Sr|Co)"
-_STARTERS = r"(Mr|Mrs|Ms|Dr|Prof|Capt|Cpt|Lt|He\s|She\s|It\s|They\s|Their\s|Our\s|We\s|But\s|However\s|That\s|This\s|Wherever)"
+_STARTERS = (
+    r"(Mr|Mrs|Ms|Dr|Prof|Capt|Cpt|Lt|He\s|She\s|It\s|They\s|Their\s|Our\s|We\s|But\s|However\s|That\s|This\s|Wherever)"
+)
 _ACRONYMS = "([A-Z][.][A-Z][.](?:[A-Z][.])?)"
 _WEBSITES = "[.](com|net|org|io|gov|edu|me)"
 _DIGITS = "([0-9])"

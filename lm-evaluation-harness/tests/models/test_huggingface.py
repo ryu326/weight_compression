@@ -7,12 +7,10 @@ from pathlib import Path
 import numpy as np
 import tokenizers
 import torch
-from packaging.version import parse as parse_version
-
 from lm_eval import tasks
 from lm_eval.api.instance import Instance
 from lm_eval.models.huggingface import HFLM
-
+from packaging.version import parse as parse_version
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 task_manager = tasks.TaskManager()

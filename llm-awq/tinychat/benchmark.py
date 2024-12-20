@@ -2,15 +2,17 @@
 # Please first install awq/kernels
 # then directly run CUDA_VISIBLE_DEVICES=0 python benchmark.py
 import argparse
-import torch
 import time
+
 import numpy as np
-from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig, modeling_utils
 import tinychat.utils.constants
-from tinychat.utils.load_quant import load_awq_model
+import torch
 from awq.quantize.quantizer import real_quantize_model_weight
-from tinychat.utils.tune import tune_all_wqlinears, device_warmup
-from tinychat.modules import make_quant_norm, make_quant_attn, make_fused_mlp
+from tinychat.modules import make_fused_mlp, make_quant_attn, make_quant_norm
+from tinychat.utils.load_quant import load_awq_model
+from tinychat.utils.tune import device_warmup, tune_all_wqlinears
+from transformers import (AutoConfig, AutoModelForCausalLM, AutoTokenizer,
+                          modeling_utils)
 
 
 def skip(*args, **kwargs):
@@ -19,9 +21,7 @@ def skip(*args, **kwargs):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--model_type", type=str, default="LLaMa", help="type of the model"
-    )
+    parser.add_argument("--model_type", type=str, default="LLaMa", help="type of the model")
     parser.add_argument(
         "--model_path",
         type=str,
@@ -41,14 +41,13 @@ def main():
         default=2048,
         help="maximum sequence length for kv cache",
     )
-    parser.add_argument(
-        "--max_batch_size", type=int, default=1, help="maximum batch size for kv cache"
-    )
+    parser.add_argument("--max_batch_size", type=int, default=1, help="maximum batch size for kv cache")
     args = parser.parse_args()
 
     tinychat.utils.constants.max_batch_size = args.max_batch_size
     tinychat.utils.constants.max_seq_len = args.max_seq_len
-    from tinychat.models import FalconForCausalLM, LlamaForCausalLM, MPTForCausalLM
+    from tinychat.models import (FalconForCausalLM, LlamaForCausalLM,
+                                 MPTForCausalLM)
 
     modeling_utils._init_weights = False
     torch.nn.init.kaiming_uniform_ = skip

@@ -2,30 +2,35 @@
 # Yibo Yang, 2022
 
 
-from keras.callbacks import ReduceLROnPlateau
-import re
-import wandb
 import os
+import re
+
+import wandb
+from keras.callbacks import ReduceLROnPlateau
+
+
 class MyReduceLROnPlateauCallback(ReduceLROnPlateau):
     """
     Enhanced version of keras.callbacks.ReduceLROnPlateau that implements:
     1. Linear warmup period during which learning rate increases linearly
     2. Regular ReduceLROnPlateau behavior after warmup period
     """
-    
-    def __init__(self, 
-                 monitor='val_loss',
-                 factor=0.1,
-                 patience=10,
-                 verbose=0,
-                 mode='auto',
-                 min_delta=1e-4,
-                 warmup=0,
-                 startup=0,
-                 cooldown=0,
-                 min_lr=0,
-                 initial_lr=0,
-                 **kwargs):
+
+    def __init__(
+        self,
+        monitor="val_loss",
+        factor=0.1,
+        patience=10,
+        verbose=0,
+        mode="auto",
+        min_delta=1e-4,
+        warmup=0,
+        startup=0,
+        cooldown=0,
+        min_lr=0,
+        initial_lr=0,
+        **kwargs,
+    ):
         """
         Args:
             monitor: Quantity to monitor.
@@ -48,13 +53,13 @@ class MyReduceLROnPlateauCallback(ReduceLROnPlateau):
             min_delta=min_delta,
             cooldown=cooldown,
             min_lr=min_lr,
-            **kwargs
+            **kwargs,
         )
         self.warmup = warmup
         self.startup = startup
         self.initial_lr = initial_lr
         self.target_lr = initial_lr
-        
+
     def on_epoch_begin(self, epoch, logs=None):
         """Apply warmup learning rate at the start of each epoch"""
         if epoch < self.warmup:
@@ -62,25 +67,25 @@ class MyReduceLROnPlateauCallback(ReduceLROnPlateau):
             lr = self.initial_lr * (epoch + 1) / self.warmup
             tf.keras.backend.set_value(self.model.optimizer.lr, lr)
             if self.verbose:
-                print(f'\nEpoch {epoch+1}: WarmupLearningRateScheduler setting learning rate to {lr:.6f}.')
+                print(f"\nEpoch {epoch+1}: WarmupLearningRateScheduler setting learning rate to {lr:.6f}.")
             # wandb.log({'lr': lr})
+
     def on_epoch_end(self, epoch, logs=None):
         """Apply regular ReduceLROnPlateau after warmup period"""
         if epoch >= self.startup:
             super().on_epoch_end(epoch, logs)
-        wandb.log({'lr': self.model.optimizer.lr})
+        wandb.log({"lr": self.model.optimizer.lr})
+
     def get_config(self):
         """For saving and loading the callback"""
         config = super().get_config()
-        config.update({
-            'warmup': self.warmup,
-            'startup': self.startup,
-            'initial_lr': self.initial_lr
-        })
+        config.update({"warmup": self.warmup, "startup": self.startup, "initial_lr": self.initial_lr})
         return config
+
 
 # My custom logging code for logging in JSON lines ("jsonl") format
 import json
+
 
 class MyJSONEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -95,18 +100,21 @@ class MyJSONEncoder(json.JSONEncoder):
 
 
 def get_json_logging_callback(log_file_path, buffering=1, **preprocess_float_kwargs):
-    log_file = open(log_file_path, mode='wt', buffering=buffering)
+    log_file = open(log_file_path, mode="wt", buffering=buffering)
     json_logging_callback = tf.keras.callbacks.LambdaCallback(
         on_epoch_end=lambda epoch, logs_dict: log_file.write(
-            json.dumps({'epoch': epoch, **preprocess_float_dict(logs_dict, **preprocess_float_kwargs)},
-                       cls=MyJSONEncoder) + '\n'),
-        on_train_end=lambda logs: log_file.close()
+            json.dumps(
+                {"epoch": epoch, **preprocess_float_dict(logs_dict, **preprocess_float_kwargs)}, cls=MyJSONEncoder
+            )
+            + "\n"
+        ),
+        on_train_end=lambda logs: log_file.close(),
     )
     return json_logging_callback
 
 
 # Commonly used utility routines for organizing/keeping track of my experiments.
-def get_runname(args_dict, record_keys=tuple(), prefix=''):
+def get_runname(args_dict, record_keys=tuple(), prefix=""):
     """
     Given a dictionary of cmdline arguments, return a string that identifies the training run.
     :param args_dict:
@@ -118,12 +126,12 @@ def get_runname(args_dict, record_keys=tuple(), prefix=''):
     for key in record_keys:
         val = args_dict[key]
         if isinstance(val, (list, tuple)):  # e.g., 'num_layers: [10, 8, 10] -> 'num_layers=10_8_10'
-            val_str = '_'.join(map(str, val))
+            val_str = "_".join(map(str, val))
         else:
             val_str = str(val)
-        kv_strs.append('%s=%s' % (key, val_str))
+        kv_strs.append("%s=%s" % (key, val_str))
 
-    return '-'.join([prefix] + kv_strs)
+    return "-".join([prefix] + kv_strs)
 
 
 class AttrDict(dict):
@@ -143,6 +151,7 @@ def get_args_as_obj(args):
     """
     if isinstance(args, str):
         import json
+
         with open(args) as f:
             args = json.load(f)
     if isinstance(args, dict):
@@ -150,8 +159,15 @@ def get_args_as_obj(args):
     return args
 
 
-def config_dict_to_str(args_dict, record_keys=tuple(), leave_out_falsy=True, prefix=None, use_abbr=True,
-                       primary_delimiter='-', secondary_delimiter='_'):
+def config_dict_to_str(
+    args_dict,
+    record_keys=tuple(),
+    leave_out_falsy=True,
+    prefix=None,
+    use_abbr=True,
+    primary_delimiter="-",
+    secondary_delimiter="_",
+):
     """
     Given a dictionary of cmdline arguments, return a string that identifies the training run.
     :param args_dict:
@@ -174,8 +190,9 @@ def config_dict_to_str(args_dict, record_keys=tuple(), leave_out_falsy=True, pre
             val_str = str(val)
         if use_abbr:
             from configs import cmdline_arg_abbr
+
             key = cmdline_arg_abbr.get(key, key)
-        kv_strs.append('%s=%s' % (key, val_str))
+        kv_strs.append("%s=%s" % (key, val_str))
 
     if prefix:
         substrs = [prefix] + kv_strs
@@ -184,12 +201,13 @@ def config_dict_to_str(args_dict, record_keys=tuple(), leave_out_falsy=True, pre
     return primary_delimiter.join(substrs)
 
 
-def preprocess_float_dict(d, format_str='.6g', as_str=False):
+def preprocess_float_dict(d, format_str=".6g", as_str=False):
     # preprocess the floating values in a dict so that json.dump(dict) looks nice
-    import tensorflow as tf
     import numpy as np
+    import tensorflow as tf
+
     res = {}
-    for (k, v) in d.items():
+    for k, v in d.items():
         if isinstance(v, (float, np.floating)) or tf.is_tensor(v):
             if as_str:
                 res[k] = format(float(v), format_str)
@@ -202,6 +220,7 @@ def preprocess_float_dict(d, format_str='.6g', as_str=False):
 
 def get_time_str():
     import datetime
+
     try:
         from configs import strftime_format
     except ImportError:
@@ -210,15 +229,17 @@ def get_time_str():
     time_str = datetime.datetime.now().strftime(strftime_format)
     return time_str
 
+
 def get_wp_datasets(np_file, batchsize, repeat, append_channel_dim=False, get_validation_data=True):
-    assert np_file.endswith('.npy') or np_file.endswith('.npz')
+    assert np_file.endswith(".npy") or np_file.endswith(".npz")
+
+    import os
 
     import numpy as np
     import tensorflow as tf
-    import os
 
     def get_dataset(ar_path, repeat):
-        X = np.load(ar_path).astype('float32')
+        X = np.load(ar_path).astype("float32")
         print(X.shape)
         # wp_mean = 8.708306e-07
         # wp_std = 0.023440132
@@ -236,28 +257,29 @@ def get_wp_datasets(np_file, batchsize, repeat, append_channel_dim=False, get_va
         return train_dataset
     else:
         validation_dataset = None
-        if 'train' in np_file:  # dataset named as such comes with a validation set
+        if "train" in np_file:  # dataset named as such comes with a validation set
             val_dataset = None
-            if os.path.isfile(np_file.replace('train', 'val')):
-                val_dataset = np_file.replace('train', 'val')
-            elif os.path.isfile(np_file.replace('train', 'test')):
-                val_dataset = np_file.replace('train', 'test')
+            if os.path.isfile(np_file.replace("train", "val")):
+                val_dataset = np_file.replace("train", "val")
+            elif os.path.isfile(np_file.replace("train", "test")):
+                val_dataset = np_file.replace("train", "test")
             if val_dataset:
                 validation_dataset = get_dataset(val_dataset, repeat=repeat)
-                print(f'Validating on {val_dataset}')
+                print(f"Validating on {val_dataset}")
 
         if validation_dataset is None:
             print(f"Couldn't find validation data for {np_file}; validating on a subset of train data")
             validation_dataset = train_dataset
         return train_dataset, validation_dataset
 
+
 # def get_datasets(args, np_file, use_weight_param, batchsize, repeat, append_channel_dim=False, get_validation_data=True):
 #     import numpy as np
 #     import tensorflow as tf
 #     import os
-    
+
 #     if use_weight_param:
-#         # if np_file.endswith('.npy') or np_file.endswith('.npz'):    
+#         # if np_file.endswith('.npy') or np_file.endswith('.npz'):
 #         #     if os.path.exists(np_file):
 #         #         print("##### Found npy file !! #####")
 #         #         train_dataset, validation_dataset = get_wp_datasets(np_file, batchsize, repeat = repeat)
@@ -282,17 +304,17 @@ def get_wp_datasets(np_file, batchsize, repeat, append_channel_dim=False, get_va
 #         #             if np_tensor.size % args.data_dim != 0:
 #         #                 continue
 #         #             np_list.append(np_tensor.reshape(-1, args.data_dim))
-                    
+
 #         #     np_list = np.vstack(np_list)
 #         #     indices = np.random.permutation(np_list.shape[0])
 #         #     np_list = np_list[indices]
 #         #     split_index = int(0.8 * np_list.shape[0])
 #         #     train_data = np_list[:split_index]
 #         #     validation_data = np_list[split_index:]
-            
+
 #         #     np.save(path_save + '_'.join(args.model_filter) + f'_d={args.data_dim}_train', train_data)
 #         #     np.save(path_save + '_'.join(args.model_filter) + f'_d={args.data_dim}_val', validation_data)
-            
+
 #             # def get_dataset(X):
 #             #     print(X.shape)
 #             #     # wp_mean = 8.708306e-07
@@ -302,14 +324,14 @@ def get_wp_datasets(np_file, batchsize, repeat, append_channel_dim=False, get_va
 #             #     dataset = dataset.shuffle(len(X), reshuffle_each_iteration=True)
 #             #     dataset = dataset.batch(args.batchsize)
 #             #     return dataset
-            
+
 #             # train_dataset = get_dataset(train_data)
-#             # validation_dataset = get_dataset(validation_data)  
-            
+#             # validation_dataset = get_dataset(validation_data)
+
 #             # print("##### End generating WP dataset #####")
-            
-#     else:                     
-#         if np_file.endswith('.npy') or np_file.endswith('.npz'):    
+
+#     else:
+#         if np_file.endswith('.npy') or np_file.endswith('.npz'):
 #             train_dataset, validation_dataset = get_np_datasets(np_file, batchsize)
 #         else:
 #             train_dataset = gen_dataset(dataset_spec=args.dataset, data_dim=args.data_dim, batchsize=args.batchsize,
@@ -323,6 +345,7 @@ def get_wp_datasets(np_file, batchsize, repeat, append_channel_dim=False, get_va
 import numpy as np
 import tensorflow as tf
 
+
 def reshape_spatially_as(x, y):
     """
     Crop away extraneous padding from upsampled tfc.SignalConv2D; used by the decoder for decompression.
@@ -331,7 +354,7 @@ def reshape_spatially_as(x, y):
     :return:  reshaped x
     """
     y_shape = tf.shape(y)
-    return x[:, :y_shape[1], :y_shape[2], :]
+    return x[:, : y_shape[1], : y_shape[2], :]
 
 
 def read_png(filename, channels=3):
@@ -379,7 +402,7 @@ def maybe_pad_img(x, factor: int):
     :return: x_padded, offset; x_padded is a potentially padded version of x whose height and width are divisible by
     div, and such that, x_padded[offset[0]: (offset[0] + x_size[0]), offset[1]:(offset[1] + x_size[1])] == x
     """
-    assert len(x.shape) == 3, 'must be a single RGB image'
+    assert len(x.shape) == 3, "must be a single RGB image"
     img_shape = tf.shape(x)[:2]
     factor = tf.constant([factor, factor], dtype=tf.int32)
     ratio = tf.math.ceil(img_shape / factor)  # say cel([768, 512] / [100, 100]) = [8, 6]
@@ -390,14 +413,14 @@ def maybe_pad_img(x, factor: int):
 
     # offset as in the top left corner of the crop; https://www.tensorflow.org/api_docs/python/tf/image/crop_to_bounding_box
     offset = tf.cast(tf.math.floor((padded_shape - img_shape) / 2), tf.int32)
-    paddings = np.zeros([3, 2], dtype='int32')
+    paddings = np.zeros([3, 2], dtype="int32")
     slack = padded_shape - img_shape  # e.g., [800, 600] - [768, 512] = [32, 88]
     # pad around center
     paddings[0:2, 0] = np.floor(slack / 2)  # e.g., [16, 44]
     paddings[0:2, 1] = slack - np.floor(slack / 2)
-    x_padded = tf.pad(x, paddings, 'reflect')
+    x_padded = tf.pad(x, paddings, "reflect")
 
-    assert tf.reduce_all(x_padded[offset[0]: (offset[0] + img_shape[0]), offset[1]:(offset[1] + img_shape[1])] == x)
+    assert tf.reduce_all(x_padded[offset[0] : (offset[0] + img_shape[0]), offset[1] : (offset[1] + img_shape[1])] == x)
     return x_padded, offset
 
 
@@ -408,6 +431,7 @@ def read_npy_file_helper(file_name_in_bytes):
     # assert data.dtype is np.float32   # needs to match the type argument in the caller tf.data.Dataset.map
     return data
 
+
 def get_wp_tfrecord(split, file_path, args, repeat, num_data):
     """Creates input data pipeline from custom PNG images.
     :param split:
@@ -415,20 +439,21 @@ def get_wp_tfrecord(split, file_path, args, repeat, num_data):
     :param args:
     """
     import functools
+
     def parse_example(example_proto, data_dim, normalize, mean, std):
         feature_description = {
-            'slice': tf.io.FixedLenFeature([data_dim], tf.float32),  # feature 크기만큼 설정
+            "slice": tf.io.FixedLenFeature([data_dim], tf.float32),  # feature 크기만큼 설정
         }
         parsed_features = tf.io.parse_single_example(example_proto, feature_description)
-        
-        slice_data = parsed_features['slice']
-        
+
+        slice_data = parsed_features["slice"]
+
         # Conditional normalization based on `normalize` flag
         if normalize:
             slice_data = (slice_data - mean) / std
-        
-        return slice_data    
-    
+
+        return slice_data
+
     # mean = -5.42295056421355e-06
     # std = 0.011819059083636133
     # import ipdb; ipdb.set_trace()
@@ -436,67 +461,70 @@ def get_wp_tfrecord(split, file_path, args, repeat, num_data):
         dataset_base = os.path.dirname(file_path)
         dataset_list = os.listdir(dataset_base)
         print(dataset_list)
-        matching_files = [f for f in dataset_list if 'dataset_stats' in f]
+        matching_files = [f for f in dataset_list if "dataset_stats" in f]
 
         if len(matching_files) > 1:
             raise ValueError("Multiple files with 'dataset_stats' found.")
         elif len(matching_files) < 1:
             raise FileNotFoundError("No file with 'dataset_stats' in the folder.")
-        
-        with open(os.path.join(dataset_base, matching_files[0]), 'r', encoding='utf-8') as file:
+
+        with open(os.path.join(dataset_base, matching_files[0]), "r", encoding="utf-8") as file:
             dataset_stats = json.load(file)
-        
+
         ## hard coding
-        if 'inlier' in file_path:
-            mean = dataset_stats['inlier_train']['mean']
-            std = dataset_stats['inlier_train']['std']
-        elif 'outlier' in file_path:
-            mean = dataset_stats['outlier_train']['mean']
-            std = dataset_stats['outlier_train']['std']
+        if "inlier" in file_path:
+            mean = dataset_stats["inlier_train"]["mean"]
+            std = dataset_stats["inlier_train"]["std"]
+        elif "outlier" in file_path:
+            mean = dataset_stats["outlier_train"]["mean"]
+            std = dataset_stats["outlier_train"]["std"]
         else:
             raise
     except:
-        try :
-            mean = np.load(file_path.replace('.tfrecord', '_mean.npy'))
-            std = np.load(file_path.replace('.tfrecord', '_std.npy'))
-        except :
-            mean = np.load(file_path.replace('val', 'train').replace('.tfrecord', '_mean.npy'))
-            std = np.load(file_path.replace('val', 'train').replace('.tfrecord', '_std.npy'))
-        
-    print(f'mean: {mean}')
-    print(f'std: {std}')
-        
-    if split == 'val':
-        file_path = file_path.replace('train', 'val')        
-    if split == 'train':
-        file_path = file_path.replace('val', 'train')
-         
+        try:
+            mean = np.load(file_path.replace(".tfrecord", "_mean.npy"))
+            std = np.load(file_path.replace(".tfrecord", "_std.npy"))
+        except:
+            mean = np.load(file_path.replace("val", "train").replace(".tfrecord", "_mean.npy"))
+            std = np.load(file_path.replace("val", "train").replace(".tfrecord", "_std.npy"))
+
+    print(f"mean: {mean}")
+    print(f"std: {std}")
+
+    if split == "val":
+        file_path = file_path.replace("train", "val")
+    if split == "train":
+        file_path = file_path.replace("val", "train")
+
     dataset = tf.data.TFRecordDataset(file_path)
-    dataset = dataset.map(functools.partial(
-        parse_example,
-        data_dim=args.data_dim,
-        normalize=args.normalize,  # args에서 normalization 여부 받아 사용
-        mean=mean,            # args에서 평균 값 받아 사용
-        std=std               # args에서 분산 값 받아 사용
-    ))
+    dataset = dataset.map(
+        functools.partial(
+            parse_example,
+            data_dim=args.data_dim,
+            normalize=args.normalize,  # args에서 normalization 여부 받아 사용
+            mean=mean,  # args에서 평균 값 받아 사용
+            std=std,  # args에서 분산 값 받아 사용
+        )
+    )
     # if num_data != 0:
     #     sub_files = random.sample(files, num_data)
     #     files = sub_files
 
-    if split == 'val':
+    if split == "val":
         drop_remainder = False
     else:  # for train or validation
         dataset = dataset.shuffle(buffer_size=5000000, reshuffle_each_iteration=True)
         drop_remainder = True  # as set in the original tfc source code; perhaps done for optimization purposes
-        
+
     if split == "train" and repeat:
-        dataset = dataset.repeat() 
+        dataset = dataset.repeat()
 
     dataset = dataset.batch(args.batchsize, drop_remainder=drop_remainder)
     return dataset
 
+
 def psnr_to_float_mse(psnr):
-    
+
     return 10 ** (-psnr / 10)
 
 
@@ -513,7 +541,7 @@ def softplus_inverse(x):
 softplus_inv_1 = softplus_inverse(1.0)
 
 
-def transform_scale_indexes(indexes, type='softplus'):
+def transform_scale_indexes(indexes, type="softplus"):
     """
     (Optionally) transform the nn output that is used as 'indexes' for building a tfc.LocationScaleIndexedEntropyModel.
     For the conditional entropy model implemented by tfc, the 'indexes' is ideally an integer in {0,1,...,num_scales-1}.
@@ -524,9 +552,9 @@ def transform_scale_indexes(indexes, type='softplus'):
     :param indexes:
     :return:
     """
-    if type == 'softplus':
+    if type == "softplus":
         return tf.nn.softplus(indexes + softplus_inv_1)
-    elif type == 'exp':
+    elif type == "exp":
         return tf.exp(indexes)
     else:
         return indexes  # this is what's used in tfc examples -- raw nn output is used as 'indexes' for indexed entropy model
@@ -559,7 +587,7 @@ def diag_normal_from_features(features, name=None, split_axis=-1, scale_lb=None,
     return tfd.Normal(loc=mu, scale=sigma, name=name)
 
 
-def diag_gaussian_rdf(variances, num_points=50, distortion='mse'):
+def diag_gaussian_rdf(variances, num_points=50, distortion="mse"):
     """
     Compute rate-distortion function of a Gaussian source with a diagonal
     covariance mat, under either squared or mean squared distortion.
@@ -574,7 +602,7 @@ def diag_gaussian_rdf(variances, num_points=50, distortion='mse'):
     :return:
     """
     distortion = distortion.lower()
-    assert distortion in ('se', 'mse')
+    assert distortion in ("se", "mse")
     max_var = np.max(variances)
     n = len(variances)
     lambs = np.linspace(0, max_var, num_points)
@@ -586,7 +614,7 @@ def diag_gaussian_rdf(variances, num_points=50, distortion='mse'):
     Rs = 0.5 * np.sum(np.log(vars_rep) - np.log(D_mat), axis=-1)
     Ds = np.sum(D_mat, axis=-1)
 
-    if distortion == 'mse':
+    if distortion == "mse":
         Ds /= n
     return (Ds, Rs)
 
@@ -611,6 +639,7 @@ def get_xi_samples(E_log_us, log_Ck_samples):
     M = int(len(E_log_us) / 2)
     assert M * 2 == len(E_log_us)
     from scipy.special import logsumexp
+
     log_alpha = logsumexp(log_Ck_samples[:M]) - np.log(float(M))
     xi_samples = -E_log_us[M:] - np.exp(log_Ck_samples[M:] - log_alpha) - log_alpha + 1
     return xi_samples
@@ -618,10 +647,12 @@ def get_xi_samples(E_log_us, log_Ck_samples):
 
 def parse_lamb(path, strip_pardir=False):
     # search for a numeric string (possibly in scientific notation) for the lamb value
-    import os, re
+    import os
+    import re
+
     if strip_pardir:
         path = os.path.basename(path)
-    return re.search('lamb=(\d*\.?\d+(?:e[+-]?\d+)?)', path).group(1)
+    return re.search("lamb=(\d*\.?\d+(?:e[+-]?\d+)?)", path).group(1)
 
 
 def aggregate_lb_results(res_files):
@@ -639,8 +670,8 @@ def aggregate_lb_results(res_files):
         log_Ck_samples = []
         for file in npz_files:  # these are all the same eval runs but with different seeds
             res = np.load(file)
-            E_log_us.append(res['E_log_us'])
-            log_Ck_samples.append(res['log_Ck_samples'])
+            E_log_us.append(res["E_log_us"])
+            log_Ck_samples.append(res["log_Ck_samples"])
         E_log_us = np.concatenate(E_log_us)
         log_Ck_samples = np.concatenate(log_Ck_samples)
         xi_samples_for_lamb = get_xi_samples(E_log_us, log_Ck_samples)

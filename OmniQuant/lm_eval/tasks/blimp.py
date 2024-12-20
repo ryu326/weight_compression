@@ -10,6 +10,7 @@ grammars.
 
 Homepage: https://github.com/alexwarstadt/blimp
 """
+
 from lm_eval.base import rf, Task
 from lm_eval.metrics import mean
 
@@ -50,13 +51,9 @@ class BlimpTask(Task):
         # trained on this data.
         return self.dataset["train"]
 
-    def fewshot_context(
-        self, doc, num_fewshot, provide_description=None, rnd=None, description=None
-    ):
+    def fewshot_context(self, doc, num_fewshot, provide_description=None, rnd=None, description=None):
         assert num_fewshot == 0
-        assert (
-            rnd is not None
-        ), "A `random.Random` generator argument must be provided to `rnd`"
+        assert rnd is not None, "A `random.Random` generator argument must be provided to `rnd`"
         assert not provide_description, (
             "The `provide_description` arg will be removed in future versions. To prepend "
             "a custom description to the context, supply the corresponding string via the  "

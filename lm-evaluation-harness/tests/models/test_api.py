@@ -1,15 +1,12 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from lm_eval.models.openai_completions import LocalCompletionsAPI
 
 
 @pytest.fixture
 def api():
-    return LocalCompletionsAPI(
-        base_url="http://test-url.com", tokenizer_backend=None, model="gpt-3.5-turbo"
-    )
+    return LocalCompletionsAPI(base_url="http://test-url.com", tokenizer_backend=None, model="gpt-3.5-turbo")
 
 
 @pytest.fixture
@@ -88,18 +85,14 @@ def test_create_payload_loglikelihood(api):
         ),
     ],
 )
-def test_model_generate_call_usage(
-    api, input_messages, generate, gen_kwargs, expected_payload
-):
+def test_model_generate_call_usage(api, input_messages, generate, gen_kwargs, expected_payload):
     with patch("requests.post") as mock_post:
         mock_response = MagicMock()
         mock_response.json.return_value = {"result": "success"}
         mock_post.return_value = mock_response
 
         # Act
-        result = api.model_call(
-            input_messages, generate=generate, gen_kwargs=gen_kwargs
-        )
+        result = api.model_call(input_messages, generate=generate, gen_kwargs=gen_kwargs)
 
         # Assert
         mock_post.assert_called_once()
@@ -128,18 +121,14 @@ def test_model_generate_call_usage(
         ),
     ],
 )
-def test_model_tokenized_call_usage(
-    api_tokenized, input_messages, generate, gen_kwargs, expected_payload
-):
+def test_model_tokenized_call_usage(api_tokenized, input_messages, generate, gen_kwargs, expected_payload):
     with patch("requests.post") as mock_post:
         mock_response = MagicMock()
         mock_response.json.return_value = {"result": "success"}
         mock_post.return_value = mock_response
 
         # Act
-        result = api_tokenized.model_call(
-            input_messages, generate=generate, gen_kwargs=gen_kwargs
-        )
+        result = api_tokenized.model_call(input_messages, generate=generate, gen_kwargs=gen_kwargs)
 
         # Assert
         mock_post.assert_called_once()

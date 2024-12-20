@@ -3,7 +3,6 @@ from typing import List, Union
 
 from lm_eval.utils import load_yaml_config
 
-
 # {{{CI}}}
 # This is the path where the output for the changed files for the tasks folder is stored
 # FILE_PATH = file_path = ".github/outputs/tasks_all_changed_and_modified_files.txt"

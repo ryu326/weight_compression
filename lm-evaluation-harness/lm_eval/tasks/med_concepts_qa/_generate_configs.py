@@ -14,9 +14,7 @@ def generate_yaml_content(vocab_name: str, level: str):
     return content
 
 
-def generate_yaml_files(
-    vocab_names: List[str], levels: List[str], file_name_prefix: str
-):
+def generate_yaml_files(vocab_names: List[str], levels: List[str], file_name_prefix: str):
     for vocab_name in vocab_names:
         for level in levels:
             yaml_content = generate_yaml_content(vocab_name, level)

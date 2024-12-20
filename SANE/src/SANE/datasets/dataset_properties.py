@@ -71,12 +71,8 @@ class PropertyDataset(Dataset):
                 idx2 = idx1 + int(self.ds_split[1] * len(self.path_list))
                 self.path_list = self.path_list[idx2:]
             else:
-                logging.error(
-                    "validation split requested, but only two splits provided."
-                )
-                raise NotImplementedError(
-                    "validation split requested, but only two splits provided."
-                )
+                logging.error("validation split requested, but only two splits provided.")
+                raise NotImplementedError("validation split requested, but only two splits provided.")
         # three splits
         elif len(self.ds_split) == 3:
             if self.train_val_test == "train":
@@ -129,9 +125,7 @@ class PropertyDataset(Dataset):
     ## getitem ####################################################################################################################################################################
     def __getitem__(self, index):
         # not implemented in base class
-        raise NotImplementedError(
-            "the __getitem__ function is not implemented in the base class. "
-        )
+        raise NotImplementedError("the __getitem__ function is not implemented in the base class. ")
         pass
 
     ## len ####################################################################################################################################################################
@@ -159,9 +153,7 @@ class PropertyDataset(Dataset):
             # iterate over epochs
             for eedx in self.epoch_lst:
                 try:
-                    res_tmp = read_properties_from_path(
-                        ppdx, eedx, idx_offset=idx_offset, verbosity=self.verbosity
-                    )
+                    res_tmp = read_properties_from_path(ppdx, eedx, idx_offset=idx_offset, verbosity=self.verbosity)
                     if res_tmp is None:
                         continue
                     else:

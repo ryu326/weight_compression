@@ -62,5 +62,6 @@ def main():
     }
     torch.save(dataset, cifar_path.joinpath("dataset.pt"))
 
+
 if __name__ == "__main__":
     main()

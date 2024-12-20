@@ -8,11 +8,7 @@ def f1(predictions, references):  # This is a passthrough function
     _reference = references[0].split("_")[-1]
     string_label = ["False", "True"]
     reference = string_label.index(_reference)
-    prediction = (
-        string_label.index(_prediction)
-        if _prediction in string_label
-        else not bool(reference)
-    )
+    prediction = string_label.index(_prediction) if _prediction in string_label else not bool(reference)
 
     return (prediction, reference)
 
@@ -31,11 +27,7 @@ def em(predictions, references):  # This is a passthrough function
     _group, _reference = references[0].split("_")
     string_label = ["False", "True"]
     reference = string_label.index(_reference)
-    prediction = (
-        string_label.index(_prediction)
-        if _prediction in string_label
-        else not bool(reference)
-    )
+    prediction = string_label.index(_prediction) if _prediction in string_label else not bool(reference)
 
     return (_group, prediction, reference)
 

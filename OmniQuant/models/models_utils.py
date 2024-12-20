@@ -10,33 +10,33 @@ from torch import nn
 import transformers
 import torch.nn.functional as F
 
+
 class TruncateFunction(torch.autograd.Function):
     @staticmethod
     def forward(ctx, input, threshold):
         truncated_tensor = input.clone()
-        truncated_tensor[truncated_tensor.abs() < threshold] = truncated_tensor[truncated_tensor.abs() < threshold].sign() * threshold
+        truncated_tensor[truncated_tensor.abs() < threshold] = (
+            truncated_tensor[truncated_tensor.abs() < threshold].sign() * threshold
+        )
         return truncated_tensor
-        
 
     @staticmethod
     def backward(ctx, grad_output):
         grad_input = grad_output.clone()
         return grad_input, None
 
+
 def truncate_number(number, threshold=1e-3):
     # clamping scale to avoid overflow in the AMP training
     return TruncateFunction.apply(number, threshold)
+
 
 def find_layers(module, layers=[nn.Conv2d, nn.Linear, transformers.Conv1D], name=""):
     if type(module) in layers:
         return {name: module}
     res = {}
     for name1, child in module.named_children():
-        res.update(
-            find_layers(
-                child, layers=layers, name=name + "." + name1 if name != "" else name1
-            )
-        )
+        res.update(find_layers(child, layers=layers, name=name + "." + name1 if name != "" else name1))
     return res
 
 
@@ -242,9 +242,7 @@ class BaseLM(LM):
 
             # TODO: extract out this call so it only gets called once and also somehow figure out partial caching for
             # that
-            string_nll = self._loglikelihood_tokens(
-                rolling_token_windows, disable_tqdm=True
-            )
+            string_nll = self._loglikelihood_tokens(rolling_token_windows, disable_tqdm=True)
 
             # discard is_greedy
             string_nll = [x[0] for x in string_nll]
@@ -272,9 +270,7 @@ class BaseLM(LM):
 
         # TODO: automatic (variable) batch size detection for vectorization
         re_ord = Reorderer(requests, _collate)
-        for chunk in chunks(
-            tqdm(re_ord.get_reordered(), disable=disable_tqdm), self.batch_size
-        ):
+        for chunk in chunks(tqdm(re_ord.get_reordered(), disable=disable_tqdm), self.batch_size):
             inps = []
             cont_toks_list = []
             inplens = []
@@ -308,17 +304,13 @@ class BaseLM(LM):
                 cont = continuation_enc
 
                 # since in _collate we make sure length is descending, the longest is always the first one.
-                padding_length = (
-                    padding_length if padding_length is not None else inplen
-                )
+                padding_length = padding_length if padding_length is not None else inplen
 
                 # pad length from seq to padding_length
                 inp = torch.cat(
                     [
                         inp,  # [seq]
-                        torch.zeros(padding_length - inplen, dtype=torch.long).to(
-                            inp.device
-                        ),  # [padding_length - seq]
+                        torch.zeros(padding_length - inplen, dtype=torch.long).to(inp.device),  # [padding_length - seq]
                     ],
                     dim=0,
                 )
@@ -327,14 +319,10 @@ class BaseLM(LM):
                 cont_toks_list.append(cont)
                 inplens.append(inplen)
             # import pdb; pdb.set_trace()
-            batched_inps = torch.cat(inps, dim=0).to(
-                self.device
-            )  # [batch, padding_length
+            batched_inps = torch.cat(inps, dim=0).to(self.device)  # [batch, padding_length
 
             # self.model = self.model.to(self.device)
-            multi_logits = F.log_softmax(
-                self._model_call(batched_inps), dim=-1
-            ).cpu()  # [batch, padding_length, vocab]
+            multi_logits = F.log_softmax(self._model_call(batched_inps), dim=-1).cpu()  # [batch, padding_length, vocab]
 
             # dataset_inps.append(batched_inps)
             # dataset_logits = self._model_logits_on_dataset(dataset_inps)
@@ -403,23 +391,17 @@ class BaseLM(LM):
 
                 # Slice to original seq length
                 contlen = len(cont_toks)
-                logits = logits[inplen - contlen : inplen].unsqueeze(
-                    0
-                )  # [1, seq, vocab]
+                logits = logits[inplen - contlen : inplen].unsqueeze(0)  # [1, seq, vocab]
 
                 # Check if per-token argmax is exactly equal to continuation
                 greedy_tokens = logits.argmax(dim=-1)
-                cont_toks = torch.tensor(cont_toks, dtype=torch.long).unsqueeze(
-                    0
-                )  # [1, seq]
+                cont_toks = torch.tensor(cont_toks, dtype=torch.long).unsqueeze(0)  # [1, seq]
                 # import pdb; pdb.set_trace()
                 max_equal = (greedy_tokens == cont_toks).all()
 
                 # Obtain log-probs at the corresponding continuation token indices
                 # last_token_slice = logits[:, -1, :].squeeze(0).tolist()
-                logits = torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(
-                    -1
-                )  # [1, seq]
+                logits = torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(-1)  # [1, seq]
 
                 # Answer: (log prob, is-exact-match)
                 answer = (float(logits.sum()), bool(max_equal))
@@ -451,13 +433,11 @@ class BaseLM(LM):
 
             (primary_until,) = self.tok_encode(until[0])
 
-            context_enc = torch.tensor(
-                [self.tok_encode(context)[self.max_gen_toks - self.max_length :]]
-            ).to(self.device)
-
-            cont = self._model_generate(
-                context_enc, context_enc.shape[1] + self.max_gen_toks, primary_until
+            context_enc = torch.tensor([self.tok_encode(context)[self.max_gen_toks - self.max_length :]]).to(
+                self.device
             )
+
+            cont = self._model_generate(context_enc, context_enc.shape[1] + self.max_gen_toks, primary_until)
 
             s = self.tok_decode(cont[0].tolist()[context_enc.shape[1] :])
 

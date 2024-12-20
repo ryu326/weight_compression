@@ -20,22 +20,20 @@ It sends worker addresses to clients.
 import argparse
 import asyncio
 import dataclasses
-from enum import Enum, auto
 import json
 import logging
-import time
-from typing import List, Union
 import threading
+import time
+from enum import Enum, auto
+from typing import List, Union
 
-from fastapi import FastAPI, Request
-from fastapi.responses import StreamingResponse
 import numpy as np
 import requests
 import uvicorn
-
+from fastapi import FastAPI, Request
+from fastapi.responses import StreamingResponse
 from tinychat.utils.constants import CONTROLLER_HEART_BEAT_EXPIRATION
 from tinychat.utils.log_utils import build_logger, server_error_msg
-
 
 logger = build_logger("controller", "controller.log")
 
@@ -75,16 +73,12 @@ class Controller:
         self.worker_info = {}
         self.dispatch_method = DispatchMethod.from_str(dispatch_method)
 
-        self.heart_beat_thread = threading.Thread(
-            target=heart_beat_controller, args=(self,)
-        )
+        self.heart_beat_thread = threading.Thread(target=heart_beat_controller, args=(self,))
         self.heart_beat_thread.start()
 
         logger.info("Init controller")
 
-    def register_worker(
-        self, worker_name: str, check_heart_beat: bool, worker_status: dict
-    ):
+    def register_worker(self, worker_name: str, check_heart_beat: bool, worker_status: dict):
         if worker_name not in self.worker_info:
             logger.info(f"Register a new worker: {worker_name}")
         else:
@@ -184,9 +178,7 @@ class Controller:
             min_index = np.argmin(worker_qlen)
             w_name = worker_names[min_index]
             self.worker_info[w_name].queue_length += 1
-            logger.info(
-                f"names: {worker_names}, queue_lens: {worker_qlen}, ret: {w_name}"
-            )
+            logger.info(f"names: {worker_names}, queue_lens: {worker_qlen}, ret: {w_name}")
             return w_name
         else:
             raise ValueError(f"Invalid dispatch method: {self.dispatch_method}")
@@ -266,9 +258,7 @@ app = FastAPI()
 @app.post("/register_worker")
 async def register_worker(request: Request):
     data = await request.json()
-    controller.register_worker(
-        data["worker_name"], data["check_heart_beat"], data.get("worker_status", None)
-    )
+    controller.register_worker(data["worker_name"], data["check_heart_beat"], data.get("worker_status", None))
 
 
 @app.post("/refresh_all_workers")

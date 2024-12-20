@@ -21,7 +21,7 @@ class MINE(nn.Module):
         T1 = self.net(torch.cat([z_c, z_d_shuffle], dim=-1))
 
         mi = T0.mean() - (T1.squeeze().logsumexp(0) - math.log(sample_size))
-        return mi, 0., 0.
+        return mi, 0.0, 0.0
 
     def learning_loss(self, z_c, z_d):
-        return - self(z_c, z_d)[0]
+        return -self(z_c, z_d)[0]

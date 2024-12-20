@@ -116,9 +116,7 @@ def printProgressBar(
         print()
 
 
-def tokenize_checkpoint(
-    checkpoint, tokensize: int, return_mask: bool = True, ignore_bn=False
-):
+def tokenize_checkpoint(checkpoint, tokensize: int, return_mask: bool = True, ignore_bn=False):
     """
     transforms a checkpoint into a sequence of tokens, one token per channel / neuron
     Tokensize can be set to 0 to automatically discover the correct size (maximum) size
@@ -216,9 +214,7 @@ def tokenize_checkpoint(
                 token_factor += 1
 
             # get positions, repeating for parts of the same token (overall position will be different)
-            idx_layer = [
-                [idx, jdx] for jdx in range(w.shape[0]) for _ in range(token_factor)
-            ]
+            idx_layer = [[idx, jdx] for jdx in range(w.shape[0]) for _ in range(token_factor)]
             # increase layer counter
             idx += 1
             # add to overall position
@@ -255,9 +251,7 @@ def tokenize_checkpoint(
     pos = torch.tensor(pos)
     # cast tensor to int16
     if pos.max() > 32767:
-        logging.debug(
-            f"max position value of {pos.max()} does not fit into torch.int16 range. Change data type"
-        )
+        logging.debug(f"max position value of {pos.max()} does not fit into torch.int16 range. Change data type")
         pos = pos.to(torch.int)
     else:
         pos = pos.to(torch.int16)
@@ -304,16 +298,12 @@ def tokens_to_checkpoint(tokens, pos, reference_checkpoint, ignore_bn=False):
             contentlength = int(torch.prod(torch.tensor(mod_shape)) / mod_shape[0])
 
             # update weights
-            checkpoint[key] = w_t.view(mod_shape[0], -1)[:, :contentlength].view(
-                mod_shape
-            )
+            checkpoint[key] = w_t.view(mod_shape[0], -1)[:, :contentlength].view(mod_shape)
 
             # check for bias
             if "weight" in key:
                 if key.replace("weight", "bias") in checkpoint:
-                    checkpoint[key.replace("weight", "bias")] = w_t.view(
-                        mod_shape[0], -1
-                    )[:, contentlength]
+                    checkpoint[key.replace("weight", "bias")] = w_t.view(mod_shape[0], -1)[:, contentlength]
 
             # if key.replace("weight", "bias") in checkpoint:
             # checkpoint[key.replace("weight", "bias")] = w_t.view(mod_shape[0], -1)[

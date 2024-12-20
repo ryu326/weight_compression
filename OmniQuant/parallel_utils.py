@@ -44,11 +44,11 @@ def get_gpu_memory():
     gpu_memory_info = nvidia_smi_memory_info()
 
     try:
-        gpu_index = [int(k) for k in os.environ['CUDA_VISIBLE_DEVICES'].split(',')]
+        gpu_index = [int(k) for k in os.environ["CUDA_VISIBLE_DEVICES"].split(",")]
     except KeyError:
         gpu_index = [x["id"] for x in gpu_memory_info]
 
-    for gpu_id, i in enumerate( gpu_index):
+    for gpu_id, i in enumerate(gpu_index):
         gpu = gpu_memory_info[i]
         total_memory = gpu["total_memory"]
         used_memory = gpu["used_memory"]
@@ -63,27 +63,18 @@ def get_lowest_occupied_gpu(wait_memory=1000):
         if not now_lowest_memory == 1e9:
             time.sleep(10)
         memory_info = get_gpu_memory()
-        gpu_id, tot_mem, used_mem = sorted(
-            memory_info, key=lambda x: x[2], reverse=False
-        )[0]
+        gpu_id, tot_mem, used_mem = sorted(memory_info, key=lambda x: x[2], reverse=False)[0]
         now_lowest_memory = used_mem
 
     return gpu_id
 
 
 def sort_layers_by_params(layers: List[nn.Module]):
-    return sorted(
-        layers, key=lambda m: sum(p.numel() for p in m.parameters()), reverse=True
-    )
+    return sorted(layers, key=lambda m: sum(p.numel() for p in m.parameters()), reverse=True)
 
 
 def get_all_gpu_free_memory():
-    return sum(
-        [
-            total_memory - used_memory
-            for gpu_id, total_memory, used_memory in get_gpu_memory()
-        ]
-    )
+    return sum([total_memory - used_memory for gpu_id, total_memory, used_memory in get_gpu_memory()])
 
 
 def assign_layers_to_gpus(layers: List[nn.Module]):
@@ -106,9 +97,7 @@ def assign_layers_to_gpus(layers: List[nn.Module]):
             layer.device = layers[0].device
             print(f"map last layer {i} to gpu {layer_gpu_map[layer]}")
             continue
-        layer_memory = (
-            sum(p.element_size() * p.numel() for p in layer.parameters()) / 1024**2
-        )
+        layer_memory = sum(p.element_size() * p.numel() for p in layer.parameters()) / 1024**2
         available_gpus = get_gpu_memory()
         if prev_gpu_id is None:
             gpus = sorted(available_gpus, key=lambda x: x[2])
@@ -136,10 +125,7 @@ def forward_hook_wrapper(gpu_id):
     def forward_hook(module, input, kwargs):
         # breakpoint()
         input = tuple(_.to(f"cuda:{gpu_id}") for _ in input)
-        kwargs = {
-            k: v.to(f"cuda:{gpu_id}") if isinstance(v, torch.Tensor) else v
-            for k, v in kwargs.items()
-        }
+        kwargs = {k: v.to(f"cuda:{gpu_id}") if isinstance(v, torch.Tensor) else v for k, v in kwargs.items()}
         return input, kwargs
 
     return forward_hook

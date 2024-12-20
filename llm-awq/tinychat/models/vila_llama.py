@@ -1,19 +1,19 @@
 import os
-import warnings
 import shutil
+import time
+import warnings
+from typing import List, Optional, Tuple, Union
+
 import torch
 import torch.nn as nn
-from typing import List, Optional, Tuple, Union
-import time
-
+from llava.model.language_model.builder import build_llm_and_tokenizer
+from llava.model.llava_arch import LlavaMetaForCausalLM, LlavaMetaModel
+from llava.model.multimodal_encoder.builder import build_vision_tower
+from llava.model.multimodal_projector.builder import build_mm_projector
+from llava.model.utils import get_model_config
 from transformers import AutoConfig, PreTrainedModel
 from transformers.modeling_outputs import CausalLMOutputWithPast
 
-from llava.model.utils import get_model_config
-from llava.model.language_model.builder import build_llm_and_tokenizer
-from llava.model.multimodal_encoder.builder import build_vision_tower
-from llava.model.multimodal_projector.builder import build_mm_projector
-from llava.model.llava_arch import LlavaMetaModel, LlavaMetaForCausalLM
 from .llama import LlamaForCausalLM, Transformer
 
 
@@ -23,19 +23,13 @@ class VilaLlamaForCausalLM(LlavaMetaModel, LlavaMetaForCausalLM, PreTrainedModel
         self.init_vlm(config)
 
     def init_vlm(self, config=None, *args, **kwargs):
-        if (
-            hasattr(self, "llm")
-            or hasattr(self, "vision_tower")
-            or hasattr(self, "mm_projector")
-        ):
+        if hasattr(self, "llm") or hasattr(self, "vision_tower") or hasattr(self, "mm_projector"):
             # already initialized, skipped
             return
 
         model_dtype = getattr(config, "model_dtype", "torch.float16")
         if not hasattr(config, "model_dtype"):
-            warnings.warn(
-                "model_dtype not found in config, defaulting to torch.float16."
-            )
+            warnings.warn("model_dtype not found in config, defaulting to torch.float16.")
             config.model_dtype = model_dtype
 
         # print("init_vlm(): config", config); input("DEBUG init_vlm")
@@ -43,9 +37,7 @@ class VilaLlamaForCausalLM(LlavaMetaModel, LlavaMetaForCausalLM, PreTrainedModel
         if len(cfgs) == 3:
             llm_cfg, vision_tower_cfg, mm_projector_cfg = cfgs
         else:
-            raise ValueError(
-                "`llm_cfg` `mm_projector_cfg` `vision_tower_cfg` not found in the config."
-            )
+            raise ValueError("`llm_cfg` `mm_projector_cfg` `vision_tower_cfg` not found in the config.")
         # print("init_vlm():", cfgs); input("DEBUG init_vlm")
         llm_cfg = AutoConfig.from_pretrained(llm_cfg)
 
@@ -58,9 +50,7 @@ class VilaLlamaForCausalLM(LlavaMetaModel, LlavaMetaForCausalLM, PreTrainedModel
         self.is_loaded = True
 
         assert (
-            self.llm is not None
-            or self.vision_tower is not None
-            or self.mm_projector is not None
+            self.llm is not None or self.vision_tower is not None or self.mm_projector is not None
         ), "At least one of the components must be instantiated."
 
     def forward(

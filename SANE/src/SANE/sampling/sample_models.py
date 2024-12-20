@@ -129,9 +129,7 @@ def sample_models(
     if halo:
         logging.info("haloify embeddings")
         # halo embeddings
-        z_sample, pos_sample = haloify(
-            z_sample, pos_sample, windowsize=halo_wse, halosize=halo_hs
-        )
+        z_sample, pos_sample = haloify(z_sample, pos_sample, windowsize=halo_wse, halosize=halo_hs)
         # this isnow [n-samples,n-haloed_windows,n_tokens-per-window, tokendim]
         logging.debug(f"haloified weights:{z_sample.shape}")
         logging.debug(f"haloified positions:{pos_sample.shape}")
@@ -173,13 +171,9 @@ def sample_models(
     if halo:
         print(f"unstack haloed batches z-sample")
         # unstack batches to [n_samples, n_windows, n_tokens per window, tokendim]
-        z_sample = z_sample.view(
-            zshalo_shape[-4], zshalo_shape[-3], zshalo_shape[-2], zshalo_shape[-1]
-        )
+        z_sample = z_sample.view(zshalo_shape[-4], zshalo_shape[-3], zshalo_shape[-2], zshalo_shape[-1])
         pos_sample_z = pos_sample.clone()
-        pos_sample_z = pos_sample_z.view(
-            pshalo_shape[-4], pshalo_shape[-3], pshalo_shape[-2], pshalo_shape[-1]
-        )
+        pos_sample_z = pos_sample_z.view(pshalo_shape[-4], pshalo_shape[-3], pshalo_shape[-2], pshalo_shape[-1])
         logging.info("unhaloify embeddings")
         z_sample, pos_sample_z = dehaloify(
             toks=z_sample,
@@ -193,12 +187,8 @@ def sample_models(
     if halo:
         print(f"unstack haloed batches tokens")
         # unstack batches to [n_samples, n_windows, n_tokens per window, tokendim]
-        sampled_tokens = sampled_tokens.view(
-            zshalo_shape[-4], zshalo_shape[-3], zshalo_shape[-2], anchor_w_shape[-1]
-        )
-        pos_sample = pos_sample.view(
-            pshalo_shape[-4], pshalo_shape[-3], pshalo_shape[-2], pshalo_shape[-1]
-        )
+        sampled_tokens = sampled_tokens.view(zshalo_shape[-4], zshalo_shape[-3], zshalo_shape[-2], anchor_w_shape[-1])
+        pos_sample = pos_sample.view(pshalo_shape[-4], pshalo_shape[-3], pshalo_shape[-2], pshalo_shape[-1])
         logging.info("unhaloify embeddings")
         sampled_tokens, pos_sample = dehaloify(
             toks=sampled_tokens,
@@ -231,13 +221,9 @@ def sample_models(
         # z_ref has shape [n_tokens-ref, tokendim]
         # z_tmp has shape [n_reps, n_tokens-ref, tokendim]
         # case 1: new model is bigger
-        logging.info(
-            f'f"sampled tokens {sampled_tokens.shape} and reference tokens {tok_ref.shape} '
-        )
+        logging.info(f'f"sampled tokens {sampled_tokens.shape} and reference tokens {tok_ref.shape} ')
         if tok_ref.shape[0] > sampled_tokens.shape[1]:
-            tmp = torch.zeros(
-                [sampled_tokens.shape[0], tok_ref.shape[0], sampled_tokens.shape[2]]
-            )
+            tmp = torch.zeros([sampled_tokens.shape[0], tok_ref.shape[0], sampled_tokens.shape[2]])
             tmp[:, : sampled_tokens.shape[1], :] = sampled_tokens
             sampled_tokens = tmp
         # case 2: new model is smaller
@@ -277,9 +263,7 @@ def sample_models(
 
         for idx, check in enumerate(returns):
             # re-initialize last layer
-            tmp_layer = torch.nn.Linear(
-                in_features=in_c, out_features=out_c, bias=True, device="cpu"
-            )
+            tmp_layer = torch.nn.Linear(in_features=in_c, out_features=out_c, bias=True, device="cpu")
             # copy weights
             check[layer_key] = tmp_layer.weight.data
             # copy biases
@@ -298,9 +282,7 @@ def sample_models(
         if reset_classifier:
             # ok, what if z_sample and sampled_tokens missmatch b/c of classifier reinit?
             # option 2: cut sampled_tokens shape -> sequence lenght (dim=1) reduced to z_sample.
-            sampled_tokens_shape = torch.Size(
-                [z_sample.shape[0], z_sample.shape[1], sampled_tokens.shape[2]]
-            )
+            sampled_tokens_shape = torch.Size([z_sample.shape[0], z_sample.shape[1], sampled_tokens.shape[2]])
         else:
             sampled_tokens_shape = sampled_tokens.shape
         # cast z to cpu

@@ -3,6 +3,7 @@ from compressai.layers import AttentionBlock
 from models.ELIC.modules.layers.conv import deconv
 from models.ELIC.modules.layers.res_blk import ResidualBottleneck
 
+
 class SynthesisTransformEX(nn.Module):
     def __init__(self, N, M, act=nn.ReLU) -> None:
         super().__init__()
@@ -21,7 +22,7 @@ class SynthesisTransformEX(nn.Module):
             ResidualBottleneck(N, act=act),
             ResidualBottleneck(N, act=act),
             ResidualBottleneck(N, act=act),
-            deconv(N, 3)
+            deconv(N, 3),
         )
 
     def forward(self, x):

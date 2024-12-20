@@ -1,7 +1,7 @@
+import awq_inference_engine
 import torch
 from torch import nn
 from transformers.models.llama.modeling_llama import LlamaRMSNorm
-import awq_inference_engine
 
 
 class FTLlamaRMSNorm(nn.Module):
@@ -15,9 +15,7 @@ class FTLlamaRMSNorm(nn.Module):
 
     def forward(self, x):
         output = torch.empty_like(x)
-        awq_inference_engine.layernorm_forward_cuda(
-            x, self.weight, output, self.variance_epsilon
-        )
+        awq_inference_engine.layernorm_forward_cuda(x, self.weight, output, self.variance_epsilon)
         return output
 
 

@@ -2,7 +2,6 @@ import tempfile
 from pathlib import Path
 
 import pytest
-
 from lm_eval.tasks import TaskManager
 
 
@@ -57,12 +56,8 @@ def custom_task_files_dir(task_yaml, task_code, custom_task_name):
         yield temp_dir
 
 
-def test_python_task_inclusion(
-    custom_task_files_dir: Path, custom_task_name: str, custom_task_tag: str
-):
-    task_manager = TaskManager(
-        verbosity="INFO", include_path=str(custom_task_files_dir)
-    )
+def test_python_task_inclusion(custom_task_files_dir: Path, custom_task_name: str, custom_task_tag: str):
+    task_manager = TaskManager(verbosity="INFO", include_path=str(custom_task_files_dir))
     # check if python tasks enters the global task_index
     assert custom_task_name in task_manager.task_index
     # check if subtask is present

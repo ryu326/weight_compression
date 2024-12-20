@@ -49,10 +49,9 @@ class AnalysisTransform(tf.keras.Sequential):
 
     def __init__(self, latent_depth):
         super().__init__()
-        conv = functools.partial(tfc.SignalConv2D, corr=True, strides_down=2,
-                                 padding="same_zeros", use_bias=True)
+        conv = functools.partial(tfc.SignalConv2D, corr=True, strides_down=2, padding="same_zeros", use_bias=True)
         layers = [
-            tf.keras.layers.Lambda(lambda x: x / 255.),
+            tf.keras.layers.Lambda(lambda x: x / 255.0),
             conv(192, (5, 5), name="layer_0", activation=tfc.GDN(name="gdn_0")),
             conv(192, (5, 5), name="layer_1", activation=tfc.GDN(name="gdn_1")),
             conv(192, (5, 5), name="layer_2", activation=tfc.GDN(name="gdn_2")),
@@ -67,18 +66,13 @@ class SynthesisTransform(tf.keras.Sequential):
 
     def __init__(self):
         super().__init__()
-        conv = functools.partial(tfc.SignalConv2D, corr=False, strides_up=2,
-                                 padding="same_zeros", use_bias=True)
+        conv = functools.partial(tfc.SignalConv2D, corr=False, strides_up=2, padding="same_zeros", use_bias=True)
         layers = [
-            conv(192, (5, 5), name="layer_0",
-                 activation=tfc.GDN(name="igdn_0", inverse=True)),
-            conv(192, (5, 5), name="layer_1",
-                 activation=tfc.GDN(name="igdn_1", inverse=True)),
-            conv(192, (5, 5), name="layer_2",
-                 activation=tfc.GDN(name="igdn_2", inverse=True)),
-            conv(3, (5, 5), name="layer_3",
-                 activation=None),
-            tf.keras.layers.Lambda(lambda x: x * 255.),
+            conv(192, (5, 5), name="layer_0", activation=tfc.GDN(name="igdn_0", inverse=True)),
+            conv(192, (5, 5), name="layer_1", activation=tfc.GDN(name="igdn_1", inverse=True)),
+            conv(192, (5, 5), name="layer_2", activation=tfc.GDN(name="igdn_2", inverse=True)),
+            conv(3, (5, 5), name="layer_3", activation=None),
+            tf.keras.layers.Lambda(lambda x: x * 255.0),
         ]
         for layer in layers:
             self.add(layer)
@@ -93,12 +87,9 @@ class HyperAnalysisTransform(tf.keras.Sequential):
 
         # See Appendix C.2 for more information on using a small hyperprior.
         layers = [
-            conv(320, (3, 3), name="layer_0", strides_down=1, use_bias=True,
-                 activation=tf.nn.relu),
-            conv(256, (5, 5), name="layer_1", strides_down=2, use_bias=True,
-                 activation=tf.nn.relu),
-            conv(hyperprior_depth, (5, 5), name="layer_2", strides_down=2,
-                 use_bias=False, activation=None),
+            conv(320, (3, 3), name="layer_0", strides_down=1, use_bias=True, activation=tf.nn.relu),
+            conv(256, (5, 5), name="layer_1", strides_down=2, use_bias=True, activation=tf.nn.relu),
+            conv(hyperprior_depth, (5, 5), name="layer_2", strides_down=2, use_bias=False, activation=None),
         ]
         for layer in layers:
             self.add(layer)
@@ -110,8 +101,13 @@ class HyperSynthesisTransform(tf.keras.Sequential):
     def __init__(self):
         super().__init__()
         conv = functools.partial(
-            tfc.SignalConv2D, corr=False, padding="same_zeros", use_bias=True,
-            kernel_parameter="variable", activation=tf.nn.relu)
+            tfc.SignalConv2D,
+            corr=False,
+            padding="same_zeros",
+            use_bias=True,
+            kernel_parameter="variable",
+            activation=tf.nn.relu,
+        )
 
         # Note that the output tensor is still latent (it represents means and
         # scales but it does NOT hold mean or scale values explicitly). Therefore,
@@ -133,22 +129,23 @@ class SliceTransform(tf.keras.layers.Layer):
     def __init__(self, latent_depth, num_slices):
         super().__init__()
         conv = functools.partial(
-            tfc.SignalConv2D, corr=False, strides_up=1, padding="same_zeros",
-            use_bias=True, kernel_parameter="variable")
+            tfc.SignalConv2D, corr=False, strides_up=1, padding="same_zeros", use_bias=True, kernel_parameter="variable"
+        )
 
         # Note that the number of channels in the output tensor must match the
         # size of the corresponding slice. If we have 10 slices and a bottleneck
         # with 320 channels, the output is 320 / 10 = 32 channels.
         slice_depth = latent_depth // num_slices
         if slice_depth * num_slices != latent_depth:
-            raise ValueError("Slices do not evenly divide latent depth (%d / %d)" % (
-                latent_depth, num_slices))
+            raise ValueError("Slices do not evenly divide latent depth (%d / %d)" % (latent_depth, num_slices))
 
-        self.transform = tf.keras.Sequential([
-            conv(224, (5, 5), name="layer_0", activation=tf.nn.relu),
-            conv(128, (5, 5), name="layer_1", activation=tf.nn.relu),
-            conv(slice_depth, (3, 3), name="layer_2", activation=None),
-        ])
+        self.transform = tf.keras.Sequential(
+            [
+                conv(224, (5, 5), name="layer_0", activation=tf.nn.relu),
+                conv(128, (5, 5), name="layer_1", activation=tf.nn.relu),
+                conv(slice_depth, (3, 3), name="layer_2", activation=None),
+            ]
+        )
 
     def call(self, tensor):
         return self.transform(tensor)
@@ -157,74 +154,95 @@ class SliceTransform(tf.keras.layers.Layer):
 class MS2020Model(tf.keras.Model):
     """Main model class."""
 
-    def __init__(self, lmbda,
-                 num_filters, latent_depth, hyperprior_depth,
-                 num_slices, max_support_slices,
-                 num_scales, scale_min, scale_max):
+    def __init__(
+        self,
+        lmbda,
+        num_filters,
+        latent_depth,
+        hyperprior_depth,
+        num_slices,
+        max_support_slices,
+        num_scales,
+        scale_min,
+        scale_max,
+    ):
         super().__init__()
         self.lmbda = lmbda
         self.num_scales = num_scales
         self.num_slices = num_slices
         self.max_support_slices = max_support_slices
         offset = tf.math.log(scale_min)
-        factor = (tf.math.log(scale_max) - tf.math.log(scale_min)) / (
-                num_scales - 1.)
+        factor = (tf.math.log(scale_max) - tf.math.log(scale_min)) / (num_scales - 1.0)
         self.scale_fn = lambda i: tf.math.exp(offset + factor * i)
         self.analysis_transform = AnalysisTransform(latent_depth)
         self.synthesis_transform = SynthesisTransform()
         self.hyper_analysis_transform = HyperAnalysisTransform(hyperprior_depth)
         self.hyper_synthesis_mean_transform = HyperSynthesisTransform()
         self.hyper_synthesis_scale_transform = HyperSynthesisTransform()
-        self.cc_mean_transforms = [
-            SliceTransform(latent_depth, num_slices) for _ in range(num_slices)]
-        self.cc_scale_transforms = [
-            SliceTransform(latent_depth, num_slices) for _ in range(num_slices)]
-        self.lrp_transforms = [
-            SliceTransform(latent_depth, num_slices) for _ in range(num_slices)]
+        self.cc_mean_transforms = [SliceTransform(latent_depth, num_slices) for _ in range(num_slices)]
+        self.cc_scale_transforms = [SliceTransform(latent_depth, num_slices) for _ in range(num_slices)]
+        self.lrp_transforms = [SliceTransform(latent_depth, num_slices) for _ in range(num_slices)]
         self.hyperprior = tfc.NoisyDeepFactorized(batch_shape=[hyperprior_depth])
         self.build((None, None, None, 3))
         # The call signature of decompress() depends on the number of slices, so we
         # need to compile the function dynamically.
         self.decompress = tf.function(
-            input_signature=3 * [tf.TensorSpec(shape=(2,), dtype=tf.int32)] +
-                            (num_slices + 1) * [tf.TensorSpec(shape=(1,), dtype=tf.string)]
+            input_signature=3 * [tf.TensorSpec(shape=(2,), dtype=tf.int32)]
+            + (num_slices + 1) * [tf.TensorSpec(shape=(1,), dtype=tf.string)]
         )(self.decompress)
 
     @classmethod
     def create_model(cls, args):
-        return cls(args.lmbda, None, args.latent_depth, args.hyperprior_depth,
-                   args.num_slices, args.max_support_slices, args.num_scales, args.scale_min, args.scale_max)
+        return cls(
+            args.lmbda,
+            None,
+            args.latent_depth,
+            args.hyperprior_depth,
+            args.num_slices,
+            args.max_support_slices,
+            args.num_scales,
+            args.scale_min,
+            args.scale_max,
+        )
 
     @staticmethod
     def add_model_specific_args(parser):
         parser.add_argument(
-            "--lambda", type=float, default=0.01, dest="lmbda",
-            help="Lambda for rate-distortion tradeoff.")
+            "--lambda", type=float, default=0.01, dest="lmbda", help="Lambda for rate-distortion tradeoff."
+        )
 
         parser.add_argument(
-            "--latent_depth", type=int, default=320,
-            help="Number of filters of the last layer of the analysis transform.")
+            "--latent_depth",
+            type=int,
+            default=320,
+            help="Number of filters of the last layer of the analysis transform.",
+        )
         parser.add_argument(
-            "--hyperprior_depth", type=int, default=192,
-            help="Number of filters of the last layer of the hyper-analysis "
-                 "transform.")
+            "--hyperprior_depth",
+            type=int,
+            default=192,
+            help="Number of filters of the last layer of the hyper-analysis " "transform.",
+        )
         parser.add_argument(
-            "--num_slices", type=int, default=10,
-            help="Number of channel slices for conditional entropy modeling.")
+            "--num_slices", type=int, default=10, help="Number of channel slices for conditional entropy modeling."
+        )
         parser.add_argument(
-            "--max_support_slices", type=int, default=5,
+            "--max_support_slices",
+            type=int,
+            default=5,
             help="Maximum number of preceding slices to condition the current slice "
-                 "on. See Appendix C.1 of the paper for details.")
+            "on. See Appendix C.1 of the paper for details.",
+        )
 
         parser.add_argument(
-            "--num_scales", type=int, default=64,
-            help="Number of Gaussian scales to prepare range coding tables for.")
+            "--num_scales", type=int, default=64, help="Number of Gaussian scales to prepare range coding tables for."
+        )
         parser.add_argument(
-            "--scale_min", type=float, default=.11,
-            help="Minimum value of standard deviation of Gaussians.")
+            "--scale_min", type=float, default=0.11, help="Minimum value of standard deviation of Gaussians."
+        )
         parser.add_argument(
-            "--scale_max", type=float, default=256.,
-            help="Maximum value of standard deviation of Gaussians.")
+            "--scale_max", type=float, default=256.0, help="Maximum value of standard deviation of Gaussians."
+        )
 
     def call(self, x, training):
         """Computes rate and distortion losses."""
@@ -235,8 +253,7 @@ class MS2020Model(tf.keras.Model):
         z = self.hyper_analysis_transform(y)
 
         # Build the entropy model for the hyperprior (z).
-        em_z = tfc.ContinuousBatchedEntropyModel(
-            self.hyperprior, coding_rank=3, compression=False)
+        em_z = tfc.ContinuousBatchedEntropyModel(self.hyperprior, coding_rank=3, compression=False)
 
         # When training, z_bpp is based on the noisy version of z (z_tilde).
         _, z_bits = em_z(z, training=training)
@@ -252,8 +269,8 @@ class MS2020Model(tf.keras.Model):
 
         # Build a conditional entropy model for the slices.
         em_y = tfc.LocationScaleIndexedEntropyModel(
-            tfc.NoisyNormal, num_scales=self.num_scales, scale_fn=self.scale_fn,
-            coding_rank=3, compression=False)
+            tfc.NoisyNormal, num_scales=self.num_scales, scale_fn=self.scale_fn, coding_rank=3, compression=False
+        )
 
         # En/Decode each slice conditioned on hyperprior and previous slices.
         y_slices = tf.split(y, self.num_slices, axis=-1)
@@ -261,19 +278,18 @@ class MS2020Model(tf.keras.Model):
         y_bits = []
         for slice_index, y_slice in enumerate(y_slices):
             # Model may condition on only a subset of previous slices.
-            support_slices = (y_hat_slices if self.max_support_slices < 0 else
-                              y_hat_slices[:self.max_support_slices])
+            support_slices = y_hat_slices if self.max_support_slices < 0 else y_hat_slices[: self.max_support_slices]
 
             # Predict mu and sigma for the current slice.
             mean_support = tf.concat([latent_means] + support_slices, axis=-1)
             mu = self.cc_mean_transforms[slice_index](mean_support)
-            mu = mu[:, :y_shape[0], :y_shape[1], :]
+            mu = mu[:, : y_shape[0], : y_shape[1], :]
 
             # Note that in this implementation, `sigma` represents scale indices,
             # not actual scale values.
             scale_support = tf.concat([latent_scales] + support_slices, axis=-1)
             sigma = self.cc_scale_transforms[slice_index](scale_support)
-            sigma = sigma[:, :y_shape[0], :y_shape[1], :]
+            sigma = sigma[:, : y_shape[0], : y_shape[1], :]
 
             _, slice_bits = em_y(y_slice, sigma, loc=mu, training=training)
             y_bits.append(slice_bits)
@@ -317,14 +333,15 @@ class MS2020Model(tf.keras.Model):
         # The rate-distortion Lagrangian.
         loss = bpp + self.lmbda * mse
 
-        return dict(loss=loss, bpp=bpp, bits=bits, y_bits=y_bits, z_bits=z_bits, mse=mse, mses=mses, x_hat=x_hat,
-                    psnr=psnr)
+        return dict(
+            loss=loss, bpp=bpp, bits=bits, y_bits=y_bits, z_bits=z_bits, mse=mse, mses=mses, x_hat=x_hat, psnr=psnr
+        )
 
     def train_step(self, x):
         with tf.GradientTape() as tape:
             res = self(x, training=True)
         variables = self.trainable_variables
-        loss = res['loss']
+        loss = res["loss"]
         gradients = tape.gradient(loss, variables)
         self.optimizer.apply_gradients(zip(gradients, variables))
         for m in self.my_metrics:
@@ -348,7 +365,7 @@ class MS2020Model(tf.keras.Model):
             weighted_metrics=None,
             **kwargs,
         )
-        self.metric_names = ('loss', 'bpp', 'psnr')  # mse)
+        self.metric_names = ("loss", "bpp", "psnr")  # mse)
         self.my_metrics = [tf.keras.metrics.Mean(name=name) for name in self.metric_names]  # can't use self.metrics
 
     def fit(self, *args, **kwargs):
@@ -358,15 +375,16 @@ class MS2020Model(tf.keras.Model):
         return retval
 
     def set_entropy_model(self):
-        self.em_z = tfc.ContinuousBatchedEntropyModel(
-            self.hyperprior, coding_rank=3, compression=True)
+        self.em_z = tfc.ContinuousBatchedEntropyModel(self.hyperprior, coding_rank=3, compression=True)
         self.em_y = tfc.LocationScaleIndexedEntropyModel(
-            tfc.NoisyNormal, num_scales=self.num_scales, scale_fn=self.scale_fn,
-            coding_rank=3, compression=True)
+            tfc.NoisyNormal, num_scales=self.num_scales, scale_fn=self.scale_fn, coding_rank=3, compression=True
+        )
 
-    @tf.function(input_signature=[
-        tf.TensorSpec(shape=(None, None, 3), dtype=tf.uint8),
-    ])
+    @tf.function(
+        input_signature=[
+            tf.TensorSpec(shape=(None, None, 3), dtype=tf.uint8),
+        ]
+    )
     def compress(self, x):
         """Compresses an image."""
         # Add batch dimension and cast to float.
@@ -395,19 +413,18 @@ class MS2020Model(tf.keras.Model):
         y_hat_slices = []
         for slice_index, y_slice in enumerate(y_slices):
             # Model may condition on only a subset of previous slices.
-            support_slices = (y_hat_slices if self.max_support_slices < 0 else
-                              y_hat_slices[:self.max_support_slices])
+            support_slices = y_hat_slices if self.max_support_slices < 0 else y_hat_slices[: self.max_support_slices]
 
             # Predict mu and sigma for the current slice.
             mean_support = tf.concat([latent_means] + support_slices, axis=-1)
             mu = self.cc_mean_transforms[slice_index](mean_support)
-            mu = mu[:, :y_shape[0], :y_shape[1], :]
+            mu = mu[:, : y_shape[0], : y_shape[1], :]
 
             # Note that in this implementation, `sigma` represents scale indices,
             # not actual scale values.
             scale_support = tf.concat([latent_scales] + support_slices, axis=-1)
             sigma = self.cc_scale_transforms[slice_index](scale_support)
-            sigma = sigma[:, :y_shape[0], :y_shape[1], :]
+            sigma = sigma[:, : y_shape[0], : y_shape[1], :]
 
             slice_string = self.em_y.compress(y_slice, sigma, mu)
             y_strings.append(slice_string)
@@ -437,19 +454,18 @@ class MS2020Model(tf.keras.Model):
         y_hat_slices = []
         for slice_index, y_string in enumerate(y_strings):
             # Model may condition on only a subset of previous slices.
-            support_slices = (y_hat_slices if self.max_support_slices < 0 else
-                              y_hat_slices[:self.max_support_slices])
+            support_slices = y_hat_slices if self.max_support_slices < 0 else y_hat_slices[: self.max_support_slices]
 
             # Predict mu and sigma for the current slice.
             mean_support = tf.concat([latent_means] + support_slices, axis=-1)
             mu = self.cc_mean_transforms[slice_index](mean_support)
-            mu = mu[:, :y_shape[0], :y_shape[1], :]
+            mu = mu[:, : y_shape[0], : y_shape[1], :]
 
             # Note that in this implementation, `sigma` represents scale indices,
             # not actual scale values.
             scale_support = tf.concat([latent_scales] + support_slices, axis=-1)
             sigma = self.cc_scale_transforms[slice_index](scale_support)
-            sigma = sigma[:, :y_shape[0], :y_shape[1], :]
+            sigma = sigma[:, : y_shape[0], : y_shape[1], :]
 
             y_hat_slice = self.em_y.decompress(y_string, sigma, loc=mu)
 
@@ -465,22 +481,25 @@ class MS2020Model(tf.keras.Model):
         y_hat = tf.concat(y_hat_slices, axis=-1)
         x_hat = self.synthesis_transform(y_hat)
         # Remove batch dimension, and crop away any extraneous padding.
-        x_hat = x_hat[0, :x_shape[0], :x_shape[1], :]
+        x_hat = x_hat[0, : x_shape[0], : x_shape[1], :]
         # Then cast back to 8-bit integer.
         return tf.saturate_cast(tf.round(x_hat), tf.uint8)
 
 
 def get_runname(args):
     from utils import config_dict_to_str
+
     model_name = os.path.splitext(os.path.basename(__file__))[0]
-    runname = config_dict_to_str(vars(args), record_keys=('latent_depth', 'hyperprior_depth', 'lmbda'),
-                                 prefix=model_name)
+    runname = config_dict_to_str(
+        vars(args), record_keys=("latent_depth", "hyperprior_depth", "lmbda"), prefix=model_name
+    )
     return runname
 
 
+from functools import partial
+
 # Unavoidable boilerplate below.
 import boilerplate
-from functools import partial
 
 # Note: needed to specify as kwargs in partial; o/w would be incorrect ('argv' would receive the value for create_model)
 main = partial(boilerplate.main, create_model=MS2020Model.create_model, get_runname=get_runname)

@@ -10,17 +10,19 @@ class MyReduceLROnPlateauCallback(ReduceLROnPlateau):
     My fancier version of keras.callbacks.ReduceLROnPlateau that allows a 'warmup' period during which no action is taken.
     """
 
-    def __init__(self,
-                 monitor='val_loss',
-                 factor=0.1,
-                 patience=10,
-                 verbose=0,
-                 mode='auto',
-                 min_delta=1e-4,
-                 warmup=0,
-                 cooldown=0,
-                 min_lr=0,
-                 **kwargs):
+    def __init__(
+        self,
+        monitor="val_loss",
+        factor=0.1,
+        patience=10,
+        verbose=0,
+        mode="auto",
+        min_delta=1e-4,
+        warmup=0,
+        cooldown=0,
+        min_lr=0,
+        **kwargs,
+    ):
         """
         Same as super class, except no action is taken until the epoch >= `warmup`.
         :param monitor:
@@ -43,7 +45,8 @@ class MyReduceLROnPlateauCallback(ReduceLROnPlateau):
             min_delta=min_delta,
             cooldown=cooldown,
             min_lr=min_lr,
-            **kwargs)
+            **kwargs,
+        )
         self.warmup = warmup
 
     def on_epoch_end(self, epoch, logs=None):
@@ -68,18 +71,21 @@ class MyJSONEncoder(json.JSONEncoder):
 
 
 def get_json_logging_callback(log_file_path, buffering=1, **preprocess_float_kwargs):
-    log_file = open(log_file_path, mode='wt', buffering=buffering)
+    log_file = open(log_file_path, mode="wt", buffering=buffering)
     json_logging_callback = tf.keras.callbacks.LambdaCallback(
         on_epoch_end=lambda epoch, logs_dict: log_file.write(
-            json.dumps({'epoch': epoch, **preprocess_float_dict(logs_dict, **preprocess_float_kwargs)},
-                       cls=MyJSONEncoder) + '\n'),
-        on_train_end=lambda logs: log_file.close()
+            json.dumps(
+                {"epoch": epoch, **preprocess_float_dict(logs_dict, **preprocess_float_kwargs)}, cls=MyJSONEncoder
+            )
+            + "\n"
+        ),
+        on_train_end=lambda logs: log_file.close(),
     )
     return json_logging_callback
 
 
 # Commonly used utility routines for organizing/keeping track of my experiments.
-def get_runname(args_dict, record_keys=tuple(), prefix=''):
+def get_runname(args_dict, record_keys=tuple(), prefix=""):
     """
     Given a dictionary of cmdline arguments, return a string that identifies the training run.
     :param args_dict:
@@ -91,12 +97,12 @@ def get_runname(args_dict, record_keys=tuple(), prefix=''):
     for key in record_keys:
         val = args_dict[key]
         if isinstance(val, (list, tuple)):  # e.g., 'num_layers: [10, 8, 10] -> 'num_layers=10_8_10'
-            val_str = '_'.join(map(str, val))
+            val_str = "_".join(map(str, val))
         else:
             val_str = str(val)
-        kv_strs.append('%s=%s' % (key, val_str))
+        kv_strs.append("%s=%s" % (key, val_str))
 
-    return '-'.join([prefix] + kv_strs)
+    return "-".join([prefix] + kv_strs)
 
 
 class AttrDict(dict):
@@ -116,6 +122,7 @@ def get_args_as_obj(args):
     """
     if isinstance(args, str):
         import json
+
         with open(args) as f:
             args = json.load(f)
     if isinstance(args, dict):
@@ -123,8 +130,15 @@ def get_args_as_obj(args):
     return args
 
 
-def config_dict_to_str(args_dict, record_keys=tuple(), leave_out_falsy=True, prefix=None, use_abbr=True,
-                       primary_delimiter='-', secondary_delimiter='_'):
+def config_dict_to_str(
+    args_dict,
+    record_keys=tuple(),
+    leave_out_falsy=True,
+    prefix=None,
+    use_abbr=True,
+    primary_delimiter="-",
+    secondary_delimiter="_",
+):
     """
     Given a dictionary of cmdline arguments, return a string that identifies the training run.
     :param args_dict:
@@ -147,8 +161,9 @@ def config_dict_to_str(args_dict, record_keys=tuple(), leave_out_falsy=True, pre
             val_str = str(val)
         if use_abbr:
             from configs import cmdline_arg_abbr
+
             key = cmdline_arg_abbr.get(key, key)
-        kv_strs.append('%s=%s' % (key, val_str))
+        kv_strs.append("%s=%s" % (key, val_str))
 
     if prefix:
         substrs = [prefix] + kv_strs
@@ -157,12 +172,13 @@ def config_dict_to_str(args_dict, record_keys=tuple(), leave_out_falsy=True, pre
     return primary_delimiter.join(substrs)
 
 
-def preprocess_float_dict(d, format_str='.6g', as_str=False):
+def preprocess_float_dict(d, format_str=".6g", as_str=False):
     # preprocess the floating values in a dict so that json.dump(dict) looks nice
-    import tensorflow as tf
     import numpy as np
+    import tensorflow as tf
+
     res = {}
-    for (k, v) in d.items():
+    for k, v in d.items():
         if isinstance(v, (float, np.floating)) or tf.is_tensor(v):
             if as_str:
                 res[k] = format(float(v), format_str)
@@ -175,6 +191,7 @@ def preprocess_float_dict(d, format_str='.6g', as_str=False):
 
 def get_time_str():
     import datetime
+
     try:
         from configs import strftime_format
     except ImportError:
@@ -185,14 +202,15 @@ def get_time_str():
 
 
 def get_np_datasets(np_file, batchsize, append_channel_dim=False, get_validation_data=True):
-    assert np_file.endswith('.npy') or np_file.endswith('.npz')
+    assert np_file.endswith(".npy") or np_file.endswith(".npz")
+
+    import os
 
     import numpy as np
     import tensorflow as tf
-    import os
 
     def get_dataset(ar_path, repeat):
-        X = np.load(ar_path).astype('float32')
+        X = np.load(ar_path).astype("float32")
         if append_channel_dim:  # convolutional models often require data to have a channel dim
             X = X[..., np.newaxis]
         dataset = tf.data.Dataset.from_tensor_slices(X)
@@ -208,15 +226,15 @@ def get_np_datasets(np_file, batchsize, append_channel_dim=False, get_validation
         return train_dataset
     else:
         validation_dataset = None
-        if 'train' in np_file:  # dataset named as such comes with a validation set
+        if "train" in np_file:  # dataset named as such comes with a validation set
             val_dataset = None
-            if os.path.isfile(np_file.replace('train', 'val')):
-                val_dataset = np_file.replace('train', 'val')
-            elif os.path.isfile(np_file.replace('train', 'test')):
-                val_dataset = np_file.replace('train', 'test')
+            if os.path.isfile(np_file.replace("train", "val")):
+                val_dataset = np_file.replace("train", "val")
+            elif os.path.isfile(np_file.replace("train", "test")):
+                val_dataset = np_file.replace("train", "test")
             if val_dataset:
                 validation_dataset = get_dataset(val_dataset, repeat=False)
-                print(f'Validating on {val_dataset}')
+                print(f"Validating on {val_dataset}")
 
         if validation_dataset is None:
             print(f"Couldn't find validation data for {np_file}; validating on a subset of train data")
@@ -237,7 +255,7 @@ def reshape_spatially_as(x, y):
     :return:  reshaped x
     """
     y_shape = tf.shape(y)
-    return x[:, :y_shape[1], :y_shape[2], :]
+    return x[:, : y_shape[1], : y_shape[2], :]
 
 
 def read_png(filename, channels=3):
@@ -285,7 +303,7 @@ def maybe_pad_img(x, factor: int):
     :return: x_padded, offset; x_padded is a potentially padded version of x whose height and width are divisible by
     div, and such that, x_padded[offset[0]: (offset[0] + x_size[0]), offset[1]:(offset[1] + x_size[1])] == x
     """
-    assert len(x.shape) == 3, 'must be a single RGB image'
+    assert len(x.shape) == 3, "must be a single RGB image"
     img_shape = tf.shape(x)[:2]
     factor = tf.constant([factor, factor], dtype=tf.int32)
     ratio = tf.math.ceil(img_shape / factor)  # say cel([768, 512] / [100, 100]) = [8, 6]
@@ -296,14 +314,14 @@ def maybe_pad_img(x, factor: int):
 
     # offset as in the top left corner of the crop; https://www.tensorflow.org/api_docs/python/tf/image/crop_to_bounding_box
     offset = tf.cast(tf.math.floor((padded_shape - img_shape) / 2), tf.int32)
-    paddings = np.zeros([3, 2], dtype='int32')
+    paddings = np.zeros([3, 2], dtype="int32")
     slack = padded_shape - img_shape  # e.g., [800, 600] - [768, 512] = [32, 88]
     # pad around center
     paddings[0:2, 0] = np.floor(slack / 2)  # e.g., [16, 44]
     paddings[0:2, 1] = slack - np.floor(slack / 2)
-    x_padded = tf.pad(x, paddings, 'reflect')
+    x_padded = tf.pad(x, paddings, "reflect")
 
-    assert tf.reduce_all(x_padded[offset[0]: (offset[0] + img_shape[0]), offset[1]:(offset[1] + img_shape[1])] == x)
+    assert tf.reduce_all(x_padded[offset[0] : (offset[0] + img_shape[0]), offset[1] : (offset[1] + img_shape[1])] == x)
     return x_padded, offset
 
 
@@ -322,12 +340,13 @@ def get_custom_dataset(split, file_glob, args):
     :param args:
     """
     import glob
+
     with tf.device("/cpu:0"):
         files = sorted(glob.glob(file_glob))
         if not files:
             raise RuntimeError(f"No images found with glob '{file_glob}'.")
         dataset = tf.data.Dataset.from_tensor_slices(files)
-        if split == 'eval':
+        if split == "eval":
             drop_remainder = False
         else:  # for train or validation
             dataset = dataset.shuffle(len(files), reshuffle_each_iteration=True)
@@ -344,20 +363,30 @@ def get_custom_dataset(split, file_glob, args):
         #    dataset = dataset.map(
         #        read_png, num_parallel_calls=args.preprocess_threads)
         # dataset = dataset.map(lambda x: crop_image(x, args.patchsize))
-        if not hasattr(args, 'patchsize'):
+        if not hasattr(args, "patchsize"):
             args.patchsize = None
-        if not hasattr(args, 'preprocess_threads'):
+        if not hasattr(args, "preprocess_threads"):
             args.preprocess_threads = 16
-        if '.npy' in file_glob:  # reading numpy arrays directly instead of from images
+        if ".npy" in file_glob:  # reading numpy arrays directly instead of from images
             dataset = dataset.map(  # https://stackoverflow.com/a/49459838
-                lambda file_name: tuple(tf.numpy_function(read_npy_file_helper, [file_name], [tf.float32, ])),
-                num_parallel_calls=args.preprocess_threads)
-            dataset = dataset.map(lambda x: process_image(x, args.patchsize),
-                                  num_parallel_calls=args.preprocess_threads)
+                lambda file_name: tuple(
+                    tf.numpy_function(
+                        read_npy_file_helper,
+                        [file_name],
+                        [
+                            tf.float32,
+                        ],
+                    )
+                ),
+                num_parallel_calls=args.preprocess_threads,
+            )
+            dataset = dataset.map(
+                lambda x: process_image(x, args.patchsize), num_parallel_calls=args.preprocess_threads
+            )
         else:
             dataset = dataset.map(
-                lambda x: process_image(read_png(x), args.patchsize),
-                num_parallel_calls=args.preprocess_threads)
+                lambda x: process_image(read_png(x), args.patchsize), num_parallel_calls=args.preprocess_threads
+            )
 
         dataset = dataset.batch(args.batchsize, drop_remainder=drop_remainder)
     return dataset
@@ -380,7 +409,7 @@ def softplus_inverse(x):
 softplus_inv_1 = softplus_inverse(1.0)
 
 
-def transform_scale_indexes(indexes, type='softplus'):
+def transform_scale_indexes(indexes, type="softplus"):
     """
     (Optionally) transform the nn output that is used as 'indexes' for building a tfc.LocationScaleIndexedEntropyModel.
     For the conditional entropy model implemented by tfc, the 'indexes' is ideally an integer in {0,1,...,num_scales-1}.
@@ -391,9 +420,9 @@ def transform_scale_indexes(indexes, type='softplus'):
     :param indexes:
     :return:
     """
-    if type == 'softplus':
+    if type == "softplus":
         return tf.nn.softplus(indexes + softplus_inv_1)
-    elif type == 'exp':
+    elif type == "exp":
         return tf.exp(indexes)
     else:
         return indexes  # this is what's used in tfc examples -- raw nn output is used as 'indexes' for indexed entropy model
@@ -426,7 +455,7 @@ def diag_normal_from_features(features, name=None, split_axis=-1, scale_lb=None,
     return tfd.Normal(loc=mu, scale=sigma, name=name)
 
 
-def diag_gaussian_rdf(variances, num_points=50, distortion='mse'):
+def diag_gaussian_rdf(variances, num_points=50, distortion="mse"):
     """
     Compute rate-distortion function of a Gaussian source with a diagonal
     covariance mat, under either squared or mean squared distortion.
@@ -441,7 +470,7 @@ def diag_gaussian_rdf(variances, num_points=50, distortion='mse'):
     :return:
     """
     distortion = distortion.lower()
-    assert distortion in ('se', 'mse')
+    assert distortion in ("se", "mse")
     max_var = np.max(variances)
     n = len(variances)
     lambs = np.linspace(0, max_var, num_points)
@@ -453,7 +482,7 @@ def diag_gaussian_rdf(variances, num_points=50, distortion='mse'):
     Rs = 0.5 * np.sum(np.log(vars_rep) - np.log(D_mat), axis=-1)
     Ds = np.sum(D_mat, axis=-1)
 
-    if distortion == 'mse':
+    if distortion == "mse":
         Ds /= n
     return (Ds, Rs)
 
@@ -478,6 +507,7 @@ def get_xi_samples(E_log_us, log_Ck_samples):
     M = int(len(E_log_us) / 2)
     assert M * 2 == len(E_log_us)
     from scipy.special import logsumexp
+
     log_alpha = logsumexp(log_Ck_samples[:M]) - np.log(float(M))
     xi_samples = -E_log_us[M:] - np.exp(log_Ck_samples[M:] - log_alpha) - log_alpha + 1
     return xi_samples
@@ -485,10 +515,12 @@ def get_xi_samples(E_log_us, log_Ck_samples):
 
 def parse_lamb(path, strip_pardir=False):
     # search for a numeric string (possibly in scientific notation) for the lamb value
-    import os, re
+    import os
+    import re
+
     if strip_pardir:
         path = os.path.basename(path)
-    return re.search('lamb=(\d*\.?\d+(?:e[+-]?\d+)?)', path).group(1)
+    return re.search("lamb=(\d*\.?\d+(?:e[+-]?\d+)?)", path).group(1)
 
 
 def aggregate_lb_results(res_files):
@@ -506,8 +538,8 @@ def aggregate_lb_results(res_files):
         log_Ck_samples = []
         for file in npz_files:  # these are all the same eval runs but with different seeds
             res = np.load(file)
-            E_log_us.append(res['E_log_us'])
-            log_Ck_samples.append(res['log_Ck_samples'])
+            E_log_us.append(res["E_log_us"])
+            log_Ck_samples.append(res["log_Ck_samples"])
         E_log_us = np.concatenate(E_log_us)
         log_Ck_samples = np.concatenate(log_Ck_samples)
         xi_samples_for_lamb = get_xi_samples(E_log_us, log_Ck_samples)

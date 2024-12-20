@@ -2,7 +2,6 @@ from typing import List
 
 import numpy as np
 
-
 try:
     import tinyBenchmarks as tb
 except ModuleNotFoundError:

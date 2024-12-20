@@ -2,12 +2,10 @@ import logging
 import time
 
 import requests
-from requests.exceptions import RequestException
-from tqdm import tqdm
-
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
-
+from requests.exceptions import RequestException
+from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 
@@ -43,9 +41,7 @@ class GGUFLM(LM):
         self.temperature = 0.0
         self.max_length = max_length
 
-    def gguf_completion(
-        self, context, continuation=None, stop=None, retries=3, delay=5, **kwargs
-    ):
+    def gguf_completion(self, context, continuation=None, stop=None, retries=3, delay=5, **kwargs):
         for _ in range(retries):
             try:
                 prompt = context
@@ -59,45 +55,31 @@ class GGUFLM(LM):
                     request.update({"prompt": prompt, "max_tokens": 1, "echo": True})
                 if stop is not None:
                     request["stop"] = stop
-                response = requests.post(
-                    f"{self.base_url}/v1/completions", json=request
-                )
+                response = requests.post(f"{self.base_url}/v1/completions", json=request)
                 response.raise_for_status()
                 return response.json()
             except RequestException as e:
                 logger.error(f"RequestException: {e}")
                 time.sleep(delay)  # wait before retrying
         else:
-            raise RuntimeError(
-                f"Failed to get a valid response after {retries} retries."
-            )
+            raise RuntimeError(f"Failed to get a valid response after {retries} retries.")
 
     def loglikelihood(self, requests, disable_tqdm: bool = False):
         if not requests:
             return []
         res = []
-        for context, continuation in tqdm(
-            [req.args for req in requests], disable=disable_tqdm
-        ):
+        for context, continuation in tqdm([req.args for req in requests], disable=disable_tqdm):
             response = self.gguf_completion(context=context, continuation=continuation)
             if response and "choices" in response and response["choices"]:
                 choice = response["choices"][0]
                 logprobs = choice.get("logprobs")
-                if (
-                    logprobs
-                    and "token_logprobs" in logprobs
-                    and logprobs["token_logprobs"]
-                ):
+                if logprobs and "token_logprobs" in logprobs and logprobs["token_logprobs"]:
                     logprob, is_greedy = get_result(logprobs, len(context))
                     res.append((logprob, is_greedy))
                 else:
-                    logger.warning(
-                        "Invalid logprobs data. Expected 'logprobs' to contain 'token_logprobs' list."
-                    )
+                    logger.warning("Invalid logprobs data. Expected 'logprobs' to contain 'token_logprobs' list.")
             else:
-                logger.error(
-                    f"Invalid response for loglikelihood. Response: {response}"
-                )
+                logger.error(f"Invalid response for loglikelihood. Response: {response}")
                 assert False
         return res
 
@@ -117,9 +99,7 @@ class GGUFLM(LM):
                     generated_text = choice["text"].strip()
                     res.append(generated_text)
                 else:
-                    logger.error(
-                        f"Invalid response for greedy_until. Response: {response}"
-                    )
+                    logger.error(f"Invalid response for greedy_until. Response: {response}")
                     res.append(None)  # Add default value in case of error
             else:
                 logger.error(f"Invalid response for greedy_until. Response: {response}")
@@ -127,6 +107,4 @@ class GGUFLM(LM):
         return res
 
     def loglikelihood_rolling(self, requests, disable_tqdm: bool = False):
-        raise NotImplementedError(
-            "loglikelihood_rolling not yet supported for GGUF models"
-        )
+        raise NotImplementedError("loglikelihood_rolling not yet supported for GGUF models")

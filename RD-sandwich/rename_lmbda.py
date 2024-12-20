@@ -11,14 +11,14 @@ pattern = re.compile(r"lmbda=([0-9]+)")
 for root, dirs, files in os.walk(target_dir, topdown=False):  # 하위 디렉토리부터 처리
     for dir_name in dirs:
         old_path = os.path.join(root, dir_name)
-        
+
         # lmbda=<integer> 형식을 찾음
         match = pattern.search(dir_name)
         if match:
             # 새로운 디렉토리 이름 생성
             new_dir_name = pattern.sub(r"lmbda=\1.0", dir_name)
             new_path = os.path.join(root, new_dir_name)
-            
+
             # 이름 변경
             try:
                 os.rename(old_path, new_path)

@@ -1,7 +1,6 @@
 import datasets
 import numpy as np
 
-
 # fmt: off
 LETTER_INDICES_AR = ["أ", "ب", "ج", "د", "هـ", "و", "ز", "ح", "ط", "ي", "ك", "ل", "م", "ن", "س", "ع", "ف", "ص", "ق", "ر", "ش", "ت", "ث", "خ", "ذ", "ض", "ظ", "غ"]
 # fmt: on
@@ -17,9 +16,7 @@ def process_docs(dataset: datasets.Dataset):
         topic = doc["subject"]
         question = doc["question"]
         choices = [doc["A"], doc["B"], doc["C"], doc["D"]]
-        choices_formatted = [
-            f" {LETTER_INDICES_AR[i]}) {choice}\n" for i, choice in enumerate(choices)
-        ]
+        choices_formatted = [f" {LETTER_INDICES_AR[i]}) {choice}\n" for i, choice in enumerate(choices)]
         answer = doc["answer"]
         answer_index = LETTER_INDICES.index(answer)
 

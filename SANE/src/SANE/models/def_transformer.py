@@ -55,23 +55,17 @@ class SelfAttention(nn.Module):
         # flash attention make GPU go brrrrr but support is only in PyTorch >= 2.0
         self.flash = hasattr(torch.nn.functional, "scaled_dot_product_attention")
         if not self.flash:
-            print(
-                "WARNING: using slow attention. Flash Attention requires PyTorch >= 2.0"
-            )
+            print("WARNING: using slow attention. Flash Attention requires PyTorch >= 2.0")
             # causal mask to ensure that attention is only applied to the left in the input sequence
             # generates a lower triangular matrices. Used to maks out 'future' information from attention matrix
             if self.causal:
                 self.register_buffer(
                     "bias",
-                    torch.tril(torch.ones(block_size, block_size)).view(
-                        1, 1, block_size, block_size
-                    ),
+                    torch.tril(torch.ones(block_size, block_size)).view(1, 1, block_size, block_size),
                 )
         else:
             # all three methods should be enables anyways, but let's make it explicit here
-            torch.backends.cuda.sdp_kernel(
-                enable_flash=True, enable_math=True, enable_mem_efficient=True
-            )
+            torch.backends.cuda.sdp_kernel(enable_flash=True, enable_math=True, enable_mem_efficient=True)
 
     def forward(self, x, mask=None):
         (
@@ -86,12 +80,8 @@ class SelfAttention(nn.Module):
         k = k.view(B, T, self.n_head, C // self.n_head).transpose(
             1, 2
         )  # (B, nh, T, hs) # (nH = self.n_head), hs = C//nh (token_embedding_dim per head)
-        q = q.view(B, T, self.n_head, C // self.n_head).transpose(
-            1, 2
-        )  # (B, nh, T, hs)
-        v = v.view(B, T, self.n_head, C // self.n_head).transpose(
-            1, 2
-        )  # (B, nh, T, hs)
+        q = q.view(B, T, self.n_head, C // self.n_head).transpose(1, 2)  # (B, nh, T, hs)
+        v = v.view(B, T, self.n_head, C // self.n_head).transpose(1, 2)  # (B, nh, T, hs)
 
         # causal self-attention; Self-attend: (B, nh, T, hs) x (B, nh, hs, T) -> (B, nh, T, T)
         if self.flash:
@@ -114,9 +104,7 @@ class SelfAttention(nn.Module):
             att = F.softmax(att, dim=-1)
             att = self.attn_dropout(att)
             y = att @ v  # (B, nh, T, T) x (B, nh, T, hs) -> (B, nh, T, hs)
-        y = (
-            y.transpose(1, 2).contiguous().view(B, T, C)
-        )  # re-assemble all head outputs side by side
+        y = y.transpose(1, 2).contiguous().view(B, T, C)  # re-assemble all head outputs side by side
 
         # output projection
         y = self.resid_dropout(self.c_proj(y))
@@ -175,10 +163,7 @@ class TransformerEncoder(nn.Module):
         super().__init__()
         self.n_layer = n_layer
         self.transformer = nn.ModuleList(
-            [
-                Block(d_model, n_head, dropout, bias, causal, block_size)
-                for _ in range(n_layer)
-            ]
+            [Block(d_model, n_head, dropout, bias, causal, block_size) for _ in range(n_layer)]
         )
 
     def forward(self, x, mask=None):

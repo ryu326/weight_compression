@@ -10,7 +10,6 @@ from lm_eval.api.group import ConfigurableGroup, GroupConfig
 from lm_eval.api.task import ConfigurableTask, Task
 from lm_eval.evaluator_utils import get_subtask_list
 
-
 GROUP_ONLY_KEYS = list(GroupConfig().to_dict().keys())
 
 
@@ -31,24 +30,14 @@ class TaskManager:
         self.logger = utils.eval_logger
         self.logger.setLevel(getattr(logging, f"{verbosity}"))
 
-        self._task_index = self.initialize_tasks(
-            include_path=include_path, include_defaults=include_defaults
-        )
+        self._task_index = self.initialize_tasks(include_path=include_path, include_defaults=include_defaults)
         self._all_tasks = sorted(list(self._task_index.keys()))
 
-        self._all_groups = sorted(
-            [x for x in self._all_tasks if self._task_index[x]["type"] == "group"]
-        )
+        self._all_groups = sorted([x for x in self._all_tasks if self._task_index[x]["type"] == "group"])
         self._all_subtasks = sorted(
-            [
-                x
-                for x in self._all_tasks
-                if self._task_index[x]["type"] in ["task", "python_task"]
-            ]
+            [x for x in self._all_tasks if self._task_index[x]["type"] in ["task", "python_task"]]
         )
-        self._all_tags = sorted(
-            [x for x in self._all_tasks if self._task_index[x]["type"] == "tag"]
-        )
+        self._all_tags = sorted([x for x in self._all_tasks if self._task_index[x]["type"] == "tag"])
 
         self.task_group_map = collections.defaultdict(list)
 
@@ -103,9 +92,7 @@ class TaskManager:
     def task_index(self):
         return self._task_index
 
-    def list_all_tasks(
-        self, list_groups=True, list_tags=True, list_subtasks=True
-    ) -> str:
+    def list_all_tasks(self, list_groups=True, list_tags=True, list_subtasks=True) -> str:
         from pytablewriter import MarkdownTableWriter
 
         def sanitize_path(path):
@@ -145,9 +132,7 @@ class TaskManager:
                 config = utils.load_yaml_config(path, mode="simple")
                 if "output_type" in config:
                     output_type = config["output_type"]
-                elif (
-                    "include" in config
-                ):  # if no output type, check if there is an include with an output type
+                elif "include" in config:  # if no output type, check if there is an include with an output type
                     include_path = path.split("/")[:-1] + config["include"]
                     include_config = utils.load_yaml_config(include_path, mode="simple")
                     if "output_type" in include_config:
@@ -188,16 +173,12 @@ class TaskManager:
         return False
 
     def _name_is_group(self, name) -> bool:
-        if self._name_is_registered(name) and (
-            self.task_index[name]["type"] == "group"
-        ):
+        if self._name_is_registered(name) and (self.task_index[name]["type"] == "group"):
             return True
         return False
 
     def _name_is_python_task(self, name):
-        if self._name_is_registered(name) and (
-            self.task_index[name]["type"] == "python_task"
-        ):
+        if self._name_is_registered(name) and (self.task_index[name]["type"] == "python_task"):
             return True
         return False
 
@@ -246,11 +227,7 @@ class TaskManager:
 
     def _class_has_config_in_constructor(self, cls):
         constructor = getattr(cls, "__init__", None)
-        return (
-            "config" in inspect.signature(constructor).parameters
-            if constructor
-            else False
-        )
+        return "config" in inspect.signature(constructor).parameters if constructor else False
 
     def _load_individual_task_or_group(
         self,
@@ -294,9 +271,7 @@ class TaskManager:
         def _process_group_config(config, update_config=None):
             if update_config is not None:
                 config = {**config, **update_config}
-            _update_config = {
-                k: v for k, v in config.items() if k not in GROUP_ONLY_KEYS
-            }
+            _update_config = {k: v for k, v in config.items() if k not in GROUP_ONLY_KEYS}
             if not bool(_update_config):
                 _update_config = None
 
@@ -307,9 +282,7 @@ class TaskManager:
             if update_config is not None:
                 # Process name_or_config as a dict instead
                 name_or_config = {"task": name_or_config, **update_config}
-            elif self._name_is_task(name_or_config) or self._name_is_python_task(
-                name_or_config
-            ):
+            elif self._name_is_task(name_or_config) or self._name_is_python_task(name_or_config):
                 task_config = self._get_config(name_or_config)
                 return _load_task(task_config, task=name_or_config)
             else:
@@ -317,24 +290,16 @@ class TaskManager:
                 if subtask_list == -1:
                     group_config = self._get_config(name_or_config)
                     group_config, update_config = _process_group_config(group_config)
-                    group_name, subtask_list = _get_group_and_subtask_from_config(
-                        group_config
-                    )
+                    group_name, subtask_list = _get_group_and_subtask_from_config(group_config)
                 else:
                     if self._name_is_tag(name_or_config):
                         fn = partial(
                             self._load_individual_task_or_group,
-                            update_config=name_or_config
-                            if isinstance(name_or_config, dict)
-                            else None,
+                            update_config=name_or_config if isinstance(name_or_config, dict) else None,
                         )
-                        return dict(
-                            collections.ChainMap(*map(fn, reversed(subtask_list)))
-                        )
+                        return dict(collections.ChainMap(*map(fn, reversed(subtask_list))))
                     else:
-                        group_name = ConfigurableGroup(
-                            config={"group": name_or_config, "task": subtask_list}
-                        )
+                        group_name = ConfigurableGroup(config={"group": name_or_config, "task": subtask_list})
 
         if isinstance(name_or_config, dict):
             if self._config_is_task(name_or_config):
@@ -345,12 +310,8 @@ class TaskManager:
                 if self._name_is_group(name):
                     group_config = self._get_config(name)
 
-                    group_config, update_config = _process_group_config(
-                        group_config, name_or_config
-                    )
-                    group_name, subtask_list = _get_group_and_subtask_from_config(
-                        group_config
-                    )
+                    group_config, update_config = _process_group_config(group_config, name_or_config)
+                    group_name, subtask_list = _get_group_and_subtask_from_config(group_config)
                 elif self._name_is_tag(name):
                     subtask_list = self._get_tasklist(name)
                     fn = partial(
@@ -385,18 +346,14 @@ class TaskManager:
                     return _load_task(task_config, task=name)
             else:
                 group_config, update_config = _process_group_config(name_or_config)
-                group_name, subtask_list = _get_group_and_subtask_from_config(
-                    group_config
-                )
+                group_name, subtask_list = _get_group_and_subtask_from_config(group_config)
 
         fn = partial(
             self._load_individual_task_or_group,
             parent_name=group_name,
             update_config=update_config,
         )
-        return {
-            group_name: dict(collections.ChainMap(*map(fn, reversed(subtask_list))))
-        }
+        return {group_name: dict(collections.ChainMap(*map(fn, reversed(subtask_list))))}
 
     def load_task_or_group(self, task_list: Optional[Union[str, list]] = None) -> dict:
         """Loads a dictionary of task objects from a list
@@ -410,9 +367,7 @@ class TaskManager:
         if isinstance(task_list, str):
             task_list = [task_list]
 
-        all_loaded_tasks = dict(
-            collections.ChainMap(*map(self._load_individual_task_or_group, task_list))
-        )
+        all_loaded_tasks = dict(collections.ChainMap(*map(self._load_individual_task_or_group, task_list)))
         return all_loaded_tasks
 
     def load_config(self, config: Dict):
@@ -484,9 +439,7 @@ class TaskManager:
                             "type": "python_task",
                             "yaml_path": yaml_path,
                         }
-                        _populate_tags_and_groups(
-                            config, task, tasks_and_groups, print_info
-                        )
+                        _populate_tags_and_groups(config, task, tasks_and_groups, print_info)
                     elif self._config_is_group(config):
                         # This is a group config
                         tasks_and_groups[config["group"]] = {
@@ -515,9 +468,7 @@ class TaskManager:
                             "type": "task",
                             "yaml_path": yaml_path,
                         }
-                        _populate_tags_and_groups(
-                            config, task, tasks_and_groups, print_info
-                        )
+                        _populate_tags_and_groups(config, task, tasks_and_groups, print_info)
                     else:
                         self.logger.debug(f"File {f} in {root} could not be loaded")
 
@@ -539,11 +490,7 @@ def get_task_name_from_object(task_object):
 
     # TODO: scrap this
     # this gives a mechanism for non-registered tasks to have a custom name anyways when reporting
-    return (
-        task_object.EVAL_HARNESS_NAME
-        if hasattr(task_object, "EVAL_HARNESS_NAME")
-        else type(task_object).__name__
-    )
+    return task_object.EVAL_HARNESS_NAME if hasattr(task_object, "EVAL_HARNESS_NAME") else type(task_object).__name__
 
 
 def _check_duplicates(task_dict: dict) -> List[str]:
@@ -556,15 +503,11 @@ def _check_duplicates(task_dict: dict) -> List[str]:
     for key, value in task_dict.items():
         subtask_names.extend(value)
 
-    duplicate_tasks = {
-        task_name for task_name in subtask_names if subtask_names.count(task_name) > 1
-    }
+    duplicate_tasks = {task_name for task_name in subtask_names if subtask_names.count(task_name) > 1}
 
     # locate the potentially problematic groups that seem to 'compete' for constituent subtasks
     competing_groups = [
-        group
-        for group in task_dict.keys()
-        if len(set(task_dict[group]).intersection(duplicate_tasks)) > 0
+        group for group in task_dict.keys() if len(set(task_dict[group]).intersection(duplicate_tasks)) > 0
     ]
 
     if len(duplicate_tasks) > 0:
@@ -603,21 +546,15 @@ def get_task_dict(
                 "Expected all list items to be of types 'str', 'dict', or 'Task', but at least one entry did not match."
             )
     else:
-        raise TypeError(
-            f"Expected a 'str' or 'list' but received {type(task_name_list)}."
-        )
+        raise TypeError(f"Expected a 'str' or 'list' but received {type(task_name_list)}.")
 
     string_task_name_list = [task for task in task_name_list if isinstance(task, str)]
-    others_task_name_list = [
-        task for task in task_name_list if not isinstance(task, str)
-    ]
+    others_task_name_list = [task for task in task_name_list if not isinstance(task, str)]
     if len(string_task_name_list) > 0:
         if task_manager is None:
             task_manager = TaskManager()
 
-        task_name_from_string_dict = task_manager.load_task_or_group(
-            string_task_name_list
-        )
+        task_name_from_string_dict = task_manager.load_task_or_group(string_task_name_list)
 
     for task_element in others_task_name_list:
         if isinstance(task_element, dict):
@@ -632,9 +569,7 @@ def get_task_dict(
                 get_task_name_from_object(task_element): task_element,
             }
 
-    if not set(task_name_from_string_dict.keys()).isdisjoint(
-        set(task_name_from_object_dict.keys())
-    ):
+    if not set(task_name_from_string_dict.keys()).isdisjoint(set(task_name_from_object_dict.keys())):
         raise ValueError
 
     final_task_dict = {

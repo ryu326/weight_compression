@@ -1,14 +1,9 @@
 import os
 from collections import defaultdict
 
-from lm_eval.decontamination.janitor import (
-    Janitor,
-    form_ngrams,
-    split_indices,
-    word_ngrams,
-    word_ngrams_indices,
-)
-
+from lm_eval.decontamination.janitor import (Janitor, form_ngrams,
+                                             split_indices, word_ngrams,
+                                             word_ngrams_indices)
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 TEST_SEQUENCE = (
@@ -162,9 +157,7 @@ def test_janitor1():
         "This is a @line #containing "
     )
 
-    janitor = Janitor(
-        ngram_n=1, window_to_remove=200, too_dirty_cutoff=10, minimum_slice_length=200
-    )
+    janitor = Janitor(ngram_n=1, window_to_remove=200, too_dirty_cutoff=10, minimum_slice_length=200)
     result = janitor.clean_python(sequence)
     result = "".join(result)
     assert result == sequence
@@ -199,9 +192,7 @@ def test_janitor2():
 
     filth = "filth"
 
-    janitor = Janitor(
-        ngram_n=1, window_to_remove=200, too_dirty_cutoff=10, minimum_slice_length=200
-    )
+    janitor = Janitor(ngram_n=1, window_to_remove=200, too_dirty_cutoff=10, minimum_slice_length=200)
     result = janitor.clean_python(sequence)
     result = "".join(result)
     assert result == sequence
@@ -233,9 +224,7 @@ def test_janitor3():
         "This is a @line #containing a certain number of characters, 76 to be exact. "
     )
 
-    janitor = Janitor(
-        ngram_n=6, window_to_remove=200, too_dirty_cutoff=10, minimum_slice_length=200
-    )
+    janitor = Janitor(ngram_n=6, window_to_remove=200, too_dirty_cutoff=10, minimum_slice_length=200)
     result = janitor.clean_python(sequence)
     result = "".join(result)
     assert result == sequence
@@ -275,9 +264,7 @@ def test_janitor4():
         "This is a @line #containing a certain number of characters, 76 to be exact. "
     )
 
-    janitor = Janitor(
-        ngram_n=6, window_to_remove=200, too_dirty_cutoff=10, minimum_slice_length=200
-    )
+    janitor = Janitor(ngram_n=6, window_to_remove=200, too_dirty_cutoff=10, minimum_slice_length=200)
     result = janitor.clean_python(sequence)
     result = "".join(result)
     assert result == sequence
@@ -318,9 +305,7 @@ def test_janitor5():
 
     filths = [JANITOR_FILTH1, JANITOR_FILTH2]
 
-    janitor = Janitor(
-        ngram_n=6, window_to_remove=200, too_dirty_cutoff=10, minimum_slice_length=200
-    )
+    janitor = Janitor(ngram_n=6, window_to_remove=200, too_dirty_cutoff=10, minimum_slice_length=200)
     result = janitor.clean_python(sequence)
     result = "".join(result)
     assert result == sequence
@@ -370,9 +355,7 @@ def test_janitor6():
 
     filths = [JANITOR_FILTH1, JANITOR_FILTH2]
 
-    janitor = Janitor(
-        ngram_n=6, window_to_remove=200, too_dirty_cutoff=10, minimum_slice_length=200
-    )
+    janitor = Janitor(ngram_n=6, window_to_remove=200, too_dirty_cutoff=10, minimum_slice_length=200)
     result = janitor.clean_python(sequence)
     result = "".join(result)
     assert result == sequence
@@ -425,9 +408,7 @@ def test_janitor7():
 
     expected_result = ""
 
-    janitor = Janitor(
-        ngram_n=6, window_to_remove=200, too_dirty_cutoff=10, minimum_slice_length=200
-    )
+    janitor = Janitor(ngram_n=6, window_to_remove=200, too_dirty_cutoff=10, minimum_slice_length=200)
     result = janitor.clean_python(sequence)
     result = "".join(result)
     assert result == sequence

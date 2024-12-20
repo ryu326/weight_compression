@@ -1,29 +1,21 @@
 # Adapted from https://github.com/NVIDIA/apex/blob/master/setup.py
+import os
+import subprocess
 import sys
 import warnings
-import os
-from packaging.version import parse, Version
-
-from setuptools import setup, find_packages
-import subprocess
 
 import torch
-from torch.utils.cpp_extension import (
-    BuildExtension,
-    CppExtension,
-    CUDAExtension,
-    CUDA_HOME,
-)
-
+from packaging.version import Version, parse
+from setuptools import find_packages, setup
+from torch.utils.cpp_extension import (CUDA_HOME, BuildExtension, CppExtension,
+                                       CUDAExtension)
 
 # ninja build does not work unless include_dirs are abs path
 this_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 def get_cuda_bare_metal_version(cuda_dir):
-    raw_output = subprocess.check_output(
-        [cuda_dir + "/bin/nvcc", "-V"], universal_newlines=True
-    )
+    raw_output = subprocess.check_output([cuda_dir + "/bin/nvcc", "-V"], universal_newlines=True)
     output = raw_output.split()
     release_idx = output.index("release") + 1
     bare_metal_version = parse(output[release_idx].split(",")[0])

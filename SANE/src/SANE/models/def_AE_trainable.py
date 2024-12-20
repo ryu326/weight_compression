@@ -101,12 +101,8 @@ class AE_trainable(Trainable):
 
         # IF RESTORE FROM PREVIOUS CHECKPOINT: LOAD PREVIOUS CONFIG
         if config.get("model::checkpoint_path", None):
-            config_path = config.get("model::checkpoint_path", None).joinpath(
-                "..", "params.json"
-            )
-            logging.info(
-                f"restore model from previous checkpoint. load config from {config_path}"
-            )
+            config_path = config.get("model::checkpoint_path", None).joinpath("..", "params.json")
+            logging.info(f"restore model from previous checkpoint. load config from {config_path}")
             config_old = json.load(config_path.open("r"))
             # transfer all 'model' keys to
             for key in config_old.keys():
@@ -125,9 +121,7 @@ class AE_trainable(Trainable):
 
         # load checkpoint
         if config.get("model::checkpoint_path", None):
-            logging.info(
-                f'restore model state from {config.get("model::checkpoint_path",None)}'
-            )
+            logging.info(f'restore model state from {config.get("model::checkpoint_path",None)}')
             # load all state dicts
             self.load_checkpoint(config.get("model::checkpoint_path", None))
             # reset optimizer
@@ -252,9 +246,7 @@ class AE_trainable(Trainable):
             for idx, clbk in enumerate(self.callbacks):
                 logging.info(f"callback {idx}")
                 # iterations are updated after step, so 1 has to be added.
-                perf_callback = clbk.on_validation_epoch_end(
-                    self.module, self._iteration + 1
-                )
+                perf_callback = clbk.on_validation_epoch_end(self.module, self._iteration + 1)
                 # collect metrics
                 for key in perf_callback.keys():
                     result_dict[key] = perf_callback[key]
@@ -293,9 +285,7 @@ class AE_trainable(Trainable):
             # MULTIWINDOW
             trafo_dataset = None
             if self.config.get("trainset::multi_windows", None):
-                trafo_dataset = MultiWindowCutter(
-                    windowsize=windowsize, k=self.config.get("trainset::multi_windows")
-                )
+                trafo_dataset = MultiWindowCutter(windowsize=windowsize, k=self.config.get("trainset::multi_windows"))
             # init dataloaders
             logging.info("Load Data")
             # load dataset from file
@@ -307,9 +297,7 @@ class AE_trainable(Trainable):
 
             # transfer trafo_dataset to datasets
             if trafo_dataset is not None:
-                trainset.transforms = (
-                    trafo_dataset  # this applies multi-windowcutter, etc.
-                )
+                trainset.transforms = trafo_dataset  # this applies multi-windowcutter, etc.
                 testset.transforms = trafo_dataset
                 if valset is not None:
                     valset.transforms = trafo_dataset
@@ -318,14 +306,9 @@ class AE_trainable(Trainable):
             logging.info("set up dataloaders")
             # correct dataloader batchsize with # of multi_window samples out of single __getitem__ call
             assert (
-                self.config["trainset::batchsize"]
-                % self.config.get("trainset::multi_windows", 1)
-                == 0
+                self.config["trainset::batchsize"] % self.config.get("trainset::multi_windows", 1) == 0
             ), f'batchsize {self.config["trainset::batchsize"]} needs to be divisible by multi_windows {self.config["trainset::multi_windows"]}'
-            bs_corr = int(
-                self.config["trainset::batchsize"]
-                / self.config.get("trainset::multi_windows", 1)
-            )
+            bs_corr = int(self.config["trainset::batchsize"] / self.config.get("trainset::multi_windows", 1))
             logging.info(f"corrected batchsize to {bs_corr}")
             #
             trainloader = DataLoader(
@@ -361,9 +344,7 @@ class AE_trainable(Trainable):
 
             return trainset, testset, valset, trainloader, testloader, valloader
         else:
-            raise NotImplementedError(
-                f'could not load dataset from {self.config["dataset::dump"]}'
-            )
+            raise NotImplementedError(f'could not load dataset from {self.config["dataset::dump"]}')
 
     def load_downstreamtasks(self):
         """
@@ -375,17 +356,11 @@ class AE_trainable(Trainable):
             # conventional dataset
             if "dataset.pt" in str(downstream_dataset_path):
                 # load conventional pickeld dataset
-                pth_tmp = str(downstream_dataset_path).replace(
-                    "dataset.pt", "dataset_train.pt"
-                )
+                pth_tmp = str(downstream_dataset_path).replace("dataset.pt", "dataset_train.pt")
                 self.dataset_train_dwst = torch.load(pth_tmp)
-                pth_tmp = str(downstream_dataset_path).replace(
-                    "dataset.pt", "dataset_test.pt"
-                )
+                pth_tmp = str(downstream_dataset_path).replace("dataset.pt", "dataset_test.pt")
                 self.dataset_test_dwst = torch.load(pth_tmp)
-                pth_tmp = str(downstream_dataset_path).replace(
-                    "dataset.pt", "dataset_val.pt"
-                )
+                pth_tmp = str(downstream_dataset_path).replace("dataset.pt", "dataset_val.pt")
                 self.dataset_val_dwst = torch.load(pth_tmp)
 
                 # instanciate downstreamtask module
@@ -395,13 +370,8 @@ class AE_trainable(Trainable):
                     )
                     self.dstk = DownstreamTaskLearner()
 
-                    dataset_info_path = str(downstream_dataset_path).replace(
-                        "dataset.pt", "dataset_info_test.json"
-                    )
-        elif (
-            self.config.get("downstreamtask::dataset", "use_ssl_dataset")
-            == "use_ssl_dataset"
-        ):
+                    dataset_info_path = str(downstream_dataset_path).replace("dataset.pt", "dataset_info_test.json")
+        elif self.config.get("downstreamtask::dataset", "use_ssl_dataset") == "use_ssl_dataset":
             # fallback to training dataset for downstream tasks
             if "dataset.pt" in str(self.config["dataset::dump"]):
                 if self.trainset.properties is not None:

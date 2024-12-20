@@ -19,8 +19,6 @@ def doc_to_text(doc):
     for i, choice in enumerate(ast.literal_eval(doc["choices"])):
         choices += f"{i+1} - {choice}\n"
 
-    text = DOC_TO_TEXT.format(
-        narrative=doc["narrative"], question=doc["question"], choices=choices
-    )
+    text = DOC_TO_TEXT.format(narrative=doc["narrative"], question=doc["question"], choices=choices)
 
     return text

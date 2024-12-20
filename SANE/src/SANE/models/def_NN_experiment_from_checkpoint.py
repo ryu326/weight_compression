@@ -57,9 +57,7 @@ class NN_tune_trainable_from_checkpoint(Trainable):
                 train_data, train_labels = train_data.cuda(), train_labels.cuda()
                 test_data, test_labels = test_data.cuda(), test_labels.cuda()
             else:
-                logging.warning(
-                    "### WARNING ### : using tensor dataloader without cuda. probably slow"
-                )
+                logging.warning("### WARNING ### : using tensor dataloader without cuda. probably slow")
             # create new tensor datasets
             self.trainset = torch.utils.data.TensorDataset(train_data, train_labels)
             self.testset = torch.utils.data.TensorDataset(test_data, test_labels)
@@ -74,13 +72,9 @@ class NN_tune_trainable_from_checkpoint(Trainable):
                 shuffle=True,
                 # num_workers=self.config.get("testloader::workers", 2),
             )
-            self.testloader = FastTensorDataLoader(
-                dataset=self.testset, batch_size=len(self.testset), shuffle=False
-            )
+            self.testloader = FastTensorDataLoader(dataset=self.testset, batch_size=len(self.testset), shuffle=False)
             if self.valset is not None:
-                self.valloader = FastTensorDataLoader(
-                    dataset=self.valset, batch_size=len(self.valset), shuffle=False
-                )
+                self.valloader = FastTensorDataLoader(dataset=self.valset, batch_size=len(self.valset), shuffle=False)
 
         else:
             self.trainloader = torch.utils.data.DataLoader(
@@ -105,9 +99,7 @@ class NN_tune_trainable_from_checkpoint(Trainable):
         config["scheduler::steps_per_epoch"] = len(self.trainloader)
 
         # init model
-        self.NN = NNmodule(
-            config=self.config, cuda=self.cuda, seed=self.seed, verbosity=0
-        )
+        self.NN = NNmodule(config=self.config, cuda=self.cuda, seed=self.seed, verbosity=0)
         # load checkpoint
         #
         checkpoint_master_path = config.get("training::init_checkpoint_path", None)
@@ -115,16 +107,10 @@ class NN_tune_trainable_from_checkpoint(Trainable):
         sample_epoch = config.get("training::sample_epoch", None)
         #
         if sample_number is not None:
-            fname = str(
-                checkpoint_master_path.joinpath(f"checkpoint_{sample_number}.pt")
-            )
+            fname = str(checkpoint_master_path.joinpath(f"checkpoint_{sample_number}.pt"))
             checkpoint = torch.load(fname, map_location="cpu")
         elif sample_epoch is not None:
-            fname = str(
-                checkpoint_master_path.joinpath(
-                    f"checkpoint_{sample_epoch:06d}/checkpoints"
-                )
-            )
+            fname = str(checkpoint_master_path.joinpath(f"checkpoint_{sample_epoch:06d}/checkpoints"))
         else:
             raise RuntimeError("couldn't find valid path to checkpoints.")
         #
@@ -189,9 +175,7 @@ class NN_tune_trainable_from_checkpoint(Trainable):
             opt_dict = torch.load(path)
             self.NN.optimizer.load_state_dict(opt_dict)
         except:
-            logging.error(
-                f"Could not load optimizer state_dict. (not found at path {path})"
-            )
+            logging.error(f"Could not load optimizer state_dict. (not found at path {path})")
 
     def reset_config(self, new_config):
         success = False
@@ -204,9 +188,7 @@ class NN_tune_trainable_from_checkpoint(Trainable):
             self.cuda = self.config["cuda"]
 
             # init model
-            self.NN = NNmodule(
-                config=self.config, cuda=self.cuda, seed=self.seed, verbosity=0
-            )
+            self.NN = NNmodule(config=self.config, cuda=self.cuda, seed=self.seed, verbosity=0)
 
             # instanciate Tensordatasets
             self.trainloader = FastTensorDataLoader(
@@ -214,9 +196,7 @@ class NN_tune_trainable_from_checkpoint(Trainable):
                 batch_size=self.config["training::batchsize"],
                 shuffle=True,
             )
-            self.testloader = FastTensorDataLoader(
-                dataset=self.testset, batch_size=len(self.testset), shuffle=False
-            )
+            self.testloader = FastTensorDataLoader(dataset=self.testset, batch_size=len(self.testset), shuffle=False)
 
             # drop inital checkpoint
             self.save()

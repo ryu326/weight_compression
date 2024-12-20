@@ -1,6 +1,7 @@
-import os
-import torch
 import gc
+import os
+
+import torch
 
 
 def auto_parallel(args):
@@ -21,8 +22,6 @@ def auto_parallel(args):
         cuda_visible_devices = cuda_visible_devices.split(",")
     else:
         cuda_visible_devices = list(range(8))
-    os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(
-        [str(dev) for dev in cuda_visible_devices[:n_gpu]]
-    )
+    os.environ["CUDA_VISIBLE_DEVICES"] = ",".join([str(dev) for dev in cuda_visible_devices[:n_gpu]])
     print("CUDA_VISIBLE_DEVICES: ", os.environ["CUDA_VISIBLE_DEVICES"])
     return cuda_visible_devices

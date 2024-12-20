@@ -3,20 +3,18 @@ import logging
 from collections import defaultdict
 from typing import List, Optional, Union
 
+import lm_eval.models.utils
 import torch
 import torch.nn.functional as F
 import transformers
-from packaging import version
-from tqdm import tqdm
-from transformers import GenerationConfig
-from transformers.generation import StoppingCriteriaList
-
-import lm_eval.models.utils
 from lm_eval import utils
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import stop_sequences_criteria
-
+from packaging import version
+from tqdm import tqdm
+from transformers import GenerationConfig
+from transformers.generation import StoppingCriteriaList
 
 try:
     NEURON_AVAILABLE = True
@@ -70,19 +68,13 @@ class CustomNeuronModelForCausalLM(NeuronModelForCausalLM):
             `torch.Tensor`: A  `torch.FloatTensor`.
         """
         # The actual generation configuration is a combination of config and parameters
-        generation_config = copy.deepcopy(
-            self.generation_config if generation_config is None else generation_config
-        )
-        model_kwargs = generation_config.update(
-            **kwargs
-        )  # All unused kwargs must be model kwargs
+        generation_config = copy.deepcopy(self.generation_config if generation_config is None else generation_config)
+        model_kwargs = generation_config.update(**kwargs)  # All unused kwargs must be model kwargs
         # Check model kwargs are actually used by either prepare_inputs_for_generation or forward
         self._validate_model_kwargs(model_kwargs)
 
         # Instantiate a TokenSelector for the specified configuration
-        selector = TokenSelector.create(
-            input_ids, generation_config, self, self.max_length
-        )
+        selector = TokenSelector.create(input_ids, generation_config, self, self.max_length)
         selector.stopping_criteria.append(stopping_criteria)
         # Verify that the inputs are compatible with the model static input dimensions
         batch_size, sequence_length = input_ids.shape
@@ -97,13 +89,9 @@ class CustomNeuronModelForCausalLM(NeuronModelForCausalLM):
                 f"The specified batch_size ({batch_size}) exceeds the model static batch size ({self.batch_size})"
             )
         elif batch_size < self.batch_size and not self.continuous_batching:
-            logger.warning(
-                "Inputs will be padded to match the model static batch size. This will increase latency."
-            )
+            logger.warning("Inputs will be padded to match the model static batch size. This will increase latency.")
             padding_shape = [self.batch_size - batch_size, sequence_length]
-            padding = torch.full(
-                padding_shape, fill_value=self.config.eos_token_id, dtype=torch.int64
-            )
+            padding = torch.full(padding_shape, fill_value=self.config.eos_token_id, dtype=torch.int64)
             padded_input_ids = torch.cat([input_ids, padding])
             if attention_mask is not None:
                 padding = torch.zeros(padding_shape, dtype=torch.int64)
@@ -202,9 +190,7 @@ class NEURON_HF(TemplateLM):
             elif torch_dtype == torch.float32:
                 self.amp_dtype = "f32"
             else:
-                raise NotImplementedError(
-                    "Only float16/bfloat16/float32 are supported."
-                )
+                raise NotImplementedError("Only float16/bfloat16/float32 are supported.")
 
             print(f"{'='*20} \n exporting model to neuron")
             self.model = CustomNeuronModelForCausalLM.from_pretrained(
@@ -219,13 +205,9 @@ class NEURON_HF(TemplateLM):
                 sequence_length=max_length,
             )
             neuron_config = self.model.config.neuron
-            print(
-                f"SUCCESS: neuron model exported with config {neuron_config}. \n {'='*20}"
-            )
+            print(f"SUCCESS: neuron model exported with config {neuron_config}. \n {'='*20}")
         else:
-            print(
-                f"{'='*20} \n loading neuron model with config" f" {neuron_config}..."
-            )
+            print(f"{'='*20} \n loading neuron model with config" f" {neuron_config}...")
             self.model = CustomNeuronModelForCausalLM.from_pretrained(
                 pretrained,
                 revision=revision,
@@ -318,9 +300,7 @@ class NEURON_HF(TemplateLM):
         )
         if left_truncate_len:
             encoding["input_ids"] = encoding["input_ids"][:, -left_truncate_len:]
-            encoding["attention_mask"] = encoding["attention_mask"][
-                :, -left_truncate_len:
-            ]
+            encoding["attention_mask"] = encoding["attention_mask"][:, -left_truncate_len:]
         self.tokenizer.padding_side = old_padding_side
 
         return encoding["input_ids"], encoding["attention_mask"]
@@ -353,9 +333,7 @@ class NEURON_HF(TemplateLM):
             )
 
     def _select_cont_toks(self, logits, contlen=None, inplen=None):
-        assert (
-            contlen and inplen
-        ), "Must pass input len and cont. len to select scored logits for causal LM"
+        assert contlen and inplen, "Must pass input len and cont. len to select scored logits for causal LM"
         # discard right-padding.
         # also discard the input/context tokens. we'll only score continuations.
         logits = logits[inplen - contlen : inplen]
@@ -367,9 +345,7 @@ class NEURON_HF(TemplateLM):
 
         adaptive_batch_size = None
 
-        for (string,) in tqdm(
-            [req.args for req in requests], disable=(disable_tqdm or (self.rank != 0))
-        ):
+        for (string,) in tqdm([req.args for req in requests], disable=(disable_tqdm or (self.rank != 0))):
             rolling_token_windows = list(
                 map(
                     utils.make_disjoint_window,
@@ -389,9 +365,7 @@ class NEURON_HF(TemplateLM):
             if self.world_size > 1:
                 # We pad out the external document-level iterator so the inner iterator doesn't hang
                 mytensor = torch.tensor(len(rolling_token_windows), device=self.device)
-                gathered = (
-                    self.accelerator.gather(mytensor).cpu().detach().numpy().tolist()
-                )
+                gathered = self.accelerator.gather(mytensor).cpu().detach().numpy().tolist()
 
                 pad_amnt = max(gathered) - gathered[self.rank]
                 if pad_amnt > 0:
@@ -415,9 +389,7 @@ class NEURON_HF(TemplateLM):
             self.cache_hook.add_partial("loglikelihood_rolling", (string,), string_nll)
         return loglikelihoods
 
-    def _loglikelihood_tokens(
-        self, requests, disable_tqdm: bool = False, override_bs=None
-    ):
+    def _loglikelihood_tokens(self, requests, disable_tqdm: bool = False, override_bs=None):
         # TODO: implement some kind of efficient-request-middleware that lumps together requests with the same context
         res = []
 
@@ -479,11 +451,7 @@ class NEURON_HF(TemplateLM):
                 )
                 (inplen,) = inp.shape
 
-                padding_len_inp = (
-                    max(padding_len_inp, inplen)
-                    if padding_len_inp is not None
-                    else inplen
-                )
+                padding_len_inp = max(padding_len_inp, inplen) if padding_len_inp is not None else inplen
 
                 inps.append(inp)  # [1, inp_length]
                 cont_toks_list.append(continuation_enc)
@@ -500,13 +468,9 @@ class NEURON_HF(TemplateLM):
                 padding_len_inp, inps, padding_side="right"
             )  # [batch, padding_len_inp]
 
-            batched_masks = lm_eval.models.utils.pad_and_concat(
-                padding_len_inp, masks, padding_side="right"
-            )
+            batched_masks = lm_eval.models.utils.pad_and_concat(padding_len_inp, masks, padding_side="right")
             if self.model.model.neuron_config.output_all_logits:
-                inputs = self.model.prepare_inputs_for_prefill(
-                    batched_inps, batched_masks
-                )
+                inputs = self.model.prepare_inputs_for_prefill(batched_inps, batched_masks)
                 multi_logits = F.log_softmax(
                     self.model.forward(**inputs).logits, dim=-1
                 )  # [batch, padding_length (inp or cont), vocab]
@@ -514,20 +478,14 @@ class NEURON_HF(TemplateLM):
                 # The model will only return the logits for the last input token, so we need
                 # to iterate over inputs to accumulate logits.
                 # To speed things up we use the KV cache as we would do when generating.
-                inputs = self.model.prepare_inputs_for_prefill(
-                    batched_inps[:, :1], batched_masks[:, :1]
-                )
+                inputs = self.model.prepare_inputs_for_prefill(batched_inps[:, :1], batched_masks[:, :1])
                 outputs = [self.model.forward(**inputs).logits]
                 for i in range(1, padding_len_inp):
-                    inputs = self.model.prepare_inputs_for_decode(
-                        batched_inps[:, : i + 1], batched_masks[:, : i + 1]
-                    )
+                    inputs = self.model.prepare_inputs_for_decode(batched_inps[:, : i + 1], batched_masks[:, : i + 1])
                     outputs.append(self.model.forward(**inputs).logits)
                 multi_logits = F.log_softmax(torch.concat(outputs, dim=1), dim=-1)
 
-            for (cache_key, _, _), logits, inplen, cont_toks in zip(
-                chunk, multi_logits, inplens, cont_toks_list
-            ):
+            for (cache_key, _, _), logits, inplen, cont_toks in zip(chunk, multi_logits, inplens, cont_toks_list):
                 # Slice to original seq length
                 contlen = len(cont_toks)
                 # take only logits in the continuation
@@ -540,16 +498,12 @@ class NEURON_HF(TemplateLM):
 
                 # Check if per-token argmax is exactly equal to continuation
                 greedy_tokens = logits.argmax(dim=-1)
-                cont_toks = torch.tensor(
-                    cont_toks, dtype=torch.long, device=self.device
-                ).unsqueeze(0)  # [1, seq]
+                cont_toks = torch.tensor(cont_toks, dtype=torch.long, device=self.device).unsqueeze(0)  # [1, seq]
                 max_equal = (greedy_tokens == cont_toks).all()
 
                 # Obtain log-probs at the corresponding continuation token indices
                 # last_token_slice = logits[:, -1, :].squeeze(0).tolist()
-                logits = torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(
-                    -1
-                )  # [1, seq]
+                logits = torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(-1)  # [1, seq]
 
                 # Answer: (log prob, is-exact-match)
                 answer = (float(logits.sum()), bool(max_equal))
@@ -590,9 +544,7 @@ class NEURON_HF(TemplateLM):
 
         # for each different set of kwargs, we execute all requests, by batch.
         for key, re_ord in re_ords.items():
-            chunks = lm_eval.models.utils.chunks(
-                re_ord.get_reordered(), n=self.batch_size
-            )
+            chunks = lm_eval.models.utils.chunks(re_ord.get_reordered(), n=self.batch_size)
             for chunk in tqdm(chunks, disable=self.rank != 0):
                 contexts, all_gen_kwargs = zip(*chunk)
                 # we assume all gen kwargs in the batch are the same
@@ -611,9 +563,7 @@ class NEURON_HF(TemplateLM):
                                 f"Expected `kwargs['until']` to be of type Union[str,list] but got {until}"
                             )
                 else:
-                    raise ValueError(
-                        f"Expected `kwargs` to be of type `dict` but got {kwargs}"
-                    )
+                    raise ValueError(f"Expected `kwargs` to be of type `dict` but got {kwargs}")
                 # add EOS token to stop sequences
                 eos = self.tok_decode(self.eot_token_id)
                 if not until:
@@ -665,9 +615,7 @@ class NEURON_HF(TemplateLM):
 
                     res[key].append(s)
 
-                    self.cache_hook.add_partial(
-                        "generate_until", (context, gen_kwargs), s
-                    )
+                    self.cache_hook.add_partial("generate_until", (context, gen_kwargs), s)
                     pbar.update(1)
             # reorder this group of results back to original unsorted form
             res[key] = re_ord.get_original(res[key])

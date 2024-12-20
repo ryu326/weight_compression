@@ -39,13 +39,8 @@ class CheckpointFineTuningCallback(Callback):
 
         self.every_n_epochs = every_n_epochs
 
-    def on_validation_epoch_end(
-        self, trainer: "pl.Trainer", pl_module: "pl.LightningModule"
-    ) -> None:
-        if (
-            trainer.current_epoch != 0
-            and trainer.current_epoch % self.every_n_epochs == 0
-        ):
+    def on_validation_epoch_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
+        if trainer.current_epoch != 0 and trainer.current_epoch % self.every_n_epochs == 0:
             assert isinstance(
                 pl_module, LitDiffusionBase
             ), f"{self.__class__.__name__} only supports lightning modules which implement {LitDiffusionBase.__class__.__name__}"

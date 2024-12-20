@@ -20,16 +20,11 @@ from typing import Any, Dict, List
 
 import datasets
 import numpy as np
-
 from lm_eval.tasks.score import utils
-from lm_eval.tasks.score.math.math_grader import (
-    extract_answer,
-    math_equal,
-    normalize_answer_string,
-)
+from lm_eval.tasks.score.math.math_grader import (extract_answer, math_equal,
+                                                  normalize_answer_string)
 from lm_eval.tasks.score.utils import robustness_doc_to_text
 from lm_eval.utils import eval_logger
-
 
 TEMPLATE_FILE_PATH = os.path.join(os.path.dirname(__file__), "prompt_templates.json")
 
@@ -119,22 +114,16 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
             "question": doc["problem"],
             "question_id": idx,
             "solution": doc["solution"],
-            "answer": extract_answer_dataset(
-                doc["solution"], doc["problem"], corrected_answer
-            ),
+            "answer": extract_answer_dataset(doc["solution"], doc["problem"], corrected_answer),
         }
         return out_doc
 
-    corrected_answer_path = os.path.join(
-        os.path.dirname(__file__), "to_be_fixed_questions.json"
-    )
+    corrected_answer_path = os.path.join(os.path.dirname(__file__), "to_be_fixed_questions.json")
 
     with open(corrected_answer_path, "r") as f:
         corrected_answers = json.load(f)
 
-    return dataset.map(
-        partial(_process_doc, corrected_answer=corrected_answers), with_indices=True
-    )
+    return dataset.map(partial(_process_doc, corrected_answer=corrected_answers), with_indices=True)
 
 
 def prompt_robustness_process_docs(doc: datasets.Dataset) -> datasets.Dataset:

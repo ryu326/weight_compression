@@ -1,17 +1,18 @@
 import argparse
+import os
 import time
+
 import numpy as np
+import tinychat.utils.constants
 import torch
 import torch.nn as nn
-from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig, modeling_utils
 from attributedict.collections import AttributeDict
 from tinychat.stream_generators import StreamGenerator
-import tinychat.utils.constants
-from tinychat.utils.load_quant import load_awq_model, load_awq_llama_fast
+from tinychat.utils.load_quant import load_awq_llama_fast, load_awq_model
 from tinychat.utils.prompt_templates import get_prompter, get_stop_token_ids
 from tinychat.utils.tune import device_warmup, tune_all_wqlinears
-
-import os
+from transformers import (AutoConfig, AutoModelForCausalLM, AutoTokenizer,
+                          modeling_utils)
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
@@ -65,36 +66,26 @@ def stream_output(output_stream):
         total_tokens = timing["total_tokens"]
         generation_time_list = timing["generation_time_list"]
         generation_tokens = len(generation_time_list)
-        average_speed = (context_time + np.sum(generation_time_list)) / (
-            context_tokens + generation_tokens
-        )
+        average_speed = (context_time + np.sum(generation_time_list)) / (context_tokens + generation_tokens)
         print("=" * 50)
         print("Speed of Inference")
         print("-" * 50)
-        print(
-            f"Context Stage : { context_time/context_tokens* 1000:.2f} ms/token (total time: { context_time:.3f} s)"
-        )
-        print(
-            f"Generation Stage : {np.average(generation_time_list) * 1000:.2f} ms/token"
-        )
+        print(f"Context Stage : { context_time/context_tokens* 1000:.2f} ms/token (total time: { context_time:.3f} s)")
+        print(f"Generation Stage : {np.average(generation_time_list) * 1000:.2f} ms/token")
         print("=" * 50)
     return " ".join(output_text), total_tokens
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--model_type", type=str, default="LLaMa", help="type of the model"
-    )
+    parser.add_argument("--model_type", type=str, default="LLaMa", help="type of the model")
     parser.add_argument(
         "--model_path",
         type=str,
         default="/data/llm/checkpoints/vicuna-hf/vicuna-7b",
         help="path to the model",
     )
-    parser.add_argument(
-        "--precision", type=str, default="W4A16", help="compute precision"
-    )
+    parser.add_argument("--precision", type=str, default="W4A16", help="compute precision")
     parser.add_argument("--device", type=str, default="cuda")
     parser.add_argument("--q_group_size", type=int, default=128)
     parser.add_argument(
@@ -109,9 +100,7 @@ if __name__ == "__main__":
         default=2048,
         help="maximum sequence length for kv cache",
     )
-    parser.add_argument(
-        "--max_batch_size", type=int, default=1, help="maximum batch size for kv cache"
-    )
+    parser.add_argument("--max_batch_size", type=int, default=1, help="maximum batch size for kv cache")
     parser.add_argument(
         "--mem_efficient_load",
         action="store_true",
@@ -154,7 +143,8 @@ if __name__ == "__main__":
         print("=" * 80)
     # TODO (Haotian): a more elegant implementation here.
     # We need to update these global variables before models use them.
-    from tinychat.models import FalconForCausalLM, LlamaForCausalLM, MPTForCausalLM
+    from tinychat.models import (FalconForCausalLM, LlamaForCausalLM,
+                                 MPTForCausalLM)
 
     def skip(*args, **kwargs):
         pass
@@ -167,13 +157,9 @@ if __name__ == "__main__":
     config = AutoConfig.from_pretrained(args.model_path, trust_remote_code=True)
     if "mpt" in config.__class__.__name__.lower():
         # config.init_device="meta"
-        tokenizer = AutoTokenizer.from_pretrained(
-            config.tokenizer_name, trust_remote_code=True
-        )
+        tokenizer = AutoTokenizer.from_pretrained(config.tokenizer_name, trust_remote_code=True)
     else:
-        tokenizer = AutoTokenizer.from_pretrained(
-            args.model_path, use_fast=False, trust_remote_code=True
-        )
+        tokenizer = AutoTokenizer.from_pretrained(args.model_path, use_fast=False, trust_remote_code=True)
     modeling_utils._init_weights = False
     torch.set_default_dtype(torch.half)
 
@@ -186,14 +172,10 @@ if __name__ == "__main__":
     if args.precision == "W4A16":
         if args.model_type.lower() == "llama":
             model = model_type_dict["llama"](config).half()
-            model = load_awq_llama_fast(
-                model, args.load_quant, 4, args.q_group_size, args.device
-            )
+            model = load_awq_llama_fast(model, args.load_quant, 4, args.q_group_size, args.device)
         else:
             model = model_type_dict[args.model_type.lower()](config).half()
-            model = load_awq_model(
-                model, args.load_quant, 4, args.q_group_size, args.device
-            )
+            model = load_awq_model(model, args.load_quant, 4, args.q_group_size, args.device)
     else:
         loaded_model = AutoModelForCausalLM.from_pretrained(
             args.model_path,
@@ -214,7 +196,7 @@ if __name__ == "__main__":
 
     # Optimize AWQ quantized model
     if args.precision == "W4A16" and args.model_type.lower() == "llama":
-        from tinychat.modules import make_quant_norm, make_quant_attn
+        from tinychat.modules import make_quant_attn, make_quant_norm
 
         if args.flash_attn:
             print("Enabling flash-attention!")

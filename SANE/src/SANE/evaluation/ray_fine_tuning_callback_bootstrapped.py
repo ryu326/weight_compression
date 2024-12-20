@@ -86,9 +86,7 @@ class CheckpointSamplingCallbackBootstrapped(Callback):
         self.every_n_epochs = every_n_epochs
         self.eval_iterations = eval_iterations
         if not len(self.eval_iterations) == 0 and self.every_n_epochs != 0:
-            raise ValueError(
-                "If eval_iterations is not empty, every_n_epochs must be 0"
-            )
+            raise ValueError("If eval_iterations is not empty, every_n_epochs must be 0")
         elif len(self.eval_iterations) == 0:
             # infer eval iterations from every_n_epochs
             # assuming max 5000 epochs
@@ -124,13 +122,7 @@ class CheckpointSamplingCallbackBootstrapped(Callback):
 
         if iteration > max(self.eval_iterations):
             # extend eval_iterations
-            self.eval_iterations.extend(
-                list(
-                    range(
-                        max(self.eval_iterations), iteration + 5000, self.every_n_epochs
-                    )
-                )
-            )
+            self.eval_iterations.extend(list(range(max(self.eval_iterations), iteration + 5000, self.every_n_epochs)))
 
         if iteration not in self.eval_iterations:
             return results

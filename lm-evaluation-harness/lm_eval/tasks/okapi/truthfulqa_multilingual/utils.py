@@ -3,7 +3,6 @@ import re
 import datasets
 import numpy as np
 
-
 QA_PROMPT = (
     "Q: What is human life expectancy in the United States?\n"
     "A: Human life expectancy in the United States is 78 years.\n\n"

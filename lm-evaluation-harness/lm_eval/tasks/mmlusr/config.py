@@ -9,7 +9,6 @@ import os
 import yaml
 from tqdm import tqdm
 
-
 eval_logger = logging.getLogger("lm-eval")
 
 
@@ -77,9 +76,7 @@ GROUPS = ["question_and_answer"]
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Generate configuration YAML files for LM Evaluation Harness."
-    )
+    parser = argparse.ArgumentParser(description="Generate configuration YAML files for LM Evaluation Harness.")
     # Path to the base YAML file from which to inherit settings
     parser.add_argument(
         "--base_yaml_path",
@@ -127,12 +124,14 @@ if __name__ == "__main__":
 
             yaml_dict = {
                 "include": base_yaml_name,
-                "tag": f"mmlusr_{args.group_prefix}{group}_{category}"
-                if args.group_prefix
-                else f"mmlusr_{group}_{category}",
-                "task": f"mmlusr_{args.task_prefix}{group}_{subject}"
-                if args.task_prefix
-                else f"mmlusr_{group}_{subject}",
+                "tag": (
+                    f"mmlusr_{args.group_prefix}{group}_{category}"
+                    if args.group_prefix
+                    else f"mmlusr_{group}_{category}"
+                ),
+                "task": (
+                    f"mmlusr_{args.task_prefix}{group}_{subject}" if args.task_prefix else f"mmlusr_{group}_{subject}"
+                ),
                 "task_alias": subject.replace("_", " "),
                 "description": description,
                 "dataset_name": f"{group}_{subject}",
@@ -146,9 +145,7 @@ if __name__ == "__main__":
 
     # Save group configuration if specified
     if args.group_prefix:
-        file_save_path = os.path.join(
-            args.save_prefix_path, args.group_prefix + ".yaml"
-        )
+        file_save_path = os.path.join(args.save_prefix_path, args.group_prefix + ".yaml")
         eval_logger.info(f"Saving benchmark config to {file_save_path}")
         with open(file_save_path, "w", encoding="utf-8") as yaml_file:
             yaml.dump(yaml_dict, yaml_file, indent=4, default_flow_style=False)

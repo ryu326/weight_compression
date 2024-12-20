@@ -4,7 +4,6 @@ import torch
 import torch.nn.functional as F
 import transformers
 
-
 random.seed(42)
 
 
@@ -37,12 +36,6 @@ for dat in data:
     res = torch.gather(logits, 2, toks[:, 1:].unsqueeze(-1)).squeeze(-1)[0]
 
     tgs.append(float(res[ind:].sum()))
-    print(
-        r'("""'
-        + tok.decode(toks[0, : ind + 1])
-        + r'""", """'
-        + tok.decode(toks[0, ind + 1 :])
-        + r'"""), '
-    )
+    print(r'("""' + tok.decode(toks[0, : ind + 1]) + r'""", """' + tok.decode(toks[0, ind + 1 :]) + r'"""), ')
 
 print(tgs)

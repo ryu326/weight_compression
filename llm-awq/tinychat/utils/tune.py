@@ -1,8 +1,8 @@
-import numpy as np
 import time
+
+import numpy as np
 import torch
 from awq.quantize.qmodule import WQLinear
-
 
 __all__ = ["device_warmup", "tune_all_wqlinears"]
 
@@ -18,17 +18,11 @@ def tune_llava_patch_embedding(vision_tower, device):
     # Without this pre-tuning, the embedding layer can cause significant slowdown due to cuDNN tuning.
     device = vision_tower.device
     if "intern" not in vision_tower.__class__.__name__.lower():
-        patch_embedding = (
-            vision_tower.vision_tower.vision_model.embeddings.patch_embedding
-        )
+        patch_embedding = vision_tower.vision_tower.vision_model.embeddings.patch_embedding
     else:
         patch_embedding = vision_tower.vision_tower.embeddings.patch_embedding
     patch_embedding = patch_embedding.to(device)
-    image = (
-        torch.randn((1, patch_embedding.in_channels, 336, 336))
-        .to(device)
-        .to(patch_embedding.weight.dtype)
-    )
+    image = torch.randn((1, patch_embedding.in_channels, 336, 336)).to(device).to(patch_embedding.weight.dtype)
     for i in range(100):
         patch_embedding(image)
 
@@ -50,9 +44,7 @@ def _time_module(module, inputs, measure_iters=1000):
 
 def tune_wqlinear(module: WQLinear, measure_iters: int = 1000):
     device_warmup(str(module.scales.device))
-    inputs = torch.randn(
-        1, module.in_features, device=module.scales.device, dtype=module.scales.dtype
-    )
+    inputs = torch.randn(1, module.in_features, device=module.scales.device, dtype=module.scales.dtype)
     best_split_k_iter = None
     best_latency = None
     for split_k_iters in [1, 2, 4, 8, 16, 32]:

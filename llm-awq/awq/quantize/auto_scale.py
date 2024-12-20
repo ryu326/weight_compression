@@ -1,14 +1,15 @@
 import gc
+
 import torch
 import torch.nn as nn
-
-from transformers.models.bloom.modeling_bloom import BloomBlock, BloomGelu
-from transformers.models.opt.modeling_opt import OPTDecoderLayer
-from transformers.models.llama.modeling_llama import LlamaDecoderLayer, LlamaRMSNorm
 from transformers.activations import GELUActivation
+from transformers.models.bloom.modeling_bloom import BloomBlock, BloomGelu
+from transformers.models.llama.modeling_llama import (LlamaDecoderLayer,
+                                                      LlamaRMSNorm)
+from transformers.models.opt.modeling_opt import OPTDecoderLayer
 
-from .qmodule import ScaledActivation
 from ..utils.module import get_op_by_name, get_op_name, set_op_by_name
+from .qmodule import ScaledActivation
 
 __all__ = ["auto_scale_block", "apply_scale"]
 
@@ -135,9 +136,7 @@ def auto_scale_block(module, module_kwargs, w_bit, q_config, input_feat):
             if isinstance(out, tuple):
                 out = out[0]
 
-            loss = (
-                (org_out - out).float().pow(2).mean().item()
-            )  # float prevents overflow
+            loss = (org_out - out).float().pow(2).mean().item()  # float prevents overflow
             history.append(loss)
             is_best = loss < best_error
             if is_best:

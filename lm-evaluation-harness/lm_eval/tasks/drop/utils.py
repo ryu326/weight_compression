@@ -3,7 +3,6 @@ import string
 
 import numpy as np
 
-
 _ARTICLES = re.compile(r"\b(a|an|the)\b", re.UNICODE)
 
 
@@ -54,11 +53,7 @@ def parse_answer(answer):
         return (str(answer["number"]),)
     if answer["spans"] != []:
         return tuple(answer["spans"])
-    return (
-        " ".join(
-            [answer["date"]["day"], answer["date"]["month"], answer["date"]["year"]]
-        ).strip(),
-    )
+    return (" ".join([answer["date"]["day"], answer["date"]["month"], answer["date"]["year"]]).strip(),)
 
 
 def process_results(doc, results):
@@ -84,9 +79,7 @@ def get_metrics(predicted, gold):
     predicted_bags = _answer_to_bags(predicted)
     gold_bags = _answer_to_bags(gold)
 
-    if set(predicted_bags[0]) == set(gold_bags[0]) and len(predicted_bags[0]) == len(
-        gold_bags[0]
-    ):
+    if set(predicted_bags[0]) == set(gold_bags[0]) and len(predicted_bags[0]) == len(gold_bags[0]):
         exact_match = 1.0
     else:
         exact_match = 0.0
@@ -141,11 +134,7 @@ def _compute_f1(predicted_bag, gold_bag):
         recall = 1.0
     else:
         recall = intersection / float(len(gold_bag))
-    f1 = (
-        (2 * precision * recall) / (precision + recall)
-        if not (precision == 0.0 and recall == 0.0)
-        else 0.0
-    )
+    f1 = (2 * precision * recall) / (precision + recall) if not (precision == 0.0 and recall == 0.0) else 0.0
     return f1
 
 
@@ -197,8 +186,7 @@ def _tokenize(text):
 
 def _normalize(answer):
     tokens = [
-        _white_space_fix(_remove_articles(_fix_number(_remove_punc(token.lower()))))
-        for token in _tokenize(answer)
+        _white_space_fix(_remove_articles(_fix_number(_remove_punc(token.lower())))) for token in _tokenize(answer)
     ]
     tokens = [token for token in tokens if token.strip()]
     normalized = " ".join(tokens).strip()

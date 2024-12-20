@@ -3,12 +3,10 @@ import os
 import random
 
 import numpy as np
-
 from lm_eval import tasks
 from lm_eval.evaluator_utils import get_task_list
 from lm_eval.tasks import TaskManager
 from lm_eval.utils import eval_logger, join_iters
-
 
 EXAMPLE_DIVIDER = "!!@@##@@!! -- Example {i}\n"
 
@@ -77,14 +75,8 @@ def main():
 
         docs = join_iters(iters)
 
-        with open(
-            os.path.join(args.output_base_path, task_name), "w", encoding="utf8"
-        ) as f:
-            for i, doc in (
-                zip(range(args.num_examples), docs)
-                if args.num_examples > 0
-                else enumerate(docs)
-            ):
+        with open(os.path.join(args.output_base_path, task_name), "w", encoding="utf8") as f:
+            for i, doc in zip(range(args.num_examples), docs) if args.num_examples > 0 else enumerate(docs):
                 f.write(EXAMPLE_DIVIDER.format(i=i))
                 ctx = task.fewshot_context(
                     doc=doc,

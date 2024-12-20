@@ -2,14 +2,12 @@ import os
 from itertools import islice
 
 import datasets
-import pytest
-
 import lm_eval.tasks as tasks
+import pytest
 from lm_eval.api.task import ConfigurableTask
 from lm_eval.evaluator_utils import get_task_list
 
 from .utils import new_tasks
-
 
 datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -80,10 +78,7 @@ class TestNewTasks:
         _array = [task.doc_to_text(doc) for doc in arr]
         # space convention; allow txt to have length 0 for perplexity-like tasks since the model tacks an <|endoftext|> on
         if not task.multiple_input:
-            assert all(
-                isinstance(x, str) and (x[-1] != " " if len(x) != 0 else True)
-                for x in _array
-            )
+            assert all(isinstance(x, str) and (x[-1] != " " if len(x) != 0 else True) for x in _array)
         else:
             pass
 
@@ -109,10 +104,7 @@ class TestNewTasks:
         _array_target = [task.doc_to_target(doc) for doc in arr]
         if task._config.output_type == "multiple_choice":
             # TODO<baber>: label can be string or int; add better test conditions
-            assert all(
-                (isinstance(label, int) or isinstance(label, str))
-                for label in _array_target
-            )
+            assert all((isinstance(label, int) or isinstance(label, str)) for label in _array_target)
 
     def test_build_all_requests(self, task_class, limit):
         task_class.build_all_requests(rank=1, limit=limit, world_size=1)
@@ -128,9 +120,6 @@ class TestNewTasks:
         )
         # ctx is "" for multiple input tasks
         requests = [
-            task.construct_requests(
-                doc=doc, ctx="" if task.multiple_input else task.doc_to_text(doc)
-            )
-            for doc in arr
+            task.construct_requests(doc=doc, ctx="" if task.multiple_input else task.doc_to_text(doc)) for doc in arr
         ]
         assert len(requests) == limit if limit else True

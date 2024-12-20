@@ -3,21 +3,19 @@
 # Make sure to have transformers > 4.34 and that you have ran
 # `huggingface-cli login` on your terminal before running this
 # script
-import os
 import argparse
+import os
 
 # This demo only support single GPU for now
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-from transformers import AutoConfig, AwqConfig, AutoTokenizer
 from huggingface_hub import HfApi
+from transformers import AutoConfig, AutoTokenizer, AwqConfig
 
 api = HfApi()
 
 parser = argparse.ArgumentParser()
-parser.add_argument(
-    "--model_path", type=str, help="path of the original hf model", required=True
-)
+parser.add_argument("--model_path", type=str, help="path of the original hf model", required=True)
 parser.add_argument(
     "--quantized_model_path",
     type=str,

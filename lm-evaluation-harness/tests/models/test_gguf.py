@@ -8,16 +8,13 @@ from unittest.mock import patch
 from lm_eval.api.instance import Instance
 from lm_eval.models.gguf import GGUFLM
 
-
 base_url = "https://matthoffner-ggml-llm-api.hf.space"
 
 
 def gguf_completion_mock(base_url=None, **kwargs):
     # Generate a hash from the parameters
     hash_kwargs = {"base_url": base_url, **kwargs}
-    parameters_hash = hashlib.sha256(
-        json.dumps(hash_kwargs, sort_keys=True).encode("utf-8")
-    ).hexdigest()
+    parameters_hash = hashlib.sha256(json.dumps(hash_kwargs, sort_keys=True).encode("utf-8")).hexdigest()
 
     fname = f"./tests/testdata/gguf_test_{parameters_hash}.pkl"
 
@@ -90,9 +87,7 @@ def gguf_completion_mock(base_url=None, **kwargs):
 
 
 class GGUFLMTest(unittest.TestCase):
-    @patch(
-        "lm_eval.models.gguf.GGUFLM.gguf_completion", side_effect=gguf_completion_mock
-    )
+    @patch("lm_eval.models.gguf.GGUFLM.gguf_completion", side_effect=gguf_completion_mock)
     def test_loglikelihood(self, gguf_completion_mock):
         lm = GGUFLM(base_url)
 
@@ -112,9 +107,7 @@ class GGUFLMTest(unittest.TestCase):
         expected_res = [(logprob, True) for logprob in [0, 0]]
         self.assertEqual(res, expected_res)
 
-    @patch(
-        "lm_eval.models.gguf.GGUFLM.gguf_completion", side_effect=gguf_completion_mock
-    )
+    @patch("lm_eval.models.gguf.GGUFLM.gguf_completion", side_effect=gguf_completion_mock)
     def test_generate_until(self, gguf_completion_mock):
         lm = GGUFLM(base_url)
 

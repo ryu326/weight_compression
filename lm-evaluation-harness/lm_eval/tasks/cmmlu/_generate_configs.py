@@ -6,10 +6,8 @@ import argparse
 import os
 
 import yaml
-from tqdm import tqdm
-
 from lm_eval.utils import eval_logger
-
+from tqdm import tqdm
 
 SUBJECTS = {
     "agronomy": "农学",
@@ -109,15 +107,11 @@ if __name__ == "__main__":
         if args.cot_prompt_path is not None:
             description = cot_file[subject_eng]
         else:
-            description = (
-                f"以下是关于{subject_zh}的单项选择题，请直接给出正确答案的选项。\n\n"
-            )
+            description = f"以下是关于{subject_zh}的单项选择题，请直接给出正确答案的选项。\n\n"
 
         yaml_dict = {
             "include": base_yaml_name,
-            "task": f"cmmlu_{args.task_prefix}_{subject_eng}"
-            if args.task_prefix != ""
-            else f"cmmlu_{subject_eng}",
+            "task": f"cmmlu_{args.task_prefix}_{subject_eng}" if args.task_prefix != "" else f"cmmlu_{subject_eng}",
             "dataset_name": subject_eng,
             "description": description,
         }
@@ -138,11 +132,7 @@ if __name__ == "__main__":
     group_yaml_dict = {
         "group": "cmmlu",
         "task": [
-            (
-                f"cmmlu_{args.task_prefix}_{subject_eng}"
-                if args.task_prefix != ""
-                else f"cmmlu_{subject_eng}"
-            )
+            (f"cmmlu_{args.task_prefix}_{subject_eng}" if args.task_prefix != "" else f"cmmlu_{subject_eng}")
             for subject_eng in SUBJECTS.keys()
         ],
         "aggregate_metric_list": [

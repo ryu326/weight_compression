@@ -82,9 +82,7 @@ class DownstreamTaskLearner:
         # initialize return dictionary
         performance = {}
         # figure out device
-        self.device = (
-            torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-        )
+        self.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
         # prepare embeddings
         print(f"Prepare embeddings")
         w_train, _ = trainset.__get_weights__()
@@ -95,17 +93,13 @@ class DownstreamTaskLearner:
             pos_train = repeat(trainset.positions, "n d -> b n d", b=w_train.shape[0])
         assert w_train.shape[0] == pos_train.shape[0]
         assert w_train.shape[1] == pos_train.shape[1]
-        z_train = self.map_embeddings(
-            weights=w_train, pos=pos_train, model=model, batch_size=batch_size
-        )
+        z_train = self.map_embeddings(weights=w_train, pos=pos_train, model=model, batch_size=batch_size)
         w_test, _ = testset.__get_weights__()
         try:
             pos_test = torch.stack(testset.pos)
         except:
             pos_test = repeat(testset.positions, "n d -> b n d", b=w_test.shape[0])
-        z_test = self.map_embeddings(
-            weights=w_test, pos=pos_test, model=model, batch_size=batch_size
-        )
+        z_test = self.map_embeddings(weights=w_test, pos=pos_test, model=model, batch_size=batch_size)
         if valset is not None:
             w_val, _ = valset.__get_weights__()
             try:
@@ -142,10 +136,7 @@ class DownstreamTaskLearner:
                     for jdx in range(len(trainset.properties[key][idx]))
                 ]
             except:
-                props_train = [
-                    trainset.properties[key][idx]
-                    for idx in range(len(trainset.properties[key]))
-                ]
+                props_train = [trainset.properties[key][idx] for idx in range(len(trainset.properties[key]))]
             try:
                 epx = testset.epochs  # dataset_token_trojai doesn't have epochs
                 props_test = [
@@ -154,10 +145,7 @@ class DownstreamTaskLearner:
                     for jdx in range(len(testset.properties[key][idx]))
                 ]
             except:
-                props_test = [
-                    testset.properties[key][idx]
-                    for idx in range(len(testset.properties[key]))
-                ]
+                props_test = [testset.properties[key][idx] for idx in range(len(testset.properties[key]))]
             props_val = None
             if valset is not None:
                 try:
@@ -168,10 +156,7 @@ class DownstreamTaskLearner:
                         for jdx in range(len(valset.properties[key][idx]))
                     ]
                 except:
-                    props_val = [
-                        valset.properties[key][idx]
-                        for idx in range(len(valset.properties[key]))
-                    ]
+                    props_val = [valset.properties[key][idx] for idx in range(len(valset.properties[key]))]
             if task_dx == "regression":
                 # print(f"start solving regression problem")
                 r2_train, r2_test, r2_val = self.compute_closed_form_solution(
@@ -259,11 +244,7 @@ class DownstreamTaskLearner:
         if isinstance(sample, float) or isinstance(sample, int):
             # target is number -> inferred task is regression
             task = "regression"
-        elif (
-            isinstance(sample, str)
-            or isinstance(sample, int)
-            or isinstance(sample, bool)
-        ):
+        elif isinstance(sample, str) or isinstance(sample, int) or isinstance(sample, bool):
             task = "classification"
         else:
             task = "unidentified"
@@ -291,26 +272,16 @@ class DownstreamTaskLearner:
         no_classes = len(classes)
         # assert all classes are in trainset
         classes_test = list(np.unique(prop_test))
-        assert set(classes_test).issubset(
-            set(classes)
-        ), "test set contains classes which are not in train set"
+        assert set(classes_test).issubset(set(classes)), "test set contains classes which are not in train set"
         if prop_val is not None:
             classes_val = list(np.unique(prop_val))
-            assert set(classes_val).issubset(
-                set(classes)
-            ), "val set contains classes which are not in train set"
+            assert set(classes_val).issubset(set(classes)), "val set contains classes which are not in train set"
 
         # one hot encoding
-        labels_train = torch.tensor(
-            [float(classes.index(vdx)) for idx, vdx in enumerate(prop_train)]
-        ).long()
-        labels_test = torch.tensor(
-            [float(classes.index(vdx)) for idx, vdx in enumerate(prop_test)]
-        ).long()
+        labels_train = torch.tensor([float(classes.index(vdx)) for idx, vdx in enumerate(prop_train)]).long()
+        labels_test = torch.tensor([float(classes.index(vdx)) for idx, vdx in enumerate(prop_test)]).long()
         if prop_val is not None:
-            labels_val = torch.tensor(
-                [float(classes.index(vdx)) for idx, vdx in enumerate(prop_val)]
-            ).long()
+            labels_val = torch.tensor([float(classes.index(vdx)) for idx, vdx in enumerate(prop_val)]).long()
 
         ## dataset
         # train
@@ -385,25 +356,19 @@ class DownstreamTaskLearner:
             prop_val = torch.Tensor(prop_val)
         ## find nan values
         # train
-        idx_no_nan_train = [
-            idx for idx, pdx in enumerate(prop_train.isnan()) if not pdx == True
-        ]
+        idx_no_nan_train = [idx for idx, pdx in enumerate(prop_train.isnan()) if not pdx == True]
         X_train = z_train[idx_no_nan_train]
         y_train = prop_train[idx_no_nan_train]
         if len(y_train.shape) == 2:
             y_train = y_train.squeeze()
         # test
-        idx_no_nan_test = [
-            idx for idx, pdx in enumerate(prop_test.isnan()) if not pdx == True
-        ]
+        idx_no_nan_test = [idx for idx, pdx in enumerate(prop_test.isnan()) if not pdx == True]
         X_test = z_test[idx_no_nan_test]
         y_test = prop_test[idx_no_nan_test]
         if len(y_test.shape) == 2:
             y_test = y_test.squeeze()
         if prop_val is not None:
-            idx_no_nan_val = [
-                idx for idx, pdx in enumerate(prop_val.isnan()) if not pdx == True
-            ]
+            idx_no_nan_val = [idx for idx, pdx in enumerate(prop_val.isnan()) if not pdx == True]
             X_val = z_val[idx_no_nan_val]
             y_val = prop_val[idx_no_nan_val]
             if len(y_val.shape) == 2:
@@ -599,32 +564,24 @@ class DownstreamTaskLearner:
         # initialize return dictionary
         performance = {}
         # figure out device
-        self.device = (
-            torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-        )
+        self.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
         # prepare embeddings
         print(f"Prepare embeddings")
         w_train = trainset.__get_weights__()
-        z_train = self.map_embeddings(
-            weights=w_train, model=model, batch_size=batch_size
-        )
+        z_train = self.map_embeddings(weights=w_train, model=model, batch_size=batch_size)
         # init new dict for test / ood data
         test_dict = {}
         for datasetkey in testset_dict.keys():
             # add weights and embeddings
             w_test = testset_dict[datasetkey].__get_weights__()
-            z_test = self.map_embeddings(
-                weights=w_test, model=model, batch_size=batch_size
-            )
+            z_test = self.map_embeddings(weights=w_test, model=model, batch_size=batch_size)
             test_dict[datasetkey] = {
                 # "w_test": w_test, # weights are unnecessary and large...
                 "z_test": z_test,
             }
             # copy property data over
             for propkey in testset_dict[datasetkey].properties.keys():
-                test_dict[datasetkey][propkey] = testset_dict[datasetkey].properties[
-                    propkey
-                ]
+                test_dict[datasetkey][propkey] = testset_dict[datasetkey].properties[propkey]
 
         if valset is not None:
             w_val = valset.__get_weights__()
@@ -692,17 +649,13 @@ class DownstreamTaskLearner:
             prop_val = torch.Tensor(prop_val)
         ## find nan values
         # train
-        idx_no_nan_train = [
-            idx for idx, pdx in enumerate(prop_train.isnan()) if not pdx == True
-        ]
+        idx_no_nan_train = [idx for idx, pdx in enumerate(prop_train.isnan()) if not pdx == True]
         X_train = z_train[idx_no_nan_train]
         y_train = prop_train[idx_no_nan_train]
         if len(y_train.shape) == 2:
             y_train = y_train.squeeze()
         if prop_val is not None:
-            idx_no_nan_val = [
-                idx for idx, pdx in enumerate(prop_val.isnan()) if not pdx == True
-            ]
+            idx_no_nan_val = [idx for idx, pdx in enumerate(prop_val.isnan()) if not pdx == True]
             X_val = z_val[idx_no_nan_val]
             y_val = prop_val[idx_no_nan_val]
             if len(y_val.shape) == 2:
@@ -766,9 +719,7 @@ class DownstreamTaskLearner:
             # get pair of embeddings,targets
             z_test_curr = testset_dict[key]["z_test"]
             prop_curr = torch.Tensor(testset_dict[key][test_prop_key])
-            idx_no_nan_test = [
-                idx for idx, pdx in enumerate(prop_curr.isnan()) if not pdx == True
-            ]
+            idx_no_nan_test = [idx for idx, pdx in enumerate(prop_curr.isnan()) if not pdx == True]
             X_test = z_test_curr[idx_no_nan_test]
             y_test = prop_curr[idx_no_nan_test]
             if len(y_test.shape) == 2:
@@ -822,18 +773,12 @@ class DownstreamTaskLearner:
         # assert all classes are in trainset
         if prop_val is not None:
             classes_val = list(np.unique(prop_val))
-            assert set(classes_val).issubset(
-                set(classes)
-            ), "val set contains classes which are not in train set"
+            assert set(classes_val).issubset(set(classes)), "val set contains classes which are not in train set"
 
         # one hot encoding
-        labels_train = torch.tensor(
-            [float(classes.index(vdx)) for idx, vdx in enumerate(prop_train)]
-        ).long()
+        labels_train = torch.tensor([float(classes.index(vdx)) for idx, vdx in enumerate(prop_train)]).long()
         if prop_val is not None:
-            labels_val = torch.tensor(
-                [float(classes.index(vdx)) for idx, vdx in enumerate(prop_val)]
-            ).long()
+            labels_val = torch.tensor([float(classes.index(vdx)) for idx, vdx in enumerate(prop_val)]).long()
 
         ## dataset
         # train
@@ -889,12 +834,8 @@ class DownstreamTaskLearner:
             z_test = z_test.float().to(torch.device("cpu"))
             prop_test = testset_dict[key][test_prop_key]
             classes_test = list(np.unique(prop_test))
-            assert set(classes_test).issubset(
-                set(classes)
-            ), "test set contains classes which are not in train set"
-            labels_test = torch.tensor(
-                [float(classes.index(vdx)) for idx, vdx in enumerate(prop_test)]
-            ).long()
+            assert set(classes_test).issubset(set(classes)), "test set contains classes which are not in train set"
+            labels_test = torch.tensor([float(classes.index(vdx)) for idx, vdx in enumerate(prop_test)]).long()
             testset = torch.utils.data.TensorDataset(z_test, labels_test)
             testloader = FastTensorDataLoader(testset, batch_size=10, shuffle=True)
             _, acc_test = MLP.test_epoch(testloader, epoch=-1)

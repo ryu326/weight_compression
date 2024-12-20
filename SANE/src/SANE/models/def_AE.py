@@ -18,20 +18,14 @@ class AE(nn.Module):
         windowsize = config.get("training::windowsize", 16)
         dropout = config.get("ae:dropout", 0.0)
 
-        assert (
-            d_model % nhead == 0
-        ), f"invalid transformer config with d_model {d_model} and n_heads {nhead}"
+        assert d_model % nhead == 0, f"invalid transformer config with d_model {d_model} and n_heads {nhead}"
 
         # mapping to token_dim
         self.tokenizer = nn.Linear(i_dim, d_model)
         # encoder
         if config.get("ae:transformer_type", "pytorch") == "pytorch":
-            encoder_layer = nn.TransformerEncoderLayer(
-                d_model=d_model, nhead=nhead, dropout=dropout
-            )
-            self.transformer_encoder = nn.TransformerEncoder(
-                encoder_layer, num_layers=num_layers
-            )
+            encoder_layer = nn.TransformerEncoderLayer(d_model=d_model, nhead=nhead, dropout=dropout)
+            self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
         elif config.get("ae:transformer_type", "pytorch") == "gpt2":
             self.transformer_encoder = TransformerEncoder(
                 n_layer=num_layers,
@@ -43,9 +37,7 @@ class AE(nn.Module):
                 block_size=windowsize,
             )
         else:
-            raise ValueError(
-                f"invalid encoder type {config.get('ae:transformer_type')}"
-            )
+            raise ValueError(f"invalid encoder type {config.get('ae:transformer_type')}")
         # mapping from token_dim to lat_dim
         self.encoder_comp = nn.Linear(d_model, lat_dim)
 
@@ -56,9 +48,7 @@ class AE(nn.Module):
         # decoder is built of __ENcoder__ layers
         if config.get("ae:transformer_type", "pytorch") == "pytorch":
             decoder_layer = nn.TransformerEncoderLayer(d_model=d_model, nhead=nhead)
-            self.transformer_decoder = nn.TransformerEncoder(
-                decoder_layer, num_layers=num_layers
-            )
+            self.transformer_decoder = nn.TransformerEncoder(decoder_layer, num_layers=num_layers)
         elif config.get("ae:transformer_type", "pytorch") == "gpt2":
             self.transformer_decoder = TransformerEncoder(
                 n_layer=num_layers,
@@ -70,9 +60,7 @@ class AE(nn.Module):
                 block_size=windowsize,
             )
         else:
-            raise ValueError(
-                f"invalid encoder type {config.get('ae:transformer_type')}"
-            )
+            raise ValueError(f"invalid encoder type {config.get('ae:transformer_type')}")
         # mapping from lat_dim to token_dim
         self.decoder_comp = nn.Linear(lat_dim, d_model)
 
@@ -84,9 +72,7 @@ class AE(nn.Module):
         # self.projection_head = ProjectionHead(
         #     d_model=lat_dim, nhead=4, num_layers=2, odim=30
         # )
-        self.projection_head = SimpleProjectionHead(
-            d_model=lat_dim, n_tokens=windowsize, odim=30
-        )
+        self.projection_head = SimpleProjectionHead(d_model=lat_dim, n_tokens=windowsize, odim=30)
 
         # dropout
         self.dropout = nn.Dropout(dropout)
@@ -123,9 +109,7 @@ class AE(nn.Module):
         y = self.forward_decoder(z, p, mask)
         return z, y, zp
 
-    def forward_encoder(
-        self, x: torch.tensor, p: torch.tensor, mask=None
-    ) -> torch.tensor:
+    def forward_encoder(self, x: torch.tensor, p: torch.tensor, mask=None) -> torch.tensor:
         """
         Args:
             x: torch.tensor sequence of weight/channel tokens
@@ -147,9 +131,7 @@ class AE(nn.Module):
         # return
         return x
 
-    def forward_decoder(
-        self, z: torch.tensor, p: torch.tensor, mask=None
-    ) -> torch.tensor:
+    def forward_decoder(self, z: torch.tensor, p: torch.tensor, mask=None) -> torch.tensor:
         """
         Args:
             z: torch.tensor sequence of latent representations
@@ -215,18 +197,10 @@ class PositionEmbs(nn.Module):
         Returns:
             Output tensor with shape `(batch_size, seq_len, emb_dim + 2)`.
         """
-        assert (
-            inputs.ndim == 3
-        ), f"Number of dimensions should be 3, but it is {inputs.ndim}"
-        assert pos.shape[2] == len(
-            self.max_positions
-        ), "Position tensors should have as many demsions as max_positions"
-        assert (
-            pos.shape[0] == inputs.shape[0]
-        ), "Position tensors should have the same batch size as inputs"
-        assert (
-            pos.shape[1] == inputs.shape[1]
-        ), "Position tensors should have the same seq length as inputs"
+        assert inputs.ndim == 3, f"Number of dimensions should be 3, but it is {inputs.ndim}"
+        assert pos.shape[2] == len(self.max_positions), "Position tensors should have as many demsions as max_positions"
+        assert pos.shape[0] == inputs.shape[0], "Position tensors should have the same batch size as inputs"
+        assert pos.shape[1] == inputs.shape[1], "Position tensors should have the same seq length as inputs"
 
         pos_emb1 = self.pe1(pos[:, :, 0])
         pos_emb2 = self.pe2(pos[:, :, 1])
@@ -247,9 +221,7 @@ class ProjectionHead(nn.Module):
     Projection head: maps sequences of token embeddings and maps them to embeddings
     """
 
-    def __init__(
-        self, d_model: int = 512, nhead: int = 8, num_layers: int = 6, odim: int = 50
-    ):
+    def __init__(self, d_model: int = 512, nhead: int = 8, num_layers: int = 6, odim: int = 50):
         super(ProjectionHead, self).__init__()
         encoder_layer = nn.TransformerEncoderLayer(d_model=d_model, nhead=nhead)
         self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)

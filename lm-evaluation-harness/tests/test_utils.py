@@ -3,18 +3,10 @@ import itertools
 import numpy as np
 import pytest
 import torch
-
-from lm_eval.api.metrics import (
-    aggregate_subtask_metrics,
-    mean,
-    pooled_sample_stderr,
-    stderr_for_metric,
-)
+from lm_eval.api.metrics import (aggregate_subtask_metrics, mean,
+                                 pooled_sample_stderr, stderr_for_metric)
 from lm_eval.models.utils import Collator
-from lm_eval.utils import (
-    get_rolling_token_windows,
-    make_disjoint_window,
-)
+from lm_eval.utils import get_rolling_token_windows, make_disjoint_window
 
 
 # noinspection DuplicatedCode
@@ -245,25 +237,18 @@ class TestCollator:
             {"temperature": 0},
             {"temperature": 0, "until": ["nn", "\n\n"]},
         )
-        args = [
-            (string, gen_kwargs1 if i < len(strings) // 2 else gen_kwargs2)
-            for i, string in enumerate(strings)
-        ]
+        args = [(string, gen_kwargs1 if i < len(strings) // 2 else gen_kwargs2) for i, string in enumerate(strings)]
 
         return args
 
     def make_loglikelihood_sample(self, end=11):
-        samples = [
-            (("x", "x"), list(range(1, total_length + 1)))
-            for total_length in range(1, end + 1)
-        ]
+        samples = [(("x", "x"), list(range(1, total_length + 1))) for total_length in range(1, end + 1)]
         return samples
 
     def make_loglikelihood_sample_group(self, end=11):
         a = [(("x", "x"), [1, 2, 3, 4, 5, 6, 7, 8], [x]) for x in range(9)]
         b = [
-            (("x", "x"), [1, 2, 3, 4, 5, 6, 7, 8], [x, y, z])
-            for x, y, z in zip(range(9), range(9, 18), range(18, 27))
+            (("x", "x"), [1, 2, 3, 4, 5, 6, 7, 8], [x, y, z]) for x, y, z in zip(range(9), range(9, 18), range(18, 27))
         ]
         return a + b
 
@@ -280,11 +265,7 @@ class TestCollator:
         is_batch = batch_size != 0
         for chunks in chunks_gen:
             # check batching
-            assert (
-                len(chunks) <= batch_size
-                if is_batch
-                else len(chunks) in [group_one, group_two]
-            )
+            assert len(chunks) <= batch_size if is_batch else len(chunks) in [group_one, group_two]
             # check if reorder-er is working correctly
             chunk_lengths = [len(chunk[0]) for chunk in chunks]
             assert chunk_lengths == sorted(chunk_lengths, reverse=True)
@@ -350,9 +331,7 @@ class TestCollator:
                     req_str="".join(x[0]),
                     cxt_toks=x[1],
                     cont_toks=x[2],
-                    logits=torch.tensor([1, 2, 3, 4, 5, 6, 7, 8])
-                    .unsqueeze(0)
-                    .unsqueeze(0),
+                    logits=torch.tensor([1, 2, 3, 4, 5, 6, 7, 8]).unsqueeze(0).unsqueeze(0),
                 ):
                     output.extend([x[1]])
                     outputs_.extend([cont_toks])
@@ -364,14 +343,8 @@ class TestCollator:
 
 def test_aggregate_mean():
     # test weight_by_size is respected
-    assert (
-        aggregate_subtask_metrics([0.3, 0.2, 0.4], [20, 40, 100], weight_by_size=False)
-        == 0.3
-    )
-    assert (
-        aggregate_subtask_metrics([0.3, 0.2, 0.4], [20, 40, 100], weight_by_size=True)
-        == 0.3375
-    )
+    assert aggregate_subtask_metrics([0.3, 0.2, 0.4], [20, 40, 100], weight_by_size=False) == 0.3
+    assert aggregate_subtask_metrics([0.3, 0.2, 0.4], [20, 40, 100], weight_by_size=True) == 0.3375
 
 
 @pytest.mark.parametrize(

@@ -2,7 +2,7 @@
 import tensorflow as tf
 import tensorflow_hub as hub
 
-url = 'https://tfhub.dev/deepmind/biggan-deep-128/1'  # use 128x128 imgs for now (no lower-res model available)
+url = "https://tfhub.dev/deepmind/biggan-deep-128/1"  # use 128x128 imgs for now (no lower-res model available)
 src_model = hub.KerasLayer(url)
 
 from configs import biggan_class_names_to_ids as class_names_to_ids
@@ -90,7 +90,7 @@ def get_sampler(img_class, intrinsic_dim: int, truncation: float = default_trunc
     return sampler
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     # parser = argparse_flags.ArgumentParser( formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     import argparse
@@ -126,6 +126,6 @@ if __name__ == '__main__':
 
     samples = samples.numpy() * 0.5 + 0.5  # [-1, 1] -> [0, 1]
     for i, s in enumerate(samples):
-        plt.imsave(os.path.join(save_dir, f'class={args.c}-d={args.d}-{i}.png'), s)
+        plt.imsave(os.path.join(save_dir, f"class={args.c}-d={args.d}-{i}.png"), s)
 
-    print(f'Saved {args.n} imgs to {save_dir}')
+    print(f"Saved {args.n} imgs to {save_dir}")

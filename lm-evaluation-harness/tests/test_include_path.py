@@ -1,9 +1,8 @@
 import os
 
-import pytest
-
 import lm_eval.api as api
 import lm_eval.evaluator as evaluator
+import pytest
 from lm_eval import tasks
 
 
@@ -61,10 +60,7 @@ def test_include_correctness(limit: int, model: str, model_args: str):
     def r(x):
         return x["results"]["arc_easy"]
 
-    assert all(
-        x == y
-        for x, y in zip([y for _, y in r(e1).items()], [y for _, y in r(e2).items()])
-    )
+    assert all(x == y for x, y in zip([y for _, y in r(e1).items()], [y for _, y in r(e2).items()]))
 
 
 # test that setting include_defaults = False works as expected and that include_path works

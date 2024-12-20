@@ -4,6 +4,7 @@ import glob
 import os
 import scipy.misc
 import scipy.ndimage
+
 # from skimage.measure import compare_psnr
 # from skimage.measure import compare_ssim
 from skimage.metrics import peak_signal_noise_ratio as compare_psnr
@@ -17,6 +18,7 @@ import functools
 # per image: 1.54s
 def main(flags):
     import time
+
     inp_img_ps = sorted(glob.glob(flags.inp_glob))[:30]
     out_img_ps = sorted(glob.glob(flags.out_glob))[:30]
     assert len(inp_img_ps) == len(out_img_ps)
@@ -53,6 +55,7 @@ def _read_if_not_array(im):
         return scipy.ndimage.imread(im)
     return im
 
+
 def compare_msssim(inp_img_batched, out_img_batched):
     return MultiScaleSSIM(inp_img_batched, out_img_batched)
 
@@ -78,8 +81,8 @@ def compare(inp_img, out_img, calc_ssim=True, calc_msssim=True, calc_psnr=True):
     return _run_if(calc_ssim, get_ssim), _run_if(calc_msssim, get_msssim), _run_if(calc_psnr, get_psnr)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     p = argparse.ArgumentParser()
-    p.add_argument('inp_glob')
-    p.add_argument('out_glob')
+    p.add_argument("inp_glob")
+    p.add_argument("out_glob")
     main(p.parse_args())

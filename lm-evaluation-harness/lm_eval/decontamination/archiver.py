@@ -33,12 +33,7 @@ class Archive:
     def add_data(self, data, meta=None) -> None:
         if meta is None:
             meta = {}
-        self.compressor.write(
-            json.dumps({"text": data, "meta": meta}, default=json_serial).encode(
-                "UTF-8"
-            )
-            + b"\n"
-        )
+        self.compressor.write(json.dumps({"text": data, "meta": meta}, default=json_serial).encode("UTF-8") + b"\n")
 
     def commit(self) -> None:
         self.compressor.flush(zstandard.FLUSH_FRAME)

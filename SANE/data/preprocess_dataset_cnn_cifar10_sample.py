@@ -1,16 +1,14 @@
 # prepare data
+import logging
 from pathlib import Path
 
-from SANE.git_re_basin.git_re_basin import (
-    zoo_cnn_large_permutation_spec,
-)
+import torch
 
 from SANE.datasets.dataset_preprocessing import prepare_multiple_datasets
 from SANE.datasets.dataset_properties import PropertyDataset
-from SANE.datasets.dataset_sampling_preprocessed import PreprocessedSamplingDataset
-
-import logging
-import torch
+from SANE.datasets.dataset_sampling_preprocessed import \
+    PreprocessedSamplingDataset
+from SANE.git_re_basin.git_re_basin import zoo_cnn_large_permutation_spec
 
 logging.basicConfig(level=logging.INFO)
 
@@ -59,9 +57,7 @@ def prep_data():
     dataset_target_path = [
         Path("./dataset_cnn_cifar10_sample_ep21-25_std/"),
     ]
-    zoo_path = [  
-        Path("./cifar10_cnn_sample_ep21-25").absolute()
-    ]
+    zoo_path = [Path("./cifar10_cnn_sample_ep21-25").absolute()]
     zoo_path_and_permutation_spec_and_target_path = [
         (zoo_path[0], zoo_cnn_large_permutation_spec, dataset_target_path[0]),
     ]
@@ -96,7 +92,7 @@ def create_configurations(zoo_path_and_permutation_spec_and_target_path, filter_
     supersample = 3
     precision = "32"
     ignore_bn = True
-    tokensize = 0  #discover tokensize
+    tokensize = 0  # discover tokensize
 
     # permutation spec
     permutation_number_train = 200
@@ -146,7 +142,7 @@ def create_configurations(zoo_path_and_permutation_spec_and_target_path, filter_
                     "filter_fn": filter_fn,
                 }
             )
-    
+
     return configurations
 
 

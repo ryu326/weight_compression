@@ -61,15 +61,15 @@ ALL_MODELS = sum(
     (
         tuple(conf.pretrained_config_archive_map.keys())
         for conf in (
-        BertConfig,
-        XLNetConfig,
-        XLMConfig,
-        RobertaConfig,
-        DistilBertConfig,
-        AlbertConfig,
-        XLMRobertaConfig,
-        FlaubertConfig,
-    )
+            BertConfig,
+            XLNetConfig,
+            XLMConfig,
+            RobertaConfig,
+            DistilBertConfig,
+            AlbertConfig,
+            XLMRobertaConfig,
+            FlaubertConfig,
+        )
     ),
     (),
 )
@@ -96,7 +96,7 @@ def set_seed(args):
 
 
 def train(args, train_dataset, model, tokenizer):
-    """ Train the model """
+    """Train the model"""
 
     def save_model(args, global_step, model, optimizer, scheduler, tokenizer):
         output_dir = os.path.join(args.output_dir, "checkpoint-{}".format(global_step))
@@ -124,8 +124,9 @@ def train(args, train_dataset, model, tokenizer):
         t_total = args.max_steps
         args.num_train_epochs = args.max_steps // (len(train_dataloader) // args.gradient_accumulation_steps) + 1
     else:
-        t_total = len(
-            train_dataloader) // args.gradient_accumulation_steps * args.num_train_epochs * args.num_train_epochs
+        t_total = (
+            len(train_dataloader) // args.gradient_accumulation_steps * args.num_train_epochs * args.num_train_epochs
+        )
 
     # Prepare optimizer and schedule (linear warmup and decay)
     no_decay = ["bias", "LayerNorm.weight"]
@@ -136,19 +137,27 @@ def train(args, train_dataset, model, tokenizer):
         },
         {"params": [p for n, p in model.named_parameters() if any(nd in n for nd in no_decay)], "weight_decay": 0.0},
     ]
-    if args.prior_weight_decay:  # I am just addding this because revisiting bert few-sample added it. should be checked.
-        optimizer = AdamW(optimizer_grouped_parameters, lr=args.learning_rate, eps=args.adam_epsilon, \
-                          correct_bias=not args.use_bertadam, weight_decay=args.weight_decay)
+    if (
+        args.prior_weight_decay
+    ):  # I am just addding this because revisiting bert few-sample added it. should be checked.
+        optimizer = AdamW(
+            optimizer_grouped_parameters,
+            lr=args.learning_rate,
+            eps=args.adam_epsilon,
+            correct_bias=not args.use_bertadam,
+            weight_decay=args.weight_decay,
+        )
     else:
         optimizer = AdamW(optimizer_grouped_parameters, lr=args.learning_rate, eps=args.adam_epsilon)
     if args.prior_weight_decay:
         optimizer = PriorWD(optimizer, use_prior_wd=args.prior_weight_decay)
-    scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=args.warmup_steps, \
-                                                num_training_steps=t_total)
+    scheduler = get_linear_schedule_with_warmup(
+        optimizer, num_warmup_steps=args.warmup_steps, num_training_steps=t_total
+    )
 
     # Check if saved optimizer or scheduler states exist
     if os.path.isfile(os.path.join(args.model_name_or_path, "optimizer.pt")) and os.path.isfile(
-            os.path.join(args.model_name_or_path, "scheduler.pt")
+        os.path.join(args.model_name_or_path, "scheduler.pt")
     ):
         # Load in optimizer and scheduler states
         optimizer.load_state_dict(torch.load(os.path.join(args.model_name_or_path, "optimizer.pt")))
@@ -168,7 +177,10 @@ def train(args, train_dataset, model, tokenizer):
     # Distributed training (should be after apex fp16 initialization)
     if args.local_rank != -1:
         model = torch.nn.parallel.DistributedDataParallel(
-            model, device_ids=[args.local_rank], output_device=args.local_rank, find_unused_parameters=True,
+            model,
+            device_ids=[args.local_rank],
+            output_device=args.local_rank,
+            find_unused_parameters=True,
         )
 
     global_step = 0
@@ -187,7 +199,10 @@ def train(args, train_dataset, model, tokenizer):
     tr_loss, logging_loss = 0.0, 0.0
     model.zero_grad()
     train_iterator = trange(
-        epochs_trained, int(args.num_train_epochs), desc="Epoch", disable=args.local_rank not in [-1, 0],
+        epochs_trained,
+        int(args.num_train_epochs),
+        desc="Epoch",
+        disable=args.local_rank not in [-1, 0],
     )
     set_seed(args)  # Added here for reproductibility
 
@@ -214,12 +229,10 @@ def train(args, train_dataset, model, tokenizer):
                     batch[2] if args.model_type in ["bert", "xlnet", "albert"] else None
                 )  # XLM, DistilBERT, RoBERTa, and XLM-RoBERTa don't use segment_ids
 
-
             outputs = model(**inputs, epoch=epoch)
             loss = outputs["loss"]["loss"]  # model outputs are always tuple in transformers (see doc)
-            tb_writer.add_scalar("Classif_loss", outputs["ce_loss"].item(),
-                                 global_step)
-            tb_writer.add_scalar("MI_loss", outputs['mi_loss'].item(), global_step)
+            tb_writer.add_scalar("Classif_loss", outputs["ce_loss"].item(), global_step)
+            tb_writer.add_scalar("MI_loss", outputs["mi_loss"].item(), global_step)
 
             if args.n_gpu > 1:
                 loss = loss.mean()  # mean() to average on multi-gpu parallel training
@@ -246,7 +259,7 @@ def train(args, train_dataset, model, tokenizer):
 
                 if args.local_rank in [-1, 0] and args.logging_steps > 0 and global_step % args.logging_steps == 0:
                     if (
-                            args.local_rank == -1 and args.evaluate_during_training
+                        args.local_rank == -1 and args.evaluate_during_training
                     ):  # Only evaluate when single GPU otherwise metrics may not average well
                         results, _, _, _ = evaluate(args, model, tokenizer)
 
@@ -322,8 +335,9 @@ def evaluate(args, model, tokenizer, prefix="", sampling_type="argmax", save_res
                     out_label_ids = None if no_label else inputs["labels"].detach().cpu().numpy()
                 else:
                     preds = np.append(preds, logits.detach().cpu().numpy(), axis=0)
-                    out_label_ids = None if no_label else np.append(out_label_ids,
-                                                                    inputs["labels"].detach().cpu().numpy(), axis=0)
+                    out_label_ids = (
+                        None if no_label else np.append(out_label_ids, inputs["labels"].detach().cpu().numpy(), axis=0)
+                    )
 
                 zs.append(outputs["z"])
 
@@ -348,9 +362,9 @@ def evaluate(args, model, tokenizer, prefix="", sampling_type="argmax", save_res
                 temp = compute_metrics(args, eval_task, preds, out_label_ids)
                 if len(args.eval_tasks) > 1:
                     # then this is for transfer and we need to know the name of the datasets.
-                    temp = {eval_task + "_" + k + '_' + eval_type: v for k, v in temp.items()}
+                    temp = {eval_task + "_" + k + "_" + eval_type: v for k, v in temp.items()}
                 else:
-                    temp = {k + '_' + eval_type: v for k, v in temp.items()}
+                    temp = {k + "_" + eval_type: v for k, v in temp.items()}
                 results.update(temp)
                 print(results)
             else:
@@ -381,21 +395,36 @@ def load_and_cache_examples(args, task, tokenizer, eval_type):
 
     if eval_type == "train":
         if args.sample_train:
-            cached_features_file = join(data_dir,
-                                        'cached_type_{}_task_{}_sample_train_{}_num_samples_{}_model_{}_data_seed_{}'. \
-                                        format(eval_type, task, args.sample_train, args.num_samples,
-                                               list(filter(None, args.model_name_or_path.split('/'))).pop(),
-                                               args.data_seed))
+            cached_features_file = join(
+                data_dir,
+                "cached_type_{}_task_{}_sample_train_{}_num_samples_{}_model_{}_data_seed_{}".format(
+                    eval_type,
+                    task,
+                    args.sample_train,
+                    args.num_samples,
+                    list(filter(None, args.model_name_or_path.split("/"))).pop(),
+                    args.data_seed,
+                ),
+            )
         else:
             # here data_seed has no impact.
-            cached_features_file = join(data_dir,
-                                        'cached_type_{}_task_{}_sample_train_{}_num_samples_{}_model_{}'. \
-                                        format(eval_type, task, args.sample_train, args.num_samples,
-                                               list(filter(None, args.model_name_or_path.split('/'))).pop()))
+            cached_features_file = join(
+                data_dir,
+                "cached_type_{}_task_{}_sample_train_{}_num_samples_{}_model_{}".format(
+                    eval_type,
+                    task,
+                    args.sample_train,
+                    args.num_samples,
+                    list(filter(None, args.model_name_or_path.split("/"))).pop(),
+                ),
+            )
     else:
-        cached_features_file = join(data_dir, 'cached_type_{}_task_{}_model_{}'. \
-                                    format(eval_type, task,
-                                           list(filter(None, args.model_name_or_path.split('/'))).pop()))
+        cached_features_file = join(
+            data_dir,
+            "cached_type_{}_task_{}_model_{}".format(
+                eval_type, task, list(filter(None, args.model_name_or_path.split("/"))).pop()
+            ),
+        )
 
     if os.path.exists(cached_features_file) and not args.overwrite_cache:
         logger.info("Loading features from cached file %s", cached_features_file)
@@ -403,13 +432,14 @@ def load_and_cache_examples(args, task, tokenizer, eval_type):
     else:
         if eval_type == "train":
             if args.sample_train:
-                data_dir = join(data_dir, "sampled_datasets", "seed_" + str(args.data_seed),
-                                str(args.num_samples))  # sampled: for old version.
-            examples = (processor.get_train_examples(data_dir))
+                data_dir = join(
+                    data_dir, "sampled_datasets", "seed_" + str(args.data_seed), str(args.num_samples)
+                )  # sampled: for old version.
+            examples = processor.get_train_examples(data_dir)
         elif eval_type == "test":
-            examples = (processor.get_dev_examples(data_dir))
+            examples = processor.get_dev_examples(data_dir)
         elif eval_type == "dev":
-            examples = (processor.get_validation_examples(data_dir))
+            examples = processor.get_validation_examples(data_dir)
 
         features = convert_examples_to_features(
             examples,
@@ -420,7 +450,7 @@ def load_and_cache_examples(args, task, tokenizer, eval_type):
             pad_token=tokenizer.convert_tokens_to_ids([tokenizer.pad_token])[0],
             pad_token_segment_id=4 if args.model_type in ["xlnet"] else 0,
             output_mode=output_mode,
-            no_label=True if (eval_type == "test" and task in args.glue_tasks) else False
+            no_label=True if (eval_type == "test" and task in args.glue_tasks) else False,
         )
         print("Saving features into cached file %s", cached_features_file)
         torch.save(features, cached_features_file)
@@ -450,9 +480,9 @@ def write_in_glue_format(args, preds, eval_type, epoch):
         raise KeyError(output_mode)
 
     def write_labels(labels, outpath):
-        with open(outpath, 'wt') as f:
-            tsv_writer = csv.writer(f, delimiter='\t')
-            tsv_writer.writerow(['index', 'prediction'])
+        with open(outpath, "wt") as f:
+            tsv_writer = csv.writer(f, delimiter="\t")
+            tsv_writer.writerow(["index", "prediction"])
             for i, label in enumerate(labels):
                 tsv_writer.writerow([i, label])
 
@@ -464,8 +494,9 @@ def write_in_glue_format(args, preds, eval_type, epoch):
     label_map = {i: label for i, label in enumerate(label_list)}
     output_mode = output_modes[task]
     labels = [label_from_example(label, output_mode, label_map) for label in preds]
-    write_labels(labels,
-                 join(args.output_dir, task_to_filename[task] + "_" + eval_type + "_epoch_" + str(epoch) + ".tsv"))
+    write_labels(
+        labels, join(args.output_dir, task_to_filename[task] + "_" + eval_type + "_epoch_" + str(epoch) + ".tsv")
+    )
 
 
 def get_args():
@@ -473,42 +504,75 @@ def get_args():
     parser.add_argument("--dropout", type=float, default=None, help="dropout rate.")
     parser.add_argument("--mixout", type=float, default=0.0, help="mixout probability (default: 0)")
     parser.add_argument(
-        "--prior_weight_decay", action="store_true", help="Weight Decaying toward the bert params",
+        "--prior_weight_decay",
+        action="store_true",
+        help="Weight Decaying toward the bert params",
     )
     parser.add_argument("--kl_annealing", choices=[None, "linear"], default=None)
     parser.add_argument("--sample_train", action="store_true", help="Sample the training set.")
-    parser.add_argument("--num_samples", type=int, \
-                        help="Defines the number of the training samples.")
-    parser.add_argument("--evaluate_after_each_epoch", action="store_true", help="Eveluates the model after\
-            each epoch and saves the best model.")
-    parser.add_argument("--deterministic", action="store_true", help="If specified, learns the reduced dimensions\
-            through mlp in a deterministic manner.")
-    parser.add_argument("--activation", type=str, choices=["tanh", "sigmoid", "relu"], \
-                        default="relu")
-    parser.add_argument("--eval_types", nargs="+", type=str, default=["train", "test"], \
-                        choices=["train", "test", "dev"], help="Specifies the types to evaluate on,\
-                            can be dev, test, train.")
-    parser.add_argument("--binarize_eval", action="store_true", help="If specified, binarize the predictions, and\
-            labels during the evaluations in case of binary-class datasets.")
+    parser.add_argument("--num_samples", type=int, help="Defines the number of the training samples.")
+    parser.add_argument(
+        "--evaluate_after_each_epoch",
+        action="store_true",
+        help="Eveluates the model after\
+            each epoch and saves the best model.",
+    )
+    parser.add_argument(
+        "--deterministic",
+        action="store_true",
+        help="If specified, learns the reduced dimensions\
+            through mlp in a deterministic manner.",
+    )
+    parser.add_argument("--activation", type=str, choices=["tanh", "sigmoid", "relu"], default="relu")
+    parser.add_argument(
+        "--eval_types",
+        nargs="+",
+        type=str,
+        default=["train", "test"],
+        choices=["train", "test", "dev"],
+        help="Specifies the types to evaluate on,\
+                            can be dev, test, train.",
+    )
+    parser.add_argument(
+        "--binarize_eval",
+        action="store_true",
+        help="If specified, binarize the predictions, and\
+            labels during the evaluations in case of binary-class datasets.",
+    )
     # Ib parameters.
-    parser.add_argument("--beta", type=float, default=1.0, help="Defines the weight for the information bottleneck\
-            loss.")
+    parser.add_argument(
+        "--beta",
+        type=float,
+        default=1.0,
+        help="Defines the weight for the information bottleneck\
+            loss.",
+    )
     #######################################################################################
     ################################## BOTTLENECK PSATEK ##################################
     #######################################################################################
-    parser.add_argument("--number_of_samples", type=int, default=128,
-                        help="Defines the weight for the information bottleneck")
-    parser.add_argument("--name_mi_estimator", type=str, default='DOE',
-                        choices=['CLUBSample', 'MINE', 'L1OutUB', 'NWJ', 'InfoNCE', 'KERNEL_E', 'KERNEL_A', 'SMILE',
-                                 'DOE'])
-    parser.add_argument("--use_mi_estimation", action="store_true",
-                        help="If specified, uses the information bottleneck to reduce")
-    parser.add_argument("--ib", action="store_true", help="If specified, uses the information bottleneck to reduce\
-            the dimensions.")
+    parser.add_argument(
+        "--number_of_samples", type=int, default=128, help="Defines the weight for the information bottleneck"
+    )
+    parser.add_argument(
+        "--name_mi_estimator",
+        type=str,
+        default="DOE",
+        choices=["CLUBSample", "MINE", "L1OutUB", "NWJ", "InfoNCE", "KERNEL_E", "KERNEL_A", "SMILE", "DOE"],
+    )
+    parser.add_argument(
+        "--use_mi_estimation", action="store_true", help="If specified, uses the information bottleneck to reduce"
+    )
+    parser.add_argument(
+        "--ib",
+        action="store_true",
+        help="If specified, uses the information bottleneck to reduce\
+            the dimensions.",
+    )
     parser.add_argument("--loader_number", type=int, default=5, help="Defines the number of samples for the ib method.")
     parser.add_argument("--sample_size", type=int, default=5, help="Defines the number of samples for the ib method.")
-    parser.add_argument("--ib_dim", default=768, type=int,
-                        help="Specifies the dimension of the information bottleneck.")
+    parser.add_argument(
+        "--ib_dim", default=768, type=int, help="Specifies the dimension of the information bottleneck."
+    )
     #######################################################################################
 
     # Required parameter
@@ -545,7 +609,10 @@ def get_args():
 
     # Other parameters
     parser.add_argument(
-        "--config_name", default="", type=str, help="Pretrained config name or path if not the same as model_name",
+        "--config_name",
+        default="",
+        type=str,
+        help="Pretrained config name or path if not the same as model_name",
     )
     parser.add_argument(
         "--tokenizer_name",
@@ -564,22 +631,32 @@ def get_args():
         default=128,
         type=int,
         help="The maximum total input sequence length after tokenization. Sequences longer "
-             "than this will be truncated, sequences shorter will be padded.",
+        "than this will be truncated, sequences shorter will be padded.",
     )
     parser.add_argument("--do_train", action="store_true", help="Whether to run training.")
     parser.add_argument("--do_eval", action="store_true", help="Whether to run eval on the dev set.")
     parser.add_argument(
-        "--evaluate_during_training", action="store_true", help="Run evaluation during training at each logging step.",
+        "--evaluate_during_training",
+        action="store_true",
+        help="Run evaluation during training at each logging step.",
     )
     parser.add_argument(
-        "--do_lower_case", action="store_true", help="Set this flag if you are using an uncased model.",
+        "--do_lower_case",
+        action="store_true",
+        help="Set this flag if you are using an uncased model.",
     )
 
     parser.add_argument(
-        "--per_gpu_train_batch_size", default=8, type=int, help="Batch size per GPU/CPU for training.",
+        "--per_gpu_train_batch_size",
+        default=8,
+        type=int,
+        help="Batch size per GPU/CPU for training.",
     )
     parser.add_argument(
-        "--per_gpu_eval_batch_size", default=8, type=int, help="Batch size per GPU/CPU for evaluation.",
+        "--per_gpu_eval_batch_size",
+        default=8,
+        type=int,
+        help="Batch size per GPU/CPU for evaluation.",
     )
     parser.add_argument(
         "--gradient_accumulation_steps",
@@ -592,7 +669,10 @@ def get_args():
     parser.add_argument("--adam_epsilon", default=1e-8, type=float, help="Epsilon for Adam optimizer.")
     parser.add_argument("--max_grad_norm", default=1.0, type=float, help="Max gradient norm.")
     parser.add_argument(
-        "--num_train_epochs", default=3.0, type=float, help="Total number of training epochs to perform.",
+        "--num_train_epochs",
+        default=3.0,
+        type=float,
+        help="Total number of training epochs to perform.",
     )
     parser.add_argument(
         "--max_steps",
@@ -611,10 +691,14 @@ def get_args():
     )
     parser.add_argument("--no_cuda", action="store_true", help="Avoid using CUDA when available")
     parser.add_argument(
-        "--overwrite_output_dir", action="store_true", help="Overwrite the content of the output directory",
+        "--overwrite_output_dir",
+        action="store_true",
+        help="Overwrite the content of the output directory",
     )
     parser.add_argument(
-        "--overwrite_cache", action="store_true", help="Overwrite the cached training and evaluation sets",
+        "--overwrite_cache",
+        action="store_true",
+        help="Overwrite the cached training and evaluation sets",
     )
     parser.add_argument("--seed", type=int, default=42, help="random seed for initialization")
     parser.add_argument("--data_seed", type=int, default=66, help="random seed for initialization")
@@ -629,7 +713,7 @@ def get_args():
         type=str,
         default="O1",
         help="For fp16: Apex AMP optimization level selected in ['O0', 'O1', 'O2', and 'O3']."
-             "See details at https://nvidia.github.io/apex/amp.html",
+        "See details at https://nvidia.github.io/apex/amp.html",
     )
     parser.add_argument("--local_rank", type=int, default=-1, help="For distributed training: local_rank")
     parser.add_argument("--server_ip", type=str, default="", help="For distant debugging.")
@@ -639,10 +723,10 @@ def get_args():
         args.eval_types.append("dev")
 
     if (
-            os.path.exists(args.output_dir)
-            and os.listdir(args.output_dir)
-            and args.do_train
-            and not args.overwrite_output_dir
+        os.path.exists(args.output_dir)
+        and os.listdir(args.output_dir)
+        and args.do_train
+        and not args.overwrite_output_dir
     ):
         raise ValueError(
             "Output directory ({}) already exists and is not empty. Use --overwrite_output_dir to overcome.".format(
@@ -693,7 +777,7 @@ def get_args():
         "rte": "acc",
         "mrpc": "acc",
         "sts-b": "pearson",
-        "snli": "acc"
+        "snli": "acc",
     }
     args.task_to_data_dir = {
         "rte": "data/datasets/RTE",  # VIBERT/VIBERT/
@@ -713,11 +797,10 @@ def get_args():
         "scitail": "data/datasets/SciTail/",
         "sick": "data/datasets/SICK/",
         "QQP": "data/datasets/QQP/",
-        "snlihard": "data/datasets/SNLIHard/"
+        "snlihard": "data/datasets/SNLIHard/",
     }
     args.glue_tasks = ["rte", "mrpc", "sts-b"]
-    args.nli_tasks = ["addonerte", "dpr", "spr", "fnplus", "joci", "mpe", "scitail", \
-                      "sick", "QQP", "snlihard"]
+    args.nli_tasks = ["addonerte", "dpr", "spr", "fnplus", "joci", "mpe", "scitail", "sick", "QQP", "snlihard"]
 
     # Prepare GLUE task
     if len(args.eval_tasks) == 0:
@@ -774,8 +857,8 @@ def main():
         cache_dir=args.cache_dir if args.cache_dir else None,
     )
 
-    load_and_cache_examples(args, 'mrpc', tokenizer, 'dev')
-    load_and_cache_examples(args, 'sts-b', tokenizer, 'dev')
+    load_and_cache_examples(args, "mrpc", tokenizer, "dev")
+    load_and_cache_examples(args, "sts-b", tokenizer, "dev")
 
     model = model_class.from_pretrained(
         args.model_name_or_path,
@@ -798,11 +881,12 @@ def main():
 
     if args.mixout > 0:
         from mixout import MixLinear
+
         for sup_module in model.modules():
             for name, module in sup_module.named_children():
                 if isinstance(module, nn.Dropout):
                     module.p = 0.0
-                if isinstance(module, nn.Linear) and not ('output' in name and 'attention' not in name):
+                if isinstance(module, nn.Linear) and not ("output" in name and "attention" not in name):
                     target_state_dict = module.state_dict()
                     bias = True if module.bias is not None else False
                     new_module = MixLinear(

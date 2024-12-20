@@ -2,13 +2,11 @@ import os
 import re
 from typing import List
 
-import pytest
-
 import lm_eval.api as api
 import lm_eval.evaluator as evaluator
+import pytest
 from lm_eval import tasks
 from lm_eval.utils import make_table
-
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 # TODO: more fine grained unit tests rather than this big honking integration
@@ -35,9 +33,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
     ],
     ids=lambda d: f"{d}",
 )
-def test_evaluator(
-    task_name: List[str], limit: int, model: str, model_args: str, bootstrap_iters: int
-):
+def test_evaluator(task_name: List[str], limit: int, model: str, model_args: str, bootstrap_iters: int):
     e1 = evaluator.simple_evaluate(
         model=model,
         tasks=task_name,
@@ -74,10 +70,7 @@ def test_evaluator(
         else:
             return x["results"]["mmlu_abstract_algebra"]
 
-    assert all(
-        x == y
-        for x, y in zip([y for _, y in r(e1).items()], [y for _, y in r(e2).items()])
-    )
+    assert all(x == y for x, y in zip([y for _, y in r(e1).items()], [y for _, y in r(e2).items()]))
 
 
 @pytest.mark.parametrize(

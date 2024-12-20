@@ -57,9 +57,7 @@ class NN_tune_trainable(Trainable):
                 train_data, train_labels = train_data.cuda(), train_labels.cuda()
                 test_data, test_labels = test_data.cuda(), test_labels.cuda()
             else:
-                print(
-                    "### WARNING ### : using tensor dataloader without cuda. probably slow"
-                )
+                print("### WARNING ### : using tensor dataloader without cuda. probably slow")
             # create new tensor datasets
             self.trainset = torch.utils.data.TensorDataset(train_data, train_labels)
             self.testset = torch.utils.data.TensorDataset(test_data, test_labels)
@@ -73,13 +71,9 @@ class NN_tune_trainable(Trainable):
                 shuffle=True,
                 # num_workers=self.config.get("testloader::workers", 2),
             )
-            self.testloader = FastTensorDataLoader(
-                dataset=self.testset, batch_size=len(self.testset), shuffle=False
-            )
+            self.testloader = FastTensorDataLoader(dataset=self.testset, batch_size=len(self.testset), shuffle=False)
             if self.valset is not None:
-                self.valloader = FastTensorDataLoader(
-                    dataset=self.valset, batch_size=len(self.valset), shuffle=False
-                )
+                self.valloader = FastTensorDataLoader(dataset=self.valset, batch_size=len(self.valset), shuffle=False)
 
         else:
             self.trainloader = torch.utils.data.DataLoader(
@@ -104,9 +98,7 @@ class NN_tune_trainable(Trainable):
         config["scheduler::steps_per_epoch"] = len(self.trainloader)
 
         # init model
-        self.NN = NNmodule(
-            config=self.config, cuda=self.cuda, seed=self.seed, verbosity=0
-        )
+        self.NN = NNmodule(config=self.config, cuda=self.cuda, seed=self.seed, verbosity=0)
 
         # run first test epoch and log results
         self._iteration = -1
@@ -173,9 +165,7 @@ class NN_tune_trainable(Trainable):
             self.cuda = self.config["cuda"]
 
             # init model
-            self.NN = NNmodule(
-                config=self.config, cuda=self.cuda, seed=self.seed, verbosity=0
-            )
+            self.NN = NNmodule(config=self.config, cuda=self.cuda, seed=self.seed, verbosity=0)
 
             # instanciate Tensordatasets
             self.trainloader = FastTensorDataLoader(
@@ -183,9 +173,7 @@ class NN_tune_trainable(Trainable):
                 batch_size=self.config["training::batchsize"],
                 shuffle=True,
             )
-            self.testloader = FastTensorDataLoader(
-                dataset=self.testset, batch_size=len(self.testset), shuffle=False
-            )
+            self.testloader = FastTensorDataLoader(dataset=self.testset, batch_size=len(self.testset), shuffle=False)
 
             # drop inital checkpoint
             self.save()

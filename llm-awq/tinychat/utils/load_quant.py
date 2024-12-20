@@ -1,17 +1,16 @@
 import gc
 import os
 import re
-from typing import Union, List
-
-import torch
-import torch.nn as nn
-from transformers import AutoModelForCausalLM
-from accelerate import init_empty_weights, load_checkpoint_and_dispatch
-from awq.quantize.quantizer import real_quantize_model_weight
-from awq.quantize.qmodule import WQLinear
-from tqdm import tqdm
+from typing import List, Union
 
 import tinychat.utils.constants
+import torch
+import torch.nn as nn
+from accelerate import init_empty_weights, load_checkpoint_and_dispatch
+from awq.quantize.qmodule import WQLinear
+from awq.quantize.quantizer import real_quantize_model_weight
+from tqdm import tqdm
+from transformers import AutoModelForCausalLM
 
 version_message = """
 [Warning] The awq quantized checkpoint seems to be in v1 format. 
@@ -28,23 +27,17 @@ def mem_efficient_load_checkpoint(
     model: nn.Module,
     ckpts_folder: Union[str, os.PathLike],
 ):
-    checkpoint_files = [
-        ckpts_folder + "/" + f for f in os.listdir(ckpts_folder) if f.endswith(".pt")
-    ]
+    checkpoint_files = [ckpts_folder + "/" + f for f in os.listdir(ckpts_folder) if f.endswith(".pt")]
 
     # Check if the ckpts match the model
     model_keys = sorted((list(model.state_dict().keys())))
     suffix = r"\.pt$"
-    ckpt_keys = sorted(
-        [re.sub(suffix, "", f) for f in os.listdir(ckpts_folder) if f.endswith(".pt")]
-    )
+    ckpt_keys = sorted([re.sub(suffix, "", f) for f in os.listdir(ckpts_folder) if f.endswith(".pt")])
     assert len(model_keys) == len(
         ckpt_keys
     ), f"The number of checkpoint files do not match the model. \n Model has {len(model_keys)} keys, while finding {len(ckpt_keys)} checkpoint files in the folder."
     for key1, key2 in zip(model_keys, ckpt_keys):
-        assert (
-            key1 == key2
-        ), f"The checkpoint files do not match the model. \nmodel key {key1} != checkpoint key {key2}"
+        assert key1 == key2, f"The checkpoint files do not match the model. \nmodel key {key1} != checkpoint key {key2}"
 
     with tqdm(total=len(checkpoint_files)) as pbar:
         pbar.set_description("Loading checkpoint shards")
@@ -130,11 +123,7 @@ def find_layers(module, layers=[nn.Linear], name=""):
         return {name: module}
     res = {}
     for name1, child in module.named_children():
-        res.update(
-            find_layers(
-                child, layers=layers, name=name + "." + name1 if name != "" else name1
-            )
-        )
+        res.update(find_layers(child, layers=layers, name=name + "." + name1 if name != "" else name1))
     return res
 
 

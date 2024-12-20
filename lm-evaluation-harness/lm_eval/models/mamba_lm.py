@@ -1,8 +1,7 @@
 from typing import Optional, Union
 
-import torch
-
 import lm_eval.models.utils
+import torch
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
 
@@ -95,9 +94,8 @@ class MambaLMWrapper(HFLM):
             super()._create_model(pretrained, dtype=dtype, **kwargs)
         else:
             try:
-                from mamba_ssm.models.mixer_seq_simple import (
-                    MambaLMHeadModel,  # noqa: F811
-                )
+                from mamba_ssm.models.mixer_seq_simple import \
+                    MambaLMHeadModel  # noqa: F811
             except ModuleNotFoundError as exception:
                 raise type(exception)(
                     "attempted to use 'mamba_ssm' LM type, but package `mamba_ssm` is not installed. \
@@ -107,15 +105,11 @@ class MambaLMWrapper(HFLM):
             self._model = MambaLMHeadModel.from_pretrained(
                 pretrained,
                 device=self._device,
-                dtype=torch.float16
-                if dtype == "auto"
-                else lm_eval.models.utils.get_dtype(dtype),
+                dtype=torch.float16 if dtype == "auto" else lm_eval.models.utils.get_dtype(dtype),
             )
 
     def _model_generate(self, context, max_length, stop, **generation_kwargs):
-        remove_arg = (
-            ["attention_mask"] if self.is_hf else ["do_sample", "attention_mask"]
-        )
+        remove_arg = ["attention_mask"] if self.is_hf else ["do_sample", "attention_mask"]
         for key in remove_arg:
             if key in generation_kwargs:
                 generation_kwargs.pop(key)

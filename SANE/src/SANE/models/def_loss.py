@@ -43,9 +43,7 @@ class MaskedReconLoss(nn.Module):
         if self.loss_mean:
             rsq = torch.tensor(1 - loss.item() / self.loss_mean)
         else:
-            rsq = explained_variance(
-                preds=output, target=target, multioutput="uniform_average"
-            )
+            rsq = explained_variance(preds=output, target=target, multioutput="uniform_average")
 
             # rsq = r2_score(
             #     output.view(output.shape[0], -1),
@@ -274,9 +272,7 @@ class GammaContrastReconLoss(nn.Module):
             # combine loss components
             loss_contrast = self.loss_contrast(z_i, z_j)
             out_recon = self.loss_recon(y, t, m)
-            loss = (
-                self.gamma * loss_contrast + (1 - self.gamma) * out_recon["loss_recon"]
-            )
+            loss = self.gamma * loss_contrast + (1 - self.gamma) * out_recon["loss_recon"]
             out = {
                 "loss/loss": loss,
                 "loss/loss_contrast": loss_contrast,

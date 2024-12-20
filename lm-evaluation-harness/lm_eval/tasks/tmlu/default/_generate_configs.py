@@ -9,7 +9,6 @@ import pandas as pd
 import yaml
 from tqdm import tqdm
 
-
 categories = {
     "STEM": [
         "biology",
@@ -144,13 +143,9 @@ if __name__ == "__main__":
 
         yaml_dict = {
             "include": base_yaml_name,
-            "group": f"tmlu_{args.task_prefix}_{category}"
-            if args.task_prefix != ""
-            else f"tmlu_{category}",
+            "group": f"tmlu_{args.task_prefix}_{category}" if args.task_prefix != "" else f"tmlu_{category}",
             "group_alias": category.replace("_", " "),
-            "task": f"tmlu_{args.task_prefix}_{subject}"
-            if args.task_prefix != ""
-            else f"tmlu_{subject}",
+            "task": f"tmlu_{args.task_prefix}_{subject}" if args.task_prefix != "" else f"tmlu_{subject}",
             "task_alias": subject.replace("_", " "),
             "dataset_name": subject,
             "description": description,
@@ -172,9 +167,7 @@ if __name__ == "__main__":
             )
 
     if args.task_prefix != "":
-        mmlu_subcategories = [
-            f"tmlu_{args.task_prefix}_{category}" for category in ALL_CATEGORIES
-        ]
+        mmlu_subcategories = [f"tmlu_{args.task_prefix}_{category}" for category in ALL_CATEGORIES]
     else:
         mmlu_subcategories = [f"tmlu_{category}" for category in ALL_CATEGORIES]
 
@@ -187,9 +180,7 @@ if __name__ == "__main__":
     with open(file_save_path, "w") as yaml_file:
         yaml.dump(
             {
-                "group": f"tmlu_{args.task_prefix}"
-                if args.task_prefix != ""
-                else "tmlu",
+                "group": f"tmlu_{args.task_prefix}" if args.task_prefix != "" else "tmlu",
                 "task": mmlu_subcategories,
             },
             yaml_file,

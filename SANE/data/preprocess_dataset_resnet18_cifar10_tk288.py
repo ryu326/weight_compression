@@ -1,16 +1,14 @@
 # prepare data
+import logging
 from pathlib import Path
 
-from SANE.git_re_basin.git_re_basin import (
-    resnet18_permutation_spec,
-)
+import torch
 
 from SANE.datasets.dataset_preprocessing import prepare_multiple_datasets
 from SANE.datasets.dataset_properties import PropertyDataset
-from SANE.datasets.dataset_sampling_preprocessed import PreprocessedSamplingDataset
-
-import logging
-import torch
+from SANE.datasets.dataset_sampling_preprocessed import \
+    PreprocessedSamplingDataset
+from SANE.git_re_basin.git_re_basin import resnet18_permutation_spec
 
 logging.basicConfig(level=logging.INFO)
 
@@ -59,9 +57,7 @@ def prep_data():
     dataset_target_path = [
         Path("./dataset_resnet18_cifar10_token_288_ep21-25_std/"),
     ]
-    zoo_path = [  
-        Path("./cifar10_resnet18_kaiming_uniform/").absolute()
-    ]
+    zoo_path = [Path("./cifar10_resnet18_kaiming_uniform/").absolute()]
     zoo_path_and_permutation_spec_and_target_path = [
         (zoo_path[0], resnet18_permutation_spec, dataset_target_path[0]),
     ]
@@ -146,7 +142,7 @@ def create_configurations(zoo_path_and_permutation_spec_and_target_path, filter_
                     "filter_fn": filter_fn,
                 }
             )
-    
+
     return configurations
 
 

@@ -6,9 +6,7 @@ def haloify(w_in, pos, windowsize, halosize):
     slices full sequences w and pos into snipets of content winowsize with context 'halo' of halosize
     returns batch of snippets
     """
-    assert (
-        halosize < windowsize
-    ), f"halosize {halosize} should be smaller than windowsize {windowsize}"
+    assert halosize < windowsize, f"halosize {halosize} should be smaller than windowsize {windowsize}"
     # init output
     w_out = []
     pos_out = []
@@ -63,9 +61,7 @@ def dehaloify(toks, poss, windowsize, halosize, orig_seqlen):
     """
     maps sequences of snippets with halo back to full sequences
     """
-    assert (
-        halosize < windowsize
-    ), f"halosize {halosize} should be smaller than windowsize {windowsize}"
+    assert halosize < windowsize, f"halosize {halosize} should be smaller than windowsize {windowsize}"
     # init output
     w_out = []
     pos_out = []

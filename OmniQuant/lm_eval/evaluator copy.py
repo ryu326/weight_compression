@@ -12,7 +12,6 @@ import pdb
 import torch
 
 
-
 @positional_deprecated
 def simple_evaluate(
     model,
@@ -30,9 +29,8 @@ def simple_evaluate(
     weight_bit=8,
     act_bit=8,
     clip_range=10,
-    alpha=0.5
+    alpha=0.5,
 ):
-
     """Instantiate and evaluate a model on a list of tasks.
 
     :param model: Union[str, LM]
@@ -76,7 +74,6 @@ def simple_evaluate(
         assert isinstance(model, lm_eval.base.LM)
         lm = model
 
-
     if not no_cache:
         lm = lm_eval.base.CachingLM(
             lm,
@@ -92,8 +89,6 @@ def simple_evaluate(
     if check_integrity:
         run_task_tests(task_list=tasks)
 
-    
-    
     results = evaluate(
         lm=lm,
         task_dict=task_dict,
@@ -166,9 +161,7 @@ def evaluate(
     decontaminate = decontamination_ngrams_path is not None
 
     task_dict_items = [
-        (name, task)
-        for name, task in task_dict.items()
-        if (task.has_validation_docs() or task.has_test_docs())
+        (name, task) for name, task in task_dict.items() if (task.has_validation_docs() or task.has_test_docs())
     ]
 
     results = collections.defaultdict(dict)
@@ -209,23 +202,15 @@ def evaluate(
         rnd.seed(42)
         rnd.shuffle(task_docs)
 
-        description = (
-            description_dict[task_name]
-            if description_dict and task_name in description_dict
-            else ""
-        )
+        description = description_dict[task_name] if description_dict and task_name in description_dict else ""
 
         for doc_id, doc in enumerate(itertools.islice(task_docs, 0, limit)):
 
             if decontaminate and task.should_decontaminate():
-                docs_for_decontamination[(task_name, task_set)].append(
-                    task.doc_to_decontamination_query(doc)
-                )
+                docs_for_decontamination[(task_name, task_set)].append(task.doc_to_decontamination_query(doc))
 
             docs[(task_name, doc_id)] = doc
-            ctx = task.fewshot_context(
-                doc=doc, num_fewshot=num_fewshot, rnd=rnd, description=description
-            )
+            ctx = task.fewshot_context(doc=doc, num_fewshot=num_fewshot, rnd=rnd, description=description)
             reqs = task.construct_requests(doc, ctx)
             if not isinstance(reqs, (list, tuple)):
                 reqs = [reqs]
@@ -240,9 +225,7 @@ def evaluate(
         from lm_eval.decontamination.decontaminate import get_train_overlap
 
         print("Finding train/test overlap, please wait...")
-        overlaps = get_train_overlap(
-            docs_for_decontamination, decontamination_ngrams_path, limit
-        )
+        overlaps = get_train_overlap(docs_for_decontamination, decontamination_ngrams_path, limit)
 
     # all responses for each (task, doc)
     process_res_queue = collections.defaultdict(list)
@@ -256,9 +239,7 @@ def evaluate(
 
         print("Running", reqtype, "requests")
         resps = getattr(lm, reqtype)([req.args for req in reqs])
-        resps = [
-            x if req.index is None else x[req.index] for x, req in zip(resps, reqs)
-        ]
+        resps = [x if req.index is None else x[req.index] for x, req in zip(resps, reqs)]
 
         for resp, (i, task_name, doc, doc_id) in zip(resps, requests_origin[reqtype]):
             process_res_queue[(task_name, doc_id)].append((i, resp))
@@ -287,9 +268,7 @@ def evaluate(
         task = task_dict[task_name]
         real_metric = metric  # key when looking up the metric with task.aggregation
         if metric.endswith(decontaminate_suffix):
-            real_metric = metric.replace(
-                decontaminate_suffix, ""
-            )  # decontaminated still uses the same metric
+            real_metric = metric.replace(decontaminate_suffix, "")  # decontaminated still uses the same metric
         results[task_name][metric] = task.aggregation()[real_metric](items)
 
         # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
@@ -297,9 +276,7 @@ def evaluate(
 
         stderr = lm_eval.metrics.stderr_for_metric(
             metric=task.aggregation()[real_metric],
-            bootstrap_iters=min(bootstrap_iters, 1000)
-            if metric in ["bleu", "chrf", "ter"]
-            else bootstrap_iters,
+            bootstrap_iters=min(bootstrap_iters, 1000) if metric in ["bleu", "chrf", "ter"] else bootstrap_iters,
         )
 
         if stderr is not None:

@@ -1,19 +1,19 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # This software may be used and distributed according to the terms of the GNU General Public License version 3.
 
-from typing import Optional, Tuple
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
+from typing import Optional, Tuple
 
-import torch
-from torch import nn
-import torch.nn.functional as F
 import awq_inference_engine
+import tinychat.utils.constants
+import torch
+import torch.nn.functional as F
+from torch import nn
 from transformers.models.llama.modeling_llama import LlamaRotaryEmbedding
 
 # from flash_attn.flash_attn_interface import flash_attn_unpadded_func
 
-import tinychat.utils.constants
 
 max_batch_size = tinychat.utils.constants.max_batch_size
 multiple_of = tinychat.utils.constants.llama_multiple_of
@@ -35,9 +35,7 @@ class RMSNorm(torch.nn.Module):
         return output
 
 
-def precompute_freqs_cis(
-    dim: int, end: int, theta: float = 10000.0, scale: float = 1.0
-):
+def precompute_freqs_cis(dim: int, end: int, theta: float = 10000.0, scale: float = 1.0):
     freqs = 1.0 / (theta ** (torch.arange(0, dim, 2)[: (dim // 2)].float() / dim))
     t = torch.arange(end, device=freqs.device)  # type: ignore
     freqs = torch.outer(t * scale, freqs).float()  # type: ignore
@@ -60,12 +58,8 @@ def apply_rotary_emb(
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     # xq_ = torch.view_as_complex(xq.float().reshape(*xq.shape[:-1], -1, 2))
     # k_ = torch.view_as_complex(xk.float().reshape(*xk.shape[:-1], -1, 2))
-    xq_ = torch.view_as_complex(
-        xq.float().reshape(*xq.shape[:-1], 2, -1).transpose(-2, -1).contiguous()
-    )
-    xk_ = torch.view_as_complex(
-        xk.float().reshape(*xk.shape[:-1], 2, -1).transpose(-2, -1).contiguous()
-    )
+    xq_ = torch.view_as_complex(xq.float().reshape(*xq.shape[:-1], 2, -1).transpose(-2, -1).contiguous())
+    xk_ = torch.view_as_complex(xk.float().reshape(*xk.shape[:-1], 2, -1).transpose(-2, -1).contiguous())
     freqs_cis = reshape_for_broadcast(freqs_cis, xq_)
     xq_out = torch.view_as_real(xq_ * freqs_cis).transpose(-2, -1).flatten(3)
     xk_out = torch.view_as_real(xk_ * freqs_cis).transpose(-2, -1).flatten(3)
@@ -145,9 +139,7 @@ class LlamaAttentionFused(nn.Module):
         )  # added to half
 
         # dummy
-        self.rotary_emb = LlamaRotaryEmbedding(
-            self.head_dim, max_position_embeddings=2048, device="cuda:0"
-        )
+        self.rotary_emb = LlamaRotaryEmbedding(self.head_dim, max_position_embeddings=2048, device="cuda:0")
 
     def forward(
         self,
@@ -190,28 +182,20 @@ class LlamaAttentionFused(nn.Module):
                 keys = self.cache_k[:, :, :, 0 : start_pos + seqlen, :]
                 keys = (
                     keys.permute(0, 3, 1, 2, 4)
-                    .reshape(
-                        bsz, start_pos + seqlen, self.num_key_value_heads, self.head_dim
-                    )
+                    .reshape(bsz, start_pos + seqlen, self.num_key_value_heads, self.head_dim)
                     .contiguous()
                 )
                 values = self.cache_v[:, :, 0 : start_pos + seqlen, :]
                 values = (
                     values.transpose(2, 1)
-                    .reshape(
-                        bsz, start_pos + seqlen, self.num_key_value_heads, self.head_dim
-                    )
+                    .reshape(bsz, start_pos + seqlen, self.num_key_value_heads, self.head_dim)
                     .contiguous()
                 )
             else:
                 keys = xk
                 values = xv
-            keys = torch.repeat_interleave(
-                keys, dim=2, repeats=self.num_key_value_groups
-            )
-            values = torch.repeat_interleave(
-                values, dim=2, repeats=self.num_key_value_groups
-            )
+            keys = torch.repeat_interleave(keys, dim=2, repeats=self.num_key_value_groups)
+            values = torch.repeat_interleave(values, dim=2, repeats=self.num_key_value_groups)
 
             xq = xq.transpose(1, 2)
             keys = keys.transpose(1, 2)
@@ -281,9 +265,7 @@ class TransformerBlock(nn.Module):
         mask: Optional[torch.Tensor],
         chunk_prefilling: bool,
     ):
-        h = x + self.self_attn.forward(
-            self.input_layernorm(x), start_pos, freqs_cis, mask, chunk_prefilling
-        )
+        h = x + self.self_attn.forward(self.input_layernorm(x), start_pos, freqs_cis, mask, chunk_prefilling)
         out = h + self.mlp.forward(self.post_attention_layernorm(h))
         return out
 
@@ -338,9 +320,7 @@ class Transformer(nn.Module):
             mask = torch.full((1, 1, seqlen, seqlen), float("-inf"), device=h.device)
             mask = torch.triu(mask, diagonal=1).type_as(h)
             if chunk_prefilling:
-                mask_history = torch.zeros(
-                    (1, 1, seqlen, start_pos), dtype=torch.float16, device=h.device
-                ).type_as(h)
+                mask_history = torch.zeros((1, 1, seqlen, start_pos), dtype=torch.float16, device=h.device).type_as(h)
                 mask = torch.cat((mask_history, mask), dim=-1)
         for layer in self.layers:
             h = layer(h, start_pos, freqs_cis, mask, chunk_prefilling)

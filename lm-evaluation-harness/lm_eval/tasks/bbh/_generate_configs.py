@@ -9,9 +9,8 @@ import re
 import datasets
 import requests
 import yaml
-from tqdm import tqdm
-
 from lm_eval import utils
+from tqdm import tqdm
 
 
 def parse_args():

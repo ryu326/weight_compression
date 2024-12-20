@@ -6,11 +6,9 @@ import os
 from typing import Dict, List, Optional, Tuple, Type, TypeVar, Union
 
 import transformers
+from lm_eval import utils
 from sqlitedict import SqliteDict
 from tqdm import tqdm
-
-from lm_eval import utils
-
 
 eval_logger = logging.getLogger("lm-eval")
 
@@ -128,9 +126,7 @@ class LM(abc.ABC):
         )
 
     @classmethod
-    def create_from_arg_string(
-        cls: Type[T], arg_string: str, additional_config: Optional[dict] = None
-    ) -> T:
+    def create_from_arg_string(cls: Type[T], arg_string: str, additional_config: Optional[dict] = None) -> T:
         """
         Creates an instance of the LM class using the given argument string and additional config.
 
@@ -147,9 +143,7 @@ class LM(abc.ABC):
         return cls(**args, **args2)
 
     @classmethod
-    def create_from_arg_obj(
-        cls: Type[T], arg_dict: dict, additional_config: Optional[dict] = None
-    ) -> T:
+    def create_from_arg_obj(cls: Type[T], arg_dict: dict, additional_config: Optional[dict] = None) -> T:
         """
         Creates an instance of the LM class using the given arg_obj
 
@@ -162,9 +156,7 @@ class LM(abc.ABC):
         """
 
         additional_config = {} if additional_config is None else additional_config
-        additional_config = {
-            k: v for k, v in additional_config.items() if v is not None
-        }
+        additional_config = {k: v for k, v in additional_config.items() if v is not None}
 
         return cls(**arg_dict, **additional_config)
 
@@ -254,9 +246,7 @@ class CachingLM:
             remaining_reqs = []
             warned = False
             # figure out which ones are cached and which ones are new
-            eval_logger.info(
-                f"Loading '{attr}' responses from cache '{self.cache_db}' where possible..."
-            )
+            eval_logger.info(f"Loading '{attr}' responses from cache '{self.cache_db}' where possible...")
             for req in tqdm(requests, desc="Checking cached requests"):
                 hsh = hash_args(attr, req.args)
                 if attr == "generate_until" and req.args[1].get("do_sample", False):
@@ -337,9 +327,7 @@ class TemplateLM(LM):
     def _loglikelihood_tokens(self, requests, **kwargs) -> List[Tuple[float, bool]]:
         pass
 
-    def _encode_pair(
-        self, context: str, continuation: str
-    ) -> Tuple[List[int], List[int]]:
+    def _encode_pair(self, context: str, continuation: str) -> Tuple[List[int], List[int]]:
         n_spaces = len(context) - len(context.rstrip())
         if n_spaces > 0:
             continuation = context[-n_spaces:] + continuation
@@ -359,9 +347,7 @@ class TemplateLM(LM):
 
         return context_enc, continuation_enc
 
-    def loglikelihood(
-        self, requests, disable_tqdm: bool = False
-    ) -> List[Tuple[float, bool]]:
+    def loglikelihood(self, requests, disable_tqdm: bool = False) -> List[Tuple[float, bool]]:
         new_reqs = []
         for context, continuation in [req.args for req in requests]:
             if context == "":
@@ -378,9 +364,7 @@ class TemplateLM(LM):
         return self._loglikelihood_tokens(new_reqs, disable_tqdm=disable_tqdm)
 
     @abc.abstractmethod
-    def loglikelihood_rolling(
-        self, requests, disable_tqdm: bool = False
-    ) -> List[float]:
+    def loglikelihood_rolling(self, requests, disable_tqdm: bool = False) -> List[float]:
         pass
 
     @abc.abstractmethod
@@ -432,9 +416,7 @@ class TemplateLM(LM):
 
         # First, handle the cases when the model has a dict of multiple templates
         try:
-            template = (
-                self.tokenizer.chat_template or self.tokenizer.default_chat_template
-            )
+            template = self.tokenizer.chat_template or self.tokenizer.default_chat_template
         except AttributeError:
             return None
 
