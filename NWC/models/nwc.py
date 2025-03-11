@@ -496,30 +496,23 @@ class SimpleVAECompressionModel_with_Transformer(SimpleVAECompressionModel):
         self.use_hyper = use_hyper
         if use_hyper == True:
             
-            h_a_layer = nn.TransformerEncoderLayer(d_model=dim_encoder, nhead=8, batch_first = True) 
-            h_a = nn.TransformerEncoder(h_a_layer, num_layers=n_layer//2)
+            # h_a_layer = nn.TransformerEncoderLayer(d_model=dim_encoder//2, nhead=8, batch_first = True) 
+            # h_a = nn.TransformerEncoder(h_a_layer, num_layers=n_layer//4)
             
-            self.h_a = nn.Sequential(
-                nn.Linear(M, dim_encoder), 
-                h_a)
+            self.h_a = nn.Linear(M, dim_encoder//2)
             
+            # h_s_means_layer = nn.TransformerEncoderLayer(d_model=dim_encoder//2, nhead=8, batch_first = True) 
+            # h_s_means = nn.TransformerEncoder(h_s_means_layer, num_layers=n_layer//4)
             
-            h_s_means_layer = nn.TransformerEncoderLayer(d_model=dim_encoder, nhead=8, batch_first = True) 
-            h_s_means = nn.TransformerEncoder(h_s_means_layer, num_layers=n_layer//2)
+            self.h_s_means = nn.Linear(dim_encoder//2, M)
             
-            self.h_s_means = nn.Sequential(
-                h_s_means, 
-                nn.Linear(dim_encoder, M))
+            # h_s_scales_layer = nn.TransformerEncoderLayer(d_model=dim_encoder//2, nhead=8, batch_first = True) 
+            # h_s_scales = nn.TransformerEncoder(h_s_scales_layer, num_layers=n_layer//4)
             
-            h_s_scales_layer = nn.TransformerEncoderLayer(d_model=dim_encoder, nhead=8, batch_first = True) 
-            h_s_scales = nn.TransformerEncoder(h_s_scales_layer, num_layers=n_layer//2)
-            
-            self.h_s_scales = nn.Sequential(
-                h_s_scales, 
-                nn.Linear(dim_encoder, M))
+            self.h_s_scales = nn.Linear(dim_encoder//2, M)
             
             self.gaussian_conditional = GaussianConditional(None)
-            self.entropy_bottleneck = EntropyBottleneck(dim_encoder)
+            self.entropy_bottleneck = EntropyBottleneck(dim_encoder//2)
             
     
     def forward(self, data):
@@ -529,19 +522,29 @@ class SimpleVAECompressionModel_with_Transformer(SimpleVAECompressionModel):
 
         y = self.g_a(x_shift)
         
-        perm = list(range(y.dim()))
-        perm[-1], perm[1] = perm[1], perm[-1]
-        y = y.permute(*perm).contiguous()
-        
         if self.use_hyper == True:
             
             z = self.h_a(y)
-            z_hat, z_likelihoods = self.entropy_bottleneck(z)
             
-            means_hat = self.h_s_mean(z_hat)
-            scales_hat = self.h_s_scale(z_hat)
+            perm = list(range(z.dim()))
+            perm[-1], perm[1] = perm[1], perm[-1]
+            z = z.permute(*perm).contiguous()
+            
+            z_hat, z_likelihoods = self.entropy_bottleneck(z)
+            z_hat = z_hat.permute(*perm).contiguous()
+            
+            means_hat = self.h_s_means(z_hat)
+            scales_hat = self.h_s_scales(z_hat)
+            
+            perm = list(range(y.dim()))
+            perm[-1], perm[1] = perm[1], perm[-1]
+            y = y.permute(*perm).contiguous()
+            
+            scales_hat = scales_hat.permute(*perm).contiguous()
+            means_hat = means_hat.permute(*perm).contiguous()
             
             y_hat, y_likelihoods = self.gaussian_conditional(y, scales_hat, means=means_hat)
+            y_hat = y_hat.permute(*perm).contiguous()
             
             x_hat = self.g_s(y_hat)
             x_hat = self.scale * x_hat + self.shift
@@ -556,6 +559,10 @@ class SimpleVAECompressionModel_with_Transformer(SimpleVAECompressionModel):
             }
             
         else:
+            
+            perm = list(range(y.dim()))
+            perm[-1], perm[1] = perm[1], perm[-1]
+            y = y.permute(*perm).contiguous()
         
             y_hat, y_likelihoods = self.entropy_bottleneck(y)
             y_hat = y_hat.permute(*perm).contiguous()
@@ -576,13 +583,25 @@ class SimpleVAECompressionModel_with_Transformer(SimpleVAECompressionModel):
         
         z = self.h_a(y)
         
+        perm = list(range(z.dim()))
+        perm[-1], perm[1] = perm[1], perm[-1]
+        z = z.permute(*perm).contiguous()
+        
         shape = z.size()[2:]
         z_strings = self.entropy_bottleneck.compress(z)
         
         z_hat = self.entropy_bottleneck.decompress(z_strings, shape)
+        z_hat = z_hat.permute(*perm).contiguous()
         
-        means_hat = self.h_s_mean(z_hat)
-        scales_hat = self.h_s_scale(z_hat)
+        means_hat = self.h_s_means(z_hat)
+        scales_hat = self.h_s_scales(z_hat)
+        
+        perm = list(range(y.dim()))
+        perm[-1], perm[1] = perm[1], perm[-1]
+        y = y.permute(*perm).contiguous()
+        
+        scales_hat = scales_hat.permute(*perm).contiguous()
+        means_hat = means_hat.permute(*perm).contiguous()
         
         indexes = self.gaussian_conditional.build_indexes(scales_hat)
         y_strings = self.gaussian_conditional.compress(y, indexes, means=means_hat)
@@ -590,6 +609,11 @@ class SimpleVAECompressionModel_with_Transformer(SimpleVAECompressionModel):
         return {"strings": [y_strings, z_strings], "shape": shape}
     
     def compress_without_hyperprior(self, y):
+        
+        perm = list(range(y.dim()))
+        perm[-1], perm[1] = perm[1], perm[-1]
+        y = y.permute(*perm).contiguous()
+        
         shape = y.size()[2:]
         y_strings = self.entropy_bottleneck.compress(y)
         
@@ -602,10 +626,6 @@ class SimpleVAECompressionModel_with_Transformer(SimpleVAECompressionModel):
 
         y = self.g_a(x_shift)
         
-        perm = list(range(y.dim()))
-        perm[-1], perm[1] = perm[1], perm[-1]
-        y = y.permute(*perm).contiguous()
-        
         if self.use_hyper == True:
             
             return self.compress_with_hyperprior(y)
@@ -617,8 +637,15 @@ class SimpleVAECompressionModel_with_Transformer(SimpleVAECompressionModel):
         
         z_hat = self.entropy_bottleneck.decompress(strings[1], shape)
         
-        means_hat = self.h_s_mean(z_hat)
-        scales_hat = self.h_s_scale(z_hat)
+        perm = list(range(z_hat.dim()))
+        perm[-1], perm[1] = perm[1], perm[-1]
+        z_hat = z_hat.permute(*perm).contiguous()
+        
+        means_hat = self.h_s_means(z_hat)
+        scales_hat = self.h_s_scales(z_hat)
+        
+        scales_hat = scales_hat.permute(*perm).contiguous()
+        means_hat = means_hat.permute(*perm).contiguous()
         
         indexes = self.gaussian_conditional.build_indexes(scales_hat)
         y_hat = self.gaussian_conditional.decompress(
