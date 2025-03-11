@@ -496,20 +496,20 @@ class SimpleVAECompressionModel_with_Transformer(SimpleVAECompressionModel):
         self.use_hyper = use_hyper
         if use_hyper == True:
             
-            # h_a_layer = nn.TransformerEncoderLayer(d_model=dim_encoder//2, nhead=8, batch_first = True) 
-            # h_a = nn.TransformerEncoder(h_a_layer, num_layers=n_layer//4)
+            h_a_layer = nn.TransformerEncoderLayer(d_model=dim_encoder//2, nhead=8, batch_first = True) 
+            h_a = nn.TransformerEncoder(h_a_layer, num_layers=n_layer//2)
             
-            self.h_a = nn.Linear(M, dim_encoder//2)
+            self.h_a = nn.Sequential(nn.Linear(M, dim_encoder//2), h_a)
             
-            # h_s_means_layer = nn.TransformerEncoderLayer(d_model=dim_encoder//2, nhead=8, batch_first = True) 
-            # h_s_means = nn.TransformerEncoder(h_s_means_layer, num_layers=n_layer//4)
+            h_s_means_layer = nn.TransformerEncoderLayer(d_model=dim_encoder//2, nhead=8, batch_first = True) 
+            h_s_means = nn.TransformerEncoder(h_s_means_layer, num_layers=n_layer//2)
             
-            self.h_s_means = nn.Linear(dim_encoder//2, M)
+            self.h_s_means = nn.Sequential(h_s_means, nn.Linear(dim_encoder//2, M))
             
-            # h_s_scales_layer = nn.TransformerEncoderLayer(d_model=dim_encoder//2, nhead=8, batch_first = True) 
-            # h_s_scales = nn.TransformerEncoder(h_s_scales_layer, num_layers=n_layer//4)
+            h_s_scales_layer = nn.TransformerEncoderLayer(d_model=dim_encoder//2, nhead=8, batch_first = True) 
+            h_s_scales = nn.TransformerEncoder(h_s_scales_layer, num_layers=n_layer//2)
             
-            self.h_s_scales = nn.Linear(dim_encoder//2, M)
+            self.h_s_scales = nn.Sequential(h_s_scales, nn.Linear(dim_encoder//2, M))
             
             self.gaussian_conditional = GaussianConditional(None)
             self.entropy_bottleneck = EntropyBottleneck(dim_encoder//2)
@@ -518,6 +518,10 @@ class SimpleVAECompressionModel_with_Transformer(SimpleVAECompressionModel):
     def forward(self, data):
         
         x = data['weight_block']    
+        
+        self.shift = self.shift.to(x.device)
+        self.scale = self.scale.to(x.device)
+        
         x_shift = (x - self.shift) / self.scale
 
         y = self.g_a(x_shift)
