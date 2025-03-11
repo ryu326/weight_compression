@@ -127,7 +127,6 @@ def get_model(model_class, opts, scale, shift):
             dim_encoder=opts.dim_encoder,
             n_layer=opts.n_resblock, # 변수명 통일을 위해 쌓고 싶은 resblock 개수 = 쌓고싶은 transformer layer 개수로 일단 통일 -> 수정하고 싶으면 수정하샘
             M = opts.M,
-            N = opts.N,
             scale=scale,
             shift=shift,
             use_hyper = False
@@ -139,7 +138,6 @@ def get_model(model_class, opts, scale, shift):
             dim_encoder=opts.dim_encoder,
             n_layer=opts.n_resblock, 
             M = opts.M,
-            N = opts.N,
             scale=scale,
             shift=shift,
             use_hyper = True
