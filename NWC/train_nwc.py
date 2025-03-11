@@ -1,7 +1,3 @@
-# CUDA_VISIBLE_DEVICES=0,1,2,3 taskset -c 0-31 nohup python -u train.py --lmbda 1 --iter 2000000 --u-length 4 --batch-size 8 --seed 100 --dist_port 6044 > ./training_logs/log_lmbda_1.txt 2>&1 &
-
-# 노헙 안돌리는거
-# CUDA_VISIBLE_DEVICES=2 taskset -c 14-23 python -u train.py --lmbda 1 --iter 2000000 --u-length 4 --batch-size 8 --seed 100 --dist_port 6044 --slurm
 import math
 import operator
 import os
@@ -13,7 +9,6 @@ import json
 import numpy as np
 import pandas as pd
 import torch
-import torch.distributed as dist
 import torch.nn.functional as F
 import torch.optim as optim
 # import torchvision
@@ -27,7 +22,6 @@ from utils.util import *
 
 def parse_args(argv):
     parser = argparse.ArgumentParser(description="Example training script.")
-    parser.add_argument("--dist_port", type=int, default=6006, required=True)
     parser.add_argument("--iter", default=2000000, type=int)
     parser.add_argument("--dataset", type=str, default=None)
     parser.add_argument("--dataset_path", type=str, default=None)
@@ -111,15 +105,10 @@ def main(opts):
 
     gpu_num = getattr(opts, "dev.num_gpus")
 
-    if gpu_num > 1:
-        node_rank = getattr(opts, "ddp.rank", 0)
-        device_id = getattr(opts, "dev.device_id", torch.device("cpu"))
-        logger = logger_setup(log_file_name="logs", log_file_folder_name=opts.save_path)
-
-    else:
-        node_rank = 0
-        device_id = "cuda"
-        logger = opts.logger
+    node_rank = 0
+    device_id = "cuda"
+    logger = opts.logger
+        
 
     seed = opts.seed
 
@@ -144,23 +133,15 @@ def main(opts):
     
     device = device_id
 
-    if gpu_num > 1:
-        train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset, shuffle=True)
-        batch_sampler_train = torch.utils.data.BatchSampler(train_sampler, opts.batch_size, drop_last=True)
-
-        train_dataloader = DataLoader(
-            train_dataset, batch_sampler=batch_sampler_train, num_workers=opts.num_workers, pin_memory=True
-        )
-
-    else:
-        train_dataloader = DataLoader(
-            train_dataset,
-            batch_size=opts.batch_size,
-            num_workers=opts.num_workers,
-            pin_memory=True,
-            shuffle=True,
-            drop_last=True,
-        )
+    train_dataloader = DataLoader(
+        train_dataset,
+        batch_size=opts.batch_size,
+        num_workers=opts.num_workers,
+        pin_memory=True,
+        shuffle=True,
+        drop_last=True,
+    )
+        
     ## 함수로 따로 만들기
     scale = train_dataset.std.to(device)
     shift = train_dataset.mean.to(device)
@@ -171,12 +152,7 @@ def main(opts):
     net = net.to(device)
 
     if gpu_num > 1:
-        net = torch.nn.parallel.DistributedDataParallel(
-            net,
-            device_ids=[device_id],
-            output_device=device_id,
-            find_unused_parameters=False,
-        )
+        net = nn.DataParallel(net)
 
     optimizer, aux_optimizer = configure_optimizers(net, opts)
     
@@ -244,9 +220,6 @@ def main(opts):
 
     save_path = opts.save_path
 
-    if gpu_num > 1:
-        dist.barrier()
-
     optimizer.zero_grad()
     aux_optimizer.zero_grad()
 
@@ -275,9 +248,6 @@ def main(opts):
                 optimizer.zero_grad()
                 aux_optimizer.zero_grad()
                 out_net = net(data)
-
-                if gpu_num > 1:
-                    dist.barrier()
 
                 out_loss = criterion(data= data, output = out_net)
                 out_loss['loss'].backward()
@@ -308,15 +278,10 @@ def main(opts):
                     f"\taux_loss: {aux_loss.item()}"
                 )
                 wandb.log(out_loss)
-            if gpu_num > 1:
-                dist.barrier()
 
             # 몇 번마다 성능 측정할까? 만 번마다 해보자 + 맨 첨에도 해보자. 궁금하니까.
             if (total_iter % 5000 == 0) or (total_iter == (1 * gpu_num)):
                 torch.cuda.empty_cache()
-
-                if gpu_num > 1:
-                    dist.barrier()
 
                 with torch.no_grad():
                     net_eval = get_model(opts.architecture, opts, scale=scale, shift=shift)        
@@ -460,72 +425,10 @@ def main(opts):
                 del net_eval
 
                 torch.cuda.empty_cache()
-            if gpu_num > 1:
-                dist.barrier()
 
     wandb.finish()
 
-
-def distributed_init(opts) -> int:
-    ddp_url = getattr(opts, "ddp.dist_url", None)
-
-    node_rank = getattr(opts, "ddp.rank", 0)
-    is_master_node = node_rank == 0
-
-    if ddp_url is None:
-        # 따로 지정한게 없어서 무조건 이쪽으로 들어옴
-        ddp_port = opts.dist_port
-        hostname = socket.gethostname()
-        ddp_url = "tcp://{}:{}".format(hostname, ddp_port)
-        setattr(opts, "ddp.dist_url", ddp_url)
-
-    node_rank = getattr(opts, "ddp.rank", 0)
-    world_size = getattr(opts, "ddp.world_size", 0)
-
-    if torch.distributed.is_initialized():
-        print("DDP is already initialized and cannot be initialize twice!")
-    else:
-        print("distributed init (rank {}): {}".format(node_rank, ddp_url))
-
-        dist_backend = getattr(opts, "ddp.backend", "nccl")  # "gloo"
-
-        if dist_backend is None and dist.is_nccl_available():
-            dist_backend = "nccl"
-            if is_master_node:
-                print("Using NCCL as distributed backend with version={}".format(torch.cuda.nccl.version()))
-        elif dist_backend is None:
-            dist_backend = "gloo"
-
-        dist.init_process_group(
-            backend=dist_backend,
-            init_method=ddp_url,
-            world_size=world_size,
-            rank=node_rank,
-        )
-
-        # perform a dummy all-reduce to initialize the NCCL communicator
-        if torch.cuda.is_available():
-            dist.all_reduce(torch.zeros(1).cuda())
-
-    node_rank = torch.distributed.get_rank()
-    setattr(opts, "ddp.rank", node_rank)
-    return node_rank
-
-
-def distributed_worker(i, main, opts):
-    setattr(opts, "dev.device_id", i)
-    torch.cuda.set_device(i)
-    setattr(opts, "dev.device", torch.device(f"cuda:{i}"))
-
-    ddp_rank = i
-    setattr(opts, "ddp.rank", ddp_rank)
-
-    node_rank = distributed_init(opts)
-    setattr(opts, "ddp.rank", node_rank)
-    main(opts)
-
-
-def ddp_or_single_process(argvs):
+def before_main(argvs):
 
     opts = parse_args(argvs)
     checkpoint = "None"
@@ -571,22 +474,10 @@ def ddp_or_single_process(argvs):
     # 사전을 JSON으로 변환하여 저장
     with open(save_path + "/config.json", "w") as f:
         json.dump(args_dict, f, indent=4)
-
-    if torch.cuda.device_count() > 1:
-        setattr(opts, "ddp.world_size", torch.cuda.device_count())
-
-        logger.info(f"opts: {opts}")
-
-        torch.multiprocessing.spawn(
-            fn=distributed_worker,
-            args=(main, opts),
-            nprocs=getattr(opts, "dev.num_gpus"),
-        )
-    else:
-        setattr(opts, "logger", logger)
-        main(opts)
-
-
+    
+    setattr(opts, "logger", logger)
+    main(opts)
+        
 if __name__ == "__main__":
 
-    ddp_or_single_process(sys.argv[1:])
+    before_main(sys.argv[1:])
