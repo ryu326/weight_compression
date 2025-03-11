@@ -12,9 +12,9 @@ Homepage: https://quac.ai/
 """
 
 import inspect
+
 import lm_eval.datasets.quac.quac
 from lm_eval.base import Task
-
 
 _CITATION = """
 @article{choi2018quac,

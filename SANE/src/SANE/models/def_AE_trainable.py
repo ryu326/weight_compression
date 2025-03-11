@@ -1,40 +1,26 @@
-from ray.tune import Trainable
-from ray.tune.utils import wait_for_gpu
-import torch
-import sys
-
-import psutil
-import os
-
-
 import json
-
+import logging
+import os
+import sys
 # print(f"sys path in experiment: {sys.path}")
 from pathlib import Path
 
-# import model_definitions
-from SANE.models.def_AE_module import AEModule
-
+import psutil
+import torch
+from ray.air.integrations.wandb import setup_wandb
+from ray.tune import Trainable
+from ray.tune.utils import wait_for_gpu
 from torch.utils.data import DataLoader
 
-from ray.air.integrations.wandb import setup_wandb
-
-import logging
-
-from SANE.datasets.augmentations import (
-    AugmentationPipeline,
-    TwoViewSplit,
-    WindowCutter,
-    ErasingAugmentation,
-    NoiseAugmentation,
-    MultiWindowCutter,
-    StackBatches,
-    PermutationSelector,
-)
-
-from SANE.models.def_downstream_module import (
-    DownstreamTaskLearner as DownstreamTaskLearner,
-)
+from SANE.datasets.augmentations import (AugmentationPipeline,
+                                         ErasingAugmentation,
+                                         MultiWindowCutter, NoiseAugmentation,
+                                         PermutationSelector, StackBatches,
+                                         TwoViewSplit, WindowCutter)
+# import model_definitions
+from SANE.models.def_AE_module import AEModule
+from SANE.models.def_downstream_module import \
+    DownstreamTaskLearner as DownstreamTaskLearner
 
 
 ###############################################################################

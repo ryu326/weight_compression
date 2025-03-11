@@ -3,14 +3,13 @@ Code adapted from https://github.com/themrzmaster/git-re-basin-pytorch
 Addition in weight matching for non-fitting weight matrices and permutations in get_permuted_param
 """
 
+import logging
 from collections import defaultdict
 from re import L
 from typing import NamedTuple
 
 import torch
 from scipy.optimize import linear_sum_assignment
-
-import logging
 
 
 class PermutationSpec(NamedTuple):

@@ -1,12 +1,13 @@
-from PIL import Image
 import os
 import os.path
-import numpy as np
 import pickle
 from typing import Any, Callable, Optional, Tuple
 
+import numpy as np
+from PIL import Image
 from torchvision.datasets import VisionDataset
-from torchvision.datasets.utils import check_integrity, download_and_extract_archive
+from torchvision.datasets.utils import (check_integrity,
+                                        download_and_extract_archive)
 
 
 class CIFAR10(VisionDataset):

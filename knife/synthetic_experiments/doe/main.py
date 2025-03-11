@@ -4,31 +4,26 @@ import argparse
 import copy
 import inspect
 import json
+import logging
 import math
-import pathlib
 import os
-
-import numpy as np
+import pathlib
 import pickle
 import random
+import shutil
+from collections import OrderedDict
+from datetime import datetime
+from os.path import exists, join
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import util
-from datetime import datetime
-from os.path import exists
-import shutil
-from os.path import join
-
-
-from collections import OrderedDict
-
-from estimators.knife import KNIFE
-from estimators.club import CLUB
-from tools import MultiSummaryWriter, MultiOptimizer
 from datasets import synthetic
-
-import logging
+from estimators.club import CLUB
+from estimators.knife import KNIFE
+from tools import MultiOptimizer, MultiSummaryWriter
 
 logger = logging.getLogger(__name__)
 

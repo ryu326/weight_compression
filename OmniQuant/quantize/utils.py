@@ -1,8 +1,9 @@
 from collections import OrderedDict
-from quantize.int_linear import QuantLinear
+
 import torch
-from quantize.int_matmul import QuantMatMul
 from models.transformation import *
+from quantize.int_linear import QuantLinear
+from quantize.int_matmul import QuantMatMul
 
 
 def let_parameters(model, use_shift=True):

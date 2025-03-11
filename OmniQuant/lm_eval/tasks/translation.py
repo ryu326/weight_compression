@@ -10,12 +10,13 @@ https://github.com/mjpost/sacrebleu/blob/master/sacrebleu/dataset.py
 Homepage: https://github.com/mjpost/sacrebleu/blob/master/sacrebleu/dataset.py
 """
 
-import pycountry
 from pprint import pprint
-from sacrebleu import sacrebleu
+from typing import List
+
+import pycountry
 from lm_eval import metrics
 from lm_eval.base import Task, rf
-from typing import List
+from sacrebleu import sacrebleu
 
 try:
     import nagisa

@@ -1,8 +1,9 @@
-from torch.utils.data import Dataset
-from torchvision import transforms
+import json
+import random
 
 import PIL.Image as Image
-import json, random
+from torch.utils.data import Dataset
+from torchvision import transforms
 
 
 class ImageNet_dataset(Dataset):

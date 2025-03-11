@@ -17,9 +17,8 @@ Homepage: https://pubmedqa.github.io/
 """
 
 import numpy as np
-from lm_eval.base import rf, Task
+from lm_eval.base import Task, rf
 from lm_eval.metrics import mean
-
 
 _CITATION = """
 @inproceedings{jin2019pubmedqa,

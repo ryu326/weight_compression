@@ -1,8 +1,9 @@
 # Author: Karl Stratos (me@karlstratos.com)
 import argparse
 import math
-import matplotlib.pyplot as plt
 import pickle
+
+import matplotlib.pyplot as plt
 
 
 def main(args0):

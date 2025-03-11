@@ -9,9 +9,9 @@ Homepage: https://aclweb.org/aclwiki/SAT_Analogy_Questions_(State_of_the_art)
 """
 
 import inspect
+
 import lm_eval.datasets.sat_analogies.sat_analogies
 from lm_eval.base import MultipleChoiceTask
-
 
 _CITATION = """
 @article{article,

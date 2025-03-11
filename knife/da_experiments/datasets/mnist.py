@@ -1,14 +1,16 @@
-from torchvision.datasets import VisionDataset
-import warnings
-from PIL import Image
 import os
-import numpy as np
 import os.path
-import torch
-from typing import Any, Callable, Dict, Optional, Tuple
-from torchvision.datasets.utils import download_and_extract_archive
-from .utils import read_image_file, read_label_file
 import pickle
+import warnings
+from typing import Any, Callable, Dict, Optional, Tuple
+
+import numpy as np
+import torch
+from PIL import Image
+from torchvision.datasets import VisionDataset
+from torchvision.datasets.utils import download_and_extract_archive
+
+from .utils import read_image_file, read_label_file
 
 
 class MNIST(VisionDataset):

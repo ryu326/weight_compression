@@ -1,16 +1,17 @@
 #!/usr/bin/env python
 # *-* encoding: utf-8 *-*
 
-from scipy import stats
+import math
 from functools import partial
 from typing import Callable
-import torch
+
 import numpy as np
+import torch
 from numpy.random import uniform
-import math
-from torch.distributions.uniform import Uniform
+from scipy import stats
 from torch.distributions.categorical import Categorical
 from torch.distributions.multivariate_normal import MultivariateNormal
+from torch.distributions.uniform import Uniform
 
 
 class DataGeneratorBase:

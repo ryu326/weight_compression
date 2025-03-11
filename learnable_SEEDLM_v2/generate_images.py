@@ -2,22 +2,19 @@
 
 device = "cuda"
 
-import os
+import json
 import math
+import os
 import shutil
 
-import torch
-import torch.nn.functional as F
-from PIL import Image
-
-import torchvision
-from tqdm import tqdm
-
-import json
 import lpips
 import pandas as pd
-
+import torch
+import torch.nn.functional as F
+import torchvision
 from models import NIC_Fair
+from PIL import Image
+from tqdm import tqdm
 
 
 def pad(x, p):

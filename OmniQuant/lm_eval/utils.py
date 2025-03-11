@@ -1,9 +1,9 @@
-import os
-import pathlib
-import re
 import collections
 import functools
 import inspect
+import os
+import pathlib
+import re
 import sys
 from typing import List
 

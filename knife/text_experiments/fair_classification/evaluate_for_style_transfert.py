@@ -1,26 +1,30 @@
 # coding=utf-8
-import csv
 import argparse
-from argparse import ArgumentParser
-import os
-import numpy as np
-from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, Dataset
-from tqdm import tqdm, trange
+import csv
 import json
+import os
+from argparse import ArgumentParser
+
+import numpy as np
+from torch.utils.data import (DataLoader, Dataset, RandomSampler,
+                              SequentialSampler)
+from tqdm import tqdm, trange
 
 try:
     from transformers import get_linear_schedule_with_warmup
 except:
     from transformers import WarmupLinearSchedule as get_linear_schedule_with_warmup
-from models import *
-from tensorboardX import SummaryWriter
-from transformers import BertTokenizer
+
 import copy
-from transformers import *
-from models_transfert_style import *
 import logging
-import torch
 import random
+
+import torch
+from models import *
+from models_transfert_style import *
+from tensorboardX import SummaryWriter
+from transformers import *
+from transformers import BertTokenizer
 
 logger = logging.getLogger(__name__)
 

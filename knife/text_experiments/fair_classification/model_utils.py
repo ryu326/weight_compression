@@ -1,9 +1,10 @@
+import itertools
+import random
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import random
 from tqdm import tqdm
-import itertools
 
 
 class Classifier(torch.nn.Module):

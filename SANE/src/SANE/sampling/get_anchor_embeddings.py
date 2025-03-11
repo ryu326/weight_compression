@@ -1,9 +1,12 @@
-import torch
-from SANE.models.def_NN_experiment import NNmodule
 import logging
-from SANE.datasets.dataset_auxiliaries import tokens_to_checkpoint, tokenize_checkpoint
-from SANE.sampling.halo import haloify, dehaloify
+
+import torch
 from einops import repeat
+
+from SANE.datasets.dataset_auxiliaries import (tokenize_checkpoint,
+                                               tokens_to_checkpoint)
+from SANE.models.def_NN_experiment import NNmodule
+from SANE.sampling.halo import dehaloify, haloify
 
 
 def get_random_anchor_embeddings(

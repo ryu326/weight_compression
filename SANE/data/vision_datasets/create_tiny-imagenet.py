@@ -1,13 +1,11 @@
 from pathlib import Path
 
 import ray
-from ray import tune
-
 import torch
-from torchvision import datasets, transforms
-
+from ray import tune
 # load datastet
 from tiny_imagenet_helpers import TinyImageNetDataset
+from torchvision import datasets, transforms
 
 PATH_ROOT = Path(".")
 

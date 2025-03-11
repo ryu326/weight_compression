@@ -1,10 +1,11 @@
 import os
+import time
+
 import numpy as np
 import transformers
-from lm_eval.base import BaseLM
 from lm_eval import utils
+from lm_eval.base import BaseLM
 from tqdm import tqdm
-import time
 
 
 def get_result(response, ctxlen):

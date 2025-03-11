@@ -1,0 +1,233 @@
+/home/jgryu/miniconda3/envs/nic/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+/home/jgryu/Weight_compression/VQVAE/recon_lm/compress_lm_nwc.py:243: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ckpt = torch.load(args.model_path)
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:01<00:05,  1.93s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:04<00:04,  2.08s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:06<00:02,  2.20s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:06<00:00,  1.45s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:06<00:00,  1.69s/it]
+pseudo compress quantization...:   0%|          | 0/32 [00:00<?, ?it/s]2025-02-04 21:24:28 - INFO - layer0_self_attn.q_proj | mse: 0.029447383195735217, bpp_loss: 7.113583564758301, bpp: 0
+2025-02-04 21:24:28 - INFO - layer0_self_attn.k_proj | mse: 0.1352172601802674, bpp_loss: 8.07359504699707, bpp: 0
+2025-02-04 21:24:28 - INFO - layer0_self_attn.v_proj | mse: 0.0001709576733011774, bpp_loss: 6.082441329956055, bpp: 0
+2025-02-04 21:24:29 - INFO - layer0_self_attn.o_proj | mse: 0.0005413060215689988, bpp_loss: 6.138886451721191, bpp: 0
+2025-02-04 21:24:31 - INFO - layer0_mlp.gate_proj | mse: 0.00047024262139642824, bpp_loss: 6.499256134033203, bpp: 0
+2025-02-04 21:24:34 - INFO - layer0_mlp.up_proj | mse: 0.00019343550650079117, bpp_loss: 6.3933288029262, bpp: 0
+2025-02-04 21:24:36 - INFO - layer0_mlp.down_proj | mse: 0.0004261036170710017, bpp_loss: 6.3893851552690775, bpp: 0
+pseudo compress quantization...:   3%|▎         | 1/32 [00:08<04:35,  8.89s/it]2025-02-04 21:24:37 - INFO - layer1_self_attn.q_proj | mse: 0.013497958680786348, bpp_loss: 7.275690078735352, bpp: 0
+2025-02-04 21:24:37 - INFO - layer1_self_attn.k_proj | mse: 0.10705513253824692, bpp_loss: 8.229069709777832, bpp: 0
+2025-02-04 21:24:37 - INFO - layer1_self_attn.v_proj | mse: 0.00017548888552793915, bpp_loss: 6.164214611053467, bpp: 0
+2025-02-04 21:24:38 - INFO - layer1_self_attn.o_proj | mse: 0.0011279153611121811, bpp_loss: 6.208706855773926, bpp: 0
+2025-02-04 21:24:40 - INFO - layer1_mlp.gate_proj | mse: 0.00039993802004562273, bpp_loss: 6.515433583940778, bpp: 0
+2025-02-04 21:24:42 - INFO - layer1_mlp.up_proj | mse: 0.0002656427146926813, bpp_loss: 6.408273220062256, bpp: 0
+2025-02-04 21:24:45 - INFO - layer1_mlp.down_proj | mse: 0.00031328044111629213, bpp_loss: 6.40431717463902, bpp: 0
+pseudo compress quantization...:   6%|▋         | 2/32 [00:17<04:23,  8.80s/it]2025-02-04 21:24:45 - INFO - layer2_self_attn.q_proj | mse: 0.0035317672142535774, bpp_loss: 7.220544338226318, bpp: 0
+2025-02-04 21:24:46 - INFO - layer2_self_attn.k_proj | mse: 0.09085515439963003, bpp_loss: 8.398155212402344, bpp: 0
+2025-02-04 21:24:46 - INFO - layer2_self_attn.v_proj | mse: 0.0001707668079887648, bpp_loss: 6.082998752593994, bpp: 0
+2025-02-04 21:24:46 - INFO - layer2_self_attn.o_proj | mse: 0.0005678174918507922, bpp_loss: 6.162528991699219, bpp: 0
+2025-02-04 21:24:49 - INFO - layer2_mlp.gate_proj | mse: 0.00031864915246020235, bpp_loss: 6.551654475075858, bpp: 0
+2025-02-04 21:24:51 - INFO - layer2_mlp.up_proj | mse: 0.00019899353440332962, bpp_loss: 6.403651441846575, bpp: 0
+2025-02-04 21:24:53 - INFO - layer2_mlp.down_proj | mse: 0.00025552663003666965, bpp_loss: 6.406413487025669, bpp: 0
+pseudo compress quantization...:   9%|▉         | 3/32 [00:26<04:12,  8.69s/it]2025-02-04 21:24:54 - INFO - layer3_self_attn.q_proj | mse: 0.0034690205313705376, bpp_loss: 7.2365827560424805, bpp: 0
+2025-02-04 21:24:54 - INFO - layer3_self_attn.k_proj | mse: 0.08464252772647374, bpp_loss: 8.453398704528809, bpp: 0
+2025-02-04 21:24:54 - INFO - layer3_self_attn.v_proj | mse: 0.00017610197216171505, bpp_loss: 6.162928104400635, bpp: 0
+2025-02-04 21:24:55 - INFO - layer3_self_attn.o_proj | mse: 0.0005111123649150479, bpp_loss: 6.247745990753174, bpp: 0
+2025-02-04 21:24:57 - INFO - layer3_mlp.gate_proj | mse: 0.00041453963192506345, bpp_loss: 6.63431317465646, bpp: 0
+2025-02-04 21:24:59 - INFO - layer3_mlp.up_proj | mse: 0.0001959129564270888, bpp_loss: 6.384533269064767, bpp: 0
+2025-02-04 21:25:02 - INFO - layer3_mlp.down_proj | mse: 0.00023145099056068848, bpp_loss: 6.3823418617248535, bpp: 0
+pseudo compress quantization...:  12%|█▎        | 4/32 [00:34<04:01,  8.64s/it]2025-02-04 21:25:02 - INFO - layer4_self_attn.q_proj | mse: 0.004541375685823709, bpp_loss: 7.194818496704102, bpp: 0
+2025-02-04 21:25:03 - INFO - layer4_self_attn.k_proj | mse: 0.06631015822821679, bpp_loss: 8.432882308959961, bpp: 0
+2025-02-04 21:25:03 - INFO - layer4_self_attn.v_proj | mse: 0.00017897385799049072, bpp_loss: 6.2080230712890625, bpp: 0
+2025-02-04 21:25:04 - INFO - layer4_self_attn.o_proj | mse: 0.0008303287039908153, bpp_loss: 6.262489318847656, bpp: 0
+2025-02-04 21:25:06 - INFO - layer4_mlp.gate_proj | mse: 0.0004029979436603299, bpp_loss: 6.719137464250837, bpp: 0
+2025-02-04 21:25:08 - INFO - layer4_mlp.up_proj | mse: 0.00020066587809303992, bpp_loss: 6.359497615269253, bpp: 0
+2025-02-04 21:25:11 - INFO - layer4_mlp.down_proj | mse: 0.0002621463205751332, bpp_loss: 6.357510771070208, bpp: 0
+pseudo compress quantization...:  16%|█▌        | 5/32 [00:43<03:56,  8.76s/it]2025-02-04 21:25:11 - INFO - layer5_self_attn.q_proj | mse: 0.003991877687927604, bpp_loss: 7.181182861328125, bpp: 0
+2025-02-04 21:25:12 - INFO - layer5_self_attn.k_proj | mse: 0.07490632088136535, bpp_loss: 8.418261528015137, bpp: 0
+2025-02-04 21:25:12 - INFO - layer5_self_attn.v_proj | mse: 0.00017212957228684075, bpp_loss: 6.107608795166016, bpp: 0
+2025-02-04 21:25:13 - INFO - layer5_self_attn.o_proj | mse: 0.00028684139043212405, bpp_loss: 6.211130142211914, bpp: 0
+2025-02-04 21:25:15 - INFO - layer5_mlp.gate_proj | mse: 0.0003706157071439727, bpp_loss: 6.719386713845389, bpp: 0
+2025-02-04 21:25:17 - INFO - layer5_mlp.up_proj | mse: 0.00020098093147247586, bpp_loss: 6.365058353969029, bpp: 0
+2025-02-04 21:25:20 - INFO - layer5_mlp.down_proj | mse: 0.0002681374822082673, bpp_loss: 6.361613954816546, bpp: 0
+pseudo compress quantization...:  19%|█▉        | 6/32 [00:52<03:48,  8.81s/it]2025-02-04 21:25:20 - INFO - layer6_self_attn.q_proj | mse: 0.005716035190925512, bpp_loss: 7.2242960929870605, bpp: 0
+2025-02-04 21:25:21 - INFO - layer6_self_attn.k_proj | mse: 0.0618227725519794, bpp_loss: 8.482352256774902, bpp: 0
+2025-02-04 21:25:21 - INFO - layer6_self_attn.v_proj | mse: 0.00017425257261139397, bpp_loss: 6.148552894592285, bpp: 0
+2025-02-04 21:25:21 - INFO - layer6_self_attn.o_proj | mse: 0.0003502536462123673, bpp_loss: 6.239673614501953, bpp: 0
+2025-02-04 21:25:24 - INFO - layer6_mlp.gate_proj | mse: 0.0004629551108127859, bpp_loss: 6.727041244506836, bpp: 0
+2025-02-04 21:25:26 - INFO - layer6_mlp.up_proj | mse: 0.00019380582355388597, bpp_loss: 6.3648874419076105, bpp: 0
+2025-02-04 21:25:29 - INFO - layer6_mlp.down_proj | mse: 0.00030209796026372827, bpp_loss: 6.360995769500732, bpp: 0
+pseudo compress quantization...:  22%|██▏       | 7/32 [01:01<03:41,  8.87s/it]2025-02-04 21:25:29 - INFO - layer7_self_attn.q_proj | mse: 0.0032085191877794135, bpp_loss: 7.1349053382873535, bpp: 0
+2025-02-04 21:25:30 - INFO - layer7_self_attn.k_proj | mse: 0.058955210287641016, bpp_loss: 8.52727222442627, bpp: 0
+2025-02-04 21:25:30 - INFO - layer7_self_attn.v_proj | mse: 0.00017419214211404527, bpp_loss: 6.144132614135742, bpp: 0
+2025-02-04 21:25:30 - INFO - layer7_self_attn.o_proj | mse: 0.0003557484306409549, bpp_loss: 6.251492977142334, bpp: 0
+2025-02-04 21:25:33 - INFO - layer7_mlp.gate_proj | mse: 0.0003756593030588081, bpp_loss: 6.696861403329032, bpp: 0
+2025-02-04 21:25:35 - INFO - layer7_mlp.up_proj | mse: 0.00019754127541632294, bpp_loss: 6.378239359174456, bpp: 0
+2025-02-04 21:25:38 - INFO - layer7_mlp.down_proj | mse: 0.00038613997534890437, bpp_loss: 6.37432404926845, bpp: 0
+pseudo compress quantization...:  25%|██▌       | 8/32 [01:10<03:34,  8.92s/it]2025-02-04 21:25:38 - INFO - layer8_self_attn.q_proj | mse: 0.006977421286649283, bpp_loss: 7.120029449462891, bpp: 0
+2025-02-04 21:25:39 - INFO - layer8_self_attn.k_proj | mse: 0.08066628465303323, bpp_loss: 8.405620574951172, bpp: 0
+2025-02-04 21:25:39 - INFO - layer8_self_attn.v_proj | mse: 0.00017603913123441593, bpp_loss: 6.170797824859619, bpp: 0
+2025-02-04 21:25:40 - INFO - layer8_self_attn.o_proj | mse: 0.0006177287823632574, bpp_loss: 6.265038967132568, bpp: 0
+2025-02-04 21:25:42 - INFO - layer8_mlp.gate_proj | mse: 0.0003982517343385466, bpp_loss: 6.70373889378139, bpp: 0
+2025-02-04 21:25:44 - INFO - layer8_mlp.up_proj | mse: 0.00020038089446348855, bpp_loss: 6.3738876070295065, bpp: 0
+2025-02-04 21:25:47 - INFO - layer8_mlp.down_proj | mse: 0.00038276279970638253, bpp_loss: 6.371177605220249, bpp: 0
+pseudo compress quantization...:  28%|██▊       | 9/32 [01:19<03:25,  8.93s/it]2025-02-04 21:25:47 - INFO - layer9_self_attn.q_proj | mse: 0.005472093342661797, bpp_loss: 7.128458023071289, bpp: 0
+2025-02-04 21:25:48 - INFO - layer9_self_attn.k_proj | mse: 0.07163408232866017, bpp_loss: 8.422880172729492, bpp: 0
+2025-02-04 21:25:48 - INFO - layer9_self_attn.v_proj | mse: 0.00018621510642560094, bpp_loss: 6.26954984664917, bpp: 0
+2025-02-04 21:25:48 - INFO - layer9_self_attn.o_proj | mse: 0.00045344347339574463, bpp_loss: 6.320743560791016, bpp: 0
+2025-02-04 21:25:51 - INFO - layer9_mlp.gate_proj | mse: 0.0005750495512290022, bpp_loss: 6.721935749053955, bpp: 0
+2025-02-04 21:25:53 - INFO - layer9_mlp.up_proj | mse: 0.00019810204715191255, bpp_loss: 6.382696696690151, bpp: 0
+2025-02-04 21:25:56 - INFO - layer9_mlp.down_proj | mse: 0.00038219140979244665, bpp_loss: 6.374204635620117, bpp: 0
+pseudo compress quantization...:  31%|███▏      | 10/32 [01:28<03:18,  9.02s/it]2025-02-04 21:25:57 - INFO - layer10_self_attn.q_proj | mse: 0.00655930851484503, bpp_loss: 7.160013198852539, bpp: 0
+2025-02-04 21:25:57 - INFO - layer10_self_attn.k_proj | mse: 0.07623591856864925, bpp_loss: 8.457734107971191, bpp: 0
+2025-02-04 21:25:57 - INFO - layer10_self_attn.v_proj | mse: 0.0001758786961855559, bpp_loss: 6.163369655609131, bpp: 0
+2025-02-04 21:25:58 - INFO - layer10_self_attn.o_proj | mse: 0.0004968253278856902, bpp_loss: 6.256987571716309, bpp: 0
+2025-02-04 21:26:00 - INFO - layer10_mlp.gate_proj | mse: 0.000443912177475553, bpp_loss: 6.683416911533901, bpp: 0
+2025-02-04 21:26:02 - INFO - layer10_mlp.up_proj | mse: 0.00019692308015837307, bpp_loss: 6.398526191711426, bpp: 0
+2025-02-04 21:26:05 - INFO - layer10_mlp.down_proj | mse: 0.0003589985147072709, bpp_loss: 6.388574872698102, bpp: 0
+pseudo compress quantization...:  34%|███▍      | 11/32 [01:37<03:09,  9.00s/it]2025-02-04 21:26:05 - INFO - layer11_self_attn.q_proj | mse: 0.003010098569410659, bpp_loss: 7.059637546539307, bpp: 0
+2025-02-04 21:26:06 - INFO - layer11_self_attn.k_proj | mse: 0.06314966440150337, bpp_loss: 8.443913459777832, bpp: 0
+2025-02-04 21:26:06 - INFO - layer11_self_attn.v_proj | mse: 0.00017477196934113432, bpp_loss: 6.157224178314209, bpp: 0
+2025-02-04 21:26:07 - INFO - layer11_self_attn.o_proj | mse: 0.00034995708411245715, bpp_loss: 6.2735595703125, bpp: 0
+2025-02-04 21:26:09 - INFO - layer11_mlp.gate_proj | mse: 0.0005924015428978866, bpp_loss: 6.662748881748745, bpp: 0
+2025-02-04 21:26:11 - INFO - layer11_mlp.up_proj | mse: 0.00019780773866659055, bpp_loss: 6.405412878308978, bpp: 0
+2025-02-04 21:26:14 - INFO - layer11_mlp.down_proj | mse: 0.0004643369483855468, bpp_loss: 6.395948954990932, bpp: 0
+pseudo compress quantization...:  38%|███▊      | 12/32 [01:46<02:59,  8.99s/it]2025-02-04 21:26:14 - INFO - layer12_self_attn.q_proj | mse: 0.0018657294550248557, bpp_loss: 7.1085615158081055, bpp: 0
+2025-02-04 21:26:15 - INFO - layer12_self_attn.k_proj | mse: 0.041787619930802496, bpp_loss: 8.426982879638672, bpp: 0
+2025-02-04 21:26:15 - INFO - layer12_self_attn.v_proj | mse: 0.00018282272615954882, bpp_loss: 6.2636399269104, bpp: 0
+2025-02-04 21:26:16 - INFO - layer12_self_attn.o_proj | mse: 0.000516187621366536, bpp_loss: 6.318111896514893, bpp: 0
+2025-02-04 21:26:18 - INFO - layer12_mlp.gate_proj | mse: 0.0006553143918654498, bpp_loss: 6.6442268916538785, bpp: 0
+2025-02-04 21:26:20 - INFO - layer12_mlp.up_proj | mse: 0.0002083968172549803, bpp_loss: 6.425861631120954, bpp: 0
+2025-02-04 21:26:23 - INFO - layer12_mlp.down_proj | mse: 0.0004511931697134139, bpp_loss: 6.411650385175433, bpp: 0
+pseudo compress quantization...:  41%|████      | 13/32 [01:55<02:51,  9.01s/it]2025-02-04 21:26:23 - INFO - layer13_self_attn.q_proj | mse: 0.00357200351424108, bpp_loss: 7.11057186126709, bpp: 0
+2025-02-04 21:26:24 - INFO - layer13_self_attn.k_proj | mse: 0.0736467157425612, bpp_loss: 8.45564079284668, bpp: 0
+2025-02-04 21:26:24 - INFO - layer13_self_attn.v_proj | mse: 0.00017862500200888613, bpp_loss: 6.208772659301758, bpp: 0
+2025-02-04 21:26:25 - INFO - layer13_self_attn.o_proj | mse: 0.000626454267186058, bpp_loss: 6.298151969909668, bpp: 0
+2025-02-04 21:26:27 - INFO - layer13_mlp.gate_proj | mse: 0.0009858292357620452, bpp_loss: 6.6462081500462125, bpp: 0
+2025-02-04 21:26:29 - INFO - layer13_mlp.up_proj | mse: 0.00020280584842643929, bpp_loss: 6.429003102438791, bpp: 0
+2025-02-04 21:26:32 - INFO - layer13_mlp.down_proj | mse: 0.00029772195159600797, bpp_loss: 6.411963599068778, bpp: 0
+pseudo compress quantization...:  44%|████▍     | 14/32 [02:04<02:42,  9.02s/it]2025-02-04 21:26:33 - INFO - layer14_self_attn.q_proj | mse: 0.002858276156512086, bpp_loss: 7.071403503417969, bpp: 0
+2025-02-04 21:26:33 - INFO - layer14_self_attn.k_proj | mse: 0.07779553564186836, bpp_loss: 8.404708862304688, bpp: 0
+2025-02-04 21:26:33 - INFO - layer14_self_attn.v_proj | mse: 0.0001783235398330674, bpp_loss: 6.2023539543151855, bpp: 0
+2025-02-04 21:26:34 - INFO - layer14_self_attn.o_proj | mse: 0.0003397417498819877, bpp_loss: 6.294674873352051, bpp: 0
+2025-02-04 21:26:36 - INFO - layer14_mlp.gate_proj | mse: 0.00139526950370281, bpp_loss: 6.681365762438093, bpp: 0
+2025-02-04 21:26:39 - INFO - layer14_mlp.up_proj | mse: 0.00021072025832896582, bpp_loss: 6.424851826259068, bpp: 0
+2025-02-04 21:26:41 - INFO - layer14_mlp.down_proj | mse: 0.0002656514058203899, bpp_loss: 6.409761565072196, bpp: 0
+pseudo compress quantization...:  47%|████▋     | 15/32 [02:13<02:33,  9.04s/it]2025-02-04 21:26:42 - INFO - layer15_self_attn.q_proj | mse: 0.012232226296947646, bpp_loss: 7.254128932952881, bpp: 0
+2025-02-04 21:26:42 - INFO - layer15_self_attn.k_proj | mse: 0.05333529534786916, bpp_loss: 8.435022354125977, bpp: 0
+2025-02-04 21:26:42 - INFO - layer15_self_attn.v_proj | mse: 0.00018290926398974088, bpp_loss: 6.260874271392822, bpp: 0
+2025-02-04 21:26:43 - INFO - layer15_self_attn.o_proj | mse: 0.0006437137151580394, bpp_loss: 6.323958873748779, bpp: 0
+2025-02-04 21:26:45 - INFO - layer15_mlp.gate_proj | mse: 0.0015154395537473856, bpp_loss: 6.72083180291312, bpp: 0
+2025-02-04 21:26:48 - INFO - layer15_mlp.up_proj | mse: 0.00020062802254124974, bpp_loss: 6.41631691796439, bpp: 0
+2025-02-04 21:26:50 - INFO - layer15_mlp.down_proj | mse: 0.0002927317181706451, bpp_loss: 6.404205186026437, bpp: 0
+pseudo compress quantization...:  50%|█████     | 16/32 [02:23<02:25,  9.11s/it]2025-02-04 21:26:51 - INFO - layer16_self_attn.q_proj | mse: 0.005649058825890964, bpp_loss: 7.209485054016113, bpp: 0
+2025-02-04 21:26:51 - INFO - layer16_self_attn.k_proj | mse: 0.06688706949142702, bpp_loss: 8.423181533813477, bpp: 0
+2025-02-04 21:26:51 - INFO - layer16_self_attn.v_proj | mse: 0.00017900850933559966, bpp_loss: 6.21541166305542, bpp: 0
+2025-02-04 21:26:52 - INFO - layer16_self_attn.o_proj | mse: 0.0007466400246333154, bpp_loss: 6.303071022033691, bpp: 0
+2025-02-04 21:26:54 - INFO - layer16_mlp.gate_proj | mse: 0.0012808748114863902, bpp_loss: 6.760933944157192, bpp: 0
+2025-02-04 21:26:57 - INFO - layer16_mlp.up_proj | mse: 0.0001971889096805786, bpp_loss: 6.401853220803397, bpp: 0
+2025-02-04 21:26:59 - INFO - layer16_mlp.down_proj | mse: 0.0002657856527037456, bpp_loss: 6.390699318477085, bpp: 0
+pseudo compress quantization...:  53%|█████▎    | 17/32 [02:32<02:16,  9.10s/it]2025-02-04 21:27:00 - INFO - layer17_self_attn.q_proj | mse: 0.0054313927916025285, bpp_loss: 7.228968620300293, bpp: 0
+2025-02-04 21:27:00 - INFO - layer17_self_attn.k_proj | mse: 0.06421390457758896, bpp_loss: 8.453776359558105, bpp: 0
+2025-02-04 21:27:00 - INFO - layer17_self_attn.v_proj | mse: 0.00018421908936148775, bpp_loss: 6.284116744995117, bpp: 0
+2025-02-04 21:27:01 - INFO - layer17_self_attn.o_proj | mse: 0.0006873193209201906, bpp_loss: 6.334185600280762, bpp: 0
+2025-02-04 21:27:04 - INFO - layer17_mlp.gate_proj | mse: 0.0012636897618955748, bpp_loss: 6.778032439095633, bpp: 0
+2025-02-04 21:27:06 - INFO - layer17_mlp.up_proj | mse: 0.00020306147363352266, bpp_loss: 6.397590296609061, bpp: 0
+2025-02-04 21:27:09 - INFO - layer17_mlp.down_proj | mse: 0.00029599425370005846, bpp_loss: 6.388856479099819, bpp: 0
+pseudo compress quantization...:  56%|█████▋    | 18/32 [02:41<02:08,  9.15s/it]2025-02-04 21:27:09 - INFO - layer18_self_attn.q_proj | mse: 0.0031266987387489364, bpp_loss: 7.208629131317139, bpp: 0
+2025-02-04 21:27:09 - INFO - layer18_self_attn.k_proj | mse: 0.06510785659143785, bpp_loss: 8.569275856018066, bpp: 0
+2025-02-04 21:27:10 - INFO - layer18_self_attn.v_proj | mse: 0.00017855196484973097, bpp_loss: 6.209677696228027, bpp: 0
+2025-02-04 21:27:10 - INFO - layer18_self_attn.o_proj | mse: 0.0005556252429306524, bpp_loss: 6.31073522567749, bpp: 0
+2025-02-04 21:27:13 - INFO - layer18_mlp.gate_proj | mse: 0.0010405421609352746, bpp_loss: 6.784347057342529, bpp: 0
+2025-02-04 21:27:15 - INFO - layer18_mlp.up_proj | mse: 0.00019449698807155576, bpp_loss: 6.3922368458339145, bpp: 0
+2025-02-04 21:27:18 - INFO - layer18_mlp.down_proj | mse: 0.00025307177445576916, bpp_loss: 6.385911873408726, bpp: 0
+pseudo compress quantization...:  59%|█████▉    | 19/32 [02:50<01:59,  9.19s/it]2025-02-04 21:27:19 - INFO - layer19_self_attn.q_proj | mse: 0.00393133167100644, bpp_loss: 7.207264423370361, bpp: 0
+2025-02-04 21:27:19 - INFO - layer19_self_attn.k_proj | mse: 0.05157440334508967, bpp_loss: 8.43310260772705, bpp: 0
+2025-02-04 21:27:19 - INFO - layer19_self_attn.v_proj | mse: 0.0001815781521450515, bpp_loss: 6.2489495277404785, bpp: 0
+2025-02-04 21:27:20 - INFO - layer19_self_attn.o_proj | mse: 0.0004562181159167081, bpp_loss: 6.322246551513672, bpp: 0
+2025-02-04 21:27:22 - INFO - layer19_mlp.gate_proj | mse: 0.0010401796167508598, bpp_loss: 6.795544760567801, bpp: 0
+2025-02-04 21:27:25 - INFO - layer19_mlp.up_proj | mse: 0.00019490779905449515, bpp_loss: 6.388210705348423, bpp: 0
+2025-02-04 21:27:27 - INFO - layer19_mlp.down_proj | mse: 0.0002512344804047565, bpp_loss: 6.383764743804932, bpp: 0
+pseudo compress quantization...:  62%|██████▎   | 20/32 [03:00<01:50,  9.22s/it]2025-02-04 21:27:28 - INFO - layer20_self_attn.q_proj | mse: 0.0034397462783357998, bpp_loss: 7.178319931030273, bpp: 0
+2025-02-04 21:27:28 - INFO - layer20_self_attn.k_proj | mse: 0.0486160999133886, bpp_loss: 8.377671241760254, bpp: 0
+2025-02-04 21:27:28 - INFO - layer20_self_attn.v_proj | mse: 0.00018444863471883254, bpp_loss: 6.285685062408447, bpp: 0
+2025-02-04 21:27:29 - INFO - layer20_self_attn.o_proj | mse: 0.0007161006240552076, bpp_loss: 6.311861038208008, bpp: 0
+2025-02-04 21:27:31 - INFO - layer20_mlp.gate_proj | mse: 0.0008999986590205082, bpp_loss: 6.7965119906834195, bpp: 0
+2025-02-04 21:27:34 - INFO - layer20_mlp.up_proj | mse: 0.00019622627675427334, bpp_loss: 6.391607216426304, bpp: 0
+2025-02-04 21:27:36 - INFO - layer20_mlp.down_proj | mse: 0.00022733173229069238, bpp_loss: 6.3874953133719305, bpp: 0
+pseudo compress quantization...:  66%|██████▌   | 21/32 [03:09<01:41,  9.22s/it]2025-02-04 21:27:37 - INFO - layer21_self_attn.q_proj | mse: 0.0029180405151349596, bpp_loss: 7.15966796875, bpp: 0
+2025-02-04 21:27:37 - INFO - layer21_self_attn.k_proj | mse: 0.046035796802074126, bpp_loss: 8.426748275756836, bpp: 0
+2025-02-04 21:27:37 - INFO - layer21_self_attn.v_proj | mse: 0.00018669967074507176, bpp_loss: 6.312089443206787, bpp: 0
+2025-02-04 21:27:38 - INFO - layer21_self_attn.o_proj | mse: 0.0011118594985289672, bpp_loss: 6.331089973449707, bpp: 0
+2025-02-04 21:27:41 - INFO - layer21_mlp.gate_proj | mse: 0.001046477683831203, bpp_loss: 6.810521125793457, bpp: 0
+2025-02-04 21:27:43 - INFO - layer21_mlp.up_proj | mse: 0.00020183881820337672, bpp_loss: 6.3945866993495395, bpp: 0
+2025-02-04 21:27:45 - INFO - layer21_mlp.down_proj | mse: 0.00023109990521429406, bpp_loss: 6.390352521623884, bpp: 0
+pseudo compress quantization...:  69%|██████▉   | 22/32 [03:18<01:31,  9.16s/it]2025-02-04 21:27:46 - INFO - layer22_self_attn.q_proj | mse: 0.0015655395335570298, bpp_loss: 7.109209060668945, bpp: 0
+2025-02-04 21:27:46 - INFO - layer22_self_attn.k_proj | mse: 0.040282696124253455, bpp_loss: 8.34376049041748, bpp: 0
+2025-02-04 21:27:47 - INFO - layer22_self_attn.v_proj | mse: 0.00018987246423761184, bpp_loss: 6.358086585998535, bpp: 0
+2025-02-04 21:27:47 - INFO - layer22_self_attn.o_proj | mse: 0.0005763451177193522, bpp_loss: 6.350142955780029, bpp: 0
+2025-02-04 21:27:50 - INFO - layer22_mlp.gate_proj | mse: 0.0007539175636998991, bpp_loss: 6.812843254634312, bpp: 0
+2025-02-04 21:27:52 - INFO - layer22_mlp.up_proj | mse: 0.00019395842268459058, bpp_loss: 6.397819859640939, bpp: 0
+2025-02-04 21:27:55 - INFO - layer22_mlp.down_proj | mse: 0.00022845689706508347, bpp_loss: 6.393819059644427, bpp: 0
+pseudo compress quantization...:  72%|███████▏  | 23/32 [03:27<01:22,  9.19s/it]2025-02-04 21:27:55 - INFO - layer23_self_attn.q_proj | mse: 0.0014519997275631352, bpp_loss: 7.120782852172852, bpp: 0
+2025-02-04 21:27:56 - INFO - layer23_self_attn.k_proj | mse: 0.0360852580565445, bpp_loss: 8.351940155029297, bpp: 0
+2025-02-04 21:27:56 - INFO - layer23_self_attn.v_proj | mse: 0.00019430665948801207, bpp_loss: 6.409529685974121, bpp: 0
+2025-02-04 21:27:57 - INFO - layer23_self_attn.o_proj | mse: 0.0003628000585866316, bpp_loss: 6.368776321411133, bpp: 0
+2025-02-04 21:27:59 - INFO - layer23_mlp.gate_proj | mse: 0.0006747750683946277, bpp_loss: 6.81639119556972, bpp: 0
+2025-02-04 21:28:01 - INFO - layer23_mlp.up_proj | mse: 0.00019500707449540445, bpp_loss: 6.401852199009487, bpp: 0
+2025-02-04 21:28:04 - INFO - layer23_mlp.down_proj | mse: 0.00022098914904729422, bpp_loss: 6.398129395076206, bpp: 0
+pseudo compress quantization...:  75%|███████▌  | 24/32 [03:36<01:13,  9.22s/it]2025-02-04 21:28:05 - INFO - layer24_self_attn.q_proj | mse: 0.001542172531386716, bpp_loss: 7.079587459564209, bpp: 0
+2025-02-04 21:28:05 - INFO - layer24_self_attn.k_proj | mse: 0.034340424360727886, bpp_loss: 8.125272750854492, bpp: 0
+2025-02-04 21:28:05 - INFO - layer24_self_attn.v_proj | mse: 0.00020528402907999218, bpp_loss: 6.515924453735352, bpp: 0
+2025-02-04 21:28:06 - INFO - layer24_self_attn.o_proj | mse: 0.0002771417297790302, bpp_loss: 6.414382457733154, bpp: 0
+2025-02-04 21:28:08 - INFO - layer24_mlp.gate_proj | mse: 0.0006943169138486554, bpp_loss: 6.824160984584263, bpp: 0
+2025-02-04 21:28:11 - INFO - layer24_mlp.up_proj | mse: 0.00019909763393744618, bpp_loss: 6.4063856942313055, bpp: 0
+2025-02-04 21:28:13 - INFO - layer24_mlp.down_proj | mse: 0.00021539529610940943, bpp_loss: 6.403134073529925, bpp: 0
+pseudo compress quantization...:  78%|███████▊  | 25/32 [03:46<01:04,  9.20s/it]2025-02-04 21:28:14 - INFO - layer25_self_attn.q_proj | mse: 0.0014985131945381579, bpp_loss: 7.045921325683594, bpp: 0
+2025-02-04 21:28:14 - INFO - layer25_self_attn.k_proj | mse: 0.030289443383078745, bpp_loss: 8.116594314575195, bpp: 0
+2025-02-04 21:28:14 - INFO - layer25_self_attn.v_proj | mse: 0.00021294722723872483, bpp_loss: 6.523857116699219, bpp: 0
+2025-02-04 21:28:15 - INFO - layer25_self_attn.o_proj | mse: 0.000511443261496036, bpp_loss: 6.418388366699219, bpp: 0
+2025-02-04 21:28:18 - INFO - layer25_mlp.gate_proj | mse: 0.0008020686357202494, bpp_loss: 6.83614833014352, bpp: 0
+2025-02-04 21:28:20 - INFO - layer25_mlp.up_proj | mse: 0.00019676700198993988, bpp_loss: 6.4153836114065985, bpp: 0
+2025-02-04 21:28:23 - INFO - layer25_mlp.down_proj | mse: 0.0002060948841354284, bpp_loss: 6.412061555044992, bpp: 0
+pseudo compress quantization...:  81%|████████▏ | 26/32 [03:55<00:56,  9.39s/it]2025-02-04 21:28:24 - INFO - layer26_self_attn.q_proj | mse: 0.0013365529432978504, bpp_loss: 7.060125827789307, bpp: 0
+2025-02-04 21:28:24 - INFO - layer26_self_attn.k_proj | mse: 0.041743553016277433, bpp_loss: 8.208385467529297, bpp: 0
+2025-02-04 21:28:24 - INFO - layer26_self_attn.v_proj | mse: 0.00021585416049264822, bpp_loss: 6.590862274169922, bpp: 0
+2025-02-04 21:28:25 - INFO - layer26_self_attn.o_proj | mse: 0.0006236909412376318, bpp_loss: 6.440249443054199, bpp: 0
+2025-02-04 21:28:28 - INFO - layer26_mlp.gate_proj | mse: 0.0010953692088925822, bpp_loss: 6.845041683741978, bpp: 0
+2025-02-04 21:28:30 - INFO - layer26_mlp.up_proj | mse: 0.00019775724735323594, bpp_loss: 6.424017293112619, bpp: 0
+2025-02-04 21:28:33 - INFO - layer26_mlp.down_proj | mse: 0.00021866419478589516, bpp_loss: 6.42085143498012, bpp: 0
+pseudo compress quantization...:  84%|████████▍ | 27/32 [04:05<00:47,  9.54s/it]2025-02-04 21:28:34 - INFO - layer27_self_attn.q_proj | mse: 0.0012614862247575806, bpp_loss: 7.025203704833984, bpp: 0
+2025-02-04 21:28:34 - INFO - layer27_self_attn.k_proj | mse: 0.04085798504362477, bpp_loss: 8.159730911254883, bpp: 0
+2025-02-04 21:28:34 - INFO - layer27_self_attn.v_proj | mse: 0.0003562903134003267, bpp_loss: 6.6958136558532715, bpp: 0
+2025-02-04 21:28:35 - INFO - layer27_self_attn.o_proj | mse: 0.0011193698097927223, bpp_loss: 6.468604564666748, bpp: 0
+2025-02-04 21:28:37 - INFO - layer27_mlp.gate_proj | mse: 0.0012209996668516839, bpp_loss: 6.857558522905622, bpp: 0
+2025-02-04 21:28:40 - INFO - layer27_mlp.up_proj | mse: 0.00019799017474911613, bpp_loss: 6.43784761428833, bpp: 0
+2025-02-04 21:28:43 - INFO - layer27_mlp.down_proj | mse: 0.0002128863408451682, bpp_loss: 6.432971477508545, bpp: 0
+pseudo compress quantization...:  88%|████████▊ | 28/32 [04:15<00:38,  9.65s/it]2025-02-04 21:28:44 - INFO - layer28_self_attn.q_proj | mse: 0.0011598793371075632, bpp_loss: 7.0269083976745605, bpp: 0
+2025-02-04 21:28:44 - INFO - layer28_self_attn.k_proj | mse: 0.018873957121416974, bpp_loss: 8.076712608337402, bpp: 0
+2025-02-04 21:28:44 - INFO - layer28_self_attn.v_proj | mse: 0.0002568556871151169, bpp_loss: 6.761319160461426, bpp: 0
+2025-02-04 21:28:45 - INFO - layer28_self_attn.o_proj | mse: 0.0010875086788085585, bpp_loss: 6.500293254852295, bpp: 0
+2025-02-04 21:28:48 - INFO - layer28_mlp.gate_proj | mse: 0.0013734164908060398, bpp_loss: 6.843984603881836, bpp: 0
+2025-02-04 21:28:50 - INFO - layer28_mlp.up_proj | mse: 0.00020736637542603207, bpp_loss: 6.461062703813825, bpp: 0
+2025-02-04 21:28:53 - INFO - layer28_mlp.down_proj | mse: 0.00022659841839028113, bpp_loss: 6.4517685345241, bpp: 0
+pseudo compress quantization...:  91%|█████████ | 29/32 [04:25<00:29,  9.74s/it]2025-02-04 21:28:53 - INFO - layer29_self_attn.q_proj | mse: 0.0010082264917318877, bpp_loss: 7.016156196594238, bpp: 0
+2025-02-04 21:28:54 - INFO - layer29_self_attn.k_proj | mse: 0.03251863362609439, bpp_loss: 8.202404022216797, bpp: 0
+2025-02-04 21:28:54 - INFO - layer29_self_attn.v_proj | mse: 0.00041469915033154797, bpp_loss: 6.835663795471191, bpp: 0
+2025-02-04 21:28:55 - INFO - layer29_self_attn.o_proj | mse: 0.0006569993260504344, bpp_loss: 6.544380187988281, bpp: 0
+2025-02-04 21:28:57 - INFO - layer29_mlp.gate_proj | mse: 0.001679858100806645, bpp_loss: 6.834895610809326, bpp: 0
+2025-02-04 21:29:00 - INFO - layer29_mlp.up_proj | mse: 0.00021986354454322734, bpp_loss: 6.49321528843471, bpp: 0
+2025-02-04 21:29:02 - INFO - layer29_mlp.down_proj | mse: 0.00023749742880070713, bpp_loss: 6.472395283835275, bpp: 0
+pseudo compress quantization...:  94%|█████████▍| 30/32 [04:35<00:19,  9.75s/it]2025-02-04 21:29:03 - INFO - layer30_self_attn.q_proj | mse: 0.0013727194416706507, bpp_loss: 6.907009124755859, bpp: 0
+2025-02-04 21:29:03 - INFO - layer30_self_attn.k_proj | mse: 0.01795239484335923, bpp_loss: 7.7446746826171875, bpp: 0
+2025-02-04 21:29:04 - INFO - layer30_self_attn.v_proj | mse: 0.0014172561297548735, bpp_loss: 7.227326393127441, bpp: 0
+2025-02-04 21:29:04 - INFO - layer30_self_attn.o_proj | mse: 0.0009541320980804779, bpp_loss: 6.638286590576172, bpp: 0
+2025-02-04 21:29:07 - INFO - layer30_mlp.gate_proj | mse: 0.0020410401578848897, bpp_loss: 6.896814141954694, bpp: 0
+2025-02-04 21:29:10 - INFO - layer30_mlp.up_proj | mse: 0.0002442459342677086, bpp_loss: 6.523868901388986, bpp: 0
+2025-02-04 21:29:12 - INFO - layer30_mlp.down_proj | mse: 0.0002272904753005281, bpp_loss: 6.4808639117649625, bpp: 0
+pseudo compress quantization...:  97%|█████████▋| 31/32 [04:45<00:09,  9.79s/it]2025-02-04 21:29:13 - INFO - layer31_self_attn.q_proj | mse: 0.0037086454240753373, bpp_loss: 7.095040798187256, bpp: 0
+2025-02-04 21:29:13 - INFO - layer31_self_attn.k_proj | mse: 0.02367960610025733, bpp_loss: 8.054880142211914, bpp: 0
+2025-02-04 21:29:14 - INFO - layer31_self_attn.v_proj | mse: 0.0008606473408718671, bpp_loss: 6.957904815673828, bpp: 0
+2025-02-04 21:29:14 - INFO - layer31_self_attn.o_proj | mse: 0.00223222091167369, bpp_loss: 6.610492706298828, bpp: 0
+2025-02-04 21:29:17 - INFO - layer31_mlp.gate_proj | mse: 0.006200558421538097, bpp_loss: 7.166781629834857, bpp: 0
+2025-02-04 21:29:20 - INFO - layer31_mlp.up_proj | mse: 0.0013822883732777947, bpp_loss: 6.736750534602574, bpp: 0
+2025-02-04 21:29:22 - INFO - layer31_mlp.down_proj | mse: 0.0003322271253874429, bpp_loss: 6.518817561013358, bpp: 0
+pseudo compress quantization...: 100%|██████████| 32/32 [04:54<00:00,  9.76s/it]pseudo compress quantization...: 100%|██████████| 32/32 [04:54<00:00,  9.22s/it]
+2025-02-04 21:29:22 - INFO - #### Total | mse: 0.0019642739524806624, bpp_loss: 6.587606751861481, bpp: 0 ####
+## Strart saving /home/jgryu/Weight_compression/model_reconstructed/nwc/gaussian_seq_row_16/lmbda10000_rdloss_encdim512_M16_batch_size2048_total_iter200000_lr0.0001_seed100/best_loss_model_loss_8.76572_bpp_6.66792_MSE_0.00021_total_iter_150000.pth.tar/ROW_MSE0.00196_bpploss6.5876_bpp0
+## End saving

@@ -1,10 +1,10 @@
 # Author: Karl Stratos (me@karlstratos.com)
 import math
+
 import torch
 import torch.nn as nn
-
-from torch.distributions.multivariate_normal import MultivariateNormal
 from estimators.utils import FF
+from torch.distributions.multivariate_normal import MultivariateNormal
 
 
 class DoE(nn.Module):

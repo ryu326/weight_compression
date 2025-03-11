@@ -14,9 +14,8 @@ Homepage: https://github.com/facebookresearch/ParlAI/tree/main/parlai/tasks/cbt
 """
 
 import numpy as np
-from lm_eval.base import rf, Task
+from lm_eval.base import Task, rf
 from lm_eval.metrics import mean
-
 
 _CITATION = """
 @misc{hill2016goldilocks,

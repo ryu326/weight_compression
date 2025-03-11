@@ -1,10 +1,11 @@
-import tensorflow as tf
-import numpy as np
-import proj_configs
-from common import image_utils
-from common.image_utils import read_png, quantize_image
 import glob
 import math
+
+import numpy as np
+import proj_configs
+import tensorflow as tf
+from common import image_utils
+from common.image_utils import quantize_image, read_png
 
 
 def check_image_size(image, patchsize):
@@ -223,7 +224,8 @@ def get_toy_dataset(name, data_dim: int, batchsize: int, dtype="float32", **kwar
 
     elif name in proj_configs.biggan_class_names_to_ids:
         # with tf.device("/gpu:0"):
-        from common import biggan  # takes a while to import/setup; that's why I'm doing lazy import
+        from common import \
+            biggan  # takes a while to import/setup; that's why I'm doing lazy import
 
         # flatten = tf.keras.layers.Flatten()
         # post_process_fun = lambda x: flatten(

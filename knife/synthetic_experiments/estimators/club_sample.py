@@ -1,7 +1,8 @@
-import torch.nn as nn
 import torch
-from .utils import FF
+import torch.nn as nn
 import torch.nn.functional as F
+
+from .utils import FF
 
 
 class CLUBSample(nn.Module):  # Sampled version of the CLUB estimator

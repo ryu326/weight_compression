@@ -1,15 +1,12 @@
+import copy
+import json
+import logging
+import random
 from pathlib import Path
 
 import torch
-
-from torch.utils.data import Dataset
-
-import random
-import copy
-import json
 import tqdm
-
-import logging
+from torch.utils.data import Dataset
 
 
 class PropertyDataset(Dataset):

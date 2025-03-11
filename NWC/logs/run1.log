@@ -1,0 +1,375 @@
+07:09:28 INFO - logger_setup: /workspace/Weight_compression/NWC/utils/util.py
+07:09:28 INFO - ddp_or_single_process: Create new exp folder!
+07:09:28 INFO - ddp_or_single_process: seed : 100
+07:09:28 INFO - ddp_or_single_process: exp name : block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/lmbda100_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100
+wandb: Using wandb-core as the SDK backend.  Please refer to https://wandb.me/wandb-core for more information.
+wandb: Currently logged in as: ryu326 (maskedkd) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: Tracking run with wandb version 0.19.8
+wandb: Run data is saved locally in /workspace/Weight_compression/NWC/wandb/run-20250309_070928-kobbafjy
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run nwc_ql
+wandb: ⭐️ View project at https://wandb.ai/maskedkd/NWC_VQVAE
+wandb: 🚀 View run at https://wandb.ai/maskedkd/NWC_VQVAE/runs/kobbafjy
+07:09:29 INFO - main: Create experiment save folder
+{'entropy_bottleneck.quantiles'}
+07:09:43 INFO - main: Training mode : scratch!
+07:09:43 INFO - main: batch_size : 2048
+07:09:43 INFO - main: num of gpus: 1
+07:09:43 INFO - main: Namespace(dist_port=6044, iter=200000, dataset='block_seq_ql_random', dataset_path='../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt', learning_rate=0.0001, aux_learning_rate=0.001, num_workers=2, batch_size=2048, seed=100, input_size=16, dim_encoder=512, n_resblock=4, M=16, N=0, R=0, m=0, Q=4, clip_max_norm=1.0, save_dir='', architecture='nwc_ql', loss='rdloss_ql', checkpoint='None', lmbda=100, dataset_stat_type='scaler', save_path='./checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/lmbda100_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100', logger=<Logger utils.util (INFO)>, **{'dev.num_gpus': 1})
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+07:09:46 INFO - main: Train iter. 1/200000 (0.0005%): 	Loss: 18119.142578125	recon_loss: 181.1258544921875	bpp_loss: 5.483220100402832	aux_loss: 659.3685302734375
+07:09:55 INFO - main: {'TEST MSE': 158.351830753132, 'TEST BPP': 5.60590625, 'TEST loss': 15842.08236328125, 'TEST recon_loss': 158.35183915710448, 'TEST bpp_loss': 5.480035566329956}
+07:09:55 INFO - main: can not find prev_mse_best_model!
+07:09:55 INFO - main: can not find prev_bpp_best_model!
+07:09:55 INFO - main: can not find prev_bpp_best_model!
+07:09:55 INFO - main: can not find recent_saved_model!
+/workspace/Weight_compression/NWC/train_nwc.py:457: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  csv_file = pd.concat([csv_file, pd.DataFrame([new_row])], ignore_index=True)
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+07:13:14 INFO - main: Train iter. 1000/200000 (0.5%): 	Loss: 8.629697799682617	recon_loss: 0.02973697893321514	bpp_loss: 4.93143367767334	aux_loss: 630.71044921875
+07:16:34 INFO - main: Train iter. 2000/200000 (1.0%): 	Loss: 6.885671615600586	recon_loss: 0.020064163953065872	bpp_loss: 4.80847692489624	aux_loss: 594.3463745117188
+07:19:54 INFO - main: Train iter. 3000/200000 (1.5%): 	Loss: 6.207501411437988	recon_loss: 0.01771852746605873	bpp_loss: 4.82173490524292	aux_loss: 547.906494140625
+07:23:17 INFO - main: Train iter. 4000/200000 (2.0%): 	Loss: 5.837638854980469	recon_loss: 0.017292916774749756	bpp_loss: 5.03118371963501	aux_loss: 494.259521484375
+07:26:38 INFO - main: Train iter. 5000/200000 (2.5%): 	Loss: 5.940136909484863	recon_loss: 0.020041145384311676	bpp_loss: 5.21333122253418	aux_loss: 450.16070556640625
+07:26:47 INFO - main: {'TEST MSE': 0.016571818937840765, 'TEST BPP': 5.346375, 'TEST loss': 5.617700100302696, 'TEST recon_loss': 0.016571819823235273, 'TEST bpp_loss': 5.199348356962204}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+07:30:08 INFO - main: Train iter. 6000/200000 (3.0%): 	Loss: 5.338818550109863	recon_loss: 0.014813493005931377	bpp_loss: 5.196481704711914	aux_loss: 425.7110900878906
+07:33:31 INFO - main: Train iter. 7000/200000 (3.5%): 	Loss: 5.297401428222656	recon_loss: 0.013598292134702206	bpp_loss: 5.091630935668945	aux_loss: 406.78515625
+07:36:52 INFO - main: Train iter. 8000/200000 (4.0%): 	Loss: 5.1186203956604	recon_loss: 0.013692625798285007	bpp_loss: 5.072915554046631	aux_loss: 389.83172607421875
+07:40:13 INFO - main: Train iter. 9000/200000 (4.5%): 	Loss: 5.362619400024414	recon_loss: 0.014476945623755455	bpp_loss: 5.061578750610352	aux_loss: 368.7032470703125
+07:43:35 INFO - main: Train iter. 10000/200000 (5.0%): 	Loss: 5.09194803237915	recon_loss: 0.012964858673512936	bpp_loss: 5.024721622467041	aux_loss: 346.9354553222656
+07:43:44 INFO - main: {'TEST MSE': 0.012899650339631342, 'TEST BPP': 5.11946875, 'TEST loss': 5.0341080422997475, 'TEST recon_loss': 0.012899651019601152, 'TEST bpp_loss': 5.037046484470367}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+07:47:05 INFO - main: Train iter. 11000/200000 (5.5%): 	Loss: 4.943445205688477	recon_loss: 0.011236079037189484	bpp_loss: 4.939332962036133	aux_loss: 325.0877380371094
+07:50:25 INFO - main: Train iter. 12000/200000 (6.0%): 	Loss: 5.088047981262207	recon_loss: 0.011438930407166481	bpp_loss: 4.860255241394043	aux_loss: 306.02154541015625
+07:53:45 INFO - main: Train iter. 13000/200000 (6.5%): 	Loss: 4.826422691345215	recon_loss: 0.010401304811239243	bpp_loss: 4.864067077636719	aux_loss: 289.27288818359375
+07:57:08 INFO - main: Train iter. 14000/200000 (7.0%): 	Loss: 4.910876274108887	recon_loss: 0.010384893976151943	bpp_loss: 4.789023399353027	aux_loss: 274.7366638183594
+08:00:29 INFO - main: Train iter. 15000/200000 (7.5%): 	Loss: 4.871786117553711	recon_loss: 0.010339298285543919	bpp_loss: 4.820504188537598	aux_loss: 262.13916015625
+08:00:38 INFO - main: {'TEST MSE': 0.010403936342205017, 'TEST BPP': 4.868375, 'TEST loss': 4.841860361516476, 'TEST recon_loss': 0.010403936898801475, 'TEST bpp_loss': 4.809906065225602}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+08:03:59 INFO - main: Train iter. 16000/200000 (8.0%): 	Loss: 4.971441268920898	recon_loss: 0.009963677264750004	bpp_loss: 4.704076766967773	aux_loss: 252.4228515625
+08:07:22 INFO - main: Train iter. 17000/200000 (8.5%): 	Loss: 4.911960601806641	recon_loss: 0.009893781505525112	bpp_loss: 4.727224349975586	aux_loss: 240.787353515625
+08:10:43 INFO - main: Train iter. 18000/200000 (9.0%): 	Loss: 4.867839813232422	recon_loss: 0.010006643831729889	bpp_loss: 4.74607515335083	aux_loss: 231.00250244140625
+08:14:03 INFO - main: Train iter. 19000/200000 (9.5%): 	Loss: 4.883242130279541	recon_loss: 0.009778141044080257	bpp_loss: 4.680319309234619	aux_loss: 219.26821899414062
+08:17:26 INFO - main: Train iter. 20000/200000 (10.0%): 	Loss: 4.836995601654053	recon_loss: 0.009518596343696117	bpp_loss: 4.696974277496338	aux_loss: 212.1575469970703
+08:17:36 INFO - main: {'TEST MSE': 0.009531483907942824, 'TEST BPP': 4.84221875, 'TEST loss': 4.842606629341841, 'TEST recon_loss': 0.009531484421459027, 'TEST bpp_loss': 4.781249536514283}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+08:20:56 INFO - main: Train iter. 21000/200000 (10.5%): 	Loss: 4.970036029815674	recon_loss: 0.009502497501671314	bpp_loss: 4.660706043243408	aux_loss: 204.71939086914062
+08:24:17 INFO - main: Train iter. 22000/200000 (11.0%): 	Loss: 4.842715263366699	recon_loss: 0.009373151697218418	bpp_loss: 4.749821662902832	aux_loss: 197.86404418945312
+08:27:37 INFO - main: Train iter. 23000/200000 (11.5%): 	Loss: 4.860857009887695	recon_loss: 0.009450417011976242	bpp_loss: 4.68487024307251	aux_loss: 188.96023559570312
+08:31:01 INFO - main: Train iter. 24000/200000 (12.0%): 	Loss: 4.968722820281982	recon_loss: 0.0101338941603899	bpp_loss: 4.648035526275635	aux_loss: 182.74008178710938
+08:34:21 INFO - main: Train iter. 25000/200000 (12.5%): 	Loss: 4.826200008392334	recon_loss: 0.009227837435901165	bpp_loss: 4.702844142913818	aux_loss: 174.92303466796875
+08:34:30 INFO - main: {'TEST MSE': 0.009196599085659743, 'TEST BPP': 4.86715625, 'TEST loss': 4.744901429921389, 'TEST recon_loss': 0.009196599585469813, 'TEST bpp_loss': 4.799092993497848}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+08:37:51 INFO - main: Train iter. 26000/200000 (13.0%): 	Loss: 4.951549053192139	recon_loss: 0.009468944743275642	bpp_loss: 4.679418563842773	aux_loss: 168.8802490234375
+08:41:14 INFO - main: Train iter. 27000/200000 (13.5%): 	Loss: 4.825515270233154	recon_loss: 0.009231094270944595	bpp_loss: 4.724932670593262	aux_loss: 161.75340270996094
+08:44:35 INFO - main: Train iter. 28000/200000 (14.0%): 	Loss: 4.739688396453857	recon_loss: 0.009058254770934582	bpp_loss: 4.788082122802734	aux_loss: 156.18746948242188
+08:47:56 INFO - main: Train iter. 29000/200000 (14.5%): 	Loss: 4.734528064727783	recon_loss: 0.008855564519762993	bpp_loss: 4.7873854637146	aux_loss: 150.87710571289062
+08:51:18 INFO - main: Train iter. 30000/200000 (15.0%): 	Loss: 4.650769233703613	recon_loss: 0.008930020034313202	bpp_loss: 4.780641078948975	aux_loss: 144.2599639892578
+08:51:28 INFO - main: {'TEST MSE': 0.009102216044119454, 'TEST BPP': 4.852, 'TEST loss': 4.823135326087475, 'TEST recon_loss': 0.009102216528495773, 'TEST bpp_loss': 4.777514494657517}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+08:54:49 INFO - main: Train iter. 31000/200000 (15.5%): 	Loss: 4.861049175262451	recon_loss: 0.009075794368982315	bpp_loss: 4.743343830108643	aux_loss: 138.69046020507812
+08:58:09 INFO - main: Train iter. 32000/200000 (16.0%): 	Loss: 4.741211414337158	recon_loss: 0.008964293636381626	bpp_loss: 4.824825286865234	aux_loss: 132.70387268066406
+09:01:29 INFO - main: Train iter. 33000/200000 (16.5%): 	Loss: 4.637871742248535	recon_loss: 0.008648976683616638	bpp_loss: 4.799374103546143	aux_loss: 127.60279846191406
+09:04:52 INFO - main: Train iter. 34000/200000 (17.0%): 	Loss: 4.7829461097717285	recon_loss: 0.008977089077234268	bpp_loss: 4.800098896026611	aux_loss: 122.86687469482422
+09:08:12 INFO - main: Train iter. 35000/200000 (17.5%): 	Loss: 4.634450435638428	recon_loss: 0.008765323087573051	bpp_loss: 4.81492280960083	aux_loss: 116.0955810546875
+09:08:22 INFO - main: {'TEST MSE': 0.009057335842161193, 'TEST BPP': 4.91571875, 'TEST loss': 4.847801136523485, 'TEST recon_loss': 0.009057336326921359, 'TEST bpp_loss': 4.829135624885559}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+09:11:42 INFO - main: Train iter. 36000/200000 (18.0%): 	Loss: 4.735017776489258	recon_loss: 0.00877359602600336	bpp_loss: 4.809556484222412	aux_loss: 110.9571533203125
+09:15:05 INFO - main: Train iter. 37000/200000 (18.5%): 	Loss: 4.939058303833008	recon_loss: 0.009226233698427677	bpp_loss: 4.771042823791504	aux_loss: 107.01649475097656
+09:18:25 INFO - main: Train iter. 38000/200000 (19.0%): 	Loss: 4.787683486938477	recon_loss: 0.008888359181582928	bpp_loss: 4.7969865798950195	aux_loss: 102.4419937133789
+09:21:45 INFO - main: Train iter. 39000/200000 (19.5%): 	Loss: 4.667017936706543	recon_loss: 0.008795990608632565	bpp_loss: 4.859581470489502	aux_loss: 96.47653198242188
+09:25:09 INFO - main: Train iter. 40000/200000 (20.0%): 	Loss: 4.865887641906738	recon_loss: 0.009097618982195854	bpp_loss: 4.780247688293457	aux_loss: 91.1629867553711
+09:25:18 INFO - main: {'TEST MSE': 0.00912900968118558, 'TEST BPP': 4.90865625, 'TEST loss': 4.972513102263212, 'TEST recon_loss': 0.009129010164062493, 'TEST bpp_loss': 4.814172943115234}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+09:28:38 INFO - main: Train iter. 41000/200000 (20.5%): 	Loss: 4.73213529586792	recon_loss: 0.00885977502912283	bpp_loss: 4.832474231719971	aux_loss: 86.07569885253906
+09:31:58 INFO - main: Train iter. 42000/200000 (21.0%): 	Loss: 4.742856502532959	recon_loss: 0.008772864006459713	bpp_loss: 4.847564697265625	aux_loss: 81.28231811523438
+09:35:19 INFO - main: Train iter. 43000/200000 (21.5%): 	Loss: 4.764976501464844	recon_loss: 0.008852984756231308	bpp_loss: 4.760321140289307	aux_loss: 76.64427185058594
+09:38:42 INFO - main: Train iter. 44000/200000 (22.0%): 	Loss: 4.794063568115234	recon_loss: 0.008885257877409458	bpp_loss: 4.783843040466309	aux_loss: 70.6457748413086
+09:42:02 INFO - main: Train iter. 45000/200000 (22.5%): 	Loss: 4.880171298980713	recon_loss: 0.009098970331251621	bpp_loss: 4.810049057006836	aux_loss: 66.98974609375
+09:42:12 INFO - main: {'TEST MSE': 0.00886505728777606, 'TEST BPP': 4.95434375, 'TEST loss': 4.786001902550459, 'TEST recon_loss': 0.00886505775526166, 'TEST bpp_loss': 4.85559223818779}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+09:45:31 INFO - main: Train iter. 46000/200000 (23.0%): 	Loss: 4.936823844909668	recon_loss: 0.009107091464102268	bpp_loss: 4.7497453689575195	aux_loss: 61.19090270996094
+09:48:54 INFO - main: Train iter. 47000/200000 (23.5%): 	Loss: 4.839521408081055	recon_loss: 0.008949068374931812	bpp_loss: 4.789773941040039	aux_loss: 56.64466857910156
+09:52:14 INFO - main: Train iter. 48000/200000 (24.0%): 	Loss: 4.520318984985352	recon_loss: 0.00838577188551426	bpp_loss: 4.881598949432373	aux_loss: 52.47468566894531
+09:55:34 INFO - main: Train iter. 49000/200000 (24.5%): 	Loss: 4.658956050872803	recon_loss: 0.008793576620519161	bpp_loss: 4.837778568267822	aux_loss: 47.90513610839844
+09:58:57 INFO - main: Train iter. 50000/200000 (25.0%): 	Loss: 4.60151481628418	recon_loss: 0.0085458280518651	bpp_loss: 4.900796413421631	aux_loss: 43.62403869628906
+09:59:07 INFO - main: {'TEST MSE': 0.008843960146878072, 'TEST BPP': 5.01346875, 'TEST loss': 4.841447400361299, 'TEST recon_loss': 0.008843960628262721, 'TEST bpp_loss': 4.898095897197724}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+10:02:27 INFO - main: Train iter. 51000/200000 (25.5%): 	Loss: 4.844751834869385	recon_loss: 0.008913975208997726	bpp_loss: 4.782835960388184	aux_loss: 40.13849639892578
+10:05:47 INFO - main: Train iter. 52000/200000 (26.0%): 	Loss: 4.9115986824035645	recon_loss: 0.009027780964970589	bpp_loss: 4.785017967224121	aux_loss: 35.54706573486328
+10:09:08 INFO - main: Train iter. 53000/200000 (26.5%): 	Loss: 5.030775547027588	recon_loss: 0.009210197255015373	bpp_loss: 4.749223709106445	aux_loss: 30.445842742919922
+10:12:31 INFO - main: Train iter. 54000/200000 (27.0%): 	Loss: 4.569028854370117	recon_loss: 0.008528880774974823	bpp_loss: 4.885588645935059	aux_loss: 26.514326095581055
+10:15:52 INFO - main: Train iter. 55000/200000 (27.5%): 	Loss: 4.834628105163574	recon_loss: 0.008912418968975544	bpp_loss: 4.796050548553467	aux_loss: 23.621706008911133
+10:16:01 INFO - main: {'TEST MSE': 0.00855160677563539, 'TEST BPP': 5.05903125, 'TEST loss': 4.621164735943079, 'TEST recon_loss': 0.008551607239060104, 'TEST bpp_loss': 4.93822351694107}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+10:19:21 INFO - main: Train iter. 56000/200000 (28.0%): 	Loss: 4.503945350646973	recon_loss: 0.008391270413994789	bpp_loss: 4.91896915435791	aux_loss: 20.30461311340332
+10:22:45 INFO - main: Train iter. 57000/200000 (28.5%): 	Loss: 4.880207061767578	recon_loss: 0.008924818597733974	bpp_loss: 4.816826820373535	aux_loss: 17.54833984375
+10:26:05 INFO - main: Train iter. 58000/200000 (29.0%): 	Loss: 4.654574871063232	recon_loss: 0.00864320620894432	bpp_loss: 4.839892864227295	aux_loss: 15.839761734008789
+10:29:25 INFO - main: Train iter. 59000/200000 (29.5%): 	Loss: 4.790482521057129	recon_loss: 0.008904905989766121	bpp_loss: 4.82899808883667	aux_loss: 13.093026161193848
+10:32:49 INFO - main: Train iter. 60000/200000 (30.0%): 	Loss: 4.684639930725098	recon_loss: 0.008622361347079277	bpp_loss: 4.846720218658447	aux_loss: 10.739214897155762
+10:32:58 INFO - main: {'TEST MSE': 0.008903604494673008, 'TEST BPP': 4.98928125, 'TEST loss': 4.831890799880028, 'TEST recon_loss': 0.008903604970662855, 'TEST bpp_loss': 4.868549919128418}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+10:36:18 INFO - main: Train iter. 61000/200000 (30.5%): 	Loss: 4.65629768371582	recon_loss: 0.008617005310952663	bpp_loss: 4.868558883666992	aux_loss: 9.202849388122559
+10:39:39 INFO - main: Train iter. 62000/200000 (31.0%): 	Loss: 4.802395820617676	recon_loss: 0.00879967026412487	bpp_loss: 4.833797454833984	aux_loss: 8.465967178344727
+10:42:59 INFO - main: Train iter. 63000/200000 (31.5%): 	Loss: 4.960412979125977	recon_loss: 0.00907659251242876	bpp_loss: 4.801210880279541	aux_loss: 7.348431587219238
+10:46:23 INFO - main: Train iter. 64000/200000 (32.0%): 	Loss: 4.725448131561279	recon_loss: 0.008767117746174335	bpp_loss: 4.831640720367432	aux_loss: 6.018190383911133
+10:49:43 INFO - main: Train iter. 65000/200000 (32.5%): 	Loss: 4.638436317443848	recon_loss: 0.008599111810326576	bpp_loss: 4.902497291564941	aux_loss: 5.096085548400879
+10:49:53 INFO - main: {'TEST MSE': 0.00873099970023989, 'TEST BPP': 5.034625, 'TEST loss': 4.738095318257809, 'TEST recon_loss': 0.008731000168598258, 'TEST bpp_loss': 4.910815581798554}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+10:53:13 INFO - main: Train iter. 66000/200000 (33.0%): 	Loss: 4.919509410858154	recon_loss: 0.009086069650948048	bpp_loss: 4.764876842498779	aux_loss: 4.309835910797119
+10:56:37 INFO - main: Train iter. 67000/200000 (33.5%): 	Loss: 4.613862037658691	recon_loss: 0.008521734736859798	bpp_loss: 4.892333984375	aux_loss: 4.105511665344238
+10:59:57 INFO - main: Train iter. 68000/200000 (34.0%): 	Loss: 4.54666805267334	recon_loss: 0.00843775738030672	bpp_loss: 4.8690505027771	aux_loss: 2.9761757850646973
+11:03:18 INFO - main: Train iter. 69000/200000 (34.5%): 	Loss: 4.667316436767578	recon_loss: 0.008547280915081501	bpp_loss: 4.907115459442139	aux_loss: 2.7455642223358154
+11:06:41 INFO - main: Train iter. 70000/200000 (35.0%): 	Loss: 4.765884876251221	recon_loss: 0.00878943596035242	bpp_loss: 4.835920333862305	aux_loss: 2.387118339538574
+11:06:50 INFO - main: {'TEST MSE': 0.00841803292407851, 'TEST BPP': 5.103875, 'TEST loss': 4.581920831352472, 'TEST recon_loss': 0.008418033380876296, 'TEST bpp_loss': 4.975383615016937}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+11:10:11 INFO - main: Train iter. 71000/200000 (35.5%): 	Loss: 4.664617538452148	recon_loss: 0.008647057227790356	bpp_loss: 4.8369903564453125	aux_loss: 1.6827610731124878
+11:13:33 INFO - main: Train iter. 72000/200000 (36.0%): 	Loss: 4.578675270080566	recon_loss: 0.008484258316457272	bpp_loss: 4.93464469909668	aux_loss: 1.7069765329360962
+11:16:53 INFO - main: Train iter. 73000/200000 (36.5%): 	Loss: 4.743019104003906	recon_loss: 0.008721514604985714	bpp_loss: 4.864895343780518	aux_loss: 1.775240182876587
+11:20:17 INFO - main: Train iter. 74000/200000 (37.0%): 	Loss: 4.829890251159668	recon_loss: 0.008934332989156246	bpp_loss: 4.854066371917725	aux_loss: 1.044098138809204
+11:23:37 INFO - main: Train iter. 75000/200000 (37.5%): 	Loss: 4.619133472442627	recon_loss: 0.008527006022632122	bpp_loss: 4.8850789070129395	aux_loss: 0.6782445311546326
+11:23:47 INFO - main: {'TEST MSE': 0.008579376405549228, 'TEST BPP': 4.99903125, 'TEST loss': 4.649467995047569, 'TEST recon_loss': 0.008579376854118892, 'TEST bpp_loss': 4.878001968383789}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+11:27:07 INFO - main: Train iter. 76000/200000 (38.0%): 	Loss: 4.7302656173706055	recon_loss: 0.008731892332434654	bpp_loss: 4.825064182281494	aux_loss: 0.4784460961818695
+11:30:30 INFO - main: Train iter. 77000/200000 (38.5%): 	Loss: 4.95662784576416	recon_loss: 0.009119613096117973	bpp_loss: 4.786501884460449	aux_loss: 0.8874468207359314
+11:33:50 INFO - main: Train iter. 78000/200000 (39.0%): 	Loss: 4.6131157875061035	recon_loss: 0.008544751442968845	bpp_loss: 4.8534836769104	aux_loss: 0.6778619885444641
+11:37:11 INFO - main: Train iter. 79000/200000 (39.5%): 	Loss: 4.7353901863098145	recon_loss: 0.00873138103634119	bpp_loss: 4.882054805755615	aux_loss: 0.6667075157165527
+11:40:34 INFO - main: Train iter. 80000/200000 (40.0%): 	Loss: 4.749470233917236	recon_loss: 0.008747735992074013	bpp_loss: 4.843615531921387	aux_loss: 0.41609227657318115
+11:40:44 INFO - main: {'TEST MSE': 0.008410834678304908, 'TEST BPP': 5.08525, 'TEST loss': 4.565613849431276, 'TEST recon_loss': 0.008410835116403177, 'TEST bpp_loss': 4.954086604595184}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+11:44:03 INFO - main: Train iter. 81000/200000 (40.5%): 	Loss: 4.549612998962402	recon_loss: 0.008418004028499126	bpp_loss: 4.850208282470703	aux_loss: 0.36152270436286926
+11:47:24 INFO - main: Train iter. 82000/200000 (41.0%): 	Loss: 4.770063400268555	recon_loss: 0.00877563189715147	bpp_loss: 4.8239312171936035	aux_loss: 0.32798492908477783
+11:50:44 INFO - main: Train iter. 83000/200000 (41.5%): 	Loss: 4.850296974182129	recon_loss: 0.008920103311538696	bpp_loss: 4.847633361816406	aux_loss: 0.21880459785461426
+11:54:07 INFO - main: Train iter. 84000/200000 (42.0%): 	Loss: 4.727836608886719	recon_loss: 0.008683670312166214	bpp_loss: 4.866476535797119	aux_loss: 0.1776275932788849
+11:57:28 INFO - main: Train iter. 85000/200000 (42.5%): 	Loss: 4.757946491241455	recon_loss: 0.008796654641628265	bpp_loss: 4.863983154296875	aux_loss: 0.45347535610198975
+11:57:38 INFO - main: {'TEST MSE': 0.009011351561694563, 'TEST BPP': 5.0129375, 'TEST loss': 4.934947638392448, 'TEST recon_loss': 0.009011352027300745, 'TEST bpp_loss': 4.888183377027511}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+12:00:58 INFO - main: Train iter. 86000/200000 (43.0%): 	Loss: 4.5745368003845215	recon_loss: 0.00845772959291935	bpp_loss: 4.920909404754639	aux_loss: 0.43368521332740784
+12:04:22 INFO - main: Train iter. 87000/200000 (43.5%): 	Loss: 4.684359073638916	recon_loss: 0.008573893457651138	bpp_loss: 4.912400245666504	aux_loss: 1.0201302766799927
+12:07:42 INFO - main: Train iter. 88000/200000 (44.0%): 	Loss: 4.8336501121521	recon_loss: 0.008903357200324535	bpp_loss: 4.811324119567871	aux_loss: 0.34533435106277466
+12:11:02 INFO - main: Train iter. 89000/200000 (44.5%): 	Loss: 4.891016483306885	recon_loss: 0.009044326841831207	bpp_loss: 4.763369560241699	aux_loss: 0.34093746542930603
+12:14:26 INFO - main: Train iter. 90000/200000 (45.0%): 	Loss: 4.6902570724487305	recon_loss: 0.00868160743266344	bpp_loss: 4.846000671386719	aux_loss: 1.0519769191741943
+12:14:35 INFO - main: {'TEST MSE': 0.008767409412507698, 'TEST BPP': 5.04103125, 'TEST loss': 4.762210821449757, 'TEST recon_loss': 0.008767409884603694, 'TEST bpp_loss': 4.91493867969513}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+12:17:55 INFO - main: Train iter. 91000/200000 (45.5%): 	Loss: 4.725951194763184	recon_loss: 0.008699201047420502	bpp_loss: 4.8790459632873535	aux_loss: 0.2552824914455414
+12:21:16 INFO - main: Train iter. 92000/200000 (46.0%): 	Loss: 4.908802509307861	recon_loss: 0.008976622484624386	bpp_loss: 4.8303751945495605	aux_loss: 0.5075147747993469
+12:24:37 INFO - main: Train iter. 93000/200000 (46.5%): 	Loss: 4.757441520690918	recon_loss: 0.008769954554736614	bpp_loss: 4.900556564331055	aux_loss: 0.5360393524169922
+12:28:00 INFO - main: Train iter. 94000/200000 (47.0%): 	Loss: 4.591792106628418	recon_loss: 0.008496957831084728	bpp_loss: 4.901109218597412	aux_loss: 0.43949928879737854
+12:31:21 INFO - main: Train iter. 95000/200000 (47.5%): 	Loss: 4.78479528427124	recon_loss: 0.008751057088375092	bpp_loss: 4.835524559020996	aux_loss: 0.2982926368713379
+12:31:31 INFO - main: {'TEST MSE': 0.008203364719939227, 'TEST BPP': 5.12871875, 'TEST loss': 4.426008938074112, 'TEST recon_loss': 0.008203365140943789, 'TEST bpp_loss': 5.000981292009354}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+12:34:50 INFO - main: Train iter. 96000/200000 (48.0%): 	Loss: 4.6777873039245605	recon_loss: 0.008626159280538559	bpp_loss: 4.86892557144165	aux_loss: 0.3345178961753845
+12:38:14 INFO - main: Train iter. 97000/200000 (48.5%): 	Loss: 4.726903915405273	recon_loss: 0.008695609867572784	bpp_loss: 4.860406398773193	aux_loss: 0.8003618717193604
+12:41:34 INFO - main: Train iter. 98000/200000 (49.0%): 	Loss: 4.798062801361084	recon_loss: 0.008820315822958946	bpp_loss: 4.795343399047852	aux_loss: 0.346439391374588
+12:44:55 INFO - main: Train iter. 99000/200000 (49.5%): 	Loss: 4.7282490730285645	recon_loss: 0.008688228204846382	bpp_loss: 4.861426830291748	aux_loss: 0.30932989716529846
+12:48:18 INFO - main: Train iter. 100000/200000 (50.0%): 	Loss: 4.627895832061768	recon_loss: 0.008541988208889961	bpp_loss: 4.873456001281738	aux_loss: 1.6784629821777344
+12:48:28 INFO - main: {'TEST MSE': 0.008195001792226394, 'TEST BPP': 5.1566875, 'TEST loss': 4.461960047513246, 'TEST recon_loss': 0.008195002244901843, 'TEST bpp_loss': 5.025912397146225}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+12:51:47 INFO - main: Train iter. 101000/200000 (50.5%): 	Loss: 4.749671936035156	recon_loss: 0.00878183450549841	bpp_loss: 4.824957370758057	aux_loss: 1.1713027954101562
+12:55:08 INFO - main: Train iter. 102000/200000 (51.0%): 	Loss: 4.983118057250977	recon_loss: 0.009121086448431015	bpp_loss: 4.781022548675537	aux_loss: 0.4480397701263428
+12:58:28 INFO - main: Train iter. 103000/200000 (51.5%): 	Loss: 4.927530765533447	recon_loss: 0.008993025869131088	bpp_loss: 4.816661834716797	aux_loss: 0.5361026525497437
+13:01:51 INFO - main: Train iter. 104000/200000 (52.0%): 	Loss: 4.7608642578125	recon_loss: 0.008720317855477333	bpp_loss: 4.862030029296875	aux_loss: 0.7230972051620483
+13:05:11 INFO - main: Train iter. 105000/200000 (52.5%): 	Loss: 4.74907922744751	recon_loss: 0.008736351504921913	bpp_loss: 4.855506896972656	aux_loss: 0.38207492232322693
+13:05:20 INFO - main: {'TEST MSE': 0.008380205968740397, 'TEST BPP': 5.0855625, 'TEST loss': 4.566674699634314, 'TEST recon_loss': 0.00838020641647745, 'TEST bpp_loss': 4.955968036651611}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+13:08:40 INFO - main: Train iter. 106000/200000 (53.0%): 	Loss: 4.751530647277832	recon_loss: 0.008739292621612549	bpp_loss: 4.843003273010254	aux_loss: 0.5730584859848022
+13:12:03 INFO - main: Train iter. 107000/200000 (53.5%): 	Loss: 4.726251125335693	recon_loss: 0.008739660494029522	bpp_loss: 4.85402774810791	aux_loss: 0.9875540137290955
+13:15:24 INFO - main: Train iter. 108000/200000 (54.0%): 	Loss: 4.855098247528076	recon_loss: 0.008942774496972561	bpp_loss: 4.814636707305908	aux_loss: 0.32805660367012024
+13:18:44 INFO - main: Train iter. 109000/200000 (54.5%): 	Loss: 4.841889381408691	recon_loss: 0.008968756534159184	bpp_loss: 4.805596828460693	aux_loss: 0.6196854114532471
+13:22:06 INFO - main: Train iter. 110000/200000 (55.0%): 	Loss: 4.86376953125	recon_loss: 0.00889944564551115	bpp_loss: 4.854172706604004	aux_loss: 0.9542354345321655
+13:22:16 INFO - main: {'TEST MSE': 0.008736596002017797, 'TEST BPP': 5.0504375, 'TEST loss': 4.7523156489729885, 'TEST recon_loss': 0.00873659645835869, 'TEST bpp_loss': 4.9221497929096225}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+13:25:36 INFO - main: Train iter. 111000/200000 (55.5%): 	Loss: 4.856189727783203	recon_loss: 0.008938933722674847	bpp_loss: 4.832576751708984	aux_loss: 0.2156001478433609
+13:28:56 INFO - main: Train iter. 112000/200000 (56.0%): 	Loss: 4.79046630859375	recon_loss: 0.008820842951536179	bpp_loss: 4.826383590698242	aux_loss: 0.612643837928772
+13:32:17 INFO - main: Train iter. 113000/200000 (56.5%): 	Loss: 4.876554489135742	recon_loss: 0.00891103595495224	bpp_loss: 4.8499250411987305	aux_loss: 0.903178870677948
+13:35:40 INFO - main: Train iter. 114000/200000 (57.0%): 	Loss: 4.880954265594482	recon_loss: 0.00891971681267023	bpp_loss: 4.853643417358398	aux_loss: 0.48014336824417114
+13:39:00 INFO - main: Train iter. 115000/200000 (57.5%): 	Loss: 4.627832412719727	recon_loss: 0.008530166000127792	bpp_loss: 4.887872219085693	aux_loss: 0.2634958028793335
+13:39:10 INFO - main: {'TEST MSE': 0.00876473896627066, 'TEST BPP': 5.02828125, 'TEST loss': 4.783564782112837, 'TEST recon_loss': 0.008764739435864612, 'TEST bpp_loss': 4.903279954910278}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+13:42:30 INFO - main: Train iter. 116000/200000 (58.0%): 	Loss: 4.7309184074401855	recon_loss: 0.008699114434421062	bpp_loss: 4.8632731437683105	aux_loss: 0.6348010301589966
+13:45:53 INFO - main: Train iter. 117000/200000 (58.5%): 	Loss: 4.5886077880859375	recon_loss: 0.008441083133220673	bpp_loss: 4.906685829162598	aux_loss: 0.2644486129283905
+13:49:13 INFO - main: Train iter. 118000/200000 (59.0%): 	Loss: 4.902708530426025	recon_loss: 0.008993549272418022	bpp_loss: 4.801722049713135	aux_loss: 1.4001970291137695
+13:52:33 INFO - main: Train iter. 119000/200000 (59.5%): 	Loss: 4.887099742889404	recon_loss: 0.008969523012638092	bpp_loss: 4.800707817077637	aux_loss: 0.18549932539463043
+13:55:56 INFO - main: Train iter. 120000/200000 (60.0%): 	Loss: 4.6576690673828125	recon_loss: 0.00860875379294157	bpp_loss: 4.871757507324219	aux_loss: 0.2849288880825043
+13:56:06 INFO - main: {'TEST MSE': 0.008340820591043541, 'TEST BPP': 5.10184375, 'TEST loss': 4.49418239197135, 'TEST recon_loss': 0.008340821034624241, 'TEST bpp_loss': 4.9709118044376375}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+13:59:26 INFO - main: Train iter. 121000/200000 (60.5%): 	Loss: 4.639806747436523	recon_loss: 0.00858708843588829	bpp_loss: 4.854369640350342	aux_loss: 0.25156867504119873
+14:02:46 INFO - main: Train iter. 122000/200000 (61.0%): 	Loss: 4.728139877319336	recon_loss: 0.008657428435981274	bpp_loss: 4.890622615814209	aux_loss: 0.363720178604126
+14:06:06 INFO - main: Train iter. 123000/200000 (61.5%): 	Loss: 4.710955619812012	recon_loss: 0.008697126992046833	bpp_loss: 4.840753555297852	aux_loss: 0.927112877368927
+14:09:30 INFO - main: Train iter. 124000/200000 (62.0%): 	Loss: 4.747150897979736	recon_loss: 0.008777291513979435	bpp_loss: 4.872707843780518	aux_loss: 0.7493730187416077
+14:12:50 INFO - main: Train iter. 125000/200000 (62.5%): 	Loss: 4.7890625	recon_loss: 0.008784933015704155	bpp_loss: 4.8640570640563965	aux_loss: 0.5053839683532715
+14:13:00 INFO - main: {'TEST MSE': 0.008736428096167845, 'TEST BPP': 5.06134375, 'TEST loss': 4.796695733159781, 'TEST recon_loss': 0.008736428561038338, 'TEST bpp_loss': 4.93277932715416}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+14:16:20 INFO - main: Train iter. 126000/200000 (63.0%): 	Loss: 4.83104133605957	recon_loss: 0.008859173394739628	bpp_loss: 4.814384937286377	aux_loss: 0.4853505790233612
+14:19:44 INFO - main: Train iter. 127000/200000 (63.5%): 	Loss: 4.7281174659729	recon_loss: 0.008689194917678833	bpp_loss: 4.854445457458496	aux_loss: 0.46887049078941345
+14:23:03 INFO - main: Train iter. 128000/200000 (64.0%): 	Loss: 4.787877082824707	recon_loss: 0.008778269402682781	bpp_loss: 4.877717018127441	aux_loss: 0.30483704805374146
+14:26:23 INFO - main: Train iter. 129000/200000 (64.5%): 	Loss: 4.58473014831543	recon_loss: 0.00845254398882389	bpp_loss: 4.9277873039245605	aux_loss: 0.9488139748573303
+14:29:46 INFO - main: Train iter. 130000/200000 (65.0%): 	Loss: 4.686443328857422	recon_loss: 0.008611137047410011	bpp_loss: 4.883538246154785	aux_loss: 0.2719685733318329
+14:29:56 INFO - main: {'TEST MSE': 0.008694934850813749, 'TEST BPP': 5.01471875, 'TEST loss': 4.750370867520571, 'TEST recon_loss': 0.008694935317500494, 'TEST bpp_loss': 4.891961464643479}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+14:33:16 INFO - main: Train iter. 131000/200000 (65.5%): 	Loss: 4.648220539093018	recon_loss: 0.008555964566767216	bpp_loss: 4.889374256134033	aux_loss: 0.4198538064956665
+14:36:35 INFO - main: Train iter. 132000/200000 (66.0%): 	Loss: 4.755788326263428	recon_loss: 0.008714226074516773	bpp_loss: 4.837620258331299	aux_loss: 0.276056706905365
+14:39:55 INFO - main: Train iter. 133000/200000 (66.5%): 	Loss: 4.780787467956543	recon_loss: 0.008763615041971207	bpp_loss: 4.82457160949707	aux_loss: 0.8235457539558411
+14:43:18 INFO - main: Train iter. 134000/200000 (67.0%): 	Loss: 4.816235542297363	recon_loss: 0.008920912630856037	bpp_loss: 4.788779258728027	aux_loss: 0.3916375935077667
+14:46:38 INFO - main: Train iter. 135000/200000 (67.5%): 	Loss: 4.648894309997559	recon_loss: 0.00852034892886877	bpp_loss: 4.9329729080200195	aux_loss: 0.32440775632858276
+14:46:48 INFO - main: {'TEST MSE': 0.008718490821338132, 'TEST BPP': 4.994375, 'TEST loss': 4.749555495262146, 'TEST recon_loss': 0.00871849127591122, 'TEST bpp_loss': 4.872107951641083}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+14:50:07 INFO - main: Train iter. 136000/200000 (68.0%): 	Loss: 4.785147190093994	recon_loss: 0.00876961462199688	bpp_loss: 4.849732875823975	aux_loss: 0.2160656452178955
+14:53:31 INFO - main: Train iter. 137000/200000 (68.5%): 	Loss: 4.56446647644043	recon_loss: 0.008379806764423847	bpp_loss: 4.933958053588867	aux_loss: 0.30531227588653564
+14:56:51 INFO - main: Train iter. 138000/200000 (69.0%): 	Loss: 4.6008687019348145	recon_loss: 0.008473487570881844	bpp_loss: 4.894496917724609	aux_loss: 0.25347620248794556
+15:00:11 INFO - main: Train iter. 139000/200000 (69.5%): 	Loss: 4.812612533569336	recon_loss: 0.008859207853674889	bpp_loss: 4.815569877624512	aux_loss: 0.4461420774459839
+15:03:35 INFO - main: Train iter. 140000/200000 (70.0%): 	Loss: 4.464404106140137	recon_loss: 0.008282610215246677	bpp_loss: 4.943506240844727	aux_loss: 0.35702449083328247
+15:03:45 INFO - main: {'TEST MSE': 0.00862965413634052, 'TEST BPP': 5.02125, 'TEST loss': 4.679706523001194, 'TEST recon_loss': 0.008629654598305933, 'TEST bpp_loss': 4.895243310213089}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+15:07:05 INFO - main: Train iter. 141000/200000 (70.5%): 	Loss: 4.7433271408081055	recon_loss: 0.008737020194530487	bpp_loss: 4.842721939086914	aux_loss: 0.22703132033348083
+15:10:25 INFO - main: Train iter. 142000/200000 (71.0%): 	Loss: 4.786284923553467	recon_loss: 0.00877310335636139	bpp_loss: 4.857931137084961	aux_loss: 0.4689372777938843
+15:13:45 INFO - main: Train iter. 143000/200000 (71.5%): 	Loss: 4.6178765296936035	recon_loss: 0.008478174917399883	bpp_loss: 4.886233329772949	aux_loss: 0.8811198472976685
+15:17:09 INFO - main: Train iter. 144000/200000 (72.0%): 	Loss: 4.607051849365234	recon_loss: 0.008439743891358376	bpp_loss: 4.963777542114258	aux_loss: 0.5391064882278442
+15:20:29 INFO - main: Train iter. 145000/200000 (72.5%): 	Loss: 4.795698642730713	recon_loss: 0.008790593594312668	bpp_loss: 4.851004600524902	aux_loss: 0.542100191116333
+15:20:38 INFO - main: {'TEST MSE': 0.008492036102718478, 'TEST BPP': 5.0920625, 'TEST loss': 4.599753157943487, 'TEST recon_loss': 0.008492036549723707, 'TEST bpp_loss': 4.958116997718811}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+15:23:58 INFO - main: Train iter. 146000/200000 (73.0%): 	Loss: 4.955981731414795	recon_loss: 0.00903136283159256	bpp_loss: 4.80751895904541	aux_loss: 0.5441142916679382
+15:27:21 INFO - main: Train iter. 147000/200000 (73.5%): 	Loss: 4.761117935180664	recon_loss: 0.0087489178404212	bpp_loss: 4.853691577911377	aux_loss: 0.5214616656303406
+15:30:42 INFO - main: Train iter. 148000/200000 (74.0%): 	Loss: 4.708556175231934	recon_loss: 0.00865219533443451	bpp_loss: 4.890954971313477	aux_loss: 0.811693549156189
+15:34:02 INFO - main: Train iter. 149000/200000 (74.5%): 	Loss: 4.752991199493408	recon_loss: 0.008671029470860958	bpp_loss: 4.911041736602783	aux_loss: 0.46302738785743713
+15:37:24 INFO - main: Train iter. 150000/200000 (75.0%): 	Loss: 4.857371807098389	recon_loss: 0.008893530815839767	bpp_loss: 4.864962577819824	aux_loss: 0.5199999809265137
+15:37:34 INFO - main: {'TEST MSE': 0.008898912427994682, 'TEST BPP': 5.00725, 'TEST loss': 4.875291634708643, 'TEST recon_loss': 0.00889891291433014, 'TEST bpp_loss': 4.876896936178207}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+15:40:54 INFO - main: Train iter. 151000/200000 (75.5%): 	Loss: 4.757666110992432	recon_loss: 0.00870017521083355	bpp_loss: 4.870943069458008	aux_loss: 1.01442289352417
+15:44:14 INFO - main: Train iter. 152000/200000 (76.0%): 	Loss: 4.732618808746338	recon_loss: 0.008710942231118679	bpp_loss: 4.899947166442871	aux_loss: 0.5900333523750305
+15:47:34 INFO - main: Train iter. 153000/200000 (76.5%): 	Loss: 4.637766361236572	recon_loss: 0.008480270393192768	bpp_loss: 4.920952796936035	aux_loss: 0.45964667201042175
+15:50:58 INFO - main: Train iter. 154000/200000 (77.0%): 	Loss: 4.783592224121094	recon_loss: 0.008803174830973148	bpp_loss: 4.854245185852051	aux_loss: 0.4188591241836548
+15:54:18 INFO - main: Train iter. 155000/200000 (77.5%): 	Loss: 4.830689907073975	recon_loss: 0.008909197524189949	bpp_loss: 4.809243202209473	aux_loss: 1.6324751377105713
+15:54:27 INFO - main: {'TEST MSE': 0.00852113791293181, 'TEST BPP': 5.097625, 'TEST loss': 4.656235191196203, 'TEST recon_loss': 0.008521138366893865, 'TEST bpp_loss': 4.965204751491546}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+15:57:47 INFO - main: Train iter. 156000/200000 (78.0%): 	Loss: 4.842560768127441	recon_loss: 0.008867684751749039	bpp_loss: 4.865000247955322	aux_loss: 0.44680657982826233
+16:01:10 INFO - main: Train iter. 157000/200000 (78.5%): 	Loss: 4.7388596534729	recon_loss: 0.008689019829034805	bpp_loss: 4.8781962394714355	aux_loss: 0.5586212873458862
+16:04:30 INFO - main: Train iter. 158000/200000 (79.0%): 	Loss: 4.599583625793457	recon_loss: 0.008471972309052944	bpp_loss: 4.89954948425293	aux_loss: 0.6850207448005676
+16:07:50 INFO - main: Train iter. 159000/200000 (79.5%): 	Loss: 4.623688220977783	recon_loss: 0.008533501997590065	bpp_loss: 4.8823113441467285	aux_loss: 0.5233502388000488
+16:11:13 INFO - main: Train iter. 160000/200000 (80.0%): 	Loss: 4.894842147827148	recon_loss: 0.008903205394744873	bpp_loss: 4.818931579589844	aux_loss: 0.2066202461719513
+16:11:23 INFO - main: {'TEST MSE': 0.008804857384510098, 'TEST BPP': 5.00678125, 'TEST loss': 4.844756602138281, 'TEST recon_loss': 0.008804857869516127, 'TEST bpp_loss': 4.882162197113037}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+16:14:43 INFO - main: Train iter. 161000/200000 (80.5%): 	Loss: 4.724045276641846	recon_loss: 0.008657904341816902	bpp_loss: 4.8714375495910645	aux_loss: 0.4233550429344177
+16:18:03 INFO - main: Train iter. 162000/200000 (81.0%): 	Loss: 4.827181816101074	recon_loss: 0.008818103931844234	bpp_loss: 4.840357780456543	aux_loss: 0.7325518131256104
+16:21:23 INFO - main: Train iter. 163000/200000 (81.5%): 	Loss: 4.901480197906494	recon_loss: 0.008951214142143726	bpp_loss: 4.807096481323242	aux_loss: 0.2985159158706665
+16:24:46 INFO - main: Train iter. 164000/200000 (82.0%): 	Loss: 4.548262596130371	recon_loss: 0.008473717607557774	bpp_loss: 4.890419006347656	aux_loss: 0.417081743478775
+16:28:06 INFO - main: Train iter. 165000/200000 (82.5%): 	Loss: 4.758225440979004	recon_loss: 0.008714108727872372	bpp_loss: 4.848240375518799	aux_loss: 0.31357693672180176
+16:28:16 INFO - main: {'TEST MSE': 0.00927839970460278, 'TEST BPP': 4.97203125, 'TEST loss': 5.123816952764988, 'TEST recon_loss': 0.009278400201699696, 'TEST bpp_loss': 4.841444930553436}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+16:31:36 INFO - main: Train iter. 166000/200000 (83.0%): 	Loss: 4.810744285583496	recon_loss: 0.008746244944632053	bpp_loss: 4.921259880065918	aux_loss: 1.3317928314208984
+16:34:59 INFO - main: Train iter. 167000/200000 (83.5%): 	Loss: 4.770908832550049	recon_loss: 0.00878326315432787	bpp_loss: 4.8428568840026855	aux_loss: 0.20229551196098328
+16:38:19 INFO - main: Train iter. 168000/200000 (84.0%): 	Loss: 4.910745620727539	recon_loss: 0.008971387520432472	bpp_loss: 4.83022928237915	aux_loss: 0.9127306342124939
+16:41:40 INFO - main: Train iter. 169000/200000 (84.5%): 	Loss: 4.709787368774414	recon_loss: 0.008634920231997967	bpp_loss: 4.893543243408203	aux_loss: 0.20001834630966187
+16:45:02 INFO - main: Train iter. 170000/200000 (85.0%): 	Loss: 4.727976322174072	recon_loss: 0.008690656162798405	bpp_loss: 4.858846187591553	aux_loss: 0.828589677810669
+16:45:12 INFO - main: {'TEST MSE': 0.009036047058980475, 'TEST BPP': 4.94546875, 'TEST loss': 4.9464067443907265, 'TEST recon_loss': 0.00903604753385298, 'TEST bpp_loss': 4.821272176027298}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+16:48:31 INFO - main: Train iter. 171000/200000 (85.5%): 	Loss: 4.669703006744385	recon_loss: 0.00857432372868061	bpp_loss: 4.862673282623291	aux_loss: 0.32429051399230957
+16:51:51 INFO - main: Train iter. 172000/200000 (86.0%): 	Loss: 4.830757141113281	recon_loss: 0.008837566711008549	bpp_loss: 4.838444709777832	aux_loss: 0.35809391736984253
+16:55:11 INFO - main: Train iter. 173000/200000 (86.5%): 	Loss: 4.950517654418945	recon_loss: 0.009018749929964542	bpp_loss: 4.8279290199279785	aux_loss: 0.265485942363739
+16:58:34 INFO - main: Train iter. 174000/200000 (87.0%): 	Loss: 4.8002214431762695	recon_loss: 0.008785595186054707	bpp_loss: 4.851998805999756	aux_loss: 0.44430822134017944
+17:01:54 INFO - main: Train iter. 175000/200000 (87.5%): 	Loss: 4.627198696136475	recon_loss: 0.008488460443913937	bpp_loss: 4.900635242462158	aux_loss: 0.4361799955368042
+17:02:04 INFO - main: {'TEST MSE': 0.008655242418636955, 'TEST BPP': 5.0585625, 'TEST loss': 4.716530343353749, 'TEST recon_loss': 0.008655242887092754, 'TEST bpp_loss': 4.9263480021953585}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+17:05:23 INFO - main: Train iter. 176000/200000 (88.0%): 	Loss: 4.762299537658691	recon_loss: 0.008713845163583755	bpp_loss: 4.891709804534912	aux_loss: 1.068315029144287
+17:08:47 INFO - main: Train iter. 177000/200000 (88.5%): 	Loss: 4.575315475463867	recon_loss: 0.00842235516756773	bpp_loss: 4.93319845199585	aux_loss: 0.44943174719810486
+17:12:06 INFO - main: Train iter. 178000/200000 (89.0%): 	Loss: 4.6304802894592285	recon_loss: 0.00857795774936676	bpp_loss: 4.899600028991699	aux_loss: 0.9359055757522583
+17:15:27 INFO - main: Train iter. 179000/200000 (89.5%): 	Loss: 4.918444633483887	recon_loss: 0.009006009437143803	bpp_loss: 4.767372131347656	aux_loss: 1.2857143878936768
+17:18:50 INFO - main: Train iter. 180000/200000 (90.0%): 	Loss: 4.889137268066406	recon_loss: 0.008907252922654152	bpp_loss: 4.865212917327881	aux_loss: 0.35037505626678467
+17:19:00 INFO - main: {'TEST MSE': 0.008890887342549674, 'TEST BPP': 4.9921875, 'TEST loss': 4.893976824730634, 'TEST recon_loss': 0.008890887797577306, 'TEST bpp_loss': 4.868354353904724}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+17:22:20 INFO - main: Train iter. 181000/200000 (90.5%): 	Loss: 4.731286525726318	recon_loss: 0.008656425401568413	bpp_loss: 4.864606857299805	aux_loss: 0.9610365629196167
+17:25:40 INFO - main: Train iter. 182000/200000 (91.0%): 	Loss: 4.679015159606934	recon_loss: 0.008601604960858822	bpp_loss: 4.90618896484375	aux_loss: 0.6262454986572266
+17:29:02 INFO - main: Train iter. 183000/200000 (91.5%): 	Loss: 4.904837608337402	recon_loss: 0.008930292911827564	bpp_loss: 4.832514762878418	aux_loss: 0.9078645706176758
+17:32:23 INFO - main: Train iter. 184000/200000 (92.0%): 	Loss: 4.622173309326172	recon_loss: 0.008533944375813007	bpp_loss: 4.852356433868408	aux_loss: 0.30603867769241333
+17:35:43 INFO - main: Train iter. 185000/200000 (92.5%): 	Loss: 4.693377494812012	recon_loss: 0.008632450364530087	bpp_loss: 4.858705043792725	aux_loss: 0.2534039616584778
+17:35:52 INFO - main: {'TEST MSE': 0.008628617085042357, 'TEST BPP': 5.05190625, 'TEST loss': 4.735546377897262, 'TEST recon_loss': 0.008628617548733019, 'TEST bpp_loss': 4.921844412088394}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+17:39:12 INFO - main: Train iter. 186000/200000 (93.0%): 	Loss: 4.674527645111084	recon_loss: 0.008602696470916271	bpp_loss: 4.871015548706055	aux_loss: 0.292341947555542
+17:42:35 INFO - main: Train iter. 187000/200000 (93.5%): 	Loss: 4.755549430847168	recon_loss: 0.008698906749486923	bpp_loss: 4.859517574310303	aux_loss: 0.47736555337905884
+17:45:55 INFO - main: Train iter. 188000/200000 (94.0%): 	Loss: 4.7530741691589355	recon_loss: 0.008648659102618694	bpp_loss: 4.895430564880371	aux_loss: 0.37221699953079224
+17:49:15 INFO - main: Train iter. 189000/200000 (94.5%): 	Loss: 4.683375358581543	recon_loss: 0.008636231534183025	bpp_loss: 4.850276470184326	aux_loss: 0.2931218147277832
+17:52:38 INFO - main: Train iter. 190000/200000 (95.0%): 	Loss: 4.786390781402588	recon_loss: 0.008780891075730324	bpp_loss: 4.878289222717285	aux_loss: 0.9010222554206848
+17:52:47 INFO - main: {'TEST MSE': 0.00860437795782915, 'TEST BPP': 5.04415625, 'TEST loss': 4.663093131631613, 'TEST recon_loss': 0.008604378430172801, 'TEST bpp_loss': 4.914738947629929}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+17:56:07 INFO - main: Train iter. 191000/200000 (95.5%): 	Loss: 4.673977851867676	recon_loss: 0.008589760400354862	bpp_loss: 4.8672637939453125	aux_loss: 0.7220487594604492
+17:59:27 INFO - main: Train iter. 192000/200000 (96.0%): 	Loss: 4.816882133483887	recon_loss: 0.008781015872955322	bpp_loss: 4.8651347160339355	aux_loss: 0.7520180940628052
+18:02:50 INFO - main: Train iter. 193000/200000 (96.5%): 	Loss: 4.678019046783447	recon_loss: 0.008616949431598186	bpp_loss: 4.877350807189941	aux_loss: 0.2207927256822586
+18:06:10 INFO - main: Train iter. 194000/200000 (97.0%): 	Loss: 4.758308410644531	recon_loss: 0.008718830533325672	bpp_loss: 4.894364833831787	aux_loss: 0.8534281253814697
+18:09:29 INFO - main: Train iter. 195000/200000 (97.5%): 	Loss: 4.745669364929199	recon_loss: 0.008704795502126217	bpp_loss: 4.860915660858154	aux_loss: 0.7149434089660645
+18:09:39 INFO - main: {'TEST MSE': 0.008779399486148755, 'TEST BPP': 5.029875, 'TEST loss': 4.832474701970816, 'TEST recon_loss': 0.008779399957391434, 'TEST bpp_loss': 4.897567686080933}
+/workspace/Weight_compression/NWC/train_nwc.py:266: UserWarning: Anomaly Detection has been enabled. This mode will increase the runtime and should only be enabled for debugging.
+  with torch.autograd.detect_anomaly():
+18:12:58 INFO - main: Train iter. 196000/200000 (98.0%): 	Loss: 4.544136047363281	recon_loss: 0.00833570770919323	bpp_loss: 4.94106912612915	aux_loss: 0.27554023265838623
+18:16:21 INFO - main: Train iter. 197000/200000 (98.5%): 	Loss: 4.59588623046875	recon_loss: 0.008421516977250576	bpp_loss: 4.923440933227539	aux_loss: 0.23142263293266296
+18:19:41 INFO - main: Train iter. 198000/200000 (99.0%): 	Loss: 4.692532062530518	recon_loss: 0.00862219650298357	bpp_loss: 4.903528690338135	aux_loss: 0.4966469407081604
+18:23:01 INFO - main: Train iter. 199000/200000 (99.5%): 	Loss: 4.652585983276367	recon_loss: 0.008506886661052704	bpp_loss: 4.919076442718506	aux_loss: 0.5884513854980469
+18:26:24 INFO - main: Train iter. 200000/200000 (100.0%): 	Loss: 4.725822448730469	recon_loss: 0.008622411638498306	bpp_loss: 4.91892671585083	aux_loss: 0.5467503070831299
+18:26:33 INFO - main: {'TEST MSE': 0.008673768980682414, 'TEST BPP': 5.0241875, 'TEST loss': 4.741699755519629, 'TEST recon_loss': 0.008673769450047985, 'TEST bpp_loss': 4.8947018041610715}
+wandb: uploading output.log; uploading wandb-summary.json; uploading config.yaml
+wandb:                                                                                
+wandb: 
+wandb: Run history:
+wandb:        TEST BPP █▆▄▁▁▁▁▂▂▂▃▃▂▃▃▂▃▃▃▄▄▃▃▃▃▃▃▂▃▃▃▃▃▂▂▃▂▃▃▃
+wandb:        TEST MSE █▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:   TEST bpp_loss █▅▄▁▁▁▁▂▁▂▂▃▂▂▃▂▃▂▂▃▃▃▂▂▃▃▂▂▂▃▂▃▂▂▁▂▂▂▂▂
+wandb:       TEST loss █▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: TEST recon_loss █▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:        bpp_loss ▅█▆▁▄▄▆▃▂▇▄▆▅▇▇▇▃▇▇▅▆▅▆▅▄▅▅▅█▅▆▄▇▄▆▇▅▃▅▆
+wandb:            loss █▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▂▁▁▁▁▂▂▁▁
+wandb:      recon_loss ▆█▅▃▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:        TEST BPP 5.02419
+wandb:        TEST MSE 0.00867
+wandb:   TEST bpp_loss 4.8947
+wandb:       TEST loss 4.7417
+wandb: TEST recon_loss 0.00867
+wandb:        bpp_loss 4.91893
+wandb:            loss 4.72582
+wandb:      recon_loss 0.00862
+wandb: 
+wandb: 🚀 View run nwc_ql at: https://wandb.ai/maskedkd/NWC_VQVAE/runs/kobbafjy
+wandb: ⭐️ View project at: https://wandb.ai/maskedkd/NWC_VQVAE
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20250309_070928-kobbafjy/logs

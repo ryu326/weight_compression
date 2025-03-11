@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
-import torch
-import torch.nn as nn
-from torch.utils.data import Dataset, DataLoader
-from torch import enable_grad
-import numpy as np
-import torch.nn.functional as F
+import logging
+import timeit
 from pathlib import Path
 
-import timeit
-
-import logging
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch import enable_grad
+from torch.utils.data import DataLoader, Dataset
 
 """
 define net
@@ -848,7 +847,6 @@ class CNN_more_layers_residual(nn.Module):
 
 
 import torchvision
-
 from torchvision.models.resnet import BasicBlock, Bottleneck
 from torchvision.models.resnet import ResNet as ResNetBase
 

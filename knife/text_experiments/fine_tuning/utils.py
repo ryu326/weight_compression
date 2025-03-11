@@ -1,5 +1,5 @@
-import os
 import csv
+import os
 
 
 def write_to_csv(scores, params, outputfile):

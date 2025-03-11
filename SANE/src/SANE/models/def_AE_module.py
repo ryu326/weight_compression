@@ -1,22 +1,17 @@
-import torch
-import torch.nn as nn
-import numpy as np
-from .def_AE import AE
-from .def_loss import GammaContrastReconLoss
-import itertools
-
-import logging
-
 import inspect
-
-from lightning.fabric import Fabric
-from lightning.fabric import seed_everything
-
+import itertools
+import logging
 from pathlib import Path
 
+import numpy as np
+import torch
+import torch.nn as nn
+import tqdm
+from lightning.fabric import Fabric, seed_everything
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-import tqdm
+from .def_AE import AE
+from .def_loss import GammaContrastReconLoss
 
 
 class AEModule(nn.Module):

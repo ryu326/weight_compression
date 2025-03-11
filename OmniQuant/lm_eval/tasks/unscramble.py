@@ -10,10 +10,10 @@ Homepage: https://github.com/openai/gpt-3/tree/master/data
 """
 
 import inspect
+
 import lm_eval.datasets.unscramble.unscramble
 from lm_eval.base import Task, rf
 from lm_eval.metrics import mean
-
 
 _CITATION = """
 @inproceedings{NEURIPS2020_1457c0d6,

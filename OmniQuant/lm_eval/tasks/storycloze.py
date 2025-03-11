@@ -10,9 +10,8 @@ Homepage: https://cs.rochester.edu/nlp/rocstories/
 """
 
 import numpy as np
-from lm_eval.base import rf, Task
+from lm_eval.base import Task, rf
 from lm_eval.metrics import mean
-
 
 _CITATION = """
 @inproceedings{sharma-etal-2018-tackling,

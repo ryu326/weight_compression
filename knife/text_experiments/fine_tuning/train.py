@@ -1,54 +1,41 @@
 """ Finetuning the library models for sequence classification on GLUE (Bert, XLM, XLNet, RoBERTa, Albert, XLM-RoBERTa)."""
 
 import argparse
+import copy
+import csv
 import glob
 import logging
 import os
-import csv
 import random
+import sys
 from os.path import join
-import copy
+
 import numpy as np
 import torch
-from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, TensorDataset
+import torch.nn as nn
+from data_utils import (convert_examples_to_features, glue_compute_metrics,
+                        output_modes, processors)
+from models import BertForSequenceClassification
+from prior_wd_optim import PriorWD
+from torch.utils.data import (DataLoader, RandomSampler, SequentialSampler,
+                              TensorDataset)
 from torch.utils.data.distributed import DistributedSampler
 from tqdm import tqdm, trange
-from prior_wd_optim import PriorWD
-import torch.nn as nn
-import sys
-
-from transformers import (
-    WEIGHTS_NAME,
-    AdamW,
-    AlbertConfig,
-    AlbertForSequenceClassification,
-    AlbertTokenizer,
-    BertConfig,
-    BertModel,
-    BertTokenizer,
-    DistilBertConfig,
-    DistilBertForSequenceClassification,
-    DistilBertTokenizer,
-    FlaubertConfig,
-    FlaubertForSequenceClassification,
-    FlaubertTokenizer,
-    RobertaConfig,
-    RobertaForSequenceClassification,
-    RobertaTokenizer,
-    XLMConfig,
-    XLMForSequenceClassification,
-    XLMRobertaConfig,
-    XLMRobertaForSequenceClassification,
-    XLMRobertaTokenizer,
-    XLMTokenizer,
-    XLNetConfig,
-    XLNetForSequenceClassification,
-    XLNetTokenizer,
-    get_linear_schedule_with_warmup,
-)
-from models import BertForSequenceClassification
+from transformers import (WEIGHTS_NAME, AdamW, AlbertConfig,
+                          AlbertForSequenceClassification, AlbertTokenizer,
+                          BertConfig, BertModel, BertTokenizer,
+                          DistilBertConfig,
+                          DistilBertForSequenceClassification,
+                          DistilBertTokenizer, FlaubertConfig,
+                          FlaubertForSequenceClassification, FlaubertTokenizer,
+                          RobertaConfig, RobertaForSequenceClassification,
+                          RobertaTokenizer, XLMConfig,
+                          XLMForSequenceClassification, XLMRobertaConfig,
+                          XLMRobertaForSequenceClassification,
+                          XLMRobertaTokenizer, XLMTokenizer, XLNetConfig,
+                          XLNetForSequenceClassification, XLNetTokenizer,
+                          get_linear_schedule_with_warmup)
 from utils import write_to_csv
-from data_utils import convert_examples_to_features, processors, output_modes, glue_compute_metrics
 
 try:
     from torch.utils.tensorboard import SummaryWriter

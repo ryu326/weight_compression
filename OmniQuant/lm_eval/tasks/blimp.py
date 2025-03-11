@@ -11,9 +11,8 @@ grammars.
 Homepage: https://github.com/alexwarstadt/blimp
 """
 
-from lm_eval.base import rf, Task
+from lm_eval.base import Task, rf
 from lm_eval.metrics import mean
-
 
 _CITATION = """
 @article{warstadt2019blimp,

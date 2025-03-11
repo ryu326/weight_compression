@@ -4,22 +4,22 @@ and
 https://github.com/google/CommonLoopUtils/blob/95994cbf2f05f477e8a72ec47b8d0b48549d1684/clu/metric_writers/utils.py#L100
 """
 
+import json
 import os
+from collections import OrderedDict
+from pathlib import Path
 from typing import Any, Mapping, Optional, Tuple
+
+from absl import logging
+from clu.metric_writers import interface
 from clu.metric_writers.async_writer import AsyncMultiWriter
 from clu.metric_writers.interface import MetricWriter
 from clu.metric_writers.logging_writer import LoggingWriter
 from clu.metric_writers.multi_writer import MultiWriter
 from clu.metric_writers.summary_writer import SummaryWriter
-from etils import epath
-from absl import logging
-
-from clu.metric_writers import interface
-from pathlib import Path
-import json
-from collections import OrderedDict
 from common.common_utils import preprocess_float_dict
 from common.image_utils import write_png
+from etils import epath
 from plot_utils import make_gif
 
 Array = interface.Array

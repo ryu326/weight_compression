@@ -1,14 +1,13 @@
-import torch
+import argparse
+import functools
 import os
 
-from transformers import AutoModelForCausalLM, AutoTokenizer, AutoConfig
-import argparse
+import torch
 import torch.nn as nn
-
 from datasets import load_dataset
-import functools
-from tqdm import tqdm
 from datautils import get_loaders
+from tqdm import tqdm
+from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
 
 try:
     from llava.model import *  # required for llava

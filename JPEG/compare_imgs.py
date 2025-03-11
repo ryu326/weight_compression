@@ -1,16 +1,16 @@
 import argparse
-import numpy as np
+import functools
 import glob
 import os
+
+import numpy as np
 import scipy.misc
 import scipy.ndimage
-
+from ms_ssim_np import MultiScaleSSIM
 # from skimage.measure import compare_psnr
 # from skimage.measure import compare_ssim
 from skimage.metrics import peak_signal_noise_ratio as compare_psnr
 from skimage.metrics import structural_similarity as compare_ssim
-from ms_ssim_np import MultiScaleSSIM
-import functools
 
 
 # speed test

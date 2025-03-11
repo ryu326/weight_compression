@@ -1,15 +1,15 @@
-import time, json
+import json
+import time
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from compressai.models import CompressionModel
-from compressai.entropy_models import GaussianConditional, EntropyBottleneck
 from compressai.ans import BufferedRansEncoder, RansDecoder
-
-from models.ELIC.utils.func import update_registered_buffers, get_scale_table
-from models.ELIC.utils.ckbd import *
+from compressai.entropy_models import EntropyBottleneck, GaussianConditional
+from compressai.models import CompressionModel
 from models.ELIC.modules.transform import *
-
+from models.ELIC.utils.ckbd import *
+from models.ELIC.utils.func import get_scale_table, update_registered_buffers
 from models.TCM.layers import ste_round
 from utils.util import ideal_bandpass
 

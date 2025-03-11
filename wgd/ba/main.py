@@ -1,11 +1,12 @@
 # Blahut-Arimoto.
-import jax.numpy as jnp
+from functools import partial
+
+import common.jax_utils
 import jax
+import jax.numpy as jnp
+from common.custom_train_state import TrainState
 from jax._src.random import PRNGKey
 from jax.scipy.special import logsumexp
-import common.jax_utils
-from common.custom_train_state import TrainState
-from functools import partial
 
 
 @jax.jit

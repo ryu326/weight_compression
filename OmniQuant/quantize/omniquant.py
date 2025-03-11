@@ -1,27 +1,22 @@
-import torch
-import torch.nn as nn
-from models.int_llama_layer import QuantLlamaDecoderLayer
-from models.int_opt_layer import QuantOPTDecoderLayer
-from models.int_falcon_layer import QuantFalconDecoderLayer
-from quantize.int_linear import QuantLinear
-from contextlib import nullcontext
 import copy
+import gc
 import math
-import utils
 import os
 import pdb
-import gc
-from quantize.utils import (
-    let_parameters,
-    lwc_parameters,
-    get_omni_parameters,
-    omni_state_dict,
-    register_scales_and_zeros,
-    smooth_and_quant_temporary,
-    smooth_and_quant_inplace,
-    clear_temp_variable,
-    set_quant_state,
-)
+from contextlib import nullcontext
+
+import torch
+import torch.nn as nn
+import utils
+from models.int_falcon_layer import QuantFalconDecoderLayer
+from models.int_llama_layer import QuantLlamaDecoderLayer
+from models.int_opt_layer import QuantOPTDecoderLayer
+from quantize.int_linear import QuantLinear
+from quantize.utils import (clear_temp_variable, get_omni_parameters,
+                            let_parameters, lwc_parameters, omni_state_dict,
+                            register_scales_and_zeros, set_quant_state,
+                            smooth_and_quant_inplace,
+                            smooth_and_quant_temporary)
 
 try:
     import auto_gptq.nn_modules.qlinear.qlinear_cuda as qlinear_cuda

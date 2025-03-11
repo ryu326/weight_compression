@@ -11,9 +11,8 @@ Homepage: "https://github.com/facebookresearch/anli"
 """
 
 import numpy as np
-from lm_eval.base import rf, Task
+from lm_eval.base import Task, rf
 from lm_eval.metrics import mean
-
 
 _CITATION = """
 @inproceedings{nie-etal-2020-adversarial,

@@ -1,7 +1,7 @@
 import torch.nn as nn
-from torch.nn import Module
 from torch import tensor
 from torch.autograd import Function
+from torch.nn import Module
 
 
 class FF(nn.Module):

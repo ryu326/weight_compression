@@ -1,7 +1,7 @@
 import os
 
-from torch.utils.data import Dataset
 import PIL.Image as Image
+from torch.utils.data import Dataset
 from torchvision import transforms
 
 # 이미지 한 장당 가지고 있어야 하는 정보

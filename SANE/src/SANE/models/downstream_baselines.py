@@ -1,11 +1,13 @@
+import logging
+import random
+
+import numpy as np
 import torch
 import torch.nn as nn
-import numpy as np
-import random
-from SANE.models.def_net import NNmodule
-import logging
 import weightwatcher as ww
+
 from SANE.datasets.dataset_auxiliaries import tokens_to_checkpoint
+from SANE.models.def_net import NNmodule
 
 
 ### just an identity model, maps input on itself

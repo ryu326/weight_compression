@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from compressai.entropy_models import GaussianConditional, EntropyModel
+from compressai.entropy_models import EntropyModel, GaussianConditional
 
 
 def ckbd_split(y):

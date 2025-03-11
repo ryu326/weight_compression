@@ -19,11 +19,10 @@ First, import some dependencies.
 # Inspiration: https://github.com/honnibal/spacy-ray/pull/
 # 1/files#diff-7ede881ddc3e8456b320afb958362b2aR12-R45
 from asyncio import Event
-from typing import Tuple
 from time import sleep
+from typing import Tuple
 
 import ray
-
 # For typing purposes
 from ray.actor import ActorHandle
 from tqdm import tqdm

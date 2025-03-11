@@ -1,12 +1,11 @@
 import json
-from typing import Union, List, Any, Optional
 from pathlib import Path
+from typing import Any, List, Optional, Union
 
 import pytorch_lightning as pl
-from pytorch_lightning.callbacks import Callback
-
 # Lit-Diffusion
 from lit_diffusion.diffusion_base.lit_diffusion_base import LitDiffusionBase
+from pytorch_lightning.callbacks import Callback
 
 # SANE
 from SANE.sampling.ddpm_sample import sample_model_evaluation

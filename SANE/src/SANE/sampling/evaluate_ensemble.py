@@ -1,9 +1,11 @@
-import torch
-from SANE.models.def_net import NNmodule
-import logging
 import copy
+import logging
 from collections import OrderedDict
+
+import torch
+
 from SANE.datasets.def_FastTensorDataLoader import FastTensorDataLoader
+from SANE.models.def_net import NNmodule
 from SANE.sampling.load_dataset import load_datasets_from_config
 
 

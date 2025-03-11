@@ -1,13 +1,14 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import pandas as pd
-from os.path import join, dirname
+import argparse
 import json
-from torch.utils.tensorboard import SummaryWriter
-import seaborn as sns
 from collections import defaultdict
 from itertools import chain
-import argparse
+from os.path import dirname, join
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+from torch.utils.tensorboard import SummaryWriter
 
 PLOTSIZE_X = 11.7
 PLOTSIZE_Y = 8.55

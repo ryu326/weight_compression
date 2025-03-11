@@ -1,6 +1,6 @@
-from timm.models.layers import to_2tuple
 import torch
 from einops import rearrange
+from timm.models.layers import to_2tuple
 from torch import nn
 
 

@@ -1,10 +1,12 @@
-from PIL import Image
 import os
 import os.path
-import numpy as np
 from typing import Any, Callable, Optional, Tuple
-from torchvision.datasets.utils import download_url, check_integrity, verify_str_arg
+
+import numpy as np
+from PIL import Image
 from torchvision.datasets import VisionDataset
+from torchvision.datasets.utils import (check_integrity, download_url,
+                                        verify_str_arg)
 
 
 class SVHN(VisionDataset):

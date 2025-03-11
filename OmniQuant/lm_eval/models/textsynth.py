@@ -14,11 +14,11 @@ Homepage: https://textsynth.com/index.html
 
 import logging
 import os
-import requests as _requests
 import time
-from tqdm import tqdm
-from lm_eval.base import BaseLM
 
+import requests as _requests
+from lm_eval.base import BaseLM
+from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 

@@ -10,8 +10,8 @@ Homepage: https://math-qa.github.io/math-QA/
 """
 
 import re
-from lm_eval.base import MultipleChoiceTask
 
+from lm_eval.base import MultipleChoiceTask
 
 _CITATION = """
 @misc{amini2019mathqa,

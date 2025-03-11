@@ -1,0 +1,32 @@
+/home/jgryu/miniconda3/envs/nic/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+19:50:13 INFO - logger_setup: /home/jgryu/Weight_compression/VQVAE/utils/util.py
+19:50:13 INFO - ddp_or_single_process: find checkpoint...
+19:50:13 INFO - ddp_or_single_process: checkpoint exist, name: recent_model_loss_56.32484_bpp_6.30245_MSE_0.00049_total_iter_200000.pth.tar
+19:50:13 INFO - ddp_or_single_process: seed : 100
+19:50:13 INFO - ddp_or_single_process: exp name : block_seq_ql_random_col_16/lmbda100000_rdloss_ql_encdim512_M16_batch_size1024_total_iter200000_lr0.0001_seed100
+wandb: Using wandb-core as the SDK backend.  Please refer to https://wandb.me/wandb-core for more information.
+wandb: Currently logged in as: ryu326 (maskedkd). Use `wandb login --relogin` to force relogin
+wandb: Tracking run with wandb version 0.19.1
+wandb: Run data is saved locally in /home/jgryu/Weight_compression/VQVAE/wandb/run-20250210_195014-s61hqsps
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run nwc_ql
+wandb: ⭐️ View project at https://wandb.ai/maskedkd/NWC_VQVAE
+wandb: 🚀 View run at https://wandb.ai/maskedkd/NWC_VQVAE/runs/s61hqsps
+19:50:14 INFO - main: Create experiment save folder
+/home/jgryu/Weight_compression/VQVAE/datasets/datasets_weight_block_seq_qlevel_random.py:39: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  data = torch.load(dataset_folder_path)
+{'entropy_bottleneck.quantiles'}
+19:50:26 INFO - main: Training mode : scratch!
+19:50:26 INFO - main: batch_size : 1024
+19:50:26 INFO - main: num of gpus: 1
+19:50:26 INFO - main: Namespace(dist_port=6044, iter=200000, dataset='block_seq_ql_random', learning_rate=0.0001, aux_learning_rate=0.001, num_workers=2, batch_size=1024, seed=100, input_size=16, dim_encoder=512, n_resblock=4, M=16, N=16, clip_max_norm=1.0, save_dir='nwc_ql', architecture='nwc_ql', loss='rdloss_ql', checkpoint='./checkpoint/nwc_ql/block_seq_ql_random_col_16/lmbda100000_rdloss_ql_encdim512_M16_batch_size1024_total_iter200000_lr0.0001_seed100/recent_model_loss_56.32484_bpp_6.30245_MSE_0.00049_total_iter_200000.pth.tar', block_direction='col', lmbda=100000, save_path='./checkpoint/nwc_ql/block_seq_ql_random_col_16/lmbda100000_rdloss_ql_encdim512_M16_batch_size1024_total_iter200000_lr0.0001_seed100', logger=<Logger utils.util (INFO)>, **{'dev.num_gpus': 1})
+19:50:26 INFO - main: Loading ./checkpoint/nwc_ql/block_seq_ql_random_col_16/lmbda100000_rdloss_ql_encdim512_M16_batch_size1024_total_iter200000_lr0.0001_seed100/recent_model_loss_56.32484_bpp_6.30245_MSE_0.00049_total_iter_200000.pth.tar
+/home/jgryu/Weight_compression/VQVAE/train_nwc.py:206: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  checkpoint = torch.load(checkpoint)
+wandb: uploading summary, console lines 1-10
+wandb:                                                                                
+wandb: 🚀 View run nwc_ql at: https://wandb.ai/maskedkd/NWC_VQVAE/runs/s61hqsps
+wandb: ⭐️ View project at: https://wandb.ai/maskedkd/NWC_VQVAE
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20250210_195014-s61hqsps/logs

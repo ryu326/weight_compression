@@ -1,25 +1,18 @@
-from pathlib import Path
-
-import torch
-
-from torch.utils.data import Dataset
-
-
-from SANE.datasets.dataset_auxiliaries import (
-    test_checkpoint_for_nan,
-    test_checkpoint_with_threshold,
-)
-
-import random
 import copy
 import json
-import tqdm
-
+import logging
+import random
+from pathlib import Path
 
 import ray
-from .progress_bar import ProgressBar
+import torch
+import tqdm
+from torch.utils.data import Dataset
 
-import logging
+from SANE.datasets.dataset_auxiliaries import (test_checkpoint_for_nan,
+                                               test_checkpoint_with_threshold)
+
+from .progress_bar import ProgressBar
 
 
 class ModelDatasetBaseEpochs(Dataset):

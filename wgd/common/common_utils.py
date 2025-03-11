@@ -108,8 +108,8 @@ def parse_runname(s, parse_numbers=False):
                  ('bpp', '0.000'),
                  ('psnr', '19.875')])
     """
-    from collections import OrderedDict
     import re
+    from collections import OrderedDict
 
     # Want to look for key, value pairs, of the form key_str=val_str.
     # In the following regex, key_str and val_str correspond to the first and second capturing groups, separated by '='.
@@ -145,8 +145,8 @@ def parse_runname(s, parse_numbers=False):
 
 def preprocess_float_dict(d, format_str=".6g", as_str=False):
     # preprocess the floating values in a dict so that json.dump(dict) looks nice
-    import tensorflow as tf
     import numpy as np
+    import tensorflow as tf
 
     res = {}
     for k, v in d.items():
@@ -184,9 +184,10 @@ def natural_sort(l):
 def get_np_datasets(np_file, batchsize, append_channel_dim=False, get_validation_data=True):
     assert np_file.endswith(".npy") or np_file.endswith(".npz")
 
+    import os
+
     import numpy as np
     import tensorflow as tf
-    import os
 
     def get_dataset(ar_path, repeat):
         X = np.load(ar_path).astype("float32")

@@ -11,8 +11,8 @@ Homepage: https://www.salesforce.com/products/einstein/ai-research/the-wikitext-
 """
 
 import re
-from lm_eval.base import PerplexityTask
 
+from lm_eval.base import PerplexityTask
 
 _CITATION = """
 @misc{merity2016pointer,

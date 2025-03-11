@@ -1,5 +1,6 @@
 import argparse
-from tools import plot_pdf, plot_mi_run, plot_entropy, plot_mi_bias_var_mse
+
+from tools import plot_entropy, plot_mi_bias_var_mse, plot_mi_run, plot_pdf
 
 actions = {"pdf": plot_pdf, "mi": plot_mi_run, "entropy": plot_entropy, "mi_bias_var_mse": plot_mi_bias_var_mse}
 

@@ -1,0 +1,12 @@
+CUDA_VISIBLE_DEVICES=2 taskset -c 16-23 python -u train_nwc.py --dist_port 6044 \
+    --architecture nwc_ql \
+    --save_dir nwc_ql \
+    --iter 200000 \
+    --input_size 8 \
+    --M 16 \
+    --dim_encoder 512 \
+    --batch_size 1024 \
+    --loss rdloss_ql \
+    --block_direction col \
+    --lmbda 10000 \
+    --dataset block_seq_ql_random \

@@ -16,9 +16,8 @@ Homepage: https://leaderboard.allenai.org/winogrande/submissions/public
 """
 
 import numpy as np
-from lm_eval.base import rf, Task
+from lm_eval.base import Task, rf
 from lm_eval.metrics import mean
-
 
 _CITATION = """
 @article{sakaguchi2019winogrande,

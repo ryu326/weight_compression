@@ -1,13 +1,12 @@
 ## taken from https://gist.github.com/z-a-f/b862013c0dc2b540cf96a123a6766e54#file-tin-py-L143-L201
 
+import os
+from collections import defaultdict
+
 import imageio
 import numpy as np
-import os
 import torch
-
-from collections import defaultdict
 from torch.utils.data import Dataset
-
 from tqdm.autonotebook import tqdm
 
 dir_structure_help = r"""

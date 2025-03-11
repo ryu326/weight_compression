@@ -1,27 +1,23 @@
-from compressai.entropy_models import EntropyBottleneck
-from compressai.models import CompressionModel
-from compressai.layers import (
-    ResidualBlockUpsample,
-    ResidualBlockWithStride,
-    conv3x3,
-    subpel_conv3x3,
-)
+import math
 import os
-from compressai.ops import LowerBound
-from range_coder import RangeEncoder, RangeDecoder
-import numpy as np
-import torch.nn as nn
-from torch import Tensor
-import torch
 
+import numpy as np
+import torch
+import torch.nn as nn
+from compressai.entropy_models import EntropyBottleneck
+from compressai.layers import (ResidualBlockUpsample, ResidualBlockWithStride,
+                               conv3x3, subpel_conv3x3)
+from compressai.models import CompressionModel
+from compressai.ops import LowerBound
 from einops import rearrange
 from einops.layers.torch import Rearrange
+from range_coder import RangeDecoder, RangeEncoder
+from timm.models.layers import DropPath
+from torch import Tensor
+from utils.util import ideal_bandpass
+
 from .entropy_models import GsnConditionalLocScaleShift
 from .tca import TCA_EntropyModel
-from timm.models.layers import DropPath
-import math
-
-from utils.util import ideal_bandpass
 
 SCALES_MIN = 0.11
 SCALES_MAX = 256

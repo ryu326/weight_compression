@@ -16,9 +16,8 @@
 
 from typing import Any, Callable
 
-from flax import core
-from flax import struct
 import optax
+from flax import core, struct
 
 
 class TrainState(struct.PyTreeNode):

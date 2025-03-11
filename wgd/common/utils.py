@@ -1,8 +1,9 @@
 # Util methods for running experiments. TODO: merge with common_utils.py
-import tensorflow as tf
+import json
 import os
 import sys
-import json
+
+import tensorflow as tf
 
 
 def pairwise_dist_squared(A, B):
@@ -158,10 +159,9 @@ def log_run_info(workdir):
         json.dump(run_info, f, indent=2)
 
 
-from common.common_utils import preprocess_float_dict
-
 import numpy as np
 import tensorflow as tf
+from common.common_utils import preprocess_float_dict
 
 
 def get_time_str(strftime_format="%Y,%m,%d,%H%M%S"):

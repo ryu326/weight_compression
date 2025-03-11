@@ -1,17 +1,19 @@
+import copy
+import math
+import pdb
+from collections import OrderedDict
+from typing import List, Optional, Tuple
+
 import torch
-from torch import nn
-from typing import Optional, Tuple, List
+import torch.nn.functional as F
+from models.transformation import *
 from quantize.int_linear import QuantLinear
 from quantize.int_matmul import QuantMatMul
-import torch.nn.functional as F
-from collections import OrderedDict
-import math
-from transformers.models.falcon.configuration_falcon import FalconConfig
-from transformers.models.falcon.modeling_falcon import FalconAttention, dropout_add
-import pdb
-import copy
-from models.transformation import *
 from quantize.omni_norm import OmniLayerNorm
+from torch import nn
+from transformers.models.falcon.configuration_falcon import FalconConfig
+from transformers.models.falcon.modeling_falcon import (FalconAttention,
+                                                        dropout_add)
 
 
 class QuantFalconMLP(nn.Module):

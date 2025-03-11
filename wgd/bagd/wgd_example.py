@@ -1,6 +1,6 @@
 # A self-contained, minimal implementation of Wasserstein GD on the rate functional L_{BA}.
-import jax.numpy as jnp
 import jax
+import jax.numpy as jnp
 from jax.scipy.special import logsumexp
 
 # Define the distortion function \rho.

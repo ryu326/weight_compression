@@ -1,9 +1,10 @@
 import codecs
-from typing import IO, Union
-import torch
 import gzip
 import lzma
+from typing import IO, Union
+
 import numpy as np
+import torch
 
 
 def get_int(b: bytes) -> int:

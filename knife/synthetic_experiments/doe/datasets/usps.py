@@ -1,8 +1,9 @@
-from PIL import Image
 import os
-import numpy as np
-from typing import Any, Callable, cast, Optional, Tuple
 import pickle
+from typing import Any, Callable, Optional, Tuple, cast
+
+import numpy as np
+from PIL import Image
 from torchvision.datasets import VisionDataset
 from torchvision.datasets.utils import download_url
 

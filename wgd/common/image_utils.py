@@ -1,6 +1,7 @@
-import tensorflow as tf
+from typing import Callable, Optional
+
 import numpy as np
-from typing import Optional, Callable
+import tensorflow as tf
 
 
 def read_png(filename, channels=3):

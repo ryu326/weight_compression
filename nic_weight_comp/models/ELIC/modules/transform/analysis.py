@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from compressai.layers import subpel_conv3x3, AttentionBlock
-from models.ELIC.modules.layers.conv import conv1x1, conv3x3, conv, deconv
+from compressai.layers import AttentionBlock, subpel_conv3x3
+from models.ELIC.modules.layers.conv import conv, conv1x1, conv3x3, deconv
 from models.ELIC.modules.layers.res_blk import *
 
 

@@ -3,7 +3,6 @@ from pathlib import Path
 import torch
 from torchvision import datasets, transforms
 
-
 PATH_ROOT = Path(".")
 
 

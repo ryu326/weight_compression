@@ -1,10 +1,11 @@
-import numpy as np
-import jax.numpy as jnp
-import jax
-from jax.scipy.special import logsumexp
 from functools import partial
+
+import jax
+import jax.numpy as jnp
+import numpy as np
 import optax
 from absl import logging
+from jax.scipy.special import logsumexp
 
 
 def mse(x, y):

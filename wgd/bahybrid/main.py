@@ -1,16 +1,17 @@
 # Wasserstein GD + BA step on the Blahut-Arimoto functional (BAF).
-import numpy as np
-import jax.numpy as jnp
+from functools import partial
+
+import bagd.main
+import common.jax_utils
 import jax
+import jax.numpy as jnp
+import numpy as np
 import optax
+from ba.main import ba_loss_and_update
+from bagd.main import wgrad_baf
+from common.custom_train_state import TrainState
 from jax._src.random import PRNGKey
 from jax.scipy.special import logsumexp
-import common.jax_utils
-from common.custom_train_state import TrainState
-from functools import partial
-from bagd.main import wgrad_baf
-import bagd.main
-from ba.main import ba_loss_and_update
 
 
 class Experiment(bagd.main.Experiment):

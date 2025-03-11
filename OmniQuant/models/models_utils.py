@@ -1,14 +1,15 @@
 import abc
-import torch
-import json
-import hashlib
 import collections
-from tqdm import tqdm
-from typing import Iterable
+import hashlib
+import json
 from abc import abstractmethod
-from torch import nn
-import transformers
+from typing import Iterable
+
+import torch
 import torch.nn.functional as F
+import transformers
+from torch import nn
+from tqdm import tqdm
 
 
 class TruncateFunction(torch.autograd.Function):

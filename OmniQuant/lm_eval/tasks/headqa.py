@@ -10,9 +10,9 @@ Homepage: https://aghie.github.io/head-qa/
 """
 
 import inspect
+
 import lm_eval.datasets.headqa.headqa
 from lm_eval.base import MultipleChoiceTask
-
 
 _CITATION = """
 @misc{liu2020interpretable,

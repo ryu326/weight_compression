@@ -1,22 +1,14 @@
-import torch
-
-from torchvision.transforms import RandomErasing
-
+import logging
 import random
 
-from .dataset_auxiliaries import (
-    tokens_to_checkpoint,
-    tokenize_checkpoint,
-)
+import torch
+from torchvision.transforms import RandomErasing
 
-from SANE.git_re_basin.git_re_basin import (
-    PermutationSpec,
-    zoo_cnn_permutation_spec,
-    weight_matching,
-    apply_permutation,
-)
+from SANE.git_re_basin.git_re_basin import (PermutationSpec, apply_permutation,
+                                            weight_matching,
+                                            zoo_cnn_permutation_spec)
 
-import logging
+from .dataset_auxiliaries import tokenize_checkpoint, tokens_to_checkpoint
 
 
 #############################################################################
@@ -345,8 +337,9 @@ class NoiseAugmentation(torch.nn.Module):
 #############################################################################
 
 import copy
-import torch
+
 import ray
+import torch
 
 from SANE.datasets.progress_bar import ProgressBar
 

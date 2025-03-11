@@ -1,14 +1,13 @@
 import math
+from typing import List, Mapping, NewType, Optional, Tuple, Union
+
 import torch
 import torch.nn.functional as F
 import transformers
-from typing import List, Mapping, NewType, Optional, Tuple, Union
-from tqdm import tqdm
-
-from transformers import BatchEncoding
-
 from lm_eval import utils
 from lm_eval.base import BaseLM
+from tqdm import tqdm
+from transformers import BatchEncoding
 
 TokenSequence = Union[List[int], torch.LongTensor, torch.Tensor, BatchEncoding]
 

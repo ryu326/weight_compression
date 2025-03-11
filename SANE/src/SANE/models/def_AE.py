@@ -1,7 +1,9 @@
-import torch.nn as nn
-import torch
-from einops import repeat
 import math
+
+import torch
+import torch.nn as nn
+from einops import repeat
+
 from SANE.models.def_transformer import TransformerEncoder
 
 

@@ -13,35 +13,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from abc import ABC, abstractmethod
 import functools
+import inspect
+import itertools
+import os
+import pprint
+import shutil
+from abc import ABC, abstractmethod
 
-from absl import logging
-from clu import parameter_overview
-from clu import checkpoint
-import flax.jax_utils as flax_utils
+import common.data_lib
+import common.utils
 import flax
-from jax._src.random import PRNGKey
+import flax.jax_utils as flax_utils
 import jax
 import jax.numpy as jnp
+import matplotlib.pyplot as plt
 import ml_collections
 import numpy as np
 import optax
-from optax._src import base
-import tensorflow as tf
-import os
-import shutil
-import pprint
-from clu import metric_writers, periodic_actions
-from common.custom_writers import create_default_writer
-import inspect
-import itertools
-
-import common.utils
-import common.data_lib
-from common.custom_metrics import Metrics
 import plot_utils
-import matplotlib.pyplot as plt
+import tensorflow as tf
+from absl import logging
+from clu import (checkpoint, metric_writers, parameter_overview,
+                 periodic_actions)
+from common.custom_metrics import Metrics
+from common.custom_writers import create_default_writer
+from jax._src.random import PRNGKey
+from optax._src import base
 
 
 class BaseExperiment(ABC):
@@ -437,11 +435,12 @@ def restore_partial(state, state_restore_dict):
     return state
 
 
-from pathlib import Path
-from common.utils import load_json
-from proj_configs import TRAIN_COLLECTION, VAL_COLLECTION, CHECKPOINTS_DIR_NAME
 import imp
+from pathlib import Path
+
 import ml_collections
+from common.utils import load_json
+from proj_configs import CHECKPOINTS_DIR_NAME, TRAIN_COLLECTION, VAL_COLLECTION
 
 
 def load_experiment(workdir, expm_cls=None, update_model_config={}, load_latest_ckpt=True, verbose=False):

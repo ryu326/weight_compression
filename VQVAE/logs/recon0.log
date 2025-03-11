@@ -1,0 +1,13 @@
+/home/jgryu/miniconda3/envs/nic/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+/home/jgryu/Weight_compression/VQVAE/recon_lm/compress_lm_nwc.py:243: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ckpt = torch.load(args.model_path)
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.46it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:02<00:02,  1.17s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:03<00:01,  1.42s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:04<00:00,  1.04it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:04<00:00,  1.04s/it]
+pseudo compress quantization...:   0%|          | 0/32 [00:00<?, ?it/s]2025-02-04 23:10:40 - INFO - layer0_self_attn.q_proj | mse: 0.016736747979983774, bpp_loss: 3.6725847721099854, bpp: 0
+2025-02-04 23:10:41 - INFO - layer0_self_attn.k_proj | mse: 0.020843191389105207, bpp_loss: 4.469818115234375, bpp: 0
+2025-02-04 23:10:41 - INFO - layer0_self_attn.v_proj | mse: 0.012031710392540482, bpp_loss: 2.801778554916382, bpp: 0
+2025-02-04 23:10:41 - INFO - layer0_self_attn.o_proj | mse: 0.012311054825264445, bpp_loss: 2.8608083724975586, bpp: 0
+2025-02-04 23:10:44 - INFO - layer0_mlp.gate_proj | mse: 0.014085713988197551, bpp_loss: 3.2196578979492188, bpp: 0
+2025-02-04 23:10:46 - INFO - layer0_mlp.up_proj | mse: 0.013584872441051471, bpp_loss: 3.1258321830204556, bpp: 0
+2025-02-04 23:10:48 - INFO - layer0_mlp.down_proj | mse: 0.01356304281142687, bpp_loss: 3.1205434799194336, bpp: 0
+pseudo compress quantization...:   3%|▎         | 1/32 [00:08<04:30,  8.74s/it]

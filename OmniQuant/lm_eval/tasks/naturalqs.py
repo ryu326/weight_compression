@@ -16,9 +16,9 @@ not even bother with the train set.
 Homepage: https://ai.google.com/research/NaturalQuestions
 """
 
-from lm_eval.base import Task
 from itertools import islice
 
+from lm_eval.base import Task
 
 _CITATION = """
 @article{47761,

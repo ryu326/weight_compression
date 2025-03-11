@@ -1,13 +1,8 @@
-from compressai.entropy_models import EntropyBottleneck, GaussianConditional
 from compressai.ans import BufferedRansEncoder, RansDecoder
+from compressai.entropy_models import EntropyBottleneck, GaussianConditional
+from compressai.layers import (ResidualBlockUpsample, ResidualBlockWithStride,
+                               conv3x3, subpel_conv3x3)
 from compressai.models import CompressionModel
-from compressai.layers import (
-    ResidualBlockUpsample,
-    ResidualBlockWithStride,
-    conv3x3,
-    subpel_conv3x3,
-)
-
 from models.TCM.layers import *
 from utils.util import ideal_bandpass
 

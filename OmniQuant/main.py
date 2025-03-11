@@ -1,27 +1,25 @@
 import os
-import sys
+import pdb
 import random
-import numpy as np
-from models.LMClass import LMClass
-import torch
+import sys
 import time
+from pathlib import Path
+from pprint import pprint
+
+import numpy as np
+import torch
+import torch.nn as nn
+import utils
+from categories import categories, subcategories
 from datautils import get_loaders
 from lm_eval import evaluator
-from pprint import pprint
-from parallel_utils import map_layers_to_multi_gpus, get_lowest_occupied_gpu
-import torch.nn as nn
-from quantize.omniquant import omniquant
-from tqdm import tqdm
-import utils
-from pathlib import Path
-from categories import subcategories, categories
-
 from models.int_llama_layer import QuantLlamaDecoderLayer
 from models.int_opt_layer import QuantOPTDecoderLayer
+from models.LMClass import LMClass
+from parallel_utils import get_lowest_occupied_gpu, map_layers_to_multi_gpus
 from quantize.int_linear import QuantLinear
-
-import pdb
-
+from quantize.omniquant import omniquant
+from tqdm import tqdm
 
 torch.backends.cudnn.benchmark = True
 

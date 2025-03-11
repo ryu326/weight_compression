@@ -16,10 +16,10 @@ Homepage: https://github.com/chaochun/nlu-asdiv-dataset
 """
 
 import inspect
-import lm_eval.datasets.asdiv.asdiv
-from lm_eval.base import rf, Task
-from lm_eval.metrics import mean
 
+import lm_eval.datasets.asdiv.asdiv
+from lm_eval.base import Task, rf
+from lm_eval.metrics import mean
 
 _CITATION = """
 @misc{miao2021diverse,

@@ -1,0 +1,12 @@
+CUDA_VISIBLE_DEVICES=3 taskset -c 24-31 python -u train_nwc.py --dist_port 6044 \
+    --architecture nwc_ql \
+    --dataset_path ../Wparam_dataset/block_pt/meta-llama--Llama-2-7b-hf/col_1024_gaussian_padding.pt \
+    --dataset block_seq_ql_random \
+    --iter 200000 \
+    --input_size 16 \
+    --M 16 \
+    --Q 4 \
+    --dim_encoder 512 \
+    --batch_size 2048 \
+    --loss rdloss_ql \
+    --lmbda 100

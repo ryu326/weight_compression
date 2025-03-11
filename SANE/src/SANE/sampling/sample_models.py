@@ -1,15 +1,13 @@
+import logging
 from collections import OrderedDict
-from SANE.datasets.dataset_auxiliaries import tokens_to_checkpoint, tokenize_checkpoint
 
 import torch
-
 from einops import repeat
-
 from sklearn.neighbors import KernelDensity
 
-import logging
-
-from SANE.sampling.halo import haloify, dehaloify
+from SANE.datasets.dataset_auxiliaries import (tokenize_checkpoint,
+                                               tokens_to_checkpoint)
+from SANE.sampling.halo import dehaloify, haloify
 
 
 def sample_models(

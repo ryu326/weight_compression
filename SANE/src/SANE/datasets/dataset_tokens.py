@@ -1,38 +1,25 @@
-import torch
-from torch.utils.data import Dataset
-
-from pathlib import Path
-import random
 import copy
-
 import itertools
-from math import factorial
-
-from SANE.datasets.dataset_epochs import ModelDatasetBaseEpochs
-from SANE.git_re_basin.git_re_basin import (
-    PermutationSpec,
-    zoo_cnn_permutation_spec,
-    weight_matching,
-    apply_permutation,
-)
-
-from SANE.models.def_net import NNmodule
-
-from .dataset_auxiliaries import (
-    tokenize_checkpoint,
-)
-
-
 import logging
-
-from typing import List, Union, Optional
+import random
+from math import factorial
+from pathlib import Path
+from typing import List, Optional, Union
 
 import ray
-from .progress_bar import ProgressBar
-
+import torch
 import tqdm
-
 from rebasin import PermutationCoordinateDescent
+from torch.utils.data import Dataset
+
+from SANE.datasets.dataset_epochs import ModelDatasetBaseEpochs
+from SANE.git_re_basin.git_re_basin import (PermutationSpec, apply_permutation,
+                                            weight_matching,
+                                            zoo_cnn_permutation_spec)
+from SANE.models.def_net import NNmodule
+
+from .dataset_auxiliaries import tokenize_checkpoint
+from .progress_bar import ProgressBar
 
 
 #####################################################################

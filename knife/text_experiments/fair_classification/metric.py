@@ -1,10 +1,11 @@
-import torch
+import argparse
 import math
-from tqdm import tqdm
+import os
+
 import fasttext
 import sacrebleu
-import os
-import argparse
+import torch
+from tqdm import tqdm
 
 
 class StyleTransfertMetric:
@@ -263,8 +264,9 @@ if __name__ == "__main__":
     # # print(metric.remove_pad_and_sep(generated_sentences))
     #
     import math
+
     import torch
-    from transformers import GPT2Tokenizer, GPT2LMHeadModel
+    from transformers import GPT2LMHeadModel, GPT2Tokenizer
 
     #
     # # Load pre-trained model (weights)

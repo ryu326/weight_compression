@@ -1,13 +1,14 @@
 import collections
+import fnmatch
 import itertools
-import numpy as np
 import random
+
+import lm_eval.base
 import lm_eval.metrics
 import lm_eval.models
 import lm_eval.tasks
-import lm_eval.base
+import numpy as np
 from lm_eval.utils import positional_deprecated, run_task_tests
-import fnmatch
 
 
 def pattern_match(patterns, source_list):
@@ -266,7 +267,7 @@ def evaluate(
 
 def make_table(result_dict):
     """Generate table of results."""
-    from pytablewriter import MarkdownTableWriter, LatexTableWriter
+    from pytablewriter import LatexTableWriter, MarkdownTableWriter
 
     md_writer = MarkdownTableWriter()
     latex_writer = LatexTableWriter()

@@ -1,12 +1,13 @@
 # Wasserstein GD on the rate / Blahut-Arimoto functional ("BAF"). The main method studied in the paper.
-import numpy as np
-import jax.numpy as jnp
+from functools import partial
+
+import common.jax_utils
 import jax
+import jax.numpy as jnp
+import numpy as np
+from common.custom_train_state import TrainState
 from jax._src.random import PRNGKey
 from jax.scipy.special import logsumexp
-from functools import partial
-import common.jax_utils
-from common.custom_train_state import TrainState
 
 
 @partial(jax.jit, static_argnames=["distort_type"])

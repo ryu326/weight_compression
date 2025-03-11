@@ -1,13 +1,14 @@
-from functools import partial
 import argparse
-from pathlib import Path
 import json
+from collections import defaultdict
+from functools import partial
+from pathlib import Path
+from typing import Any
+
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 from utils import compute_confidence_interval
-from collections import defaultdict
-from typing import Any
-import numpy as np
-import matplotlib.pyplot as plt
 
 
 def parse_args() -> argparse.Namespace:

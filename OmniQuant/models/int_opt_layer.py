@@ -1,14 +1,15 @@
-import torch
-from torch import nn
-from typing import Optional, Tuple, List
-from quantize.int_linear import QuantLinear
-from quantize.int_matmul import QuantMatMul
-import torch.nn.functional as F
-from quantize.omni_norm import OmniLayerNorm
-from collections import OrderedDict
 import pdb
+from collections import OrderedDict
+from typing import List, Optional, Tuple
+
+import torch
+import torch.nn.functional as F
 from models.models_utils import truncate_number
 from models.transformation import *
+from quantize.int_linear import QuantLinear
+from quantize.int_matmul import QuantMatMul
+from quantize.omni_norm import OmniLayerNorm
+from torch import nn
 
 
 class QuantOPTAttention(nn.Module):

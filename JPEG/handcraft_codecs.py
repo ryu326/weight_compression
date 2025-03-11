@@ -14,28 +14,26 @@ http://bellard.org/bpg/bpg_spec.txt
 
 import argparse
 import csv
-import numpy as np
-import glob
-import time
-import scipy.ndimage
-import shutil
-import os
-import sys
-import subprocess
-from contextlib import contextmanager
-import compare_imgs
-import operator
-import re
-from PIL import Image
-import itertools
 import functools
+import glob
+import itertools
+import operator
+import os
+import re
+import shutil
+import subprocess
+import sys
+import time
+from contextlib import contextmanager
 
-
+import compare_imgs
 import matplotlib as mpl
+import numpy as np
+import scipy.ndimage
+from PIL import Image
 
 mpl.use("Agg")  # No display
 import matplotlib.pyplot as plt
-
 
 _BPG_QUANTIZATION_PARAMETER_RANGE = (1, 51)  # smaller means better
 

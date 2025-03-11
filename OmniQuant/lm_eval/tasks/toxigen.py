@@ -7,10 +7,9 @@ Classify input text as either hateful or not hateful.
 Homepage: https://github.com/microsoft/TOXIGEN
 """
 
-from lm_eval.base import MultipleChoiceTask
 import numpy as np
 import pandas as pd
-
+from lm_eval.base import MultipleChoiceTask
 
 _CITATION = """
 @inproceedings{hartvigsen2022toxigen,

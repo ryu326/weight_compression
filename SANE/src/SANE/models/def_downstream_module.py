@@ -1,19 +1,18 @@
-import torch
-import torch.nn as nn
 import sys
 
+import torch
+import torch.nn as nn
+
 sys.path.append("./../")
-from SANE.datasets.def_FastTensorDataLoader import FastTensorDataLoader
+import logging
+
 import numpy as np
-
-# for classification
-from SANE.models.def_net import NNmodule
-
 import tqdm
-
 from einops import repeat
 
-import logging
+from SANE.datasets.def_FastTensorDataLoader import FastTensorDataLoader
+# for classification
+from SANE.models.def_net import NNmodule
 
 
 class DownstreamTaskLearner:

@@ -1,10 +1,11 @@
+import itertools
+import random
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import random
-from tqdm import tqdm
-import itertools
 from model_utils import *
+from tqdm import tqdm
 
 
 class VanillaSeq2seq(torch.nn.Module):

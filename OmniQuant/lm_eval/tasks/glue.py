@@ -15,10 +15,9 @@ Homepage: https://gluebenchmark.com/
 """
 
 import numpy as np
-from lm_eval.base import rf, Task
-from lm_eval.metrics import mean, matthews_corrcoef, f1_score, yesno
+from lm_eval.base import Task, rf
+from lm_eval.metrics import f1_score, matthews_corrcoef, mean, yesno
 from lm_eval.utils import general_detokenize
-
 
 # TODO(jon-tow): Add citations for the individual datasets/tasks that make up GLUE.
 _CITATION = """

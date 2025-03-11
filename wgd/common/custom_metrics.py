@@ -1,6 +1,7 @@
+from typing import Any, Mapping, NamedTuple, Sequence
+
 import numpy as np
 import tensorflow as tf
-from typing import NamedTuple, Mapping, Any, Sequence
 from common import utils
 
 

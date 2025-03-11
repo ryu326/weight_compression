@@ -1,8 +1,10 @@
-import torch
-from SANE.models.def_net import NNmodule
-import logging
 import copy
+import logging
+
+import torch
+
 from SANE.datasets.def_FastTensorDataLoader import FastTensorDataLoader
+from SANE.models.def_net import NNmodule
 
 
 def load_datasets_from_config(config):

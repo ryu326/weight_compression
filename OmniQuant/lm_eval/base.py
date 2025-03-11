@@ -1,20 +1,21 @@
 import abc
-from typing import Iterable
-import numpy as np
+import hashlib
+import json
+import os
 import random
 import re
-import os
-import json
-import hashlib
+from abc import abstractmethod
+from typing import Iterable
+
 import datasets
-from sqlitedict import SqliteDict
-from tqdm import tqdm
+import numpy as np
 import torch
 import torch.nn.functional as F
-
-from lm_eval.metrics import mean, weighted_perplexity, weighted_mean, bits_per_byte
 from lm_eval import utils
-from abc import abstractmethod
+from lm_eval.metrics import (bits_per_byte, mean, weighted_mean,
+                             weighted_perplexity)
+from sqlitedict import SqliteDict
+from tqdm import tqdm
 
 
 class LM(abc.ABC):

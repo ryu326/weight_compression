@@ -1,10 +1,11 @@
 ## V2 : coefficient 를 nn으로 만드는게 아니라 U inverse * X 로 만들기
 
+import math
+
+import torch
+import torch.nn as nn
 from compressai.entropy_models import EntropyBottleneck
 from compressai.models import CompressionModel
-
-import torch, math
-import torch.nn as nn
 
 
 def ste_round(x: torch.Tensor) -> torch.Tensor:

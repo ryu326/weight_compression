@@ -1,10 +1,10 @@
 import torch
-from torch import nn
 import torch.nn.functional as F
-from torch.nn import CrossEntropyLoss, MSELoss
-from transformers.modeling_bert import BertPreTrainedModel, BertModel
-from mi_estimators import *
 from data_utils import *
+from mi_estimators import *
+from torch import nn
+from torch.nn import CrossEntropyLoss, MSELoss
+from transformers.modeling_bert import BertModel, BertPreTrainedModel
 
 
 class BertForSequenceClassification(BertPreTrainedModel):

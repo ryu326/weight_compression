@@ -1,9 +1,11 @@
-import torch.nn as nn
-import torch
-import numpy as np
-from .utils import FF
 import math
+
+import numpy as np
+import torch
+import torch.nn as nn
 import torch.nn.functional as F
+
+from .utils import FF
 
 
 class NWJ(nn.Module):

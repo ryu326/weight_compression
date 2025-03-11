@@ -14,14 +14,14 @@ https://github.com/allenai/allennlp-reading-comprehension/blob/master/allennlp_r
 """
 
 import inspect
-import numpy as np
 import re
 import string
+
 import lm_eval.datasets.drop.drop
-from scipy.optimize import linear_sum_assignment
+import numpy as np
 from lm_eval.base import Task, rf
 from lm_eval.metrics import mean
-
+from scipy.optimize import linear_sum_assignment
 
 _CITATION = """
 @misc{dua2019drop,

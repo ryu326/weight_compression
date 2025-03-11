@@ -1,12 +1,13 @@
+import os
+import pdb
+import re
+import subprocess
+import time
+from functools import partial
+from typing import List
+
 import torch
 import torch.nn as nn
-from typing import List
-from functools import partial
-import subprocess
-import re
-import os
-import time
-import pdb
 
 
 def nvidia_smi_memory_info():

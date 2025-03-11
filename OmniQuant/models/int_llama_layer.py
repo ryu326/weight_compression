@@ -1,18 +1,22 @@
+import copy
+import math
+import pdb
+from collections import OrderedDict
+from typing import List, Optional, Tuple
+
 import torch
-from torch import nn
-from typing import Optional, Tuple, List
+import torch.nn.functional as F
+from models.transformation import *
 from quantize.int_linear import QuantLinear
 from quantize.int_matmul import QuantMatMul
-import torch.nn.functional as F
 from quantize.omni_norm import OmniLlamaRMSNorm
-from collections import OrderedDict
-import math
-from transformers.models.llama.modeling_llama import LlamaRotaryEmbedding, apply_rotary_pos_emb, LlamaRMSNorm, repeat_kv
-from transformers.models.llama.configuration_llama import LlamaConfig
+from torch import nn
 from transformers.activations import ACT2FN
-import pdb
-import copy
-from models.transformation import *
+from transformers.models.llama.configuration_llama import LlamaConfig
+from transformers.models.llama.modeling_llama import (LlamaRMSNorm,
+                                                      LlamaRotaryEmbedding,
+                                                      apply_rotary_pos_emb,
+                                                      repeat_kv)
 
 
 class QuantLlamaMLP(nn.Module):

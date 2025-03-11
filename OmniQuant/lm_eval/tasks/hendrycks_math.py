@@ -10,10 +10,10 @@ Homepage: https://github.com/hendrycks/math
 """
 
 import inspect
-import lm_eval.datasets.hendrycks_math.hendrycks_math
-from lm_eval.metrics import mean
-from lm_eval.base import Task, rf
 
+import lm_eval.datasets.hendrycks_math.hendrycks_math
+from lm_eval.base import Task, rf
+from lm_eval.metrics import mean
 
 _CITATION = """
 @article{hendrycksmath2021,

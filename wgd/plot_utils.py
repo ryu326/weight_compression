@@ -1,8 +1,9 @@
 # Quick tools for plotting.
 
 import os
-import pandas as pd
+
 import numpy as np
+import pandas as pd
 
 
 def load_jsonl(jsonl, to_df=True):

@@ -20,13 +20,12 @@ we could try this?
 Homepage: https://github.com/sylinrl/TruthfulQA
 """
 
+import datasets
 import numpy as np
 import sacrebleu
-import datasets
-from rouge_score import rouge_scorer, scoring
-from lm_eval.base import rf, Task
+from lm_eval.base import Task, rf
 from lm_eval.metrics import mean
-
+from rouge_score import rouge_scorer, scoring
 
 try:
     import bleurt

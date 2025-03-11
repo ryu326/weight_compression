@@ -1,26 +1,26 @@
 #!/usr/bin/env python
 # *-* encoding: utf-8 *-*
 
-import torch
-import numpy as np
-from estimators.knife import MargKernel
-from datasets.synthetic import DataGeneratorMulti, get_random_data_generator
-import matplotlib.pyplot as plt
-from tqdm import tqdm
-from datetime import datetime
-from torch.utils import data
-import os
 import argparse
-from scipy.stats import multivariate_normal
-from numpy.linalg import slogdet
-import logging
-import shutil
-from os.path import join
-from doe.util import PDF as Doe
-
 import json
+import logging
+import os
+import shutil
+from datetime import datetime
+from os.path import join
 from types import SimpleNamespace
+
+import matplotlib.pyplot as plt
+import numpy as np
+import torch
+from datasets.synthetic import DataGeneratorMulti, get_random_data_generator
+from doe.util import PDF as Doe
+from estimators.knife import MargKernel
+from numpy.linalg import slogdet
+from scipy.stats import multivariate_normal
 from tools import MultiSummaryWriter
+from torch.utils import data
+from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 

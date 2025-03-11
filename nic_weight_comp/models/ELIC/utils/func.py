@@ -1,10 +1,11 @@
 # From CompresssAI
 # Modified by Wei Jiang
 
+import math
+
+import einops
 import torch
 import torch.nn as nn
-import math
-import einops
 
 
 def get_scale_table(min=0.11, max=256, levels=64):  # pylint: disable=W0622

@@ -1,16 +1,17 @@
-import torch
-import numpy as np
-from tqdm import tqdm
+import argparse
+import copy
 import logging
 import os
 import pickle
-import torch.nn.functional as F
-import argparse
-import torch.distributed as dist
-import yaml
-import copy
-from typing import List
 from ast import literal_eval
+from typing import List
+
+import numpy as np
+import torch
+import torch.distributed as dist
+import torch.nn.functional as F
+import yaml
+from tqdm import tqdm
 
 
 def main_process(distributed) -> bool:

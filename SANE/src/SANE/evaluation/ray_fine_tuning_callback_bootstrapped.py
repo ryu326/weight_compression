@@ -1,15 +1,14 @@
 import json
-from typing import Union, List, Any, Optional
 from pathlib import Path
-
-from ray.tune import Callback
-
-# SANE
-from SANE.sampling.kde_sample_bootstrapped import sample_model_evaluation_bootstrapped
-
-from SANE.models.def_AE_module import AEModule
+from typing import Any, List, Optional, Union
 
 import torch
+from ray.tune import Callback
+
+from SANE.models.def_AE_module import AEModule
+# SANE
+from SANE.sampling.kde_sample_bootstrapped import \
+    sample_model_evaluation_bootstrapped
 
 
 class CheckpointSamplingCallbackBootstrapped(Callback):

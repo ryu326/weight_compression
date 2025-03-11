@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 
-
 """
 Modify normalization layer to adapt the training of learnable equivalent transformation
 """

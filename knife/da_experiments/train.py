@@ -1,36 +1,28 @@
-import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import ImageGrid
-import torch
-import numpy as np
-import os
 import argparse
-from typing import Dict
-from tqdm import tqdm, trange
+import json
+import os
 import random
+import shutil
+from pathlib import Path
+from typing import Dict
+
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
-from torch.utils.data import DataLoader
+import torch
+import torch.backends.cudnn as cudnn
+import torch.multiprocessing as tmp
 import torch.nn as nn
 import torchvision.transforms as transforms
-from pathlib import Path
-import shutil
-import json
-from utils import (
-    AverageMeter,
-    save_checkpoint,
-    get_model_dir,
-    load_cfg_from_cfg_file,
-    merge_cfg_from_list,
-    find_free_port,
-    setup,
-    cleanup,
-    main_process,
-    to_np_image,
-)
-import torch.multiprocessing as tmp
-import torch.backends.cudnn as cudnn
-from datasets import __dict__ as data_dict
 from architectures import __dict__ as model_dict
+from datasets import __dict__ as data_dict
 from estimators import __dict__ as methods_dict
+from mpl_toolkits.axes_grid1 import ImageGrid
+from torch.utils.data import DataLoader
+from tqdm import tqdm, trange
+from utils import (AverageMeter, cleanup, find_free_port, get_model_dir,
+                   load_cfg_from_cfg_file, main_process, merge_cfg_from_list,
+                   save_checkpoint, setup, to_np_image)
 
 
 def parse_args() -> argparse.Namespace:

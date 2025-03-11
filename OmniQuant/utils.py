@@ -1,12 +1,12 @@
-import torch
-
+import logging
+import os
+import sys
+import time
 # from torch._six import inf
 from math import inf
-import logging
+
+import torch
 from termcolor import colored
-import sys
-import os
-import time
 
 
 @torch.no_grad()

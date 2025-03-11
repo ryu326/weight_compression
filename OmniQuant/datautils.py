@@ -1,9 +1,10 @@
 import pdb
-from transformers import AutoTokenizer
-from datasets import load_dataset
+import random
+
 import numpy as np
 import torch
-import random
+from datasets import load_dataset
+from transformers import AutoTokenizer
 
 
 def set_seed(seed):

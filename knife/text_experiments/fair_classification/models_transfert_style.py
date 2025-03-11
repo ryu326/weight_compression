@@ -1,11 +1,12 @@
-from model_utils import *
-import pickle
-import torch
-from tqdm import tqdm
-import numpy as np
 import copy
+import pickle
+
+import numpy as np
+import torch
 from geomloss import SamplesLoss
 from mi_estimators import *
+from model_utils import *
+from tqdm import tqdm
 
 
 class StyleEmdedding(torch.nn.Module):

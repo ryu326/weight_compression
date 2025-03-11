@@ -1,16 +1,13 @@
-from ray.tune import Trainable
-
-import torch
+import json
 import sys
-
 # print(f"sys path in experiment: {sys.path}")
 from pathlib import Path
 
+import torch
+from ray.tune import Trainable
+
 from SANE.datasets.def_FastTensorDataLoader import FastTensorDataLoader
-
 from SANE.models.def_net import NNmodule
-
-import json
 
 """
 define Tune Trainable

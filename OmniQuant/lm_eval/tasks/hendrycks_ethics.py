@@ -17,13 +17,13 @@ Homepage: https://github.com/hendrycks/ethics
 """
 
 import abc
-import random
 import inspect
+import random
+
 import lm_eval.datasets.hendrycks_ethics.hendrycks_ethics
 import numpy as np
 from lm_eval.base import Task, rf
 from lm_eval.metrics import mean, yesno
-
 
 _CITATION = """
 @article{hendrycks2021ethics,

@@ -1,17 +1,13 @@
-from ray.tune import Trainable
-
-import torch
+import json
+import logging
 import sys
-
 from pathlib import Path
 
+import torch
+from ray.tune import Trainable
+
 from SANE.datasets.def_FastTensorDataLoader import FastTensorDataLoader
-
 from SANE.models.def_net import NNmodule
-
-import json
-
-import logging
 
 """
 define Tune Trainable

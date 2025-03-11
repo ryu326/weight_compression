@@ -1,14 +1,14 @@
-import numpy as np
+import copy
 import math
+import time
 
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
 import torch
 import torch.nn as nn
-import copy
-from tqdm import tqdm
-import matplotlib.pyplot as plt
-import time
-import seaborn as sns
 from tensorboardX import SummaryWriter
+from tqdm import tqdm
 
 sns.set_style("white")
 sns.set_context("notebook", font_scale=1.5, rc={"lines.linewidth": 4, "lines.markersize": 10})
@@ -638,9 +638,9 @@ class MIKernelEstimator(nn.Module):
             return hz_1 + hz_g1
 
 
-import torch.nn as nn
-import torch
 import numpy as np
+import torch
+import torch.nn as nn
 from torch.distributions import MultivariateNormal
 
 
@@ -762,8 +762,8 @@ def main(cubic=True):
             print("model %s average time cost is %f s" % (model_name, time_cost / total_steps))
             mi_results[model_name] = mi_est_values
 
-        import seaborn as sns
         import pandas as pd
+        import seaborn as sns
 
         colors = sns.color_palette()
 

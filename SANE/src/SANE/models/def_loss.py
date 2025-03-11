@@ -3,15 +3,12 @@
 # code originally take from https://github.com/Spijkervet/SimCLR/blob/master/modules/nt_xent.py
 ##########################
 
-import torch
-import torch.nn as nn
-
-from einops import repeat
-
 import warnings
 
-from torchmetrics.functional import r2_score
-from torchmetrics.functional import explained_variance
+import torch
+import torch.nn as nn
+from einops import repeat
+from torchmetrics.functional import explained_variance, r2_score
 
 
 class MaskedReconLoss(nn.Module):

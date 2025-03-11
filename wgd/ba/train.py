@@ -2,12 +2,10 @@
 # Example run (from project root dir):
 # python -m method.train --config method/configs/example_expm.py --alsologtostderr
 
-from absl import app
-from absl import flags
-from absl import logging
-from ml_collections import config_flags
 import tensorflow as tf
+from absl import app, flags, logging
 from ba.main import Experiment
+from ml_collections import config_flags
 
 FLAGS = flags.FLAGS
 

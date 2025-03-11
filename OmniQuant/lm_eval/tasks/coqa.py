@@ -11,11 +11,11 @@ Homepage: https://stanfordnlp.github.io/coqa/
 """
 
 import inspect
-import transformers.data.metrics.squad_metrics as squad_metrics
-import lm_eval.datasets.coqa.coqa
-from lm_eval.base import Task, rf, mean
 from itertools import zip_longest
 
+import lm_eval.datasets.coqa.coqa
+import transformers.data.metrics.squad_metrics as squad_metrics
+from lm_eval.base import Task, mean, rf
 
 _CITATION = """
 @misc{reddy2018coqa,

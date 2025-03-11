@@ -1,16 +1,14 @@
-from compressai.layers import AttentionBlock, ResidualBlock
+import math
 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch import Tensor
-
+from compressai.layers import AttentionBlock, ResidualBlock
 from einops import rearrange
 from einops.layers.torch import Rearrange
-
-from timm.models.layers import trunc_normal_, DropPath
-import numpy as np
-import math
+from timm.models.layers import DropPath, trunc_normal_
+from torch import Tensor
 
 SCALES_MIN = 0.11
 SCALES_MAX = 256

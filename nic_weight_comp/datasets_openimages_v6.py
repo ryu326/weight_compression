@@ -1,8 +1,9 @@
-from torch.utils.data import Dataset
-from torchvision import transforms
+import json
+import os
 
 import PIL.Image as Image
-import json, os
+from torch.utils.data import Dataset
+from torchvision import transforms
 
 
 class Openimages_v6_dataset(Dataset):

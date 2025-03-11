@@ -1,25 +1,15 @@
-import os
-
-from typing import Union, List, Tuple, Dict, Any
-
-from pathlib import Path
-
-
-from SANE.datasets.dataset_tokens import DatasetTokens
-from SANE.datasets.augmentations import (
-    CheckpointAugmentationPipeline,
-)
-
-from SANE.git_re_basin.git_re_basin import (
-    PermutationSpec,
-)
-
-import logging
-
 import json
+import logging
+import os
+from pathlib import Path
+from typing import Any, Dict, List, Tuple, Union
 
 import torch
 from torch.utils.data import DataLoader
+
+from SANE.datasets.augmentations import CheckpointAugmentationPipeline
+from SANE.datasets.dataset_tokens import DatasetTokens
+from SANE.git_re_basin.git_re_basin import PermutationSpec
 
 
 def prepare_multiple_datasets(configurations: List[Dict[str, Any]]):

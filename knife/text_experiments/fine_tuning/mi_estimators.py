@@ -1,9 +1,9 @@
-import numpy as np
+import copy
 import math
 
+import numpy as np
 import torch
 import torch.nn as nn
-import copy
 from tqdm import tqdm
 
 
@@ -579,11 +579,12 @@ def mi_to_rho(mi, dim):
 
 
 if __name__ == "__main__":
+    import time
+
+    import matplotlib.pyplot as plt
     import numpy as np
     import torch
-    import matplotlib.pyplot as plt
     import torch.nn as nn
-    import time
 
     # import os
     # os.environ['CUDA_VISIBLE_DEVICES'] = '2'
@@ -651,8 +652,8 @@ if __name__ == "__main__":
         print("model %s average time cost is %f s" % (model_name, time_cost / total_steps))
         mi_results[model_name] = mi_est_values
 
-    import seaborn as sns
     import pandas as pd
+    import seaborn as sns
 
     colors = sns.color_palette()
 

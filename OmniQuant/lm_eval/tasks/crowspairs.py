@@ -12,9 +12,8 @@ a newer version which fixes some of the issues with the original version.
 Homepage: https://github.com/nyu-mll/crows-pairs, https://gitlab.inria.fr/french-crows-pairs
 """
 
-from lm_eval.base import rf, Task
+from lm_eval.base import Task, rf
 from lm_eval.metrics import mean
-
 
 _CITATION = """
 @inproceedings{nangia-etal-2020-crows,

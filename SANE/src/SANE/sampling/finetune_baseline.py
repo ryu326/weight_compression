@@ -1,19 +1,16 @@
+import logging
 from collections import OrderedDict
-from SANE.datasets.dataset_auxiliaries import tokens_to_checkpoint, tokenize_checkpoint
-from SANE.datasets.def_FastTensorDataLoader import FastTensorDataLoader
-from SANE.models.def_NN_experiment import NNmodule
-
-import torch
-
-from typing import Optional, List, Any
+from typing import Any, List, Optional
 
 import numpy as np
-
+import torch
 from einops import repeat
-
 from sklearn.neighbors import KernelDensity
 
-import logging
+from SANE.datasets.dataset_auxiliaries import (tokenize_checkpoint,
+                                               tokens_to_checkpoint)
+from SANE.datasets.def_FastTensorDataLoader import FastTensorDataLoader
+from SANE.models.def_NN_experiment import NNmodule
 
 
 ##

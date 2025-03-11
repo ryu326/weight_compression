@@ -1,12 +1,12 @@
-import torch
-import copy
 import collections
+import copy
+import json
+import logging
 
 import ray
-from .progress_bar import ProgressBar
-import json
+import torch
 
-import logging
+from .progress_bar import ProgressBar
 
 
 ### test_checkpoint_for_nan ##################################################################################################
