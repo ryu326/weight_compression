@@ -107,8 +107,11 @@ def main(args):
         glog.info(f'{dataset} perplexity: {ppl}')
         print(f'{dataset} perplexity: {ppl:.3f}')
         
-        with open(f'{args.hf_path}_result.json', 'r') as f:
-            comp_result= json.load(f)
+        try:
+            with open(f'{args.hf_path}_result.json', 'r') as f:
+                comp_result= json.load(f)
+        except:
+            comp_result = {}
         comp_result['ppl'] = {dataset: ppl}
         with open(f'{args.hf_path}_result.json', 'w') as f:
             json.dump(comp_result, f, indent=4)
