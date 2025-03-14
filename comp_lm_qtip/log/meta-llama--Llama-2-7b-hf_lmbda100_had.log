@@ -1,0 +1,56 @@
+I0314 06:14:16.070658 2450628 config.py:54] PyTorch version 2.1.1 available.
+Loading checkpoint shards:   0%|          | 0/6 [00:00<?, ?it/s]Loading checkpoint shards:  17%|█▋        | 1/6 [00:00<00:00,  9.66it/s]Loading checkpoint shards:  50%|█████     | 3/6 [00:00<00:00, 10.52it/s]Loading checkpoint shards:  83%|████████▎ | 5/6 [00:00<00:00, 10.47it/s]Loading checkpoint shards: 100%|██████████| 6/6 [00:00<00:00, 10.53it/s]
+I0314 06:14:17.863621 2450628 quantize_finetune_llama.py:142] loaded model
+calculating model weight mean & std:   0%|          | 0/32 [00:00<?, ?it/s]calculating model weight mean & std:   3%|▎         | 1/32 [00:00<00:21,  1.45it/s]calculating model weight mean & std:   6%|▋         | 2/32 [00:01<00:20,  1.44it/s]calculating model weight mean & std:   9%|▉         | 3/32 [00:02<00:20,  1.44it/s]calculating model weight mean & std:  12%|█▎        | 4/32 [00:02<00:19,  1.44it/s]calculating model weight mean & std:  16%|█▌        | 5/32 [00:03<00:18,  1.45it/s]calculating model weight mean & std:  19%|█▉        | 6/32 [00:04<00:17,  1.45it/s]calculating model weight mean & std:  22%|██▏       | 7/32 [00:04<00:17,  1.44it/s]calculating model weight mean & std:  25%|██▌       | 8/32 [00:05<00:16,  1.44it/s]calculating model weight mean & std:  28%|██▊       | 9/32 [00:06<00:16,  1.44it/s]calculating model weight mean & std:  31%|███▏      | 10/32 [00:06<00:15,  1.44it/s]calculating model weight mean & std:  34%|███▍      | 11/32 [00:07<00:14,  1.44it/s]calculating model weight mean & std:  38%|███▊      | 12/32 [00:08<00:13,  1.45it/s]calculating model weight mean & std:  41%|████      | 13/32 [00:08<00:12,  1.46it/s]calculating model weight mean & std:  44%|████▍     | 14/32 [00:09<00:12,  1.49it/s]calculating model weight mean & std:  47%|████▋     | 15/32 [00:10<00:11,  1.50it/s]calculating model weight mean & std:  50%|█████     | 16/32 [00:10<00:10,  1.51it/s]calculating model weight mean & std:  53%|█████▎    | 17/32 [00:11<00:09,  1.52it/s]calculating model weight mean & std:  56%|█████▋    | 18/32 [00:12<00:09,  1.53it/s]calculating model weight mean & std:  59%|█████▉    | 19/32 [00:12<00:08,  1.53it/s]calculating model weight mean & std:  62%|██████▎   | 20/32 [00:13<00:07,  1.53it/s]calculating model weight mean & std:  66%|██████▌   | 21/32 [00:14<00:07,  1.53it/s]calculating model weight mean & std:  69%|██████▉   | 22/32 [00:14<00:06,  1.53it/s]calculating model weight mean & std:  72%|███████▏  | 23/32 [00:15<00:05,  1.52it/s]calculating model weight mean & std:  75%|███████▌  | 24/32 [00:16<00:05,  1.53it/s]calculating model weight mean & std:  78%|███████▊  | 25/32 [00:16<00:04,  1.53it/s]calculating model weight mean & std:  81%|████████▏ | 26/32 [00:17<00:03,  1.53it/s]calculating model weight mean & std:  84%|████████▍ | 27/32 [00:18<00:03,  1.53it/s]calculating model weight mean & std:  88%|████████▊ | 28/32 [00:18<00:02,  1.53it/s]calculating model weight mean & std:  91%|█████████ | 29/32 [00:19<00:01,  1.54it/s]calculating model weight mean & std:  94%|█████████▍| 30/32 [00:20<00:01,  1.54it/s]calculating model weight mean & std:  97%|█████████▋| 31/32 [00:20<00:00,  1.54it/s]calculating model weight mean & std: 100%|██████████| 32/32 [00:21<00:00,  1.54it/s]calculating model weight mean & std: 100%|██████████| 32/32 [00:21<00:00,  1.50it/s]
+I0314 06:14:48.486770 2450628 quantize_finetune_llama.py:167] loaded compression model
+I0314 06:15:02.229369 2450628 quantize_finetune_llama.py:171] loaded dataset and devset
+I0314 06:15:07.498201 2450628 quantize_finetune_llama.py:191] layer 0 gpu 0
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 06:16:32.992638 2450628 quantize_finetune_llama.py:218] computed original embedding for layer 0 in 85.38905549049377s
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+I0314 06:16:58.903063 2452350 config.py:54] PyTorch version 2.1.1 available.
+I0314 06:16:59.836377 2450628 quantize_finetune_llama.py:191] layer 1 gpu 1
+I0314 06:16:59.889627 2452350 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 06:17:08.573389 2452350 finetune.py:45] layer 0_v initial loss 5.345416866475716e-06
+I0314 06:17:40.588943 2452350 finetune.py:68] layer 0_v @ epoch 0 new loss 1.5767692502777209e-06 old loss 5.345416866475716e-06 BETTER
+I0314 06:18:11.045112 2450628 quantize_finetune_llama.py:218] computed original embedding for layer 1 in 71.01968550682068s
+I0314 06:18:16.984640 2452350 finetune.py:68] layer 0_v @ epoch 1 new loss 6.610868013012805e-07 old loss 1.5767692502777209e-06 BETTER
+I0314 06:18:22.095398 2453283 config.py:54] PyTorch version 2.1.1 available.
+I0314 06:18:23.082496 2450628 quantize_finetune_llama.py:191] layer 2 gpu 2
+I0314 06:18:23.140652 2453283 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 06:18:32.075813 2453283 finetune.py:45] layer 1_v initial loss 8.300710032926872e-05
+I0314 06:18:51.269938 2452350 finetune.py:68] layer 0_v @ epoch 2 new loss 4.044281638471148e-07 old loss 6.610868013012805e-07 BETTER
+I0314 06:19:03.205859 2453283 finetune.py:68] layer 1_v @ epoch 0 new loss 2.7143762054038234e-05 old loss 8.300710032926872e-05 BETTER
+I0314 06:19:25.304663 2452350 finetune.py:68] layer 0_v @ epoch 3 new loss 3.1838621339375095e-07 old loss 4.044281638471148e-07 BETTER
+I0314 06:19:35.182268 2453283 finetune.py:68] layer 1_v @ epoch 1 new loss 1.4854663277219515e-05 old loss 2.7143762054038234e-05 BETTER
+I0314 06:19:35.683334 2450628 quantize_finetune_llama.py:218] computed original embedding for layer 2 in 72.46926665306091s
+I0314 06:19:46.843398 2454277 config.py:54] PyTorch version 2.1.1 available.
+I0314 06:19:47.812898 2450628 quantize_finetune_llama.py:191] layer 3 gpu 3
+I0314 06:19:47.878161 2454277 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 06:19:56.911543 2454277 finetune.py:45] layer 2_v initial loss 9.464671165915206e-06
+I0314 06:19:59.993127 2452350 finetune.py:68] layer 0_v @ epoch 4 new loss 2.795160014557041e-07 old loss 3.1838621339375095e-07 BETTER
+I0314 06:20:08.235198 2453283 finetune.py:68] layer 1_v @ epoch 2 new loss 8.898426131054293e-06 old loss 1.4854663277219515e-05 BETTER
+I0314 06:20:10.566047 2452350 finetune.py:45] layer 0_q initial loss 3.050257078029972e-07
+I0314 06:20:28.197383 2454277 finetune.py:68] layer 2_v @ epoch 0 new loss 6.912769549671793e-06 old loss 9.464671165915206e-06 BETTER
+I0314 06:20:41.148660 2453283 finetune.py:68] layer 1_v @ epoch 3 new loss 7.298057425941806e-06 old loss 8.898426131054293e-06 BETTER
+I0314 06:20:43.611082 2452350 finetune.py:68] layer 0_q @ epoch 0 new loss 2.5306417228421196e-07 old loss 3.050257078029972e-07 BETTER
+I0314 06:21:01.615287 2454277 finetune.py:68] layer 2_v @ epoch 1 new loss 5.5816253734519705e-06 old loss 6.912769549671793e-06 BETTER
+I0314 06:21:06.833894 2450628 quantize_finetune_llama.py:218] computed original embedding for layer 3 in 78.8545093536377s
+I0314 06:21:16.265888 2453283 finetune.py:68] layer 1_v @ epoch 4 new loss 5.872780548088485e-06 old loss 7.298057425941806e-06 BETTER
+I0314 06:21:17.913834 2452350 finetune.py:68] layer 0_q @ epoch 1 new loss 2.309975570824463e-07 old loss 2.5306417228421196e-07 BETTER
+I0314 06:21:18.471651 2455367 config.py:54] PyTorch version 2.1.1 available.
+I0314 06:21:19.526349 2450628 quantize_finetune_llama.py:191] layer 4 gpu 0
+I0314 06:21:19.583863 2455367 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 06:21:26.393193 2453283 finetune.py:45] layer 1_q initial loss 6.568230219272664e-06
+I0314 06:21:28.871277 2455367 finetune.py:45] layer 3_v initial loss 1.4534792171616573e-05
+I0314 06:21:34.574285 2454277 finetune.py:68] layer 2_v @ epoch 2 new loss 4.809803613170516e-06 old loss 5.5816253734519705e-06 BETTER
+I0314 06:21:51.878791 2452350 finetune.py:68] layer 0_q @ epoch 2 new loss 2.1472470734806848e-07 old loss 2.309975570824463e-07 BETTER
+I0314 06:21:57.897199 2453283 finetune.py:76] layer 1_q @ epoch 0 new loss 8.103344953269698e-06 old loss 6.568230219272664e-06 WORSE
+I0314 06:21:59.655686 2455367 finetune.py:68] layer 3_v @ epoch 0 new loss 9.051732376974542e-06 old loss 1.4534792171616573e-05 BETTER

@@ -1,0 +1,1127 @@
+I0311 18:50:39.506354 1711480 config.py:54] PyTorch version 2.1.1 available.
+Loading checkpoint shards:   0%|          | 0/6 [00:00<?, ?it/s]Loading checkpoint shards:  17%|█▋        | 1/6 [00:00<00:00,  7.78it/s]Loading checkpoint shards:  50%|█████     | 3/6 [00:00<00:00,  9.53it/s]Loading checkpoint shards:  83%|████████▎ | 5/6 [00:00<00:00, 10.01it/s]Loading checkpoint shards: 100%|██████████| 6/6 [00:00<00:00,  9.81it/s]Loading checkpoint shards: 100%|██████████| 6/6 [00:00<00:00,  9.68it/s]
+I0311 18:50:41.454161 1711480 quantize_finetune_llama.py:134] loaded model
+calculating model weight mean & std:   0%|          | 0/32 [00:00<?, ?it/s]calculating model weight mean & std:   3%|▎         | 1/32 [00:00<00:27,  1.11it/s]calculating model weight mean & std:   6%|▋         | 2/32 [00:01<00:24,  1.22it/s]calculating model weight mean & std:   9%|▉         | 3/32 [00:02<00:22,  1.30it/s]calculating model weight mean & std:  12%|█▎        | 4/32 [00:03<00:20,  1.34it/s]calculating model weight mean & std:  16%|█▌        | 5/32 [00:03<00:20,  1.34it/s]calculating model weight mean & std:  19%|█▉        | 6/32 [00:04<00:19,  1.35it/s]calculating model weight mean & std:  22%|██▏       | 7/32 [00:05<00:18,  1.36it/s]calculating model weight mean & std:  25%|██▌       | 8/32 [00:06<00:17,  1.36it/s]calculating model weight mean & std:  28%|██▊       | 9/32 [00:06<00:17,  1.35it/s]calculating model weight mean & std:  31%|███▏      | 10/32 [00:07<00:16,  1.34it/s]calculating model weight mean & std:  34%|███▍      | 11/32 [00:08<00:15,  1.34it/s]calculating model weight mean & std:  38%|███▊      | 12/32 [00:08<00:14,  1.36it/s]calculating model weight mean & std:  41%|████      | 13/32 [00:09<00:13,  1.36it/s]calculating model weight mean & std:  44%|████▍     | 14/32 [00:10<00:13,  1.35it/s]calculating model weight mean & std:  47%|████▋     | 15/32 [00:11<00:12,  1.36it/s]calculating model weight mean & std:  50%|█████     | 16/32 [00:11<00:11,  1.35it/s]calculating model weight mean & std:  53%|█████▎    | 17/32 [00:12<00:11,  1.35it/s]calculating model weight mean & std:  56%|█████▋    | 18/32 [00:13<00:10,  1.37it/s]calculating model weight mean & std:  59%|█████▉    | 19/32 [00:14<00:09,  1.36it/s]calculating model weight mean & std:  62%|██████▎   | 20/32 [00:14<00:08,  1.37it/s]calculating model weight mean & std:  66%|██████▌   | 21/32 [00:15<00:08,  1.37it/s]calculating model weight mean & std:  69%|██████▉   | 22/32 [00:16<00:07,  1.39it/s]calculating model weight mean & std:  72%|███████▏  | 23/32 [00:16<00:06,  1.42it/s]calculating model weight mean & std:  75%|███████▌  | 24/32 [00:17<00:05,  1.45it/s]calculating model weight mean & std:  78%|███████▊  | 25/32 [00:18<00:04,  1.47it/s]calculating model weight mean & std:  81%|████████▏ | 26/32 [00:19<00:04,  1.44it/s]calculating model weight mean & std:  84%|████████▍ | 27/32 [00:19<00:03,  1.29it/s]calculating model weight mean & std:  88%|████████▊ | 28/32 [00:20<00:03,  1.33it/s]calculating model weight mean & std:  91%|█████████ | 29/32 [00:21<00:02,  1.37it/s]calculating model weight mean & std:  94%|█████████▍| 30/32 [00:22<00:01,  1.38it/s]calculating model weight mean & std:  97%|█████████▋| 31/32 [00:22<00:00,  1.41it/s]calculating model weight mean & std: 100%|██████████| 32/32 [00:23<00:00,  1.42it/s]calculating model weight mean & std: 100%|██████████| 32/32 [00:23<00:00,  1.37it/s]
+I0311 18:51:14.789306 1711480 quantize_finetune_llama.py:159] loaded compression model
+I0311 18:51:29.311108 1711480 quantize_finetune_llama.py:163] loaded dataset and devset
+I0311 18:51:34.650382 1711480 quantize_finetune_llama.py:183] layer 0 gpu 0
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0311 18:52:56.809453 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 0 in 82.03883361816406s
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+I0311 18:53:22.553067 1713216 config.py:54] PyTorch version 2.1.1 available.
+I0311 18:53:23.512683 1711480 quantize_finetune_llama.py:183] layer 1 gpu 1
+I0311 18:54:31.992001 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 1 in 68.31779956817627s
+I0311 18:54:42.112717 1713974 config.py:54] PyTorch version 2.1.1 available.
+I0311 18:54:43.100203 1711480 quantize_finetune_llama.py:183] layer 2 gpu 2
+I0311 18:55:52.918448 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 2 in 69.68111848831177s
+I0311 18:56:04.508660 1714719 config.py:54] PyTorch version 2.1.1 available.
+I0311 18:56:05.629380 1711480 quantize_finetune_llama.py:183] layer 3 gpu 3
+I0311 18:57:17.761601 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 3 in 71.97773933410645s
+I0311 18:57:27.909511 1715485 config.py:54] PyTorch version 2.1.1 available.
+I0311 18:57:28.901675 1711480 quantize_finetune_llama.py:183] layer 4 gpu 0
+I0311 18:58:39.764253 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 4 in 68.78222298622131s
+I0311 18:58:42.663770 1716164 config.py:54] PyTorch version 2.1.1 available.
+I0311 18:58:43.614475 1711480 quantize_finetune_llama.py:183] layer 5 gpu 1
+I0311 18:59:49.673281 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 5 in 65.70202445983887s
+I0311 18:59:52.640330 1716798 config.py:54] PyTorch version 2.1.1 available.
+I0311 18:59:53.612926 1711480 quantize_finetune_llama.py:183] layer 6 gpu 2
+I0311 19:00:59.784350 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 6 in 65.83935761451721s
+I0311 19:01:02.664447 1717442 config.py:54] PyTorch version 2.1.1 available.
+I0311 19:01:03.607001 1711480 quantize_finetune_llama.py:183] layer 7 gpu 3
+I0311 19:02:10.870037 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 7 in 66.96057057380676s
+I0311 19:02:13.977851 1718087 config.py:54] PyTorch version 2.1.1 available.
+I0311 19:02:14.976541 1711480 quantize_finetune_llama.py:183] layer 8 gpu 0
+I0311 19:03:23.349207 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 8 in 66.6842839717865s
+I0311 19:03:26.421668 1718759 config.py:54] PyTorch version 2.1.1 available.
+I0311 19:03:27.413718 1711480 quantize_finetune_llama.py:183] layer 9 gpu 1
+I0311 19:04:33.005426 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 9 in 65.30337405204773s
+I0311 19:04:35.879927 1719393 config.py:54] PyTorch version 2.1.1 available.
+I0311 19:04:36.798377 1711480 quantize_finetune_llama.py:183] layer 10 gpu 2
+I0311 19:05:42.857301 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 10 in 65.71555185317993s
+I0311 19:05:45.849474 1720034 config.py:54] PyTorch version 2.1.1 available.
+I0311 19:05:46.808191 1711480 quantize_finetune_llama.py:183] layer 11 gpu 3
+I0311 19:06:52.847539 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 11 in 65.6912190914154s
+I0311 19:06:55.761977 1720668 config.py:54] PyTorch version 2.1.1 available.
+I0311 19:06:56.745689 1711480 quantize_finetune_llama.py:183] layer 12 gpu 0
+I0311 19:08:05.386080 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 12 in 67.00432562828064s
+I0311 19:08:08.356324 1721326 config.py:54] PyTorch version 2.1.1 available.
+I0311 19:08:09.343927 1711480 quantize_finetune_llama.py:183] layer 13 gpu 1
+I0311 19:08:09.410925 1721326 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0311 19:08:17.311201 1721326 finetune.py:45] layer 12_v initial loss 0.00017241928435396403
+I0311 19:08:49.272907 1721326 finetune.py:68] layer 12_v @ epoch 0 new loss 0.00013975735055282712 old loss 0.00017241928435396403 BETTER
+I0311 19:09:16.693894 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 13 in 66.99067950248718s
+I0311 19:09:19.718832 1722059 config.py:54] PyTorch version 2.1.1 available.
+I0311 19:09:20.704011 1711480 quantize_finetune_llama.py:183] layer 14 gpu 2
+I0311 19:09:20.772777 1722059 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0311 19:09:22.842825 1721326 finetune.py:68] layer 12_v @ epoch 1 new loss 0.0001314701366936788 old loss 0.00013975735055282712 BETTER
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0311 19:09:28.568674 1722059 finetune.py:45] layer 13_v initial loss 0.00018656674365047365
+I0311 19:09:56.982878 1721326 finetune.py:68] layer 12_v @ epoch 2 new loss 0.0001264220627490431 old loss 0.0001314701366936788 BETTER
+I0311 19:09:59.817983 1722059 finetune.py:68] layer 13_v @ epoch 0 new loss 0.00015046123007778078 old loss 0.00018656674365047365 BETTER
+I0311 19:10:28.461374 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 14 in 67.41944313049316s
+I0311 19:10:31.364811 1721326 finetune.py:68] layer 12_v @ epoch 3 new loss 0.00012275960762053728 old loss 0.0001264220627490431 BETTER
+I0311 19:10:31.672334 1722807 config.py:54] PyTorch version 2.1.1 available.
+I0311 19:10:31.699527 1722059 finetune.py:68] layer 13_v @ epoch 1 new loss 0.000141686643473804 old loss 0.00015046123007778078 BETTER
+I0311 19:10:32.666793 1711480 quantize_finetune_llama.py:183] layer 15 gpu 3
+I0311 19:10:32.733798 1722807 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0311 19:10:40.725158 1722807 finetune.py:45] layer 14_v initial loss 0.0002452871121931821
+I0311 19:11:04.011192 1722059 finetune.py:68] layer 13_v @ epoch 2 new loss 0.00013634859351441264 old loss 0.000141686643473804 BETTER
+I0311 19:11:06.053694 1721326 finetune.py:68] layer 12_v @ epoch 4 new loss 0.00011989074118901044 old loss 0.00012275960762053728 BETTER
+I0311 19:11:12.485797 1722807 finetune.py:68] layer 14_v @ epoch 0 new loss 0.00019903515931218863 old loss 0.0002452871121931821 BETTER
+I0311 19:11:15.731032 1721326 finetune.py:45] layer 12_q initial loss 0.0001480748614994809
+I0311 19:11:37.122861 1722059 finetune.py:68] layer 13_v @ epoch 3 new loss 0.00013243849389255047 old loss 0.00013634859351441264 BETTER
+I0311 19:11:43.979716 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 15 in 70.91864895820618s
+I0311 19:11:45.344561 1722807 finetune.py:68] layer 14_v @ epoch 1 new loss 0.0001862899080151692 old loss 0.00019903515931218863 BETTER
+I0311 19:11:47.688849 1723574 config.py:54] PyTorch version 2.1.1 available.
+I0311 19:11:48.873690 1711480 quantize_finetune_llama.py:183] layer 16 gpu 0
+I0311 19:11:48.954528 1723574 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0311 19:11:49.424989 1721326 finetune.py:68] layer 12_q @ epoch 0 new loss 0.00014091539196670055 old loss 0.0001480748614994809 BETTER
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0311 19:11:59.935609 1723574 finetune.py:45] layer 15_v initial loss 0.00024229912378359586
+I0311 19:12:11.019377 1722059 finetune.py:68] layer 13_v @ epoch 4 new loss 0.00012935130507685244 old loss 0.00013243849389255047 BETTER
+I0311 19:12:19.318369 1722807 finetune.py:68] layer 14_v @ epoch 2 new loss 0.00017839326756075025 old loss 0.0001862899080151692 BETTER
+I0311 19:12:23.835958 1722059 finetune.py:45] layer 13_q initial loss 0.00015848566545173526
+I0311 19:12:25.439775 1721326 finetune.py:68] layer 12_q @ epoch 1 new loss 0.00013763162132818252 old loss 0.00014091539196670055 BETTER
+I0311 19:12:32.679830 1723574 finetune.py:68] layer 15_v @ epoch 0 new loss 0.00019485678058117628 old loss 0.00024229912378359586 BETTER
+I0311 19:12:52.718822 1722807 finetune.py:68] layer 14_v @ epoch 3 new loss 0.00017263705376535654 old loss 0.00017839326756075025 BETTER
+I0311 19:12:55.358859 1722059 finetune.py:68] layer 13_q @ epoch 0 new loss 0.00015069602522999048 old loss 0.00015848566545173526 BETTER
+I0311 19:12:59.875396 1721326 finetune.py:68] layer 12_q @ epoch 2 new loss 0.00013506441609933972 old loss 0.00013763162132818252 BETTER
+I0311 19:13:05.108417 1723574 finetune.py:68] layer 15_v @ epoch 1 new loss 0.00018313592590857297 old loss 0.00019485678058117628 BETTER
+I0311 19:13:25.715762 1722807 finetune.py:68] layer 14_v @ epoch 4 new loss 0.00016806781059131026 old loss 0.00017263705376535654 BETTER
+I0311 19:13:27.560874 1722059 finetune.py:68] layer 13_q @ epoch 1 new loss 0.00014710781397297978 old loss 0.00015069602522999048 BETTER
+I0311 19:13:34.345129 1721326 finetune.py:68] layer 12_q @ epoch 3 new loss 0.00013299599231686443 old loss 0.00013506441609933972 BETTER
+I0311 19:13:35.307682 1722807 finetune.py:45] layer 14_q initial loss 0.00020209886133670807
+I0311 19:13:37.832632 1723574 finetune.py:68] layer 15_v @ epoch 2 new loss 0.0001757526333676651 old loss 0.00018313592590857297 BETTER
+I0311 19:14:00.097497 1722059 finetune.py:68] layer 13_q @ epoch 2 new loss 0.0001443499932065606 old loss 0.00014710781397297978 BETTER
+I0311 19:14:07.145462 1722807 finetune.py:68] layer 14_q @ epoch 0 new loss 0.00019216530199628323 old loss 0.00020209886133670807 BETTER
+I0311 19:14:08.858533 1721326 finetune.py:68] layer 12_q @ epoch 4 new loss 0.00013117941853124648 old loss 0.00013299599231686443 BETTER
+I0311 19:14:10.821269 1723574 finetune.py:68] layer 15_v @ epoch 3 new loss 0.00017021333042066544 old loss 0.0001757526333676651 BETTER
+I0311 19:14:18.249763 1721326 finetune.py:45] layer 12_k initial loss 0.00015044084284454584
+I0311 19:14:32.390181 1722059 finetune.py:68] layer 13_q @ epoch 3 new loss 0.00014203606406226754 old loss 0.0001443499932065606 BETTER
+I0311 19:14:39.916159 1722807 finetune.py:68] layer 14_q @ epoch 1 new loss 0.00018726993585005403 old loss 0.00019216530199628323 BETTER
+I0311 19:14:43.606983 1723574 finetune.py:68] layer 15_v @ epoch 4 new loss 0.00016591930761933327 old loss 0.00017021333042066544 BETTER
+I0311 19:14:50.936389 1721326 finetune.py:68] layer 12_k @ epoch 0 new loss 0.00014716359146405011 old loss 0.00015044084284454584 BETTER
+I0311 19:14:53.161280 1723574 finetune.py:45] layer 15_q initial loss 0.0002041620173258707
+I0311 19:15:04.860029 1722059 finetune.py:68] layer 13_q @ epoch 4 new loss 0.00014009690494276583 old loss 0.00014203606406226754 BETTER
+I0311 19:15:12.430733 1722807 finetune.py:68] layer 14_q @ epoch 2 new loss 0.00018340666429139674 old loss 0.00018726993585005403 BETTER
+I0311 19:15:14.134524 1722059 finetune.py:45] layer 13_k initial loss 0.0001602511474629864
+I0311 19:15:24.458829 1721326 finetune.py:68] layer 12_k @ epoch 1 new loss 0.00014548054605256766 old loss 0.00014716359146405011 BETTER
+I0311 19:15:24.731781 1723574 finetune.py:68] layer 15_q @ epoch 0 new loss 0.0001935390173457563 old loss 0.0002041620173258707 BETTER
+I0311 19:15:44.894232 1722807 finetune.py:68] layer 14_q @ epoch 3 new loss 0.00018022222502622753 old loss 0.00018340666429139674 BETTER
+I0311 19:15:45.547675 1722059 finetune.py:68] layer 13_k @ epoch 0 new loss 0.00015706958947703242 old loss 0.0001602511474629864 BETTER
+I0311 19:15:57.015469 1723574 finetune.py:68] layer 15_q @ epoch 1 new loss 0.00018847321916837245 old loss 0.0001935390173457563 BETTER
+I0311 19:15:58.220923 1721326 finetune.py:68] layer 12_k @ epoch 2 new loss 0.0001440831256331876 old loss 0.00014548054605256766 BETTER
+I0311 19:16:17.565677 1722807 finetune.py:68] layer 14_q @ epoch 4 new loss 0.00017751555424183607 old loss 0.00018022222502622753 BETTER
+I0311 19:16:17.721103 1722059 finetune.py:68] layer 13_k @ epoch 1 new loss 0.0001552762114442885 old loss 0.00015706958947703242 BETTER
+I0311 19:16:26.602892 1722807 finetune.py:45] layer 14_k initial loss 0.00020252044487278908
+I0311 19:16:29.522738 1723574 finetune.py:68] layer 15_q @ epoch 2 new loss 0.0001844877697294578 old loss 0.00018847321916837245 BETTER
+I0311 19:16:32.095354 1721326 finetune.py:68] layer 12_k @ epoch 3 new loss 0.00014285511861089617 old loss 0.0001440831256331876 BETTER
+I0311 19:16:49.885163 1722059 finetune.py:68] layer 13_k @ epoch 2 new loss 0.00015377381350845098 old loss 0.0001552762114442885 BETTER
+I0311 19:16:58.200890 1722807 finetune.py:68] layer 14_k @ epoch 0 new loss 0.0001981973764486611 old loss 0.00020252044487278908 BETTER
+I0311 19:17:02.459220 1723574 finetune.py:68] layer 15_q @ epoch 3 new loss 0.0001812208502087742 old loss 0.0001844877697294578 BETTER
+I0311 19:17:06.217918 1721326 finetune.py:68] layer 12_k @ epoch 4 new loss 0.0001417995081283152 old loss 0.00014285511861089617 BETTER
+I0311 19:17:16.380094 1721326 finetune.py:45] layer 12_o initial loss 0.00040101565537042916
+I0311 19:17:22.949311 1722059 finetune.py:68] layer 13_k @ epoch 3 new loss 0.000152465800056234 old loss 0.00015377381350845098 BETTER
+I0311 19:17:30.703697 1722807 finetune.py:68] layer 14_k @ epoch 1 new loss 0.00019565894035622478 old loss 0.0001981973764486611 BETTER
+I0311 19:17:36.217284 1723574 finetune.py:68] layer 15_q @ epoch 4 new loss 0.00017841893713921309 old loss 0.0001812208502087742 BETTER
+I0311 19:17:47.758188 1723574 finetune.py:45] layer 15_k initial loss 0.00020515834330581129
+I0311 19:17:49.983022 1721326 finetune.py:68] layer 12_o @ epoch 0 new loss 0.00038165089790709317 old loss 0.00040101565537042916 BETTER
+I0311 19:17:55.443565 1722059 finetune.py:68] layer 13_k @ epoch 4 new loss 0.00015133125998545438 old loss 0.000152465800056234 BETTER
+I0311 19:18:03.672914 1722807 finetune.py:68] layer 14_k @ epoch 2 new loss 0.00019358581630513072 old loss 0.00019565894035622478 BETTER
+I0311 19:18:06.790240 1722059 finetune.py:45] layer 13_o initial loss 0.0004211320774629712
+I0311 19:18:20.175396 1723574 finetune.py:68] layer 15_k @ epoch 0 new loss 0.00020086186123080552 old loss 0.00020515834330581129 BETTER
+I0311 19:18:23.733949 1721326 finetune.py:68] layer 12_o @ epoch 1 new loss 0.0003706223506014794 old loss 0.00038165089790709317 BETTER
+I0311 19:18:37.521415 1722807 finetune.py:68] layer 14_k @ epoch 3 new loss 0.00019175141642335802 old loss 0.00019358581630513072 BETTER
+I0311 19:18:38.512192 1722059 finetune.py:68] layer 13_o @ epoch 0 new loss 0.00039879820542410016 old loss 0.0004211320774629712 BETTER
+I0311 19:18:52.568866 1723574 finetune.py:68] layer 15_k @ epoch 1 new loss 0.00019835503189824522 old loss 0.00020086186123080552 BETTER
+I0311 19:18:57.211041 1721326 finetune.py:68] layer 12_o @ epoch 2 new loss 0.00036249440745450556 old loss 0.0003706223506014794 BETTER
+I0311 19:19:09.851164 1722807 finetune.py:68] layer 14_k @ epoch 4 new loss 0.00019013950077351183 old loss 0.00019175141642335802 BETTER
+I0311 19:19:10.156646 1722059 finetune.py:68] layer 13_o @ epoch 1 new loss 0.0003864768077619374 old loss 0.00039879820542410016 BETTER
+I0311 19:19:19.168509 1722807 finetune.py:45] layer 14_o initial loss 0.0005381392547860742
+I0311 19:19:24.877346 1723574 finetune.py:68] layer 15_k @ epoch 2 new loss 0.0001962927490239963 old loss 0.00019835503189824522 BETTER
+I0311 19:19:30.588174 1721326 finetune.py:68] layer 12_o @ epoch 3 new loss 0.00035596289671957493 old loss 0.00036249440745450556 BETTER
+I0311 19:19:41.778292 1722059 finetune.py:68] layer 13_o @ epoch 2 new loss 0.0003774452197831124 old loss 0.0003864768077619374 BETTER
+I0311 19:19:50.241092 1722807 finetune.py:68] layer 14_o @ epoch 0 new loss 0.0005120191490277648 old loss 0.0005381392547860742 BETTER
+I0311 19:19:57.018184 1723574 finetune.py:68] layer 15_k @ epoch 3 new loss 0.00019449419050943106 old loss 0.0001962927490239963 BETTER
+I0311 19:20:03.915900 1721326 finetune.py:68] layer 12_o @ epoch 4 new loss 0.0003505925997160375 old loss 0.00035596289671957493 BETTER
+I0311 19:20:13.425268 1722059 finetune.py:68] layer 13_o @ epoch 3 new loss 0.00037035130662843585 old loss 0.0003774452197831124 BETTER
+I0311 19:20:19.162767 1721326 finetune.py:45] layer 12_up initial loss 0.0005348901613615453
+I0311 19:20:21.950681 1722807 finetune.py:68] layer 14_o @ epoch 1 new loss 0.0004972610622644424 old loss 0.0005120191490277648 BETTER
+I0311 19:20:29.355540 1723574 finetune.py:68] layer 15_k @ epoch 4 new loss 0.00019292868091724813 old loss 0.00019449419050943106 BETTER
+I0311 19:20:38.833924 1723574 finetune.py:45] layer 15_o initial loss 0.0005394014879129827
+I0311 19:20:45.055759 1722059 finetune.py:68] layer 13_o @ epoch 4 new loss 0.0003645027754828334 old loss 0.00037035130662843585 BETTER
+I0311 19:20:49.840211 1721326 finetune.py:68] layer 12_up @ epoch 0 new loss 0.0005251725669950247 old loss 0.0005348901613615453 BETTER
+I0311 19:20:53.841283 1722807 finetune.py:68] layer 14_o @ epoch 2 new loss 0.0004863922658842057 old loss 0.0004972610622644424 BETTER
+I0311 19:21:00.525923 1722059 finetune.py:45] layer 13_up initial loss 0.0005838331417180598
+I0311 19:21:09.579872 1723574 finetune.py:68] layer 15_o @ epoch 0 new loss 0.0005089709302410483 old loss 0.0005394014879129827 BETTER
+I0311 19:21:21.395701 1721326 finetune.py:68] layer 12_up @ epoch 1 new loss 0.0005185233312658966 old loss 0.0005251725669950247 BETTER
+I0311 19:21:25.611292 1722807 finetune.py:68] layer 14_o @ epoch 3 new loss 0.00047772767720744014 old loss 0.0004863922658842057 BETTER
+I0311 19:21:29.559672 1722059 finetune.py:68] layer 13_up @ epoch 0 new loss 0.0005716468440368772 old loss 0.0005838331417180598 BETTER
+I0311 19:21:40.754596 1723574 finetune.py:68] layer 15_o @ epoch 1 new loss 0.0004928565467707813 old loss 0.0005089709302410483 BETTER
+I0311 19:21:53.048725 1721326 finetune.py:68] layer 12_up @ epoch 2 new loss 0.0005129774799570441 old loss 0.0005185233312658966 BETTER
+I0311 19:21:57.321952 1722807 finetune.py:68] layer 14_o @ epoch 4 new loss 0.0004705275932792574 old loss 0.00047772767720744014 BETTER
+I0311 19:21:59.370862 1722059 finetune.py:68] layer 13_up @ epoch 1 new loss 0.0005635008565150201 old loss 0.0005716468440368772 BETTER
+I0311 19:22:12.073833 1722807 finetune.py:45] layer 14_up initial loss 0.000716517970431596
+I0311 19:22:12.246471 1723574 finetune.py:68] layer 15_o @ epoch 2 new loss 0.00048125776811502874 old loss 0.0004928565467707813 BETTER
+I0311 19:22:24.733645 1721326 finetune.py:68] layer 12_up @ epoch 3 new loss 0.0005081699346192181 old loss 0.0005129774799570441 BETTER
+I0311 19:22:29.082909 1722059 finetune.py:68] layer 13_up @ epoch 2 new loss 0.0005568348569795489 old loss 0.0005635008565150201 BETTER
+I0311 19:22:41.973087 1722807 finetune.py:68] layer 14_up @ epoch 0 new loss 0.0007029989501461387 old loss 0.000716517970431596 BETTER
+I0311 19:22:46.431910 1723574 finetune.py:68] layer 15_o @ epoch 3 new loss 0.0004721897712443024 old loss 0.00048125776811502874 BETTER
+I0311 19:22:58.033388 1721326 finetune.py:68] layer 12_up @ epoch 4 new loss 0.0005039392272010446 old loss 0.0005081699346192181 BETTER
+I0311 19:23:00.469805 1722059 finetune.py:68] layer 13_up @ epoch 3 new loss 0.0005511334165930748 old loss 0.0005568348569795489 BETTER
+I0311 19:23:13.722545 1722807 finetune.py:68] layer 14_up @ epoch 1 new loss 0.0006939374143257737 old loss 0.0007029989501461387 BETTER
+I0311 19:23:16.792137 1721326 finetune.py:45] layer 12_gate initial loss 0.0006331342738121748
+I0311 19:23:18.483786 1723574 finetune.py:68] layer 15_o @ epoch 4 new loss 0.0004648010653909296 old loss 0.0004721897712443024 BETTER
+I0311 19:23:30.908246 1722059 finetune.py:68] layer 13_up @ epoch 4 new loss 0.000546171038877219 old loss 0.0005511334165930748 BETTER
+I0311 19:23:35.348292 1723574 finetune.py:45] layer 15_up initial loss 0.0007645933073945343
+I0311 19:23:45.298780 1722807 finetune.py:68] layer 14_up @ epoch 2 new loss 0.0006865012692287564 old loss 0.0006939374143257737 BETTER
+I0311 19:23:46.871620 1721326 finetune.py:68] layer 12_gate @ epoch 0 new loss 0.0006276645581237972 old loss 0.0006331342738121748 BETTER
+I0311 19:23:50.180552 1722059 finetune.py:45] layer 13_gate initial loss 0.0007029577973298728
+I0311 19:24:05.712348 1723574 finetune.py:68] layer 15_up @ epoch 0 new loss 0.0007467643008567393 old loss 0.0007645933073945343 BETTER
+I0311 19:24:16.178605 1722807 finetune.py:68] layer 14_up @ epoch 3 new loss 0.0006800981936976314 old loss 0.0006865012692287564 BETTER
+I0311 19:24:18.014150 1721326 finetune.py:68] layer 12_gate @ epoch 1 new loss 0.0006235034088604152 old loss 0.0006276645581237972 BETTER
+I0311 19:24:18.989208 1722059 finetune.py:68] layer 13_gate @ epoch 0 new loss 0.0006961324834264815 old loss 0.0007029577973298728 BETTER
+I0311 19:24:35.881930 1723574 finetune.py:68] layer 15_up @ epoch 1 new loss 0.0007358267903327942 old loss 0.0007467643008567393 BETTER
+I0311 19:24:47.026973 1722807 finetune.py:68] layer 14_up @ epoch 4 new loss 0.0006744511774741113 old loss 0.0006800981936976314 BETTER
+I0311 19:24:48.048963 1722059 finetune.py:68] layer 13_gate @ epoch 1 new loss 0.0006910381489433348 old loss 0.0006961324834264815 BETTER
+I0311 19:24:48.509071 1721326 finetune.py:68] layer 12_gate @ epoch 2 new loss 0.0006198660121299326 old loss 0.0006235034088604152 BETTER
+I0311 19:25:02.800345 1722807 finetune.py:45] layer 14_gate initial loss 0.0008595306426286697
+I0311 19:25:05.763962 1723574 finetune.py:68] layer 15_up @ epoch 2 new loss 0.0007270671194419265 old loss 0.0007358267903327942 BETTER
+I0311 19:25:16.398945 1722059 finetune.py:68] layer 13_gate @ epoch 2 new loss 0.000686644809320569 old loss 0.0006910381489433348 BETTER
+I0311 19:25:18.532304 1721326 finetune.py:68] layer 12_gate @ epoch 3 new loss 0.0006166273378767073 old loss 0.0006198660121299326 BETTER
+I0311 19:25:30.294966 1722807 finetune.py:68] layer 14_gate @ epoch 0 new loss 0.0008518233662471175 old loss 0.0008595306426286697 BETTER
+I0311 19:25:35.704910 1723574 finetune.py:68] layer 15_up @ epoch 3 new loss 0.00071953289443627 old loss 0.0007270671194419265 BETTER
+I0311 19:25:44.428693 1722059 finetune.py:68] layer 13_gate @ epoch 3 new loss 0.0006827248143963516 old loss 0.000686644809320569 BETTER
+I0311 19:25:48.376428 1721326 finetune.py:68] layer 12_gate @ epoch 4 new loss 0.0006137079326435924 old loss 0.0006166273378767073 BETTER
+I0311 19:25:58.586863 1722807 finetune.py:68] layer 14_gate @ epoch 1 new loss 0.0008459797245450318 old loss 0.0008518233662471175 BETTER
+I0311 19:26:04.220587 1721326 finetune.py:45] layer 12_down initial loss 0.0008987117907963693
+I0311 19:26:05.544410 1723574 finetune.py:68] layer 15_up @ epoch 4 new loss 0.0007131033344194293 old loss 0.00071953289443627 BETTER
+I0311 19:26:12.494039 1722059 finetune.py:68] layer 13_gate @ epoch 4 new loss 0.0006792310741730034 old loss 0.0006827248143963516 BETTER
+I0311 19:26:20.676430 1723574 finetune.py:45] layer 15_gate initial loss 0.0009410168277099729
+I0311 19:26:27.621473 1722807 finetune.py:68] layer 14_gate @ epoch 2 new loss 0.0008409276488237083 old loss 0.0008459797245450318 BETTER
+I0311 19:26:29.538713 1722059 finetune.py:45] layer 13_down initial loss 0.0010267101461067796
+I0311 19:26:31.652417 1721326 finetune.py:68] layer 12_down @ epoch 0 new loss 0.0008983518928289413 old loss 0.0008987117907963693 BETTER
+I0311 19:26:48.009714 1723574 finetune.py:68] layer 15_gate @ epoch 0 new loss 0.0009314407943747938 old loss 0.0009410168277099729 BETTER
+I0311 19:26:55.767973 1722059 finetune.py:68] layer 13_down @ epoch 0 new loss 0.001026257872581482 old loss 0.0010267101461067796 BETTER
+I0311 19:26:56.104987 1722807 finetune.py:68] layer 14_gate @ epoch 3 new loss 0.000836458639241755 old loss 0.0008409276488237083 BETTER
+I0311 19:27:00.316101 1721326 finetune.py:68] layer 12_down @ epoch 1 new loss 0.0008980777347460389 old loss 0.0008983518928289413 BETTER
+I0311 19:27:16.541666 1723574 finetune.py:68] layer 15_gate @ epoch 1 new loss 0.0009243708336725831 old loss 0.0009314407943747938 BETTER
+I0311 19:27:22.842714 1722059 finetune.py:68] layer 13_down @ epoch 1 new loss 0.0010259096743538976 old loss 0.001026257872581482 BETTER
+I0311 19:27:24.689947 1722807 finetune.py:68] layer 14_gate @ epoch 4 new loss 0.0008324042428284883 old loss 0.000836458639241755 BETTER
+I0311 19:27:28.832059 1721326 finetune.py:68] layer 12_down @ epoch 2 new loss 0.0008978624828159809 old loss 0.0008980777347460389 BETTER
+I0311 19:27:41.215690 1722807 finetune.py:45] layer 14_down initial loss 0.001235423842445016
+I0311 19:27:45.163628 1723574 finetune.py:68] layer 15_gate @ epoch 2 new loss 0.0009183454094454646 old loss 0.0009243708336725831 BETTER
+I0311 19:27:50.383260 1722059 finetune.py:68] layer 13_down @ epoch 2 new loss 0.0010256386594846845 old loss 0.0010259096743538976 BETTER
+I0311 19:27:57.588580 1721326 finetune.py:68] layer 12_down @ epoch 3 new loss 0.0008976992685347795 old loss 0.0008978624828159809 BETTER
+I0311 19:28:07.462257 1722807 finetune.py:68] layer 14_down @ epoch 0 new loss 0.0012348456075415015 old loss 0.001235423842445016 BETTER
+I0311 19:28:13.699547 1723574 finetune.py:68] layer 15_gate @ epoch 3 new loss 0.0009130107937380672 old loss 0.0009183454094454646 BETTER
+I0311 19:28:17.515849 1722059 finetune.py:68] layer 13_down @ epoch 3 new loss 0.0010254256194457412 old loss 0.0010256386594846845 BETTER
+I0311 19:28:26.212037 1721326 finetune.py:68] layer 12_down @ epoch 4 new loss 0.0008975720847956836 old loss 0.0008976992685347795 BETTER
+12_v proxy err 0.020598607137799263 tr(WHW.T) 703.318603515625
+12_q proxy err 0.002322161104530096 tr(WHW.T) 7051.78369140625
+12_k proxy err 0.0015219418564811349 tr(WHW.T) 10916.77734375
+12_o proxy err 0.03244824334979057 tr(WHW.T) 39.70504379272461
+12_up proxy err 0.01368995476514101 tr(WHW.T) 1228.2685546875
+12_gate proxy err 0.007153534796088934 tr(WHW.T) 2385.032470703125
+12_down proxy err 0.018776336684823036 tr(WHW.T) 64.64525604248047
+I0311 19:28:35.498381 1722807 finetune.py:68] layer 14_down @ epoch 1 new loss 0.0012344010174274445 old loss 0.0012348456075415015 BETTER
+I0311 19:28:43.259968 1723574 finetune.py:68] layer 15_gate @ epoch 4 new loss 0.0009082665201276541 old loss 0.0009130107937380672 BETTER
+I0311 19:28:45.227128 1722059 finetune.py:68] layer 13_down @ epoch 4 new loss 0.0010252640349790454 old loss 0.0010254256194457412 BETTER
+13_v proxy err 0.0211692713201046 tr(WHW.T) 714.5677490234375
+13_q proxy err 0.002437201328575611 tr(WHW.T) 6961.97900390625
+13_k proxy err 0.0016378863947466016 tr(WHW.T) 10453.41015625
+13_o proxy err 0.028790665790438652 tr(WHW.T) 46.31355667114258
+13_up proxy err 0.01316301990300417 tr(WHW.T) 1366.6162109375
+13_gate proxy err 0.007002678234130144 tr(WHW.T) 2602.358642578125
+13_down proxy err 0.018518585711717606 tr(WHW.T) 79.98258972167969
+I0311 19:28:59.236986 1723574 finetune.py:45] layer 15_down initial loss 0.0014112648786976933
+I0311 19:29:02.312110 1722807 finetune.py:68] layer 14_down @ epoch 2 new loss 0.0012340490939095616 old loss 0.0012344010174274445 BETTER
+I0311 19:29:25.096075 1723574 finetune.py:68] layer 15_down @ epoch 0 new loss 0.0014105882728472352 old loss 0.0014112648786976933 BETTER
+I0311 19:29:29.203920 1722807 finetune.py:68] layer 14_down @ epoch 3 new loss 0.0012337794760242105 old loss 0.0012340490939095616 BETTER
+I0311 19:29:51.627694 1723574 finetune.py:68] layer 15_down @ epoch 1 new loss 0.0014100554399192333 old loss 0.0014105882728472352 BETTER
+I0311 19:29:55.975068 1722807 finetune.py:68] layer 14_down @ epoch 4 new loss 0.0012335653882473707 old loss 0.0012337794760242105 BETTER
+14_v proxy err 0.02238939329981804 tr(WHW.T) 706.1612548828125
+14_q proxy err 0.002512629609555006 tr(WHW.T) 7083.6845703125
+14_k proxy err 0.001591027365066111 tr(WHW.T) 11325.9580078125
+14_o proxy err 0.032782383263111115 tr(WHW.T) 51.51481628417969
+14_up proxy err 0.013454236090183258 tr(WHW.T) 1464.84521484375
+14_gate proxy err 0.007416582200676203 tr(WHW.T) 2687.720458984375
+14_down proxy err 0.01877843588590622 tr(WHW.T) 91.0194091796875
+I0311 19:30:03.107416 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 16 in 72.15064072608948s
+I0311 19:30:06.260560 1733211 config.py:54] PyTorch version 2.1.1 available.
+I0311 19:30:07.283121 1711480 quantize_finetune_llama.py:183] layer 17 gpu 1
+I0311 19:30:07.347126 1733211 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0311 19:30:15.635472 1733211 finetune.py:45] layer 16_v initial loss 0.00030635722214356065
+I0311 19:30:18.196327 1723574 finetune.py:68] layer 15_down @ epoch 2 new loss 0.001409632503055036 old loss 0.0014100554399192333 BETTER
+I0311 19:30:44.869940 1723574 finetune.py:68] layer 15_down @ epoch 3 new loss 0.001409305608831346 old loss 0.001409632503055036 BETTER
+I0311 19:30:48.668481 1733211 finetune.py:68] layer 16_v @ epoch 0 new loss 0.00025002012262120843 old loss 0.00030635722214356065 BETTER
+I0311 19:31:11.692317 1723574 finetune.py:68] layer 15_down @ epoch 4 new loss 0.0014090503100305796 old loss 0.001409305608831346 BETTER
+15_v proxy err 0.0201694518327713 tr(WHW.T) 762.7275390625
+15_q proxy err 0.0023567338939756155 tr(WHW.T) 7257.94482421875
+15_k proxy err 0.0015667610568925738 tr(WHW.T) 11101.5654296875
+15_o proxy err 0.02714006043970585 tr(WHW.T) 60.29664611816406
+15_up proxy err 0.01307374332100153 tr(WHW.T) 1641.26123046875
+15_gate proxy err 0.007456524763256311 tr(WHW.T) 2907.648193359375
+15_down proxy err 0.01853717863559723 tr(WHW.T) 115.05879211425781
+I0311 19:31:17.932730 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 17 in 70.26192688941956s
+I0311 19:31:21.213246 1733968 config.py:54] PyTorch version 2.1.1 available.
+I0311 19:31:22.254085 1711480 quantize_finetune_llama.py:183] layer 18 gpu 2
+I0311 19:31:22.318828 1733968 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0311 19:31:23.018732 1733211 finetune.py:68] layer 16_v @ epoch 1 new loss 0.0002354545285925269 old loss 0.00025002012262120843 BETTER
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0311 19:31:30.944309 1733968 finetune.py:45] layer 17_v initial loss 0.00025700670084916055
+I0311 19:31:57.822611 1733211 finetune.py:68] layer 16_v @ epoch 2 new loss 0.00022602349054068327 old loss 0.0002354545285925269 BETTER
+I0311 19:32:02.403492 1733968 finetune.py:68] layer 17_v @ epoch 0 new loss 0.00021165626822039485 old loss 0.00025700670084916055 BETTER
+I0311 19:32:32.759798 1733211 finetune.py:68] layer 16_v @ epoch 3 new loss 0.00021905820176471025 old loss 0.00022602349054068327 BETTER
+I0311 19:32:34.189985 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 18 in 71.52448391914368s
+I0311 19:32:34.759363 1733968 finetune.py:68] layer 17_v @ epoch 1 new loss 0.00019990427244920284 old loss 0.00021165626822039485 BETTER
+I0311 19:32:37.453837 1734748 config.py:54] PyTorch version 2.1.1 available.
+I0311 19:32:38.604343 1711480 quantize_finetune_llama.py:183] layer 19 gpu 3
+I0311 19:32:38.677459 1734748 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0311 19:32:47.488316 1734748 finetune.py:45] layer 18_v initial loss 0.0002548024640418589
+I0311 19:33:07.665561 1733968 finetune.py:68] layer 17_v @ epoch 2 new loss 0.00019221039838157594 old loss 0.00019990427244920284 BETTER
+I0311 19:33:07.764589 1733211 finetune.py:68] layer 16_v @ epoch 4 new loss 0.00021356729848776013 old loss 0.00021905820176471025 BETTER
+I0311 19:33:17.124152 1733211 finetune.py:45] layer 16_q initial loss 0.0002595100086182356
+I0311 19:33:19.080030 1734748 finetune.py:68] layer 18_v @ epoch 0 new loss 0.0002104930317727849 old loss 0.0002548024640418589 BETTER
+I0311 19:33:40.717279 1733968 finetune.py:68] layer 17_v @ epoch 3 new loss 0.00018645901582203805 old loss 0.00019221039838157594 BETTER
+I0311 19:33:50.256931 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 19 in 71.18859791755676s
+I0311 19:33:50.599783 1733211 finetune.py:68] layer 16_q @ epoch 0 new loss 0.00024602070334367454 old loss 0.0002595100086182356 BETTER
+I0311 19:33:51.648262 1734748 finetune.py:68] layer 18_v @ epoch 1 new loss 0.00020018765644636005 old loss 0.0002104930317727849 BETTER
+I0311 19:33:53.446751 1735525 config.py:54] PyTorch version 2.1.1 available.
+I0311 19:33:54.791418 1711480 quantize_finetune_llama.py:183] layer 20 gpu 0
+I0311 19:33:54.855680 1735525 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0311 19:34:02.738620 1735525 finetune.py:45] layer 19_v initial loss 0.00024778739316388965
+I0311 19:34:13.646594 1733968 finetune.py:68] layer 17_v @ epoch 4 new loss 0.0001820093166315928 old loss 0.00018645901582203805 BETTER
+I0311 19:34:22.601941 1733968 finetune.py:45] layer 17_q initial loss 0.0002263809001306072
+I0311 19:34:24.352201 1734748 finetune.py:68] layer 18_v @ epoch 2 new loss 0.00019350548973307014 old loss 0.00020018765644636005 BETTER
+I0311 19:34:24.926443 1733211 finetune.py:68] layer 16_q @ epoch 1 new loss 0.00023968708410393447 old loss 0.00024602070334367454 BETTER
+I0311 19:34:33.719786 1735525 finetune.py:68] layer 19_v @ epoch 0 new loss 0.0002073133218800649 old loss 0.00024778739316388965 BETTER
+I0311 19:34:54.313900 1733968 finetune.py:68] layer 17_q @ epoch 0 new loss 0.00021384567662607878 old loss 0.0002263809001306072 BETTER
+I0311 19:34:57.102200 1734748 finetune.py:68] layer 18_v @ epoch 3 new loss 0.0001884093799162656 old loss 0.00019350548973307014 BETTER
+I0311 19:34:59.386091 1733211 finetune.py:68] layer 16_q @ epoch 2 new loss 0.00023475373745895922 old loss 0.00023968708410393447 BETTER
+I0311 19:35:05.645363 1735525 finetune.py:68] layer 19_v @ epoch 1 new loss 0.00019768804486375302 old loss 0.0002073133218800649 BETTER
+I0311 19:35:26.822914 1733968 finetune.py:68] layer 17_q @ epoch 1 new loss 0.0002081069687847048 old loss 0.00021384567662607878 BETTER
+I0311 19:35:30.272930 1734748 finetune.py:68] layer 18_v @ epoch 4 new loss 0.0001845287042669952 old loss 0.0001884093799162656 BETTER
+I0311 19:35:33.970411 1733211 finetune.py:68] layer 16_q @ epoch 3 new loss 0.00023072600015439093 old loss 0.00023475373745895922 BETTER
+I0311 19:35:37.873618 1735525 finetune.py:68] layer 19_v @ epoch 2 new loss 0.00019141084339935333 old loss 0.00019768804486375302 BETTER
+I0311 19:35:39.769306 1734748 finetune.py:45] layer 18_q initial loss 0.00024390232283622026
+I0311 19:35:59.235841 1733968 finetune.py:68] layer 17_q @ epoch 2 new loss 0.00020360010967124254 old loss 0.0002081069687847048 BETTER
+I0311 19:36:08.735134 1733211 finetune.py:68] layer 16_q @ epoch 4 new loss 0.00022737499966751784 old loss 0.00023072600015439093 BETTER
+I0311 19:36:10.387197 1735525 finetune.py:68] layer 19_v @ epoch 3 new loss 0.00018669657583814114 old loss 0.00019141084339935333 BETTER
+I0311 19:36:11.601273 1734748 finetune.py:68] layer 18_q @ epoch 0 new loss 0.0002287658426212147 old loss 0.00024390232283622026 BETTER
+I0311 19:36:18.670906 1733211 finetune.py:45] layer 16_k initial loss 0.0002597499988041818
+I0311 19:36:31.885298 1733968 finetune.py:68] layer 17_q @ epoch 3 new loss 0.00020000289077870548 old loss 0.00020360010967124254 BETTER
+I0311 19:36:43.126324 1735525 finetune.py:68] layer 19_v @ epoch 4 new loss 0.000182998352102004 old loss 0.00018669657583814114 BETTER
+I0311 19:36:44.024364 1734748 finetune.py:68] layer 18_q @ epoch 1 new loss 0.00022275527589954436 old loss 0.0002287658426212147 BETTER
+I0311 19:36:51.545490 1733211 finetune.py:68] layer 16_k @ epoch 0 new loss 0.00025454413844272494 old loss 0.0002597499988041818 BETTER
+I0311 19:36:52.412762 1735525 finetune.py:45] layer 19_q initial loss 0.00023664519540034235
+I0311 19:37:04.335316 1733968 finetune.py:68] layer 17_q @ epoch 4 new loss 0.00019697709649335593 old loss 0.00020000289077870548 BETTER
+I0311 19:37:13.591384 1733968 finetune.py:45] layer 17_k initial loss 0.00022981411893852055
+I0311 19:37:16.701753 1734748 finetune.py:68] layer 18_q @ epoch 2 new loss 0.0002182398602599278 old loss 0.00022275527589954436 BETTER
+I0311 19:37:24.024908 1735525 finetune.py:68] layer 19_q @ epoch 0 new loss 0.00022282387362793088 old loss 0.00023664519540034235 BETTER
+I0311 19:37:25.545373 1733211 finetune.py:68] layer 16_k @ epoch 1 new loss 0.00025148087297566235 old loss 0.00025454413844272494 BETTER
+I0311 19:37:45.067119 1733968 finetune.py:68] layer 17_k @ epoch 0 new loss 0.0002243134076707065 old loss 0.00022981411893852055 BETTER
+I0311 19:37:49.312213 1734748 finetune.py:68] layer 18_q @ epoch 3 new loss 0.00021460914285853505 old loss 0.0002182398602599278 BETTER
+I0311 19:37:56.634548 1735525 finetune.py:68] layer 19_q @ epoch 1 new loss 0.0002175358822569251 old loss 0.00022282387362793088 BETTER
+I0311 19:37:59.807853 1733211 finetune.py:68] layer 16_k @ epoch 2 new loss 0.00024896106333471835 old loss 0.00025148087297566235 BETTER
+I0311 19:38:17.233153 1733968 finetune.py:68] layer 17_k @ epoch 1 new loss 0.00022144298418425024 old loss 0.0002243134076707065 BETTER
+I0311 19:38:21.529969 1734748 finetune.py:68] layer 18_q @ epoch 4 new loss 0.00021160660253372043 old loss 0.00021460914285853505 BETTER
+I0311 19:38:28.957548 1735525 finetune.py:68] layer 19_q @ epoch 2 new loss 0.00021354669297579676 old loss 0.0002175358822569251 BETTER
+I0311 19:38:31.076882 1734748 finetune.py:45] layer 18_k initial loss 0.00025501655181869864
+I0311 19:38:33.652506 1733211 finetune.py:68] layer 16_k @ epoch 3 new loss 0.0002468176244292408 old loss 0.00024896106333471835 BETTER
+I0311 19:38:49.383553 1733968 finetune.py:68] layer 17_k @ epoch 2 new loss 0.00021911395015195012 old loss 0.00022144298418425024 BETTER
+I0311 19:39:01.373841 1735525 finetune.py:68] layer 19_q @ epoch 3 new loss 0.0002103287843056023 old loss 0.00021354669297579676 BETTER
+I0311 19:39:02.650435 1734748 finetune.py:68] layer 18_k @ epoch 0 new loss 0.0002479325339663774 old loss 0.00025501655181869864 BETTER
+I0311 19:39:07.684345 1733211 finetune.py:68] layer 16_k @ epoch 4 new loss 0.00024492450756952167 old loss 0.0002468176244292408 BETTER
+I0311 19:39:17.327509 1733211 finetune.py:45] layer 16_o initial loss 0.0006837280816398561
+I0311 19:39:21.613968 1733968 finetune.py:68] layer 17_k @ epoch 3 new loss 0.00021717316121794283 old loss 0.00021911395015195012 BETTER
+I0311 19:39:33.730390 1735525 finetune.py:68] layer 19_q @ epoch 4 new loss 0.0002076452219625935 old loss 0.0002103287843056023 BETTER
+I0311 19:39:34.859011 1734748 finetune.py:68] layer 18_k @ epoch 1 new loss 0.00024516027770005167 old loss 0.0002479325339663774 BETTER
+I0311 19:39:42.882547 1735525 finetune.py:45] layer 19_k initial loss 0.0002472377382218838
+I0311 19:39:49.891356 1733211 finetune.py:68] layer 16_o @ epoch 0 new loss 0.0006495619309134781 old loss 0.0006837280816398561 BETTER
+I0311 19:39:53.703495 1733968 finetune.py:68] layer 17_k @ epoch 4 new loss 0.00021548983932007104 old loss 0.00021717316121794283 BETTER
+I0311 19:40:03.079135 1733968 finetune.py:45] layer 17_o initial loss 0.0005346928373910487
+I0311 19:40:06.969965 1734748 finetune.py:68] layer 18_k @ epoch 2 new loss 0.00024295062758028507 old loss 0.00024516027770005167 BETTER
+I0311 19:40:13.799923 1735525 finetune.py:68] layer 19_k @ epoch 0 new loss 0.0002414808259345591 old loss 0.0002472377382218838 BETTER
+I0311 19:40:23.397546 1733211 finetune.py:68] layer 16_o @ epoch 1 new loss 0.000630956026725471 old loss 0.0006495619309134781 BETTER
+I0311 19:40:33.790808 1733968 finetune.py:68] layer 17_o @ epoch 0 new loss 0.0005122727015987039 old loss 0.0005346928373910487 BETTER
+I0311 19:40:39.101563 1734748 finetune.py:68] layer 18_k @ epoch 3 new loss 0.0002410757151665166 old loss 0.00024295062758028507 BETTER
+I0311 19:40:45.529953 1735525 finetune.py:68] layer 19_k @ epoch 1 new loss 0.00023887204588390887 old loss 0.0002414808259345591 BETTER
+I0311 19:40:57.087872 1733211 finetune.py:68] layer 16_o @ epoch 2 new loss 0.0006170878768898547 old loss 0.000630956026725471 BETTER
+I0311 19:41:05.278430 1733968 finetune.py:68] layer 17_o @ epoch 1 new loss 0.0004999227239750326 old loss 0.0005122727015987039 BETTER
+I0311 19:41:11.217447 1734748 finetune.py:68] layer 18_k @ epoch 4 new loss 0.0002394931943854317 old loss 0.0002410757151665166 BETTER
+I0311 19:41:17.258235 1735525 finetune.py:68] layer 19_k @ epoch 2 new loss 0.00023682306346017867 old loss 0.00023887204588390887 BETTER
+I0311 19:41:20.564498 1734748 finetune.py:45] layer 18_o initial loss 0.0005803959793411195
+I0311 19:41:30.511353 1733211 finetune.py:68] layer 16_o @ epoch 3 new loss 0.000606098969001323 old loss 0.0006170878768898547 BETTER
+I0311 19:41:36.751004 1733968 finetune.py:68] layer 17_o @ epoch 2 new loss 0.0004907362745143473 old loss 0.0004999227239750326 BETTER
+I0311 19:41:48.968923 1735525 finetune.py:68] layer 19_k @ epoch 3 new loss 0.00023504288401454687 old loss 0.00023682306346017867 BETTER
+I0311 19:41:51.496678 1734748 finetune.py:68] layer 18_o @ epoch 0 new loss 0.0005572002846747637 old loss 0.0005803959793411195 BETTER
+I0311 19:42:03.874027 1733211 finetune.py:68] layer 16_o @ epoch 4 new loss 0.000596891506575048 old loss 0.000606098969001323 BETTER
+I0311 19:42:08.238963 1733968 finetune.py:68] layer 17_o @ epoch 3 new loss 0.0004834492283407599 old loss 0.0004907362745143473 BETTER
+I0311 19:42:19.730501 1733211 finetune.py:45] layer 16_up initial loss 0.0009872697992250323
+I0311 19:42:20.686314 1735525 finetune.py:68] layer 19_k @ epoch 4 new loss 0.00023360855993814766 old loss 0.00023504288401454687 BETTER
+I0311 19:42:23.366499 1734748 finetune.py:68] layer 18_o @ epoch 1 new loss 0.0005449887248687446 old loss 0.0005572002846747637 BETTER
+I0311 19:42:30.073354 1735525 finetune.py:45] layer 19_o initial loss 0.0005523195140995085
+I0311 19:42:39.891496 1733968 finetune.py:68] layer 17_o @ epoch 4 new loss 0.0004774707485921681 old loss 0.0004834492283407599 BETTER
+I0311 19:42:50.374939 1733211 finetune.py:68] layer 16_up @ epoch 0 new loss 0.0009659946663305163 old loss 0.0009872697992250323 BETTER
+I0311 19:42:55.229899 1734748 finetune.py:68] layer 18_o @ epoch 2 new loss 0.0005359643255360425 old loss 0.0005449887248687446 BETTER
+I0311 19:42:55.836644 1733968 finetune.py:45] layer 17_up initial loss 0.000917898491024971
+I0311 19:43:00.280453 1735525 finetune.py:68] layer 19_o @ epoch 0 new loss 0.0005315490998327732 old loss 0.0005523195140995085 BETTER
+I0311 19:43:22.081468 1733211 finetune.py:68] layer 16_up @ epoch 1 new loss 0.0009524997440166771 old loss 0.0009659946663305163 BETTER
+I0311 19:43:24.869076 1733968 finetune.py:68] layer 17_up @ epoch 0 new loss 0.0008984779706224799 old loss 0.000917898491024971 BETTER
+I0311 19:43:27.236870 1734748 finetune.py:68] layer 18_o @ epoch 3 new loss 0.0005288535612635314 old loss 0.0005359643255360425 BETTER
+I0311 19:43:31.618065 1735525 finetune.py:68] layer 19_o @ epoch 1 new loss 0.000521194888278842 old loss 0.0005315490998327732 BETTER
+I0311 19:43:54.059826 1733211 finetune.py:68] layer 16_up @ epoch 2 new loss 0.0009416689863428473 old loss 0.0009524997440166771 BETTER
+I0311 19:43:54.941541 1733968 finetune.py:68] layer 17_up @ epoch 1 new loss 0.0008865465642884374 old loss 0.0008984779706224799 BETTER
+I0311 19:43:59.090721 1734748 finetune.py:68] layer 18_o @ epoch 4 new loss 0.0005229676025919616 old loss 0.0005288535612635314 BETTER
+I0311 19:44:02.831275 1735525 finetune.py:68] layer 19_o @ epoch 2 new loss 0.0005136447725817561 old loss 0.000521194888278842 BETTER
+I0311 19:44:14.610971 1734748 finetune.py:45] layer 18_up initial loss 0.001054606749676168
+I0311 19:44:24.858282 1733968 finetune.py:68] layer 17_up @ epoch 2 new loss 0.0008771677385084331 old loss 0.0008865465642884374 BETTER
+I0311 19:44:25.827581 1733211 finetune.py:68] layer 16_up @ epoch 3 new loss 0.000932469149120152 old loss 0.0009416689863428473 BETTER
+I0311 19:44:33.981917 1735525 finetune.py:68] layer 19_o @ epoch 3 new loss 0.0005078995018266141 old loss 0.0005136447725817561 BETTER
+I0311 19:44:43.873497 1734748 finetune.py:68] layer 18_up @ epoch 0 new loss 0.0010317550040781498 old loss 0.001054606749676168 BETTER
+I0311 19:44:54.974697 1733968 finetune.py:68] layer 17_up @ epoch 3 new loss 0.0008691345574334264 old loss 0.0008771677385084331 BETTER
+I0311 19:44:57.697397 1733211 finetune.py:68] layer 16_up @ epoch 4 new loss 0.0009244807297363877 old loss 0.000932469149120152 BETTER
+I0311 19:45:05.309143 1735525 finetune.py:68] layer 19_o @ epoch 4 new loss 0.0005031321197748184 old loss 0.0005078995018266141 BETTER
+I0311 19:45:13.286021 1733211 finetune.py:45] layer 16_gate initial loss 0.0012255212059244514
+I0311 19:45:13.835822 1734748 finetune.py:68] layer 18_up @ epoch 1 new loss 0.0010184444254264235 old loss 0.0010317550040781498 BETTER
+I0311 19:45:20.657537 1735525 finetune.py:45] layer 19_up initial loss 0.001102781156077981
+I0311 19:45:24.971724 1733968 finetune.py:68] layer 17_up @ epoch 4 new loss 0.0008622422465123236 old loss 0.0008691345574334264 BETTER
+I0311 19:45:40.082046 1733968 finetune.py:45] layer 17_gate initial loss 0.0012005524476990104
+I0311 19:45:42.439229 1733211 finetune.py:68] layer 16_gate @ epoch 0 new loss 0.0012135932920500636 old loss 0.0012255212059244514 BETTER
+I0311 19:45:43.916191 1734748 finetune.py:68] layer 18_up @ epoch 2 new loss 0.0010079507483169436 old loss 0.0010184444254264235 BETTER
+I0311 19:45:49.416088 1735525 finetune.py:68] layer 19_up @ epoch 0 new loss 0.0010792375542223454 old loss 0.001102781156077981 BETTER
+I0311 19:46:07.766016 1733968 finetune.py:68] layer 17_gate @ epoch 0 new loss 0.0011898897355422378 old loss 0.0012005524476990104 BETTER
+I0311 19:46:12.512650 1733211 finetune.py:68] layer 16_gate @ epoch 1 new loss 0.001204449450597167 old loss 0.0012135932920500636 BETTER
+I0311 19:46:13.998157 1734748 finetune.py:68] layer 18_up @ epoch 3 new loss 0.0009991348488256335 old loss 0.0010079507483169436 BETTER
+I0311 19:46:19.009670 1735525 finetune.py:68] layer 19_up @ epoch 1 new loss 0.001065827440470457 old loss 0.0010792375542223454 BETTER
+I0311 19:46:35.999565 1733968 finetune.py:68] layer 17_gate @ epoch 1 new loss 0.0011815957259386778 old loss 0.0011898897355422378 BETTER
+I0311 19:46:42.501593 1733211 finetune.py:68] layer 16_gate @ epoch 2 new loss 0.0011965875746682286 old loss 0.001204449450597167 BETTER
+I0311 19:46:44.094208 1734748 finetune.py:68] layer 18_up @ epoch 4 new loss 0.0009915850823745131 old loss 0.0009991348488256335 BETTER
+I0311 19:46:48.714619 1735525 finetune.py:68] layer 19_up @ epoch 2 new loss 0.0010552674066275358 old loss 0.001065827440470457 BETTER
+I0311 19:46:59.480437 1734748 finetune.py:45] layer 18_gate initial loss 0.0013911433052271605
+I0311 19:47:04.110670 1733968 finetune.py:68] layer 17_gate @ epoch 2 new loss 0.001174570177681744 old loss 0.0011815957259386778 BETTER
+I0311 19:47:12.731214 1733211 finetune.py:68] layer 16_gate @ epoch 3 new loss 0.0011897091753780842 old loss 0.0011965875746682286 BETTER
+I0311 19:47:18.329936 1735525 finetune.py:68] layer 19_up @ epoch 3 new loss 0.0010466205421835184 old loss 0.0010552674066275358 BETTER
+I0311 19:47:26.993187 1734748 finetune.py:68] layer 18_gate @ epoch 0 new loss 0.0013796957209706306 old loss 0.0013911433052271605 BETTER
+I0311 19:47:32.442382 1733968 finetune.py:68] layer 17_gate @ epoch 3 new loss 0.001168369664810598 old loss 0.001174570177681744 BETTER
+I0311 19:47:42.814476 1733211 finetune.py:68] layer 16_gate @ epoch 4 new loss 0.001183538930490613 old loss 0.0011897091753780842 BETTER
+I0311 19:47:47.901413 1735525 finetune.py:68] layer 19_up @ epoch 4 new loss 0.0010393306147307158 old loss 0.0010466205421835184 BETTER
+I0311 19:47:55.105914 1734748 finetune.py:68] layer 18_gate @ epoch 1 new loss 0.0013708426849916577 old loss 0.0013796957209706306 BETTER
+I0311 19:47:59.012672 1733211 finetune.py:45] layer 16_down initial loss 0.0018685575341805816
+I0311 19:48:00.573308 1733968 finetune.py:68] layer 17_gate @ epoch 4 new loss 0.0011629078071564436 old loss 0.001168369664810598 BETTER
+I0311 19:48:03.286185 1735525 finetune.py:45] layer 19_gate initial loss 0.0015092729590833187
+I0311 19:48:16.045533 1733968 finetune.py:45] layer 17_down initial loss 0.0019172342726960778
+I0311 19:48:23.197927 1734748 finetune.py:68] layer 18_gate @ epoch 2 new loss 0.0013632833724841475 old loss 0.0013708426849916577 BETTER
+I0311 19:48:26.322600 1733211 finetune.py:68] layer 16_down @ epoch 0 new loss 0.001867526676505804 old loss 0.0018685575341805816 BETTER
+I0311 19:48:30.526265 1735525 finetune.py:68] layer 19_gate @ epoch 0 new loss 0.0014971202472224832 old loss 0.0015092729590833187 BETTER
+I0311 19:48:43.202314 1733968 finetune.py:68] layer 17_down @ epoch 0 new loss 0.0019162259995937347 old loss 0.0019172342726960778 BETTER
+I0311 19:48:52.585946 1734748 finetune.py:68] layer 18_gate @ epoch 3 new loss 0.001356674823909998 old loss 0.0013632833724841475 BETTER
+I0311 19:48:55.625678 1733211 finetune.py:68] layer 16_down @ epoch 1 new loss 0.0018666821997612715 old loss 0.001867526676505804 BETTER
+I0311 19:48:58.880568 1735525 finetune.py:68] layer 19_gate @ epoch 1 new loss 0.0014879080699756742 old loss 0.0014971202472224832 BETTER
+I0311 19:49:10.627957 1733968 finetune.py:68] layer 17_down @ epoch 1 new loss 0.0019154184265062213 old loss 0.0019162259995937347 BETTER
+I0311 19:49:22.761511 1734748 finetune.py:68] layer 18_gate @ epoch 4 new loss 0.0013508362462744117 old loss 0.001356674823909998 BETTER
+I0311 19:49:25.740850 1733211 finetune.py:68] layer 16_down @ epoch 2 new loss 0.001865987665951252 old loss 0.0018666821997612715 BETTER
+I0311 19:49:28.063167 1735525 finetune.py:68] layer 19_gate @ epoch 2 new loss 0.0014801290817558765 old loss 0.0014879080699756742 BETTER
+I0311 19:49:38.665843 1733968 finetune.py:68] layer 17_down @ epoch 2 new loss 0.0019147529965266585 old loss 0.0019154184265062213 BETTER
+I0311 19:49:42.343893 1734748 finetune.py:45] layer 18_down initial loss 0.0022408796939998865
+I0311 19:49:55.620507 1733211 finetune.py:68] layer 16_down @ epoch 3 new loss 0.0018654150189831853 old loss 0.001865987665951252 BETTER
+I0311 19:49:57.819244 1735525 finetune.py:68] layer 19_gate @ epoch 3 new loss 0.001473320764489472 old loss 0.0014801290817558765 BETTER
+I0311 19:50:07.244822 1733968 finetune.py:68] layer 17_down @ epoch 3 new loss 0.0019142046803608537 old loss 0.0019147529965266585 BETTER
+I0311 19:50:10.165969 1734748 finetune.py:68] layer 18_down @ epoch 0 new loss 0.0022397437132894993 old loss 0.0022408796939998865 BETTER
+I0311 19:50:25.103907 1733211 finetune.py:68] layer 16_down @ epoch 4 new loss 0.0018649480771273375 old loss 0.0018654150189831853 BETTER
+I0311 19:50:26.623062 1735525 finetune.py:68] layer 19_gate @ epoch 4 new loss 0.0014674081467092037 old loss 0.001473320764489472 BETTER
+16_v proxy err 0.02112731523811817 tr(WHW.T) 780.7407836914062
+16_q proxy err 0.0025247561279684305 tr(WHW.T) 7196.8095703125
+16_k proxy err 0.0015825089067220688 tr(WHW.T) 11661.7197265625
+16_o proxy err 0.022452600300312042 tr(WHW.T) 88.94477844238281
+16_up proxy err 0.013095694594085217 tr(WHW.T) 1889.1124267578125
+16_gate proxy err 0.007443309295922518 tr(WHW.T) 3368.62353515625
+16_down proxy err 0.018828533589839935 tr(WHW.T) 153.39662170410156
+I0311 19:50:35.546275 1733968 finetune.py:68] layer 17_down @ epoch 4 new loss 0.001913755782879889 old loss 0.0019142046803608537 BETTER
+17_v proxy err 0.0209304541349411 tr(WHW.T) 845.7654418945312
+17_q proxy err 0.0027240172494202852 tr(WHW.T) 7171.37451171875
+17_k proxy err 0.0018435308011248708 tr(WHW.T) 10725.8134765625
+17_o proxy err 0.024270782247185707 tr(WHW.T) 58.71817398071289
+17_up proxy err 0.014537953771650791 tr(WHW.T) 1920.48486328125
+17_gate proxy err 0.007955586537718773 tr(WHW.T) 3569.162841796875
+17_down proxy err 0.019141601398587227 tr(WHW.T) 166.82525634765625
+I0311 19:50:38.094793 1734748 finetune.py:68] layer 18_down @ epoch 1 new loss 0.002238794229924679 old loss 0.0022397437132894993 BETTER
+I0311 19:50:43.944969 1735525 finetune.py:45] layer 19_down initial loss 0.002441123127937317
+I0311 19:51:04.948394 1734748 finetune.py:68] layer 18_down @ epoch 2 new loss 0.0022379951551556587 old loss 0.002238794229924679 BETTER
+I0311 19:51:09.419214 1735525 finetune.py:68] layer 19_down @ epoch 0 new loss 0.0024398912210017443 old loss 0.002441123127937317 BETTER
+I0311 19:51:31.799649 1734748 finetune.py:68] layer 18_down @ epoch 3 new loss 0.0022373346146196127 old loss 0.0022379951551556587 BETTER
+I0311 19:51:35.831552 1735525 finetune.py:68] layer 19_down @ epoch 1 new loss 0.002438886556774378 old loss 0.0024398912210017443 BETTER
+I0311 19:51:53.316840 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 20 in 73.2350606918335s
+I0311 19:51:56.685142 1745020 config.py:54] PyTorch version 2.1.1 available.
+I0311 19:51:57.817446 1711480 quantize_finetune_llama.py:183] layer 21 gpu 1
+I0311 19:51:57.908632 1745020 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0311 19:51:58.770746 1734748 finetune.py:68] layer 18_down @ epoch 4 new loss 0.0022367765195667744 old loss 0.0022373346146196127 BETTER
+18_v proxy err 0.019916577264666557 tr(WHW.T) 1003.7705078125
+18_q proxy err 0.0029041727539151907 tr(WHW.T) 7515.509765625
+18_k proxy err 0.002104345243424177 tr(WHW.T) 10490.162109375
+18_o proxy err 0.020961785688996315 tr(WHW.T) 70.55158996582031
+18_up proxy err 0.015545768663287163 tr(WHW.T) 2021.694580078125
+18_gate proxy err 0.008505931124091148 tr(WHW.T) 3772.475830078125
+18_down proxy err 0.018730800598859787 tr(WHW.T) 200.31536865234375
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0311 19:52:02.303839 1735525 finetune.py:68] layer 19_down @ epoch 2 new loss 0.0024380655959248543 old loss 0.002438886556774378 BETTER
+I0311 19:52:06.623011 1745020 finetune.py:45] layer 20_v initial loss 0.0002911808551289141
+I0311 19:52:28.916277 1735525 finetune.py:68] layer 19_down @ epoch 3 new loss 0.002437376882880926 old loss 0.0024380655959248543 BETTER
+I0311 19:52:39.685478 1745020 finetune.py:68] layer 20_v @ epoch 0 new loss 0.00023891840828582644 old loss 0.0002911808551289141 BETTER
+I0311 19:52:55.425295 1735525 finetune.py:68] layer 19_down @ epoch 4 new loss 0.002436811337247491 old loss 0.002437376882880926 BETTER
+19_v proxy err 0.019624555483460426 tr(WHW.T) 1019.1412353515625
+19_q proxy err 0.00311649264767766 tr(WHW.T) 6952.18115234375
+19_k proxy err 0.002067545196041465 tr(WHW.T) 10580.640625
+19_o proxy err 0.0211319737136364 tr(WHW.T) 62.78199005126953
+19_up proxy err 0.01566295698285103 tr(WHW.T) 2149.04736328125
+19_gate proxy err 0.009321392513811588 tr(WHW.T) 3684.521240234375
+19_down proxy err 0.018298888579010963 tr(WHW.T) 224.87283325195312
+I0311 19:53:13.945238 1745020 finetune.py:68] layer 20_v @ epoch 1 new loss 0.00022747959883417934 old loss 0.00023891840828582644 BETTER
+I0311 19:53:13.951484 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 21 in 71.01665711402893s
+I0311 19:53:17.183732 1745831 config.py:54] PyTorch version 2.1.1 available.
+I0311 19:53:18.179512 1711480 quantize_finetune_llama.py:183] layer 22 gpu 2
+I0311 19:53:18.248751 1745831 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0311 19:53:26.618377 1745831 finetune.py:45] layer 21_v initial loss 0.00025433365954086185
+I0311 19:53:48.614658 1745020 finetune.py:68] layer 20_v @ epoch 2 new loss 0.0002204134943895042 old loss 0.00022747959883417934 BETTER
+I0311 19:53:58.030002 1745831 finetune.py:68] layer 21_v @ epoch 0 new loss 0.00021564503549598157 old loss 0.00025433365954086185 BETTER
+I0311 19:54:23.331334 1745020 finetune.py:68] layer 20_v @ epoch 3 new loss 0.00021532840037252754 old loss 0.0002204134943895042 BETTER
+I0311 19:54:29.237259 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 22 in 70.63612961769104s
+I0311 19:54:30.071314 1745831 finetune.py:68] layer 21_v @ epoch 1 new loss 0.0002074818912660703 old loss 0.00021564503549598157 BETTER
+I0311 19:54:32.327296 1746595 config.py:54] PyTorch version 2.1.1 available.
+I0311 19:54:33.395225 1711480 quantize_finetune_llama.py:183] layer 23 gpu 3
+I0311 19:54:33.469342 1746595 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0311 19:54:41.722146 1746595 finetune.py:45] layer 22_v initial loss 0.0003164451045449823
+I0311 19:54:58.376303 1745020 finetune.py:68] layer 20_v @ epoch 4 new loss 0.00021128292428329587 old loss 0.00021532840037252754 BETTER
+I0311 19:55:02.282062 1745831 finetune.py:68] layer 21_v @ epoch 2 new loss 0.0002022878616116941 old loss 0.0002074818912660703 BETTER
+I0311 19:55:07.929598 1745020 finetune.py:45] layer 20_q initial loss 0.0002742012438829988
+I0311 19:55:13.163854 1746595 finetune.py:68] layer 22_v @ epoch 0 new loss 0.0002684672945179045 old loss 0.0003164451045449823 BETTER
+I0311 19:55:35.052818 1745831 finetune.py:68] layer 21_v @ epoch 3 new loss 0.0001985770504688844 old loss 0.0002022878616116941 BETTER
+I0311 19:55:41.400824 1745020 finetune.py:68] layer 20_q @ epoch 0 new loss 0.0002594983670860529 old loss 0.0002742012438829988 BETTER
+I0311 19:55:44.875582 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 23 in 71.06505155563354s
+I0311 19:55:45.780226 1746595 finetune.py:68] layer 22_v @ epoch 1 new loss 0.00025776808615773916 old loss 0.0002684672945179045 BETTER
+I0311 19:55:48.153706 1747370 config.py:54] PyTorch version 2.1.1 available.
+I0311 19:55:49.233340 1711480 quantize_finetune_llama.py:183] layer 24 gpu 0
+I0311 19:55:49.325046 1747370 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0311 19:55:59.103146 1747370 finetune.py:45] layer 23_v initial loss 0.00031887966906651855
+I0311 19:56:08.769240 1745831 finetune.py:68] layer 21_v @ epoch 4 new loss 0.00019567442359402776 old loss 0.0001985770504688844 BETTER
+I0311 19:56:16.362862 1745020 finetune.py:68] layer 20_q @ epoch 1 new loss 0.0002533907536417246 old loss 0.0002594983670860529 BETTER
+I0311 19:56:19.310055 1746595 finetune.py:68] layer 22_v @ epoch 2 new loss 0.0002509512414690107 old loss 0.00025776808615773916 BETTER
+I0311 19:56:19.676075 1745831 finetune.py:45] layer 21_q initial loss 0.0002484098367858678
+I0311 19:56:30.630270 1747370 finetune.py:68] layer 23_v @ epoch 0 new loss 0.0002736510068643838 old loss 0.00031887966906651855 BETTER
+I0311 19:56:51.418337 1745020 finetune.py:68] layer 20_q @ epoch 2 new loss 0.0002488914760760963 old loss 0.0002533907536417246 BETTER
+I0311 19:56:51.721814 1745831 finetune.py:68] layer 21_q @ epoch 0 new loss 0.00023773583234287798 old loss 0.0002484098367858678 BETTER
+I0311 19:56:52.818583 1746595 finetune.py:68] layer 22_v @ epoch 3 new loss 0.0002459864772390574 old loss 0.0002509512414690107 BETTER
+I0311 19:57:03.110151 1747370 finetune.py:68] layer 23_v @ epoch 1 new loss 0.00026371583226136863 old loss 0.0002736510068643838 BETTER
+I0311 19:57:24.156136 1745831 finetune.py:68] layer 21_q @ epoch 1 new loss 0.0002333126903977245 old loss 0.00023773583234287798 BETTER
+I0311 19:57:25.931775 1745020 finetune.py:68] layer 20_q @ epoch 3 new loss 0.0002451796899549663 old loss 0.0002488914760760963 BETTER
+I0311 19:57:26.270406 1746595 finetune.py:68] layer 22_v @ epoch 4 new loss 0.00024211124400608242 old loss 0.0002459864772390574 BETTER
+I0311 19:57:35.666333 1746595 finetune.py:45] layer 22_q initial loss 0.0003362972929608077
+I0311 19:57:35.755785 1747370 finetune.py:68] layer 23_v @ epoch 2 new loss 0.000257437932305038 old loss 0.00026371583226136863 BETTER
+I0311 19:57:56.609138 1745831 finetune.py:68] layer 21_q @ epoch 2 new loss 0.00022996186453383416 old loss 0.0002333126903977245 BETTER
+I0311 19:58:00.420133 1745020 finetune.py:68] layer 20_q @ epoch 4 new loss 0.0002422660036245361 old loss 0.0002451796899549663 BETTER
+I0311 19:58:07.336382 1746595 finetune.py:68] layer 22_q @ epoch 0 new loss 0.00031464698258787394 old loss 0.0003362972929608077 BETTER
+I0311 19:58:08.494375 1747370 finetune.py:68] layer 23_v @ epoch 3 new loss 0.00025268614990636706 old loss 0.000257437932305038 BETTER
+I0311 19:58:10.248416 1745020 finetune.py:45] layer 20_k initial loss 0.0002851959434337914
+I0311 19:58:29.300659 1745831 finetune.py:68] layer 21_q @ epoch 3 new loss 0.00022721770801581442 old loss 0.00022996186453383416 BETTER
+I0311 19:58:40.558410 1746595 finetune.py:68] layer 22_q @ epoch 1 new loss 0.0003068844089284539 old loss 0.00031464698258787394 BETTER
+I0311 19:58:41.563209 1747370 finetune.py:68] layer 23_v @ epoch 4 new loss 0.00024894412490539253 old loss 0.00025268614990636706 BETTER
+I0311 19:58:43.363150 1745020 finetune.py:68] layer 20_k @ epoch 0 new loss 0.0002795954642351717 old loss 0.0002851959434337914 BETTER
+I0311 19:58:51.020623 1747370 finetune.py:45] layer 23_q initial loss 0.0003219875507056713
+I0311 19:59:01.630940 1745831 finetune.py:68] layer 21_q @ epoch 4 new loss 0.000224969771807082 old loss 0.00022721770801581442 BETTER
+I0311 19:59:10.924645 1745831 finetune.py:45] layer 21_k initial loss 0.00027073215460404754
+I0311 19:59:13.154441 1746595 finetune.py:68] layer 22_q @ epoch 2 new loss 0.0003009994688909501 old loss 0.0003068844089284539 BETTER
+I0311 19:59:17.600305 1745020 finetune.py:68] layer 20_k @ epoch 1 new loss 0.00027677963953465223 old loss 0.0002795954642351717 BETTER
+I0311 19:59:22.643201 1747370 finetune.py:68] layer 23_q @ epoch 0 new loss 0.0003074274573009461 old loss 0.0003219875507056713 BETTER
+I0311 19:59:42.342683 1745831 finetune.py:68] layer 21_k @ epoch 0 new loss 0.0002661418984644115 old loss 0.00027073215460404754 BETTER
+I0311 19:59:45.768461 1746595 finetune.py:68] layer 22_q @ epoch 3 new loss 0.00029627044568769634 old loss 0.0003009994688909501 BETTER
+I0311 19:59:51.410829 1745020 finetune.py:68] layer 20_k @ epoch 2 new loss 0.0002744933299254626 old loss 0.00027677963953465223 BETTER
+I0311 19:59:54.897665 1747370 finetune.py:68] layer 23_q @ epoch 1 new loss 0.0003013836103491485 old loss 0.0003074274573009461 BETTER
+I0311 20:00:14.468491 1745831 finetune.py:68] layer 21_k @ epoch 1 new loss 0.00026368696126155555 old loss 0.0002661418984644115 BETTER
+I0311 20:00:18.238415 1746595 finetune.py:68] layer 22_q @ epoch 4 new loss 0.0002923389838542789 old loss 0.00029627044568769634 BETTER
+I0311 20:00:25.470018 1745020 finetune.py:68] layer 20_k @ epoch 3 new loss 0.0002726073726080358 old loss 0.0002744933299254626 BETTER
+I0311 20:00:27.446511 1747370 finetune.py:68] layer 23_q @ epoch 2 new loss 0.00029704932239837945 old loss 0.0003013836103491485 BETTER
+I0311 20:00:27.850062 1746595 finetune.py:45] layer 22_k initial loss 0.0003584556689020246
+I0311 20:00:46.577622 1745831 finetune.py:68] layer 21_k @ epoch 2 new loss 0.0002617746649775654 old loss 0.00026368696126155555 BETTER
+I0311 20:00:59.351882 1745020 finetune.py:68] layer 20_k @ epoch 4 new loss 0.00027101722662337124 old loss 0.0002726073726080358 BETTER
+I0311 20:00:59.547919 1746595 finetune.py:68] layer 22_k @ epoch 0 new loss 0.00035185873275622725 old loss 0.0003584556689020246 BETTER
+I0311 20:01:00.116584 1747370 finetune.py:68] layer 23_q @ epoch 3 new loss 0.0002934744115918875 old loss 0.00029704932239837945 BETTER
+I0311 20:01:08.676870 1745020 finetune.py:45] layer 20_o initial loss 0.0006531232502311468
+I0311 20:01:18.746753 1745831 finetune.py:68] layer 21_k @ epoch 3 new loss 0.00026015739422291517 old loss 0.0002617746649775654 BETTER
+I0311 20:01:31.633896 1746595 finetune.py:68] layer 22_k @ epoch 1 new loss 0.0003483676991891116 old loss 0.00035185873275622725 BETTER
+I0311 20:01:32.428693 1747370 finetune.py:68] layer 23_q @ epoch 4 new loss 0.00029053824255242944 old loss 0.0002934744115918875 BETTER
+I0311 20:01:41.125732 1745020 finetune.py:68] layer 20_o @ epoch 0 new loss 0.0006278228247538209 old loss 0.0006531232502311468 BETTER
+I0311 20:01:41.722617 1747370 finetune.py:45] layer 23_k initial loss 0.0003526824002619833
+I0311 20:01:50.855628 1745831 finetune.py:68] layer 21_k @ epoch 4 new loss 0.00025883258786052465 old loss 0.00026015739422291517 BETTER
+I0311 20:01:59.910445 1745831 finetune.py:45] layer 21_o initial loss 0.0005833149771206081
+I0311 20:02:03.882505 1746595 finetune.py:68] layer 22_k @ epoch 2 new loss 0.00034559229970909655 old loss 0.0003483676991891116 BETTER
+I0311 20:02:13.069200 1747370 finetune.py:68] layer 23_k @ epoch 0 new loss 0.0003482312604319304 old loss 0.0003526824002619833 BETTER
+I0311 20:02:14.768498 1745020 finetune.py:68] layer 20_o @ epoch 1 new loss 0.0006153681315481663 old loss 0.0006278228247538209 BETTER
+I0311 20:02:30.683247 1745831 finetune.py:68] layer 21_o @ epoch 0 new loss 0.0005671123508363962 old loss 0.0005833149771206081 BETTER
+I0311 20:02:36.221061 1746595 finetune.py:68] layer 22_k @ epoch 3 new loss 0.00034325383603572845 old loss 0.00034559229970909655 BETTER
+I0311 20:02:45.432415 1747370 finetune.py:68] layer 23_k @ epoch 1 new loss 0.00034558496554382145 old loss 0.0003482312604319304 BETTER
+I0311 20:02:48.285306 1745020 finetune.py:68] layer 20_o @ epoch 2 new loss 0.0006061461754143238 old loss 0.0006153681315481663 BETTER
+I0311 20:03:02.266533 1745831 finetune.py:68] layer 21_o @ epoch 1 new loss 0.0005599030992016196 old loss 0.0005671123508363962 BETTER
+I0311 20:03:08.423069 1746595 finetune.py:68] layer 22_k @ epoch 4 new loss 0.00034130740095861256 old loss 0.00034325383603572845 BETTER
+I0311 20:03:17.747743 1747370 finetune.py:68] layer 23_k @ epoch 2 new loss 0.00034344830783084035 old loss 0.00034558496554382145 BETTER
+I0311 20:03:17.868054 1746595 finetune.py:45] layer 22_o initial loss 0.0007390985847450793
+I0311 20:03:21.871638 1745020 finetune.py:68] layer 20_o @ epoch 3 new loss 0.0005990461795590818 old loss 0.0006061461754143238 BETTER
+I0311 20:03:33.962952 1745831 finetune.py:68] layer 21_o @ epoch 2 new loss 0.0005546851316466928 old loss 0.0005599030992016196 BETTER
+I0311 20:03:49.075651 1746595 finetune.py:68] layer 22_o @ epoch 0 new loss 0.0007172843324951828 old loss 0.0007390985847450793 BETTER
+I0311 20:03:50.281699 1747370 finetune.py:68] layer 23_k @ epoch 3 new loss 0.00034175286418758333 old loss 0.00034344830783084035 BETTER
+I0311 20:03:55.401055 1745020 finetune.py:68] layer 20_o @ epoch 4 new loss 0.0005930624902248383 old loss 0.0005990461795590818 BETTER
+I0311 20:04:05.693375 1745831 finetune.py:68] layer 21_o @ epoch 3 new loss 0.0005507009918801486 old loss 0.0005546851316466928 BETTER
+I0311 20:04:10.711344 1745020 finetune.py:45] layer 20_up initial loss 0.0013052778085693717
+I0311 20:04:21.060490 1746595 finetune.py:68] layer 22_o @ epoch 1 new loss 0.0007068610284477472 old loss 0.0007172843324951828 BETTER
+I0311 20:04:22.613859 1747370 finetune.py:68] layer 23_k @ epoch 4 new loss 0.0003403100126888603 old loss 0.00034175286418758333 BETTER
+I0311 20:04:31.866951 1747370 finetune.py:45] layer 23_o initial loss 0.0007001224439591169
+I0311 20:04:37.841226 1745831 finetune.py:68] layer 21_o @ epoch 4 new loss 0.0005474929930642247 old loss 0.0005507009918801486 BETTER
+I0311 20:04:41.617814 1745020 finetune.py:68] layer 20_up @ epoch 0 new loss 0.0012786976294592023 old loss 0.0013052778085693717 BETTER
+I0311 20:04:53.230699 1745831 finetune.py:45] layer 21_up initial loss 0.0013248012401163578
+I0311 20:04:53.236260 1746595 finetune.py:68] layer 22_o @ epoch 2 new loss 0.0006989663233980536 old loss 0.0007068610284477472 BETTER
+I0311 20:05:02.740171 1747370 finetune.py:68] layer 23_o @ epoch 0 new loss 0.0006836115499027073 old loss 0.0007001224439591169 BETTER
+I0311 20:05:13.214375 1745020 finetune.py:68] layer 20_up @ epoch 1 new loss 0.0012632710859179497 old loss 0.0012786976294592023 BETTER
+I0311 20:05:22.240335 1745831 finetune.py:68] layer 21_up @ epoch 0 new loss 0.0013011915143579245 old loss 0.0013248012401163578 BETTER
+I0311 20:05:25.219509 1746595 finetune.py:68] layer 22_o @ epoch 3 new loss 0.0006928072543814778 old loss 0.0006989663233980536 BETTER
+I0311 20:05:34.040618 1747370 finetune.py:68] layer 23_o @ epoch 1 new loss 0.0006757501978427172 old loss 0.0006836115499027073 BETTER
+I0311 20:05:44.888441 1745020 finetune.py:68] layer 20_up @ epoch 2 new loss 0.0012512871762737632 old loss 0.0012632710859179497 BETTER
+I0311 20:05:52.002116 1745831 finetune.py:68] layer 21_up @ epoch 1 new loss 0.001287971273995936 old loss 0.0013011915143579245 BETTER
+I0311 20:05:57.143751 1746595 finetune.py:68] layer 22_o @ epoch 4 new loss 0.0006878948188386858 old loss 0.0006928072543814778 BETTER
+I0311 20:06:05.341832 1747370 finetune.py:68] layer 23_o @ epoch 2 new loss 0.0006701817037537694 old loss 0.0006757501978427172 BETTER
+I0311 20:06:12.562245 1746595 finetune.py:45] layer 22_up initial loss 0.0015748660080134869
+I0311 20:06:16.698849 1745020 finetune.py:68] layer 20_up @ epoch 3 new loss 0.0012411801144480705 old loss 0.0012512871762737632 BETTER
+I0311 20:06:21.930650 1745831 finetune.py:68] layer 21_up @ epoch 2 new loss 0.001277613453567028 old loss 0.001287971273995936 BETTER
+I0311 20:06:36.930978 1747370 finetune.py:68] layer 23_o @ epoch 3 new loss 0.0006656639161519706 old loss 0.0006701817037537694 BETTER
+I0311 20:06:41.635324 1746595 finetune.py:68] layer 22_up @ epoch 0 new loss 0.0015499528963118792 old loss 0.0015748660080134869 BETTER
+I0311 20:06:48.445223 1745020 finetune.py:68] layer 20_up @ epoch 4 new loss 0.0012327291769906878 old loss 0.0012411801144480705 BETTER
+I0311 20:06:51.719871 1745831 finetune.py:68] layer 21_up @ epoch 3 new loss 0.0012691657757386565 old loss 0.001277613453567028 BETTER
+I0311 20:07:03.916944 1745020 finetune.py:45] layer 20_gate initial loss 0.0017891830066218972
+I0311 20:07:08.441647 1747370 finetune.py:68] layer 23_o @ epoch 4 new loss 0.0006622596993111074 old loss 0.0006656639161519706 BETTER
+I0311 20:07:11.525634 1746595 finetune.py:68] layer 22_up @ epoch 1 new loss 0.0015353449853137136 old loss 0.0015499528963118792 BETTER
+I0311 20:07:21.531136 1745831 finetune.py:68] layer 21_up @ epoch 4 new loss 0.0012618525652214885 old loss 0.0012691657757386565 BETTER
+I0311 20:07:23.470188 1747370 finetune.py:45] layer 23_up initial loss 0.0016399534652009606
+I0311 20:07:32.816447 1745020 finetune.py:68] layer 20_gate @ epoch 0 new loss 0.0017753406427800655 old loss 0.0017891830066218972 BETTER
+I0311 20:07:36.675904 1745831 finetune.py:45] layer 21_gate initial loss 0.0018667542608454823
+I0311 20:07:41.495984 1746595 finetune.py:68] layer 22_up @ epoch 2 new loss 0.0015239253407344222 old loss 0.0015353449853137136 BETTER
+I0311 20:07:52.288726 1747370 finetune.py:68] layer 23_up @ epoch 0 new loss 0.0016158227808773518 old loss 0.0016399534652009606 BETTER
+I0311 20:08:02.879176 1745020 finetune.py:68] layer 20_gate @ epoch 1 new loss 0.0017646981868892908 old loss 0.0017753406427800655 BETTER
+I0311 20:08:04.393986 1745831 finetune.py:68] layer 21_gate @ epoch 0 new loss 0.0018545351922512054 old loss 0.0018667542608454823 BETTER
+I0311 20:08:11.594066 1746595 finetune.py:68] layer 22_up @ epoch 3 new loss 0.0015144114149734378 old loss 0.0015239253407344222 BETTER
+I0311 20:08:22.196239 1747370 finetune.py:68] layer 23_up @ epoch 1 new loss 0.0016011301195248961 old loss 0.0016158227808773518 BETTER
+I0311 20:08:32.941541 1745020 finetune.py:68] layer 20_gate @ epoch 2 new loss 0.0017553603975102305 old loss 0.0017646981868892908 BETTER
+I0311 20:08:33.171667 1745831 finetune.py:68] layer 21_gate @ epoch 1 new loss 0.0018454294186085463 old loss 0.0018545351922512054 BETTER
+I0311 20:08:41.517142 1746595 finetune.py:68] layer 22_up @ epoch 4 new loss 0.0015064987819641829 old loss 0.0015144114149734378 BETTER
+I0311 20:08:52.396950 1747370 finetune.py:68] layer 23_up @ epoch 2 new loss 0.0015901507576927543 old loss 0.0016011301195248961 BETTER
+I0311 20:08:58.177155 1746595 finetune.py:45] layer 22_gate initial loss 0.002196485409513116
+I0311 20:09:02.082653 1745831 finetune.py:68] layer 21_gate @ epoch 2 new loss 0.0018374270293861628 old loss 0.0018454294186085463 BETTER
+I0311 20:09:03.381538 1745020 finetune.py:68] layer 20_gate @ epoch 3 new loss 0.001747475820593536 old loss 0.0017553603975102305 BETTER
+I0311 20:09:23.289538 1747370 finetune.py:68] layer 23_up @ epoch 3 new loss 0.0015807648887857795 old loss 0.0015901507576927543 BETTER
+I0311 20:09:26.553611 1746595 finetune.py:68] layer 22_gate @ epoch 0 new loss 0.002183475298807025 old loss 0.002196485409513116 BETTER
+I0311 20:09:30.847705 1745831 finetune.py:68] layer 21_gate @ epoch 3 new loss 0.0018306454876437783 old loss 0.0018374270293861628 BETTER
+I0311 20:09:33.676628 1745020 finetune.py:68] layer 20_gate @ epoch 4 new loss 0.0017403269885107875 old loss 0.001747475820593536 BETTER
+I0311 20:09:51.475580 1745020 finetune.py:45] layer 20_down initial loss 0.0029359394684433937
+I0311 20:09:53.623810 1747370 finetune.py:68] layer 23_up @ epoch 4 new loss 0.001573024084791541 old loss 0.0015807648887857795 BETTER
+I0311 20:09:55.274458 1746595 finetune.py:68] layer 22_gate @ epoch 1 new loss 0.002173580229282379 old loss 0.002183475298807025 BETTER
+I0311 20:09:59.119087 1745831 finetune.py:68] layer 21_gate @ epoch 4 new loss 0.0018246533581987023 old loss 0.0018306454876437783 BETTER
+I0311 20:10:10.620814 1747370 finetune.py:45] layer 23_gate initial loss 0.00234983186237514
+I0311 20:10:14.869129 1745831 finetune.py:45] layer 21_down initial loss 0.003058397676795721
+I0311 20:10:18.576460 1745020 finetune.py:68] layer 20_down @ epoch 0 new loss 0.0029342107009142637 old loss 0.0029359394684433937 BETTER
+I0311 20:10:23.506659 1746595 finetune.py:68] layer 22_gate @ epoch 2 new loss 0.0021650600247085094 old loss 0.002173580229282379 BETTER
+I0311 20:10:38.471137 1747370 finetune.py:68] layer 23_gate @ epoch 0 new loss 0.0023378171026706696 old loss 0.00234983186237514 BETTER
+I0311 20:10:40.646465 1745831 finetune.py:68] layer 21_down @ epoch 0 new loss 0.003056892193853855 old loss 0.003058397676795721 BETTER
+I0311 20:10:46.777163 1745020 finetune.py:68] layer 20_down @ epoch 1 new loss 0.002932727336883545 old loss 0.0029342107009142637 BETTER
+I0311 20:10:51.795184 1746595 finetune.py:68] layer 22_gate @ epoch 3 new loss 0.0021575286518782377 old loss 0.0021650600247085094 BETTER
+I0311 20:11:06.875291 1747370 finetune.py:68] layer 23_gate @ epoch 1 new loss 0.002328200964257121 old loss 0.0023378171026706696 BETTER
+I0311 20:11:07.418491 1745831 finetune.py:68] layer 21_down @ epoch 1 new loss 0.003055608132854104 old loss 0.003056892193853855 BETTER
+I0311 20:11:15.180917 1745020 finetune.py:68] layer 20_down @ epoch 2 new loss 0.002931475406512618 old loss 0.002932727336883545 BETTER
+I0311 20:11:20.088260 1746595 finetune.py:68] layer 22_gate @ epoch 4 new loss 0.0021512736566364765 old loss 0.0021575286518782377 BETTER
+I0311 20:11:34.603266 1745831 finetune.py:68] layer 21_down @ epoch 2 new loss 0.003054519649595022 old loss 0.003055608132854104 BETTER
+I0311 20:11:35.457418 1747370 finetune.py:68] layer 23_gate @ epoch 2 new loss 0.0023199585266411304 old loss 0.002328200964257121 BETTER
+I0311 20:11:36.434947 1746595 finetune.py:45] layer 22_down initial loss 0.0035544545389711857
+I0311 20:11:43.704809 1745020 finetune.py:68] layer 20_down @ epoch 3 new loss 0.0029303934425115585 old loss 0.002931475406512618 BETTER
+I0311 20:12:01.937959 1745831 finetune.py:68] layer 21_down @ epoch 3 new loss 0.0030536004342138767 old loss 0.003054519649595022 BETTER
+I0311 20:12:03.093483 1746595 finetune.py:68] layer 22_down @ epoch 0 new loss 0.0035528643056750298 old loss 0.0035544545389711857 BETTER
+I0311 20:12:04.267104 1747370 finetune.py:68] layer 23_gate @ epoch 3 new loss 0.0023126588203012943 old loss 0.0023199585266411304 BETTER
+I0311 20:12:12.164252 1745020 finetune.py:68] layer 20_down @ epoch 4 new loss 0.00292950589209795 old loss 0.0029303934425115585 BETTER
+20_v proxy err 0.02061096765100956 tr(WHW.T) 990.5983276367188
+20_q proxy err 0.0030717370100319386 tr(WHW.T) 7155.70703125
+20_k proxy err 0.0021291631273925304 tr(WHW.T) 10416.4765625
+20_o proxy err 0.015202570706605911 tr(WHW.T) 100.95549011230469
+20_up proxy err 0.015448342077434063 tr(WHW.T) 2340.49755859375
+20_gate proxy err 0.009191873483359814 tr(WHW.T) 4020.694580078125
+20_down proxy err 0.018049897626042366 tr(WHW.T) 277.2846374511719
+I0311 20:12:29.723227 1745831 finetune.py:68] layer 21_down @ epoch 4 new loss 0.0030528134666383266 old loss 0.0030536004342138767 BETTER
+I0311 20:12:31.158272 1746595 finetune.py:68] layer 22_down @ epoch 1 new loss 0.00355147453956306 old loss 0.0035528643056750298 BETTER
+21_v proxy err 0.020176714286208153 tr(WHW.T) 1144.5655517578125
+21_q proxy err 0.0034733936190605164 tr(WHW.T) 7072.640625
+21_k proxy err 0.002467359183356166 tr(WHW.T) 10004.5478515625
+21_o proxy err 0.017395013943314552 tr(WHW.T) 75.97932434082031
+21_up proxy err 0.016299128532409668 tr(WHW.T) 2360.9677734375
+21_gate proxy err 0.009849660098552704 tr(WHW.T) 3998.587646484375
+21_down proxy err 0.018482351675629616 tr(WHW.T) 278.8547668457031
+I0311 20:12:33.378142 1747370 finetune.py:68] layer 23_gate @ epoch 4 new loss 0.002306475769728422 old loss 0.0023126588203012943 BETTER
+I0311 20:12:48.793384 1747370 finetune.py:45] layer 23_down initial loss 0.003745583351701498
+I0311 20:12:58.137107 1746595 finetune.py:68] layer 22_down @ epoch 2 new loss 0.0035502780228853226 old loss 0.00355147453956306 BETTER
+I0311 20:13:14.681639 1747370 finetune.py:68] layer 23_down @ epoch 0 new loss 0.003744117682799697 old loss 0.003745583351701498 BETTER
+I0311 20:13:24.968645 1746595 finetune.py:68] layer 22_down @ epoch 3 new loss 0.003549243789166212 old loss 0.0035502780228853226 BETTER
+I0311 20:13:41.319586 1747370 finetune.py:68] layer 23_down @ epoch 1 new loss 0.0037428734358400106 old loss 0.003744117682799697 BETTER
+I0311 20:13:47.492758 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 24 in 73.09797358512878s
+I0311 20:13:50.880881 1751456 config.py:54] PyTorch version 2.1.1 available.
+I0311 20:13:51.937531 1711480 quantize_finetune_llama.py:183] layer 25 gpu 1
+I0311 20:13:52.007125 1751456 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0311 20:13:52.080555 1746595 finetune.py:68] layer 22_down @ epoch 4 new loss 0.0035483429674059153 old loss 0.003549243789166212 BETTER
+22_v proxy err 0.019117482006549835 tr(WHW.T) 1243.2529296875
+22_q proxy err 0.003268025116994977 tr(WHW.T) 7754.1318359375
+22_k proxy err 0.0024043931625783443 tr(WHW.T) 10628.3056640625
+22_o proxy err 0.013835202902555466 tr(WHW.T) 115.07308197021484
+22_up proxy err 0.016443448141217232 tr(WHW.T) 2475.123291015625
+22_gate proxy err 0.010054771788418293 tr(WHW.T) 4152.27197265625
+22_down proxy err 0.018502455204725266 tr(WHW.T) 314.18896484375
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0311 20:14:00.407045 1751456 finetune.py:45] layer 24_v initial loss 0.0003588002291508019
+I0311 20:14:07.990714 1747370 finetune.py:68] layer 23_down @ epoch 2 new loss 0.0037417984567582607 old loss 0.0037428734358400106 BETTER
+I0311 20:14:33.316344 1751456 finetune.py:68] layer 24_v @ epoch 0 new loss 0.00030720807262696326 old loss 0.0003588002291508019 BETTER
+I0311 20:14:34.602833 1747370 finetune.py:68] layer 23_down @ epoch 3 new loss 0.003740900894626975 old loss 0.0037417984567582607 BETTER
+I0311 20:15:01.534431 1747370 finetune.py:68] layer 23_down @ epoch 4 new loss 0.0037401283625513315 old loss 0.003740900894626975 BETTER
+23_v proxy err 0.018140144646167755 tr(WHW.T) 1486.037353515625
+23_q proxy err 0.0038568901363760233 tr(WHW.T) 7352.62060546875
+23_k proxy err 0.0028512205462902784 tr(WHW.T) 10008.3974609375
+23_o proxy err 0.01677018031477928 tr(WHW.T) 85.7423095703125
+23_up proxy err 0.017026513814926147 tr(WHW.T) 2534.048828125
+23_gate proxy err 0.010792415589094162 tr(WHW.T) 4095.444580078125
+23_down proxy err 0.018489545211195946 tr(WHW.T) 323.6495666503906
+I0311 20:15:05.865116 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 25 in 69.92018365859985s
+I0311 20:15:07.644893 1751456 finetune.py:68] layer 24_v @ epoch 1 new loss 0.000296052050543949 old loss 0.00030720807262696326 BETTER
+I0311 20:15:09.075795 1751572 config.py:54] PyTorch version 2.1.1 available.
+I0311 20:15:10.062351 1711480 quantize_finetune_llama.py:183] layer 26 gpu 2
+I0311 20:15:10.136923 1751572 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0311 20:15:18.065555 1751572 finetune.py:45] layer 25_v initial loss 0.0003309519379399717
+I0311 20:15:42.047177 1751456 finetune.py:68] layer 24_v @ epoch 2 new loss 0.000289401039481163 old loss 0.000296052050543949 BETTER
+I0311 20:15:49.303720 1751572 finetune.py:68] layer 25_v @ epoch 0 new loss 0.00027299404609948397 old loss 0.0003309519379399717 BETTER
+I0311 20:16:16.780335 1751456 finetune.py:68] layer 24_v @ epoch 3 new loss 0.0002841322566382587 old loss 0.000289401039481163 BETTER
+I0311 20:16:19.855859 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 26 in 69.38234424591064s
+I0311 20:16:21.609323 1751572 finetune.py:68] layer 25_v @ epoch 1 new loss 0.0002639208105392754 old loss 0.00027299404609948397 BETTER
+I0311 20:16:23.106265 1751688 config.py:54] PyTorch version 2.1.1 available.
+I0311 20:16:24.101967 1711480 quantize_finetune_llama.py:183] layer 27 gpu 3
+I0311 20:16:24.169858 1751688 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0311 20:16:32.523610 1751688 finetune.py:45] layer 26_v initial loss 0.0005140579887665808
+I0311 20:16:51.694213 1751456 finetune.py:68] layer 24_v @ epoch 4 new loss 0.0002803976822178811 old loss 0.0002841322566382587 BETTER
+I0311 20:16:54.028828 1751572 finetune.py:68] layer 25_v @ epoch 2 new loss 0.00025847789947874844 old loss 0.0002639208105392754 BETTER
+I0311 20:17:01.370024 1751456 finetune.py:45] layer 24_q initial loss 0.0003679055371321738
+I0311 20:17:04.076853 1751688 finetune.py:68] layer 26_v @ epoch 0 new loss 0.00043256644858047366 old loss 0.0005140579887665808 BETTER
+I0311 20:17:26.859030 1751572 finetune.py:68] layer 25_v @ epoch 3 new loss 0.0002545974275562912 old loss 0.00025847789947874844 BETTER
+I0311 20:17:35.014299 1751456 finetune.py:68] layer 24_q @ epoch 0 new loss 0.00035234406823292375 old loss 0.0003679055371321738 BETTER
+I0311 20:17:36.074030 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 27 in 71.58013033866882s
+I0311 20:17:36.974760 1751688 finetune.py:68] layer 26_v @ epoch 1 new loss 0.0004180186369922012 old loss 0.00043256644858047366 BETTER
+I0311 20:17:39.415614 1751804 config.py:54] PyTorch version 2.1.1 available.
+I0311 20:17:40.451069 1711480 quantize_finetune_llama.py:183] layer 28 gpu 0
+I0311 20:17:40.515673 1751804 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0311 20:17:48.908574 1751804 finetune.py:45] layer 27_v initial loss 0.00043981970520690084
+I0311 20:17:59.869827 1751572 finetune.py:68] layer 25_v @ epoch 4 new loss 0.0002516726090107113 old loss 0.0002545974275562912 BETTER
+I0311 20:18:09.294072 1751572 finetune.py:45] layer 25_q initial loss 0.0003349945181980729
+I0311 20:18:09.559627 1751456 finetune.py:68] layer 24_q @ epoch 1 new loss 0.00034604244865477085 old loss 0.00035234406823292375 BETTER
+I0311 20:18:09.993882 1751688 finetune.py:68] layer 26_v @ epoch 2 new loss 0.0004081485385540873 old loss 0.0004180186369922012 BETTER
+I0311 20:18:20.077615 1751804 finetune.py:68] layer 27_v @ epoch 0 new loss 0.00037879167939536273 old loss 0.00043981970520690084 BETTER
+I0311 20:18:41.094795 1751572 finetune.py:68] layer 25_q @ epoch 0 new loss 0.0003188877017237246 old loss 0.0003349945181980729 BETTER
+I0311 20:18:43.227512 1751688 finetune.py:68] layer 26_v @ epoch 3 new loss 0.00040098995668813586 old loss 0.0004081485385540873 BETTER
+I0311 20:18:44.139834 1751456 finetune.py:68] layer 24_q @ epoch 2 new loss 0.0003412843798287213 old loss 0.00034604244865477085 BETTER
+I0311 20:18:52.179879 1751804 finetune.py:68] layer 27_v @ epoch 1 new loss 0.0003673428436741233 old loss 0.00037879167939536273 BETTER
+I0311 20:19:13.626718 1751572 finetune.py:68] layer 25_q @ epoch 1 new loss 0.0003136406885460019 old loss 0.0003188877017237246 BETTER
+I0311 20:19:16.558259 1751688 finetune.py:68] layer 26_v @ epoch 4 new loss 0.00039555298280902207 old loss 0.00040098995668813586 BETTER
+I0311 20:19:18.713470 1751456 finetune.py:68] layer 24_q @ epoch 3 new loss 0.0003374712250661105 old loss 0.0003412843798287213 BETTER
+I0311 20:19:24.721217 1751804 finetune.py:68] layer 27_v @ epoch 2 new loss 0.00035979633685201406 old loss 0.0003673428436741233 BETTER
+I0311 20:19:26.134951 1751688 finetune.py:45] layer 26_q initial loss 0.0005144628812558949
+I0311 20:19:45.954020 1751572 finetune.py:68] layer 25_q @ epoch 2 new loss 0.0003098317247349769 old loss 0.0003136406885460019 BETTER
+I0311 20:19:53.123157 1751456 finetune.py:68] layer 24_q @ epoch 4 new loss 0.0003344640717841685 old loss 0.0003374712250661105 BETTER
+I0311 20:19:57.018634 1751804 finetune.py:68] layer 27_v @ epoch 3 new loss 0.00035421422217041254 old loss 0.00035979633685201406 BETTER
+I0311 20:19:57.766547 1751688 finetune.py:68] layer 26_q @ epoch 0 new loss 0.0004956999910064042 old loss 0.0005144628812558949 BETTER
+I0311 20:20:02.800617 1751456 finetune.py:45] layer 24_k initial loss 0.0004079177160747349
+I0311 20:20:18.507870 1751572 finetune.py:68] layer 25_q @ epoch 3 new loss 0.0003068582445848733 old loss 0.0003098317247349769 BETTER
+I0311 20:20:29.692912 1751804 finetune.py:68] layer 27_v @ epoch 4 new loss 0.00034980973578058183 old loss 0.00035421422217041254 BETTER
+I0311 20:20:30.229468 1751688 finetune.py:68] layer 26_q @ epoch 1 new loss 0.0004864321381319314 old loss 0.0004956999910064042 BETTER
+I0311 20:20:35.641196 1751456 finetune.py:68] layer 24_k @ epoch 0 new loss 0.00040144461672753096 old loss 0.0004079177160747349 BETTER
+I0311 20:20:39.104869 1751804 finetune.py:45] layer 27_q initial loss 0.0004768514190800488
+I0311 20:20:51.106290 1751572 finetune.py:68] layer 25_q @ epoch 4 new loss 0.00030435086227953434 old loss 0.0003068582445848733 BETTER
+I0311 20:21:01.082026 1751572 finetune.py:45] layer 25_k initial loss 0.00037764801527373493
+I0311 20:21:03.491288 1751688 finetune.py:68] layer 26_q @ epoch 2 new loss 0.00047969986917451024 old loss 0.0004864321381319314 BETTER
+I0311 20:21:09.682518 1751456 finetune.py:68] layer 24_k @ epoch 1 new loss 0.0003982984635513276 old loss 0.00040144461672753096 BETTER
+I0311 20:21:10.915170 1751804 finetune.py:68] layer 27_q @ epoch 0 new loss 0.0004509670252446085 old loss 0.0004768514190800488 BETTER
+I0311 20:21:32.683570 1751572 finetune.py:68] layer 25_k @ epoch 0 new loss 0.00037212492316029966 old loss 0.00037764801527373493 BETTER
+I0311 20:21:36.235380 1751688 finetune.py:68] layer 26_q @ epoch 3 new loss 0.0004741437442135066 old loss 0.00047969986917451024 BETTER
+I0311 20:21:43.348015 1751804 finetune.py:68] layer 27_q @ epoch 1 new loss 0.00044187443563714623 old loss 0.0004509670252446085 BETTER
+I0311 20:21:43.767719 1751456 finetune.py:68] layer 24_k @ epoch 2 new loss 0.0003958643937949091 old loss 0.0003982984635513276 BETTER
+I0311 20:22:05.225471 1751572 finetune.py:68] layer 25_k @ epoch 1 new loss 0.00036947609623894095 old loss 0.00037212492316029966 BETTER
+I0311 20:22:08.906763 1751688 finetune.py:68] layer 26_q @ epoch 4 new loss 0.00046959921019151807 old loss 0.0004741437442135066 BETTER
+I0311 20:22:15.880343 1751804 finetune.py:68] layer 27_q @ epoch 2 new loss 0.00043525698129087687 old loss 0.00044187443563714623 BETTER
+I0311 20:22:17.681133 1751456 finetune.py:68] layer 24_k @ epoch 3 new loss 0.0003938295703846961 old loss 0.0003958643937949091 BETTER
+I0311 20:22:19.041256 1751688 finetune.py:45] layer 26_k initial loss 0.0005705581279471517
+I0311 20:22:37.483285 1751572 finetune.py:68] layer 25_k @ epoch 2 new loss 0.00036757157067768276 old loss 0.00036947609623894095 BETTER
+I0311 20:22:48.336207 1751804 finetune.py:68] layer 27_q @ epoch 3 new loss 0.0004300392174627632 old loss 0.00043525698129087687 BETTER
+I0311 20:22:50.609919 1751688 finetune.py:68] layer 26_k @ epoch 0 new loss 0.0005624291952699423 old loss 0.0005705581279471517 BETTER
+I0311 20:22:51.687152 1751456 finetune.py:68] layer 24_k @ epoch 4 new loss 0.0003920929448213428 old loss 0.0003938295703846961 BETTER
+I0311 20:23:01.253829 1751456 finetune.py:45] layer 24_o initial loss 0.0008300021872855723
+I0311 20:23:09.738177 1751572 finetune.py:68] layer 25_k @ epoch 3 new loss 0.0003659948706626892 old loss 0.00036757157067768276 BETTER
+I0311 20:23:20.556141 1751804 finetune.py:68] layer 27_q @ epoch 4 new loss 0.00042573604150675237 old loss 0.0004300392174627632 BETTER
+I0311 20:23:22.803482 1751688 finetune.py:68] layer 26_k @ epoch 1 new loss 0.0005585374310612679 old loss 0.0005624291952699423 BETTER
+I0311 20:23:30.051128 1751804 finetune.py:45] layer 27_k initial loss 0.000527399533893913
+I0311 20:23:33.905372 1751456 finetune.py:68] layer 24_o @ epoch 0 new loss 0.0008120064157992601 old loss 0.0008300021872855723 BETTER
+I0311 20:23:41.992936 1751572 finetune.py:68] layer 25_k @ epoch 4 new loss 0.00036475787055678666 old loss 0.0003659948706626892 BETTER
+I0311 20:23:51.390051 1751572 finetune.py:45] layer 25_o initial loss 0.0007182263652794063
+I0311 20:23:55.030498 1751688 finetune.py:68] layer 26_k @ epoch 2 new loss 0.0005554785020649433 old loss 0.0005585374310612679 BETTER
+I0311 20:24:01.112328 1751804 finetune.py:68] layer 27_k @ epoch 0 new loss 0.000517900800332427 old loss 0.000527399533893913 BETTER
+I0311 20:24:07.451658 1751456 finetune.py:68] layer 24_o @ epoch 1 new loss 0.0008040390093810856 old loss 0.0008120064157992601 BETTER
+I0311 20:24:22.175617 1751572 finetune.py:68] layer 25_o @ epoch 0 new loss 0.0007051530410535634 old loss 0.0007182263652794063 BETTER
+I0311 20:24:27.183079 1751688 finetune.py:68] layer 26_k @ epoch 3 new loss 0.0005529869231395423 old loss 0.0005554785020649433 BETTER
+I0311 20:24:33.018302 1751804 finetune.py:68] layer 27_k @ epoch 1 new loss 0.0005143421003594995 old loss 0.000517900800332427 BETTER
+I0311 20:24:40.867607 1751456 finetune.py:68] layer 24_o @ epoch 2 new loss 0.0007981507806107402 old loss 0.0008040390093810856 BETTER
+I0311 20:24:53.592010 1751572 finetune.py:68] layer 25_o @ epoch 1 new loss 0.0006988640525378287 old loss 0.0007051530410535634 BETTER
+I0311 20:24:59.692946 1751688 finetune.py:68] layer 26_k @ epoch 4 new loss 0.0005506214220076799 old loss 0.0005529869231395423 BETTER
+I0311 20:25:04.884428 1751804 finetune.py:68] layer 27_k @ epoch 2 new loss 0.0005114945815876126 old loss 0.0005143421003594995 BETTER
+I0311 20:25:09.248418 1751688 finetune.py:45] layer 26_o initial loss 0.001082141767255962
+I0311 20:25:14.326675 1751456 finetune.py:68] layer 24_o @ epoch 3 new loss 0.0007937849732115865 old loss 0.0007981507806107402 BETTER
+I0311 20:25:25.271613 1751572 finetune.py:68] layer 25_o @ epoch 2 new loss 0.0006946452776901424 old loss 0.0006988640525378287 BETTER
+I0311 20:25:36.798432 1751804 finetune.py:68] layer 27_k @ epoch 3 new loss 0.0005093192448839545 old loss 0.0005114945815876126 BETTER
+I0311 20:25:40.180492 1751688 finetune.py:68] layer 26_o @ epoch 0 new loss 0.0010532409651204944 old loss 0.001082141767255962 BETTER
+I0311 20:25:48.044336 1751456 finetune.py:68] layer 24_o @ epoch 4 new loss 0.0007902964716777205 old loss 0.0007937849732115865 BETTER
+I0311 20:25:56.915173 1751572 finetune.py:68] layer 25_o @ epoch 3 new loss 0.0006913627730682492 old loss 0.0006946452776901424 BETTER
+I0311 20:26:03.400182 1751456 finetune.py:45] layer 24_up initial loss 0.0018479377031326294
+I0311 20:26:08.722233 1751804 finetune.py:68] layer 27_k @ epoch 4 new loss 0.0005073411157354712 old loss 0.0005093192448839545 BETTER
+I0311 20:26:12.022677 1751688 finetune.py:68] layer 26_o @ epoch 1 new loss 0.0010421308688819408 old loss 0.0010532409651204944 BETTER
+I0311 20:26:17.984260 1751804 finetune.py:45] layer 27_o initial loss 0.0009661610820330679
+I0311 20:26:28.395925 1751572 finetune.py:68] layer 25_o @ epoch 4 new loss 0.0006888190400786698 old loss 0.0006913627730682492 BETTER
+I0311 20:26:33.966943 1751456 finetune.py:68] layer 24_up @ epoch 0 new loss 0.0018244527745991945 old loss 0.0018479377031326294 BETTER
+I0311 20:26:43.422305 1751572 finetune.py:45] layer 25_up initial loss 0.0018714541802182794
+I0311 20:26:43.700804 1751688 finetune.py:68] layer 26_o @ epoch 2 new loss 0.0010338847059756517 old loss 0.0010421308688819408 BETTER
+I0311 20:26:48.234908 1751804 finetune.py:68] layer 27_o @ epoch 0 new loss 0.0009406672907061875 old loss 0.0009661610820330679 BETTER
+I0311 20:27:05.504910 1751456 finetune.py:68] layer 24_up @ epoch 1 new loss 0.0018108157673850656 old loss 0.0018244527745991945 BETTER
+I0311 20:27:12.489320 1751572 finetune.py:68] layer 25_up @ epoch 0 new loss 0.0018451057840138674 old loss 0.0018714541802182794 BETTER
+I0311 20:27:15.563264 1751688 finetune.py:68] layer 26_o @ epoch 3 new loss 0.001027578953653574 old loss 0.0010338847059756517 BETTER
+I0311 20:27:19.400856 1751804 finetune.py:68] layer 27_o @ epoch 1 new loss 0.0009286371059715748 old loss 0.0009406672907061875 BETTER
+I0311 20:27:37.589281 1751456 finetune.py:68] layer 24_up @ epoch 2 new loss 0.0018001692369580269 old loss 0.0018108157673850656 BETTER
+I0311 20:27:42.461977 1751572 finetune.py:68] layer 25_up @ epoch 1 new loss 0.0018307369900867343 old loss 0.0018451057840138674 BETTER
+I0311 20:27:47.575522 1751688 finetune.py:68] layer 26_o @ epoch 4 new loss 0.0010227346792817116 old loss 0.001027578953653574 BETTER
+I0311 20:27:50.457619 1751804 finetune.py:68] layer 27_o @ epoch 2 new loss 0.00092008599312976 old loss 0.0009286371059715748 BETTER
+I0311 20:28:04.168692 1751688 finetune.py:45] layer 26_up initial loss 0.002316756173968315
+I0311 20:28:09.824432 1751456 finetune.py:68] layer 24_up @ epoch 3 new loss 0.0017913830233737826 old loss 0.0018001692369580269 BETTER
+I0311 20:28:12.812752 1751572 finetune.py:68] layer 25_up @ epoch 2 new loss 0.0018193420255556703 old loss 0.0018307369900867343 BETTER
+I0311 20:28:21.732249 1751804 finetune.py:68] layer 27_o @ epoch 3 new loss 0.0009136248845607042 old loss 0.00092008599312976 BETTER
+I0311 20:28:33.397461 1751688 finetune.py:68] layer 26_up @ epoch 0 new loss 0.002285995986312628 old loss 0.002316756173968315 BETTER
+I0311 20:28:41.804352 1751456 finetune.py:68] layer 24_up @ epoch 4 new loss 0.0017839443171396852 old loss 0.0017913830233737826 BETTER
+I0311 20:28:42.808094 1751572 finetune.py:68] layer 25_up @ epoch 3 new loss 0.0018099825829267502 old loss 0.0018193420255556703 BETTER
+I0311 20:28:53.332011 1751804 finetune.py:68] layer 27_o @ epoch 4 new loss 0.000908471760340035 old loss 0.0009136248845607042 BETTER
+I0311 20:28:58.344803 1751456 finetune.py:45] layer 24_gate initial loss 0.0026447775308042765
+I0311 20:29:03.356594 1751688 finetune.py:68] layer 26_up @ epoch 1 new loss 0.0022692696657031775 old loss 0.002285995986312628 BETTER
+I0311 20:29:09.047687 1751804 finetune.py:45] layer 27_up initial loss 0.0023787119425833225
+I0311 20:29:12.720032 1751572 finetune.py:68] layer 25_up @ epoch 4 new loss 0.0018019189592450857 old loss 0.0018099825829267502 BETTER
+I0311 20:29:27.092792 1751456 finetune.py:68] layer 24_gate @ epoch 0 new loss 0.0026335283182561398 old loss 0.0026447775308042765 BETTER
+I0311 20:29:29.731294 1751572 finetune.py:45] layer 25_gate initial loss 0.0027595937717705965
+I0311 20:29:33.527296 1751688 finetune.py:68] layer 26_up @ epoch 2 new loss 0.0022560441866517067 old loss 0.0022692696657031775 BETTER
+I0311 20:29:37.636849 1751804 finetune.py:68] layer 27_up @ epoch 0 new loss 0.0023363730870187283 old loss 0.0023787119425833225 BETTER
+I0311 20:29:57.050358 1751456 finetune.py:68] layer 24_gate @ epoch 1 new loss 0.0026242416352033615 old loss 0.0026335283182561398 BETTER
+I0311 20:29:57.483603 1751572 finetune.py:68] layer 25_gate @ epoch 0 new loss 0.002747688675299287 old loss 0.0027595937717705965 BETTER
+I0311 20:30:03.408142 1751688 finetune.py:68] layer 26_up @ epoch 3 new loss 0.0022452501580119133 old loss 0.0022560441866517067 BETTER
+I0311 20:30:07.192054 1751804 finetune.py:68] layer 27_up @ epoch 1 new loss 0.0023145698942244053 old loss 0.0023363730870187283 BETTER
+I0311 20:30:26.296492 1751572 finetune.py:68] layer 25_gate @ epoch 1 new loss 0.002738452749326825 old loss 0.002747688675299287 BETTER
+I0311 20:30:27.161668 1751456 finetune.py:68] layer 24_gate @ epoch 2 new loss 0.0026163209695369005 old loss 0.0026242416352033615 BETTER
+I0311 20:30:33.584930 1751688 finetune.py:68] layer 26_up @ epoch 4 new loss 0.002235878026112914 old loss 0.0022452501580119133 BETTER
+I0311 20:30:36.766470 1751804 finetune.py:68] layer 27_up @ epoch 2 new loss 0.002298241714015603 old loss 0.0023145698942244053 BETTER
+I0311 20:30:49.098077 1751688 finetune.py:45] layer 26_gate initial loss 0.003314173547551036
+I0311 20:30:54.646045 1751572 finetune.py:68] layer 25_gate @ epoch 2 new loss 0.0027305008843541145 old loss 0.002738452749326825 BETTER
+I0311 20:30:57.178462 1751456 finetune.py:68] layer 24_gate @ epoch 3 new loss 0.0026095916982740164 old loss 0.0026163209695369005 BETTER
+I0311 20:31:06.317006 1751804 finetune.py:68] layer 27_up @ epoch 3 new loss 0.0022850651293992996 old loss 0.002298241714015603 BETTER
+I0311 20:31:16.775832 1751688 finetune.py:68] layer 26_gate @ epoch 0 new loss 0.0033003627322614193 old loss 0.003314173547551036 BETTER
+I0311 20:31:23.177674 1751572 finetune.py:68] layer 25_gate @ epoch 3 new loss 0.0027235921006649733 old loss 0.0027305008843541145 BETTER
+I0311 20:31:27.184521 1751456 finetune.py:68] layer 24_gate @ epoch 4 new loss 0.0026034556794911623 old loss 0.0026095916982740164 BETTER
+I0311 20:31:35.826993 1751804 finetune.py:68] layer 27_up @ epoch 4 new loss 0.0022741281427443027 old loss 0.0022850651293992996 BETTER
+I0311 20:31:43.315883 1751456 finetune.py:45] layer 24_down initial loss 0.004116885829716921
+I0311 20:31:44.967014 1751688 finetune.py:68] layer 26_gate @ epoch 1 new loss 0.0032895903568714857 old loss 0.0033003627322614193 BETTER
+I0311 20:31:51.296575 1751572 finetune.py:68] layer 25_gate @ epoch 4 new loss 0.0027175159193575382 old loss 0.0027235921006649733 BETTER
+I0311 20:31:51.535061 1751804 finetune.py:45] layer 27_gate initial loss 0.0035150216426700354
+I0311 20:32:07.039590 1751572 finetune.py:45] layer 25_down initial loss 0.004300236236304045
+I0311 20:32:10.572663 1751456 finetune.py:68] layer 24_down @ epoch 0 new loss 0.004115454386919737 old loss 0.004116885829716921 BETTER
+I0311 20:32:13.099478 1751688 finetune.py:68] layer 26_gate @ epoch 2 new loss 0.0032805476803332567 old loss 0.0032895903568714857 BETTER
+I0311 20:32:18.635333 1751804 finetune.py:68] layer 27_gate @ epoch 0 new loss 0.0034967882093042135 old loss 0.0035150216426700354 BETTER
+I0311 20:32:33.030366 1751572 finetune.py:68] layer 25_down @ epoch 0 new loss 0.004298964980989695 old loss 0.004300236236304045 BETTER
+I0311 20:32:38.983557 1751456 finetune.py:68] layer 24_down @ epoch 1 new loss 0.004114240873605013 old loss 0.004115454386919737 BETTER
+I0311 20:32:41.518228 1751688 finetune.py:68] layer 26_gate @ epoch 3 new loss 0.003272479400038719 old loss 0.0032805476803332567 BETTER
+I0311 20:32:46.826583 1751804 finetune.py:68] layer 27_gate @ epoch 1 new loss 0.0034837869461625814 old loss 0.0034967882093042135 BETTER
+I0311 20:32:59.930307 1751572 finetune.py:68] layer 25_down @ epoch 1 new loss 0.004297876730561256 old loss 0.004298964980989695 BETTER
+I0311 20:33:07.467869 1751456 finetune.py:68] layer 24_down @ epoch 2 new loss 0.004113202448934317 old loss 0.004114240873605013 BETTER
+I0311 20:33:09.780910 1751688 finetune.py:68] layer 26_gate @ epoch 4 new loss 0.0032655594404786825 old loss 0.003272479400038719 BETTER
+I0311 20:33:14.878106 1751804 finetune.py:68] layer 27_gate @ epoch 2 new loss 0.003472966607660055 old loss 0.0034837869461625814 BETTER
+I0311 20:33:25.632632 1751688 finetune.py:45] layer 26_down initial loss 0.005011937581002712
+I0311 20:33:26.701348 1751572 finetune.py:68] layer 25_down @ epoch 2 new loss 0.004296950995922089 old loss 0.004297876730561256 BETTER
+I0311 20:33:35.940773 1751456 finetune.py:68] layer 24_down @ epoch 3 new loss 0.0041123246774077415 old loss 0.004113202448934317 BETTER
+I0311 20:33:43.214665 1751804 finetune.py:68] layer 27_gate @ epoch 3 new loss 0.003463391913101077 old loss 0.003472966607660055 BETTER
+I0311 20:33:53.816126 1751688 finetune.py:68] layer 26_down @ epoch 0 new loss 0.005010571796447039 old loss 0.005011937581002712 BETTER
+I0311 20:33:54.942519 1751572 finetune.py:68] layer 25_down @ epoch 3 new loss 0.004296136554330587 old loss 0.004296950995922089 BETTER
+I0311 20:34:04.664408 1751456 finetune.py:68] layer 24_down @ epoch 4 new loss 0.004111557267606258 old loss 0.0041123246774077415 BETTER
+24_v proxy err 0.018631191924214363 tr(WHW.T) 1394.900634765625
+24_q proxy err 0.003860321594402194 tr(WHW.T) 7027.029296875
+24_k proxy err 0.002629280788823962 tr(WHW.T) 10354.7275390625
+24_o proxy err 0.012997698038816452 tr(WHW.T) 134.71658325195312
+24_up proxy err 0.017304975539445877 tr(WHW.T) 2622.40283203125
+24_gate proxy err 0.010903183370828629 tr(WHW.T) 4260.91796875
+24_down proxy err 0.0183112770318985 tr(WHW.T) 342.5276794433594
+I0311 20:34:12.714261 1751804 finetune.py:68] layer 27_gate @ epoch 4 new loss 0.0034551869612187147 old loss 0.003463391913101077 BETTER
+I0311 20:34:21.991061 1751688 finetune.py:68] layer 26_down @ epoch 1 new loss 0.005009430926293135 old loss 0.005010571796447039 BETTER
+I0311 20:34:22.844241 1751572 finetune.py:68] layer 25_down @ epoch 4 new loss 0.004295430611819029 old loss 0.004296136554330587 BETTER
+25_v proxy err 0.017815502360463142 tr(WHW.T) 1707.664794921875
+25_q proxy err 0.004410169553011656 tr(WHW.T) 7168.001953125
+25_k proxy err 0.0032963992562144995 tr(WHW.T) 9636.3671875
+25_o proxy err 0.016572093591094017 tr(WHW.T) 84.14653015136719
+25_up proxy err 0.017151685431599617 tr(WHW.T) 2805.44873046875
+25_gate proxy err 0.010551889427006245 tr(WHW.T) 4662.5068359375
+25_down proxy err 0.01750202663242817 tr(WHW.T) 376.1165466308594
+I0311 20:34:28.490751 1751804 finetune.py:45] layer 27_down initial loss 0.005439398810267448
+I0311 20:34:49.008652 1751688 finetune.py:68] layer 26_down @ epoch 2 new loss 0.005008424632251263 old loss 0.005009430926293135 BETTER
+I0311 20:34:53.965127 1751804 finetune.py:68] layer 27_down @ epoch 0 new loss 0.005437985062599182 old loss 0.005439398810267448 BETTER
+I0311 20:35:15.961244 1751688 finetune.py:68] layer 26_down @ epoch 3 new loss 0.005007559899240732 old loss 0.005008424632251263 BETTER
+I0311 20:35:20.477572 1751804 finetune.py:68] layer 27_down @ epoch 1 new loss 0.005436787847429514 old loss 0.005437985062599182 BETTER
+I0311 20:35:40.734446 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 28 in 73.32795715332031s
+I0311 20:35:42.752677 1751688 finetune.py:68] layer 26_down @ epoch 4 new loss 0.005006828811019659 old loss 0.005007559899240732 BETTER
+I0311 20:35:44.004558 1751920 config.py:54] PyTorch version 2.1.1 available.
+26_v proxy err 0.0174053143709898 tr(WHW.T) 1668.8843994140625
+26_q proxy err 0.004029151983559132 tr(WHW.T) 7476.48095703125
+26_k proxy err 0.002885614288970828 tr(WHW.T) 10518.326171875
+26_o proxy err 0.010335092432796955 tr(WHW.T) 203.9426727294922
+26_up proxy err 0.016101038083434105 tr(WHW.T) 3156.290283203125
+26_gate proxy err 0.00981994904577732 tr(WHW.T) 5296.82568359375
+26_down proxy err 0.01798434928059578 tr(WHW.T) 404.184326171875
+I0311 20:35:44.968896 1711480 quantize_finetune_llama.py:183] layer 29 gpu 1
+I0311 20:35:45.044627 1751920 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0311 20:35:46.937487 1751804 finetune.py:68] layer 27_down @ epoch 2 new loss 0.005435718223452568 old loss 0.005436787847429514 BETTER
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0311 20:35:53.575437 1751920 finetune.py:45] layer 28_v initial loss 0.0007393875857815146
+I0311 20:36:13.741435 1751804 finetune.py:68] layer 27_down @ epoch 3 new loss 0.005434814840555191 old loss 0.005435718223452568 BETTER
+I0311 20:36:26.607236 1751920 finetune.py:68] layer 28_v @ epoch 0 new loss 0.0005042911507189274 old loss 0.0007393875857815146 BETTER
+I0311 20:36:40.534540 1751804 finetune.py:68] layer 27_down @ epoch 4 new loss 0.005434012971818447 old loss 0.005434814840555191 BETTER
+27_v proxy err 0.016834037378430367 tr(WHW.T) 1799.3350830078125
+27_q proxy err 0.0041314782574772835 tr(WHW.T) 7694.06494140625
+27_k proxy err 0.003013990353792906 tr(WHW.T) 10654.984375
+27_o proxy err 0.013829179108142853 tr(WHW.T) 127.25044250488281
+27_up proxy err 0.014653782360255718 tr(WHW.T) 3690.2275390625
+27_gate proxy err 0.009230884723365307 tr(WHW.T) 5980.03125
+27_down proxy err 0.017647603526711464 tr(WHW.T) 470.6812744140625
+I0311 20:36:57.298160 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 29 in 70.57669234275818s
+I0311 20:37:00.571471 1752036 config.py:54] PyTorch version 2.1.1 available.
+I0311 20:37:00.978811 1751920 finetune.py:68] layer 28_v @ epoch 1 new loss 0.00048393060569651425 old loss 0.0005042911507189274 BETTER
+I0311 20:37:01.561456 1711480 quantize_finetune_llama.py:183] layer 30 gpu 2
+I0311 20:37:01.649005 1752036 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0311 20:37:09.973026 1752036 finetune.py:45] layer 29_v initial loss 0.0007309083011932671
+I0311 20:37:35.831364 1751920 finetune.py:68] layer 28_v @ epoch 2 new loss 0.00047180757974274457 old loss 0.00048393060569651425 BETTER
+I0311 20:37:41.370426 1752036 finetune.py:68] layer 29_v @ epoch 0 new loss 0.0005599022842943668 old loss 0.0007309083011932671 BETTER
+I0311 20:38:10.672062 1751920 finetune.py:68] layer 28_v @ epoch 3 new loss 0.000463105330709368 old loss 0.00047180757974274457 BETTER
+I0311 20:38:13.850670 1752036 finetune.py:68] layer 29_v @ epoch 1 new loss 0.000538487161975354 old loss 0.0005599022842943668 BETTER
+I0311 20:38:13.992527 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 30 in 71.98822498321533s
+I0311 20:38:17.259806 1752152 config.py:54] PyTorch version 2.1.1 available.
+I0311 20:38:18.299371 1711480 quantize_finetune_llama.py:183] layer 31 gpu 3
+I0311 20:38:18.367931 1752152 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0311 20:38:26.603716 1752152 finetune.py:45] layer 30_v initial loss 0.0007629695464856923
+I0311 20:38:45.622612 1751920 finetune.py:68] layer 28_v @ epoch 4 new loss 0.0004563051334116608 old loss 0.000463105330709368 BETTER
+I0311 20:38:46.461227 1752036 finetune.py:68] layer 29_v @ epoch 2 new loss 0.0005252675618976355 old loss 0.000538487161975354 BETTER
+I0311 20:38:55.115310 1751920 finetune.py:45] layer 28_q initial loss 0.0006076577701605856
+I0311 20:38:58.119941 1752152 finetune.py:68] layer 30_v @ epoch 0 new loss 0.0005317848408594728 old loss 0.0007629695464856923 BETTER
+I0311 20:39:19.371252 1752036 finetune.py:68] layer 29_v @ epoch 3 new loss 0.0005158926360309124 old loss 0.0005252675618976355 BETTER
+I0311 20:39:28.635489 1751920 finetune.py:68] layer 28_q @ epoch 0 new loss 0.0005776043399237096 old loss 0.0006076577701605856 BETTER
+I0311 20:39:29.907421 1711480 quantize_finetune_llama.py:210] computed original embedding for layer 31 in 71.17279601097107s
+I0311 20:39:30.622070 1752152 finetune.py:68] layer 30_v @ epoch 1 new loss 0.0005111369537189603 old loss 0.0005317848408594728 BETTER
+I0311 20:39:33.157303 1752268 config.py:54] PyTorch version 2.1.1 available.
+I0311 20:39:34.237088 1752268 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0311 20:39:41.926233 1752268 finetune.py:45] layer 31_v initial loss 0.0012009242782369256
+I0311 20:39:52.382551 1752036 finetune.py:68] layer 29_v @ epoch 4 new loss 0.0005087072495371103 old loss 0.0005158926360309124 BETTER
+I0311 20:40:01.397456 1752036 finetune.py:45] layer 29_q initial loss 0.0006509909871965647
+I0311 20:40:02.968442 1751920 finetune.py:68] layer 28_q @ epoch 1 new loss 0.0005668352823704481 old loss 0.0005776043399237096 BETTER
+I0311 20:40:03.571878 1752152 finetune.py:68] layer 30_v @ epoch 2 new loss 0.0004985177656635642 old loss 0.0005111369537189603 BETTER
+I0311 20:40:13.021515 1752268 finetune.py:68] layer 31_v @ epoch 0 new loss 0.0008198396535590291 old loss 0.0012009242782369256 BETTER
+I0311 20:40:33.114671 1752036 finetune.py:68] layer 29_q @ epoch 0 new loss 0.0006206320249475539 old loss 0.0006509909871965647 BETTER
+I0311 20:40:36.949065 1752152 finetune.py:68] layer 30_v @ epoch 3 new loss 0.0004893966251984239 old loss 0.0004985177656635642 BETTER
+I0311 20:40:37.469498 1751920 finetune.py:68] layer 28_q @ epoch 2 new loss 0.0005586338229477406 old loss 0.0005668352823704481 BETTER
+I0311 20:40:45.398583 1752268 finetune.py:68] layer 31_v @ epoch 1 new loss 0.0007760514272376895 old loss 0.0008198396535590291 BETTER
+I0311 20:41:05.697091 1752036 finetune.py:68] layer 29_q @ epoch 1 new loss 0.0006099127931520343 old loss 0.0006206320249475539 BETTER
+I0311 20:41:10.490282 1752152 finetune.py:68] layer 30_v @ epoch 4 new loss 0.00048324724775739014 old loss 0.0004893966251984239 BETTER
+I0311 20:41:12.484919 1751920 finetune.py:68] layer 28_q @ epoch 3 new loss 0.0005521199782378972 old loss 0.0005586338229477406 BETTER
+I0311 20:41:18.165482 1752268 finetune.py:68] layer 31_v @ epoch 2 new loss 0.0007490217685699463 old loss 0.0007760514272376895 BETTER
+I0311 20:41:20.486781 1752152 finetune.py:45] layer 30_q initial loss 0.0007068447303026915
+I0311 20:41:38.570396 1752036 finetune.py:68] layer 29_q @ epoch 2 new loss 0.000601829553488642 old loss 0.0006099127931520343 BETTER
+I0311 20:41:47.662937 1751920 finetune.py:68] layer 28_q @ epoch 4 new loss 0.0005466018337756395 old loss 0.0005521199782378972 BETTER
+I0311 20:41:51.192374 1752268 finetune.py:68] layer 31_v @ epoch 3 new loss 0.0007383979391306639 old loss 0.0007490217685699463 BETTER
+I0311 20:41:52.718543 1752152 finetune.py:68] layer 30_q @ epoch 0 new loss 0.0006342027918435633 old loss 0.0007068447303026915 BETTER
+I0311 20:41:58.528935 1751920 finetune.py:45] layer 28_k initial loss 0.0006811139173805714
+I0311 20:42:11.577513 1752036 finetune.py:68] layer 29_q @ epoch 3 new loss 0.0005957478424534202 old loss 0.000601829553488642 BETTER
+I0311 20:42:24.145915 1752268 finetune.py:68] layer 31_v @ epoch 4 new loss 0.0007267611217685044 old loss 0.0007383979391306639 BETTER
+I0311 20:42:25.429941 1752152 finetune.py:68] layer 30_q @ epoch 1 new loss 0.0006194188608787954 old loss 0.0006342027918435633 BETTER
+I0311 20:42:31.580652 1751920 finetune.py:68] layer 28_k @ epoch 0 new loss 0.0006669741705991328 old loss 0.0006811139173805714 BETTER
+I0311 20:42:34.119190 1752268 finetune.py:45] layer 31_q initial loss 0.0018021422438323498
+I0311 20:42:43.990154 1752036 finetune.py:68] layer 29_q @ epoch 4 new loss 0.0005903206765651703 old loss 0.0005957478424534202 BETTER
+I0311 20:42:53.221696 1752036 finetune.py:45] layer 29_k initial loss 0.000719669449608773
+I0311 20:42:58.079137 1752152 finetune.py:68] layer 30_q @ epoch 2 new loss 0.0006095397984609008 old loss 0.0006194188608787954 BETTER
+I0311 20:43:05.510816 1751920 finetune.py:68] layer 28_k @ epoch 1 new loss 0.0006622782093472779 old loss 0.0006669741705991328 BETTER
+I0311 20:43:05.614823 1752268 finetune.py:68] layer 31_q @ epoch 0 new loss 0.0012791561894118786 old loss 0.0018021422438323498 BETTER
+I0311 20:43:24.636943 1752036 finetune.py:68] layer 29_k @ epoch 0 new loss 0.0007084081880748272 old loss 0.000719669449608773 BETTER
+I0311 20:43:30.703886 1752152 finetune.py:68] layer 30_q @ epoch 3 new loss 0.0006017077248543501 old loss 0.0006095397984609008 BETTER
+I0311 20:43:37.765652 1752268 finetune.py:68] layer 31_q @ epoch 1 new loss 0.001226948224939406 old loss 0.0012791561894118786 BETTER
+I0311 20:43:39.461756 1751920 finetune.py:68] layer 28_k @ epoch 2 new loss 0.0006586146191693842 old loss 0.0006622782093472779 BETTER
+I0311 20:43:56.746841 1752036 finetune.py:68] layer 29_k @ epoch 1 new loss 0.0007032217108644545 old loss 0.0007084081880748272 BETTER
+I0311 20:44:03.420897 1752152 finetune.py:68] layer 30_q @ epoch 4 new loss 0.0005947748431935906 old loss 0.0006017077248543501 BETTER
+I0311 20:44:10.134677 1752268 finetune.py:68] layer 31_q @ epoch 2 new loss 0.0011975688394159079 old loss 0.001226948224939406 BETTER
+I0311 20:44:12.815587 1752152 finetune.py:45] layer 30_k initial loss 0.0007803071639500558
+I0311 20:44:13.635056 1751920 finetune.py:68] layer 28_k @ epoch 3 new loss 0.0006555891595780849 old loss 0.0006586146191693842 BETTER
+I0311 20:44:28.918251 1752036 finetune.py:68] layer 29_k @ epoch 2 new loss 0.0006991818081587553 old loss 0.0007032217108644545 BETTER
+I0311 20:44:42.387346 1752268 finetune.py:68] layer 31_q @ epoch 3 new loss 0.0011695249704644084 old loss 0.0011975688394159079 BETTER
+I0311 20:44:44.250867 1752152 finetune.py:68] layer 30_k @ epoch 0 new loss 0.0007426507072523236 old loss 0.0007803071639500558 BETTER
+I0311 20:44:47.879810 1751920 finetune.py:68] layer 28_k @ epoch 4 new loss 0.0006529835518449545 old loss 0.0006555891595780849 BETTER
+I0311 20:44:57.478186 1751920 finetune.py:45] layer 28_o initial loss 0.0012183475773781538
+I0311 20:45:01.008796 1752036 finetune.py:68] layer 29_k @ epoch 3 new loss 0.0006959164747968316 old loss 0.0006991818081587553 BETTER
+I0311 20:45:14.667551 1752268 finetune.py:68] layer 31_q @ epoch 4 new loss 0.00115030852612108 old loss 0.0011695249704644084 BETTER
+I0311 20:45:16.496157 1752152 finetune.py:68] layer 30_k @ epoch 1 new loss 0.0007364860503003001 old loss 0.0007426507072523236 BETTER
+I0311 20:45:24.077457 1752268 finetune.py:45] layer 31_k initial loss 0.0015895828837528825
+I0311 20:45:30.102283 1751920 finetune.py:68] layer 28_o @ epoch 0 new loss 0.001183179672807455 old loss 0.0012183475773781538 BETTER
+I0311 20:45:33.078423 1752036 finetune.py:68] layer 29_k @ epoch 4 new loss 0.0006930695381015539 old loss 0.0006959164747968316 BETTER
+I0311 20:45:42.134048 1752036 finetune.py:45] layer 29_o initial loss 0.001265954109840095
+I0311 20:45:48.587902 1752152 finetune.py:68] layer 30_k @ epoch 2 new loss 0.0007317286217585206 old loss 0.0007364860503003001 BETTER
+I0311 20:45:55.204096 1752268 finetune.py:68] layer 31_k @ epoch 0 new loss 0.00134617043659091 old loss 0.0015895828837528825 BETTER
+I0311 20:46:03.552862 1751920 finetune.py:68] layer 28_o @ epoch 1 new loss 0.001169209135696292 old loss 0.001183179672807455 BETTER
+I0311 20:46:12.990707 1752036 finetune.py:68] layer 29_o @ epoch 0 new loss 0.0012284928234294057 old loss 0.001265954109840095 BETTER
+I0311 20:46:20.815590 1752152 finetune.py:68] layer 30_k @ epoch 3 new loss 0.000728035403881222 old loss 0.0007317286217585206 BETTER
+I0311 20:46:27.312102 1752268 finetune.py:68] layer 31_k @ epoch 1 new loss 0.0013224728172644973 old loss 0.00134617043659091 BETTER
+I0311 20:46:37.122511 1751920 finetune.py:68] layer 28_o @ epoch 2 new loss 0.001158823841251433 old loss 0.001169209135696292 BETTER
+I0311 20:46:44.913414 1752036 finetune.py:68] layer 29_o @ epoch 1 new loss 0.0012156607117503881 old loss 0.0012284928234294057 BETTER
+I0311 20:46:53.025924 1752152 finetune.py:68] layer 30_k @ epoch 4 new loss 0.0007246575551107526 old loss 0.000728035403881222 BETTER
+I0311 20:46:59.506905 1752268 finetune.py:68] layer 31_k @ epoch 2 new loss 0.0013104447862133384 old loss 0.0013224728172644973 BETTER
+I0311 20:47:02.882447 1752152 finetune.py:45] layer 30_o initial loss 0.0014057740336284041
+I0311 20:47:10.647199 1751920 finetune.py:68] layer 28_o @ epoch 3 new loss 0.0011512325145304203 old loss 0.001158823841251433 BETTER
+I0311 20:47:16.621325 1752036 finetune.py:68] layer 29_o @ epoch 2 new loss 0.0012065527262166142 old loss 0.0012156607117503881 BETTER
+I0311 20:47:31.615220 1752268 finetune.py:68] layer 31_k @ epoch 3 new loss 0.001299119321629405 old loss 0.0013104447862133384 BETTER
+I0311 20:47:34.153769 1752152 finetune.py:68] layer 30_o @ epoch 0 new loss 0.001336281537078321 old loss 0.0014057740336284041 BETTER
+I0311 20:47:43.997601 1751920 finetune.py:68] layer 28_o @ epoch 4 new loss 0.0011447540018707514 old loss 0.0011512325145304203 BETTER
+I0311 20:47:48.433467 1752036 finetune.py:68] layer 29_o @ epoch 3 new loss 0.001199929742142558 old loss 0.0012065527262166142 BETTER
+I0311 20:48:00.512849 1751920 finetune.py:45] layer 28_up initial loss 0.0028602113015949726
+I0311 20:48:03.818333 1752268 finetune.py:68] layer 31_k @ epoch 4 new loss 0.001290888525545597 old loss 0.001299119321629405 BETTER
+I0311 20:48:06.123123 1752152 finetune.py:68] layer 30_o @ epoch 1 new loss 0.0013109499122947454 old loss 0.001336281537078321 BETTER
+I0311 20:48:13.036884 1752268 finetune.py:45] layer 31_o initial loss 0.0022833130788058043
+I0311 20:48:20.125011 1752036 finetune.py:68] layer 29_o @ epoch 4 new loss 0.0011946817394345999 old loss 0.001199929742142558 BETTER
+I0311 20:48:31.371085 1751920 finetune.py:68] layer 28_up @ epoch 0 new loss 0.002802292350679636 old loss 0.0028602113015949726 BETTER
+I0311 20:48:36.235151 1752036 finetune.py:45] layer 29_up initial loss 0.0032232017256319523
+I0311 20:48:38.135783 1752152 finetune.py:68] layer 30_o @ epoch 2 new loss 0.001294644782319665 old loss 0.0013109499122947454 BETTER
+I0311 20:48:43.406484 1752268 finetune.py:68] layer 31_o @ epoch 0 new loss 0.002041351282969117 old loss 0.0022833130788058043 BETTER
+I0311 20:49:03.495807 1751920 finetune.py:68] layer 28_up @ epoch 1 new loss 0.0027740977238863707 old loss 0.002802292350679636 BETTER
+I0311 20:49:05.341988 1752036 finetune.py:68] layer 29_up @ epoch 0 new loss 0.0031332233920693398 old loss 0.0032232017256319523 BETTER
+I0311 20:49:10.023374 1752152 finetune.py:68] layer 30_o @ epoch 3 new loss 0.0012820675037801266 old loss 0.001294644782319665 BETTER
+I0311 20:49:14.738521 1752268 finetune.py:68] layer 31_o @ epoch 1 new loss 0.0019888051319867373 old loss 0.002041351282969117 BETTER
+I0311 20:49:35.297709 1751920 finetune.py:68] layer 28_up @ epoch 2 new loss 0.002753178821876645 old loss 0.0027740977238863707 BETTER
+I0311 20:49:35.390616 1752036 finetune.py:68] layer 29_up @ epoch 1 new loss 0.003096089931204915 old loss 0.0031332233920693398 BETTER
+I0311 20:49:41.955977 1752152 finetune.py:68] layer 30_o @ epoch 4 new loss 0.0012730663875117898 old loss 0.0012820675037801266 BETTER
+I0311 20:49:46.013236 1752268 finetune.py:68] layer 31_o @ epoch 2 new loss 0.0019545152317732573 old loss 0.0019888051319867373 BETTER
+I0311 20:49:57.446203 1752152 finetune.py:45] layer 30_up initial loss 0.004547497257590294
+I0311 20:50:05.682687 1752036 finetune.py:68] layer 29_up @ epoch 2 new loss 0.003069439670071006 old loss 0.003096089931204915 BETTER
+I0311 20:50:07.238291 1751920 finetune.py:68] layer 28_up @ epoch 3 new loss 0.002736288821324706 old loss 0.002753178821876645 BETTER
+I0311 20:50:17.281109 1752268 finetune.py:68] layer 31_o @ epoch 3 new loss 0.0019290054915472865 old loss 0.0019545152317732573 BETTER
+I0311 20:50:26.660670 1752152 finetune.py:68] layer 30_up @ epoch 0 new loss 0.004267486277967691 old loss 0.004547497257590294 BETTER
+I0311 20:50:35.639085 1752036 finetune.py:68] layer 29_up @ epoch 3 new loss 0.0030478178523480892 old loss 0.003069439670071006 BETTER
+I0311 20:50:39.008843 1751920 finetune.py:68] layer 28_up @ epoch 4 new loss 0.002721987431868911 old loss 0.002736288821324706 BETTER
+I0311 20:50:48.390880 1752268 finetune.py:68] layer 31_o @ epoch 4 new loss 0.0019095158204436302 old loss 0.0019290054915472865 BETTER
+I0311 20:50:55.130778 1751920 finetune.py:45] layer 28_gate initial loss 0.004201732575893402
+I0311 20:50:57.095712 1752152 finetune.py:68] layer 30_up @ epoch 1 new loss 0.004170326981693506 old loss 0.004267486277967691 BETTER
+I0311 20:51:04.426290 1752268 finetune.py:45] layer 31_up initial loss 0.011088511906564236
+I0311 20:51:05.973199 1752036 finetune.py:68] layer 29_up @ epoch 4 new loss 0.003029953222721815 old loss 0.0030478178523480892 BETTER
+I0311 20:51:21.421913 1752036 finetune.py:45] layer 29_gate initial loss 0.0047905705869197845
+I0311 20:51:24.335182 1751920 finetune.py:68] layer 28_gate @ epoch 0 new loss 0.004176715854555368 old loss 0.004201732575893402 BETTER
+I0311 20:51:27.161221 1752152 finetune.py:68] layer 30_up @ epoch 2 new loss 0.00410250062122941 old loss 0.004170326981693506 BETTER
+I0311 20:51:33.115002 1752268 finetune.py:68] layer 31_up @ epoch 0 new loss 0.009014745242893696 old loss 0.011088511906564236 BETTER
+I0311 20:51:49.054539 1752036 finetune.py:68] layer 29_gate @ epoch 0 new loss 0.004752951208502054 old loss 0.0047905705869197845 BETTER
+I0311 20:51:54.293815 1751920 finetune.py:68] layer 28_gate @ epoch 1 new loss 0.004159030504524708 old loss 0.004176715854555368 BETTER
+I0311 20:51:57.252819 1752152 finetune.py:68] layer 30_up @ epoch 3 new loss 0.004048407543450594 old loss 0.00410250062122941 BETTER
+I0311 20:52:02.594903 1752268 finetune.py:68] layer 31_up @ epoch 1 new loss 0.00854702852666378 old loss 0.009014745242893696 BETTER
+I0311 20:52:17.290702 1752036 finetune.py:68] layer 29_gate @ epoch 1 new loss 0.00472926814109087 old loss 0.004752951208502054 BETTER
+I0311 20:52:24.659566 1751920 finetune.py:68] layer 28_gate @ epoch 2 new loss 0.004144712816923857 old loss 0.004159030504524708 BETTER
+I0311 20:52:27.482762 1752152 finetune.py:68] layer 30_up @ epoch 4 new loss 0.004004211630672216 old loss 0.004048407543450594 BETTER
+I0311 20:52:32.040624 1752268 finetune.py:68] layer 31_up @ epoch 2 new loss 0.008231217972934246 old loss 0.00854702852666378 BETTER
+I0311 20:52:43.314460 1752152 finetune.py:45] layer 30_gate initial loss 0.006212629843503237
+I0311 20:52:45.782014 1752036 finetune.py:68] layer 29_gate @ epoch 2 new loss 0.004710004664957523 old loss 0.00472926814109087 BETTER
+I0311 20:52:54.564625 1751920 finetune.py:68] layer 28_gate @ epoch 3 new loss 0.004132526461035013 old loss 0.004144712816923857 BETTER
+I0311 20:53:01.514172 1752268 finetune.py:68] layer 31_up @ epoch 3 new loss 0.00798687245696783 old loss 0.008231217972934246 BETTER
+I0311 20:53:10.807434 1752152 finetune.py:68] layer 30_gate @ epoch 0 new loss 0.006108469795435667 old loss 0.006212629843503237 BETTER
+I0311 20:53:14.142804 1752036 finetune.py:68] layer 29_gate @ epoch 3 new loss 0.004693889524787664 old loss 0.004710004664957523 BETTER
+I0311 20:53:24.586766 1751920 finetune.py:68] layer 28_gate @ epoch 4 new loss 0.004121771082282066 old loss 0.004132526461035013 BETTER
+I0311 20:53:31.043239 1752268 finetune.py:68] layer 31_up @ epoch 4 new loss 0.007789283059537411 old loss 0.00798687245696783 BETTER
+I0311 20:53:39.386987 1752152 finetune.py:68] layer 30_gate @ epoch 1 new loss 0.006054998375475407 old loss 0.006108469795435667 BETTER
+I0311 20:53:41.101751 1751920 finetune.py:45] layer 28_down initial loss 0.0065402621403336525
+I0311 20:53:42.544602 1752036 finetune.py:68] layer 29_gate @ epoch 4 new loss 0.004680177196860313 old loss 0.004693889524787664 BETTER
+I0311 20:53:46.951188 1752268 finetune.py:45] layer 31_gate initial loss 0.012203077785670757
+I0311 20:53:58.571501 1752036 finetune.py:45] layer 29_down initial loss 0.007717315107584
+I0311 20:54:07.848589 1752152 finetune.py:68] layer 30_gate @ epoch 2 new loss 0.006013834848999977 old loss 0.006054998375475407 BETTER
+I0311 20:54:08.328744 1751920 finetune.py:68] layer 28_down @ epoch 0 new loss 0.006538476329296827 old loss 0.0065402621403336525 BETTER
+I0311 20:54:14.187009 1752268 finetune.py:68] layer 31_gate @ epoch 0 new loss 0.011385575868189335 old loss 0.012203077785670757 BETTER
+I0311 20:54:24.314932 1752036 finetune.py:68] layer 29_down @ epoch 0 new loss 0.007715063169598579 old loss 0.007717315107584 BETTER
+I0311 20:54:36.580931 1752152 finetune.py:68] layer 30_gate @ epoch 3 new loss 0.005980012472718954 old loss 0.006013834848999977 BETTER
+I0311 20:54:37.052543 1751920 finetune.py:68] layer 28_down @ epoch 1 new loss 0.006536941044032574 old loss 0.006538476329296827 BETTER
+I0311 20:54:42.597929 1752268 finetune.py:68] layer 31_gate @ epoch 1 new loss 0.011079858988523483 old loss 0.011385575868189335 BETTER
+I0311 20:54:51.181663 1752036 finetune.py:68] layer 29_down @ epoch 1 new loss 0.007713144179433584 old loss 0.007715063169598579 BETTER
+I0311 20:55:05.113220 1752152 finetune.py:68] layer 30_gate @ epoch 4 new loss 0.005950693506747484 old loss 0.005980012472718954 BETTER
+I0311 20:55:05.605581 1751920 finetune.py:68] layer 28_down @ epoch 2 new loss 0.006535594817250967 old loss 0.006536941044032574 BETTER
+I0311 20:55:10.951812 1752268 finetune.py:68] layer 31_gate @ epoch 2 new loss 0.01088185328990221 old loss 0.011079858988523483 BETTER
+I0311 20:55:18.068466 1752036 finetune.py:68] layer 29_down @ epoch 2 new loss 0.0077114589512348175 old loss 0.007713144179433584 BETTER
+I0311 20:55:21.718245 1752152 finetune.py:45] layer 30_down initial loss 0.010894647799432278
+I0311 20:55:34.151643 1751920 finetune.py:68] layer 28_down @ epoch 3 new loss 0.006534411106258631 old loss 0.006535594817250967 BETTER
+I0311 20:55:39.244618 1752268 finetune.py:68] layer 31_gate @ epoch 3 new loss 0.01073148287832737 old loss 0.01088185328990221 BETTER
+I0311 20:55:45.205047 1752036 finetune.py:68] layer 29_down @ epoch 3 new loss 0.0077099669724702835 old loss 0.0077114589512348175 BETTER
+I0311 20:55:47.858803 1752152 finetune.py:68] layer 30_down @ epoch 0 new loss 0.010888802818953991 old loss 0.010894647799432278 BETTER
+I0311 20:56:02.913617 1751920 finetune.py:68] layer 28_down @ epoch 4 new loss 0.006533381994813681 old loss 0.006534411106258631 BETTER
+28_v proxy err 0.015649424865841866 tr(WHW.T) 2018.944091796875
+28_q proxy err 0.00427292101085186 tr(WHW.T) 7653.8916015625
+28_k proxy err 0.0031232249457389116 tr(WHW.T) 10585.865234375
+28_o proxy err 0.011348303407430649 tr(WHW.T) 196.1997833251953
+28_up proxy err 0.012223651632666588 tr(WHW.T) 4661.18017578125
+28_gate proxy err 0.008842638693749905 tr(WHW.T) 6534.58447265625
+28_down proxy err 0.016783801838755608 tr(WHW.T) 609.349853515625
+I0311 20:56:07.784908 1752268 finetune.py:68] layer 31_gate @ epoch 4 new loss 0.010611522942781448 old loss 0.01073148287832737 BETTER
+I0311 20:56:12.238411 1752036 finetune.py:68] layer 29_down @ epoch 4 new loss 0.007708653807640076 old loss 0.0077099669724702835 BETTER
+29_v proxy err 0.01644340343773365 tr(WHW.T) 1801.7730712890625
+29_q proxy err 0.0042045991867780685 tr(WHW.T) 7232.875
+29_k proxy err 0.002895045792683959 tr(WHW.T) 10613.3818359375
+29_o proxy err 0.010357440449297428 tr(WHW.T) 208.77967834472656
+29_up proxy err 0.009758123196661472 tr(WHW.T) 6072.6708984375
+29_gate proxy err 0.008108124136924744 tr(WHW.T) 7357.3037109375
+29_down proxy err 0.016207553446292877 tr(WHW.T) 791.3245239257812
+I0311 20:56:14.932406 1752152 finetune.py:68] layer 30_down @ epoch 1 new loss 0.010884333401918411 old loss 0.010888802818953991 BETTER
+I0311 20:56:23.668923 1752268 finetune.py:45] layer 31_down initial loss 0.023999961093068123
+I0311 20:56:41.944840 1752152 finetune.py:68] layer 30_down @ epoch 2 new loss 0.010880916379392147 old loss 0.010884333401918411 BETTER
+I0311 20:56:49.080472 1752268 finetune.py:68] layer 31_down @ epoch 0 new loss 0.02390853874385357 old loss 0.023999961093068123 BETTER
+I0311 20:57:08.816351 1752152 finetune.py:68] layer 30_down @ epoch 3 new loss 0.010878089815378189 old loss 0.010880916379392147 BETTER
+I0311 20:57:15.352373 1752268 finetune.py:68] layer 31_down @ epoch 1 new loss 0.023837877437472343 old loss 0.02390853874385357 BETTER
+I0311 20:57:35.861945 1752152 finetune.py:68] layer 30_down @ epoch 4 new loss 0.010875669308006763 old loss 0.010878089815378189 BETTER
+30_v proxy err 0.01414182223379612 tr(WHW.T) 2261.489501953125
+30_q proxy err 0.004208448342978954 tr(WHW.T) 7819.1806640625
+30_k proxy err 0.003162071341648698 tr(WHW.T) 10573.7998046875
+30_o proxy err 0.0099216653034091 tr(WHW.T) 253.4306640625
+30_up proxy err 0.0060426960699260235 tr(WHW.T) 10007.9189453125
+30_gate proxy err 0.005534227006137371 tr(WHW.T) 10973.4306640625
+30_down proxy err 0.005859385710209608 tr(WHW.T) 3612.388427734375
+I0311 20:57:41.826050 1752268 finetune.py:68] layer 31_down @ epoch 2 new loss 0.023781977593898773 old loss 0.023837877437472343 BETTER
+I0311 20:58:08.318869 1752268 finetune.py:68] layer 31_down @ epoch 3 new loss 0.02373857982456684 old loss 0.023781977593898773 BETTER
+I0311 20:58:34.611799 1752268 finetune.py:68] layer 31_down @ epoch 4 new loss 0.023703934624791145 old loss 0.02373857982456684 BETTER
+31_v proxy err 0.01684042625129223 tr(WHW.T) 1268.2034912109375
+31_q proxy err 0.003386332653462887 tr(WHW.T) 6862.9423828125
+31_k proxy err 0.0023041365202516317 tr(WHW.T) 10308.4296875
+31_o proxy err 0.0069142854772508144 tr(WHW.T) 460.15191650390625
+31_up proxy err 0.003551172325387597 tr(WHW.T) 14544.552734375
+31_gate proxy err 0.0034986159298568964 tr(WHW.T) 14838.0517578125
+31_down proxy err 0.003167895833030343 tr(WHW.T) 18227.181640625

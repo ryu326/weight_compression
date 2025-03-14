@@ -1,0 +1,51 @@
+I0313 14:57:47.227405 2302099 config.py:54] PyTorch version 2.1.1 available.
+I0313 14:57:47.678874 2302099 hfize_llama.py:26] LlamaConfig {
+  "_attn_implementation_autoset": true,
+  "_name_or_path": "../Wparam_dataset/hf_model/meta-llama--Llama-2-7b-hf",
+  "architectures": [
+    "LlamaForCausalLM"
+  ],
+  "attention_bias": false,
+  "attention_dropout": 0.0,
+  "bos_token_id": 1,
+  "eos_token_id": 2,
+  "head_dim": 128,
+  "hidden_act": "silu",
+  "hidden_size": 4096,
+  "initializer_range": 0.02,
+  "intermediate_size": 11008,
+  "max_position_embeddings": 4096,
+  "mlp_bias": false,
+  "model_type": "llama",
+  "num_attention_heads": 32,
+  "num_hidden_layers": 32,
+  "num_key_value_heads": 32,
+  "pretraining_tp": 1,
+  "quip_params": {},
+  "rms_norm_eps": 1e-05,
+  "rope_scaling": null,
+  "rope_theta": 10000.0,
+  "tie_word_embeddings": false,
+  "torch_dtype": "float32",
+  "transformers_version": "4.47.1",
+  "use_cache": true,
+  "vocab_size": 32000
+}
+
+Loading checkpoint shards:   0%|          | 0/6 [00:00<?, ?it/s]Loading checkpoint shards:  33%|███▎      | 2/6 [00:00<00:00, 12.23it/s]Loading checkpoint shards:  67%|██████▋   | 4/6 [00:00<00:00, 12.11it/s]Loading checkpoint shards: 100%|██████████| 6/6 [00:00<00:00, 12.68it/s]Loading checkpoint shards: 100%|██████████| 6/6 [00:00<00:00, 12.53it/s]
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/opt/conda/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/hfize_llama.py", line 175, in <module>
+    main(args)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/hfize_llama.py", line 74, in main
+    saved_layer = torch.load(f'{args.quantized_path}/{ii}_q.pt',
+  File "/opt/conda/lib/python3.10/site-packages/torch/serialization.py", line 986, in load
+    with _open_file_like(f, 'rb') as opened_file:
+  File "/opt/conda/lib/python3.10/site-packages/torch/serialization.py", line 435, in _open_file_like
+    return _open_file(name_or_buffer, mode)
+  File "/opt/conda/lib/python3.10/site-packages/torch/serialization.py", line 416, in __init__
+    super().__init__(open(name, mode))
+FileNotFoundError: [Errno 2] No such file or directory: './ckpt/meta-llama--Llama-2-7b-hf/lmbda300_ql_ldlq/0_q.pt'
