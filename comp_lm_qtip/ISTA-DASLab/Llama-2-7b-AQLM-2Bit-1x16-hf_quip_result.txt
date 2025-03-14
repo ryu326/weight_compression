@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/opt/conda/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "/workspace/Weight_compression/comp_lm_qtip/eval/eval_ppl.py", line 12, in <module>
+    from lib.linear import QuantizedLinear
+ImportError: cannot import name 'QuantizedLinear' from 'lib.linear' (/workspace/Weight_compression/comp_lm_qtip/lib/linear/__init__.py)
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/opt/conda/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "/workspace/Weight_compression/comp_lm_qtip/eval_ppl.py", line 124, in <module>
+    main(args)
+  File "/workspace/Weight_compression/comp_lm_qtip/eval_ppl.py", line 71, in main
+    model, model_str = model_from_hf_path(
+  File "/workspace/Weight_compression/comp_lm_qtip/eval_ppl.py", line 49, in model_from_hf_path
+    model = maybe_wrap(use_cuda_graph)(model_cls).from_pretrained(
+  File "/workspace/Weight_compression/comp_lm_qtip/eval_ppl.py", line 30, in <lambda>
+    return (lambda x: graph_wrapper.get_graph_wrapper(x)
+NameError: name 'graph_wrapper' is not defined

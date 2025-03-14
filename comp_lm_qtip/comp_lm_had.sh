@@ -22,7 +22,7 @@ for model_name in "${model_names[@]}"; do
     lm_model_path="../Wparam_dataset/hf_model/$model_name"
     # ql="../Wparam_dataset/hessian/$model_name/quip_hess_n6144_top3_qlevel3.pt"
     # ql="../Wparam_dataset/hessian/$model_name/pileval_n_samples128_seqlen512_top[ 0.1  1.  10. ]_qlevel[3, 2, 1].pt"
-    lmbda_values=(50 100 200 300 1000 10000 100000)
+    lmbda_values=(100 200 300 1000 10000 100000)
     # lmbda_values=(50)
     for lmbda in "${lmbda_values[@]}"; do
         echo "Running with lmbda=${lmbda}"
