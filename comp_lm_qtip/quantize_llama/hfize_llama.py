@@ -143,13 +143,14 @@ def main(args):
         glog.info(f'loaded layer {ii}')
         
     comp_result['bpp_loss'] = comp_result['bpp_loss'] / comp_result['num_pixels']
-    with open(f'{args.hf_output_path}_result.json', 'w') as f:
-        json.dump(comp_result, f, indent=4)
-            
+
     glog.info(f'saving model...')
     model.save_pretrained(args.hf_output_path, safe_serialization=True)
     tokenizer.save_pretrained(args.hf_output_path)
     del model
+    
+    with open(f'{args.hf_output_path}_result.json', 'w') as f:
+        json.dump(comp_result, f, indent=4)
 
     model, _ = model_from_hf_path(args.hf_output_path, device_map='cuda')
 

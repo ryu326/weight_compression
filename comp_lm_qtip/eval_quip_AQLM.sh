@@ -14,7 +14,8 @@ do
     log_dir=$(dirname "$log_path")
     mkdir -p "$log_dir"
     echo "Running evaluation for directory: $pretrain_path"
-    python -m eval.eval_ppl \
+    python eval_ppl.py \
         --hf_path $pretrain_path \
-        --seqlen 2048 2>&1 | tee -a "$log_path"
+        --seqlen 2048 \
+        --no_use_cuda_graph | tee -a "$log_path" &
 done

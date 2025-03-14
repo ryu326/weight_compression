@@ -1,0 +1,2 @@
+docker run -d -it --name qtip -v /home/mkkim/:/home/mkkim/ -v /data/:/data/ --gpus all --shm-size=400G jegwangryu/qtip
+docker exec quip bash -c "cd /home/mkkim/Weight_compression/qtip && bash run_3_8b.sh"

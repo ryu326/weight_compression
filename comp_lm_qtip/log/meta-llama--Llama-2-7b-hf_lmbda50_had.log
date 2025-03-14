@@ -595,3 +595,25 @@ I0314 07:32:25.065673 2474246 quantize_finetune_llama.py:218] computed original 
 I0314 07:32:28.156130 2504293 config.py:54] PyTorch version 2.1.1 available.
 I0314 07:32:29.284949 2504293 data_utils.py:336] using 256 training seqs, 128 validation seqs
 The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 07:32:38.096601 2504293 finetune.py:45] layer 31_v initial loss 0.0013285791501402855
+I0314 07:32:38.336041 2503328 finetune.py:45] layer 30_down initial loss 0.0147909726947546
+30_v proxy err 0.01140847709029913 tr(WHW.T) 2261.489501953125
+30_q proxy err 0.0034743202850222588 tr(WHW.T) 7815.9453125
+30_k proxy err 0.0026400855276733637 tr(WHW.T) 10521.625
+30_o proxy err 0.009292617440223694 tr(WHW.T) 251.96908569335938
+30_up proxy err 0.004737102426588535 tr(WHW.T) 10016.376953125
+30_gate proxy err 0.004387234803289175 tr(WHW.T) 11001.119140625
+30_down proxy err 0.009531468152999878 tr(WHW.T) 3582.617919921875
+I0314 07:32:46.721919 2504293 finetune.py:45] layer 31_q initial loss 0.0019033432472497225
+I0314 07:32:55.129347 2504293 finetune.py:45] layer 31_k initial loss 0.0023786660749465227
+I0314 07:33:03.707715 2504293 finetune.py:45] layer 31_o initial loss 0.0035768651869148016
+I0314 07:33:18.408024 2504293 finetune.py:45] layer 31_up initial loss 0.010018675588071346
+I0314 07:33:33.231696 2504293 finetune.py:45] layer 31_gate initial loss 0.014098845422267914
+I0314 07:33:49.065330 2504293 finetune.py:45] layer 31_down initial loss 0.04433424770832062
+31_v proxy err 0.01342795044183731 tr(WHW.T) 1268.2034912109375
+31_q proxy err 0.0027579101733863354 tr(WHW.T) 6858.09130859375
+31_k proxy err 0.0019301229622215033 tr(WHW.T) 10233.677734375
+31_o proxy err 0.007063187193125486 tr(WHW.T) 457.7950744628906
+31_up proxy err 0.0027837110683321953 tr(WHW.T) 14563.890625
+31_gate proxy err 0.0027684150263667107 tr(WHW.T) 14836.2939453125
+31_down proxy err 0.006746048107743263 tr(WHW.T) 17873.55859375
