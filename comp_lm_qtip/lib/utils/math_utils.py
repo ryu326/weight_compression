@@ -47,3 +47,9 @@ def regularize_H(H, sigma_reg):
     idx = torch.arange(len(H))
     H[idx, idx] += sigma_reg
     return H * diagmean
+
+def regularize_H2(H, n, sigma_reg):
+    H.div_(torch.diag(H).mean())
+    idx = torch.arange(n)
+    H[idx, idx] += sigma_reg
+    return H

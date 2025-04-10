@@ -87,9 +87,9 @@ def get_model_weight_stats(model, args, size):
         
         weights = torch.cat(weights, dim = 0)
         
-        mean = weights.mean(0)
-        std = weights.std(0)
-        # mean = weights.mean()
-        # std = weights.std()
+        # mean = weights.mean(0)
+        # std = weights.std(0)
+        mean = weights.mean()
+        std = weights.std()
             
     return mean, std

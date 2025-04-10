@@ -170,15 +170,19 @@ def main(args):
         position_ids = position_ids.to(cur_device)
         attention_mask = attention_mask.to(cur_device)
         model.model.layers[i].to(cur_device)
-        for j in range(args.devset_size // args.batch_size):
-            utils.clean()
-            orig_emb_cache[cur_device + 1][args.batch_size * j : args.batch_size * (j + 1)] = \
-                model.model.layers[i](
-                    orig_emb_cache[cur_device][args.batch_size * j : args.batch_size * (j + 1)].to(cur_device),
-                    position_ids=position_ids,
-                    attention_mask=attention_mask,
-                    use_cache=False,
-                    output_attentions=False)[0].cpu()
+        ##
+        if args.ft_epochs > 0:
+            for j in range(args.devset_size // args.batch_size):
+                utils.clean()
+                orig_emb_cache[cur_device + 1][args.batch_size * j : args.batch_size * (j + 1)] = \
+                    model.model.layers[i](
+                        orig_emb_cache[cur_device][args.batch_size * j : args.batch_size * (j + 1)].to(cur_device),
+                        position_ids=position_ids,
+                        attention_mask=attention_mask,
+                        use_cache=False,
+                        output_attentions=False)[0].cpu()
+        else:
+            orig_emb_cache[cur_device + 1] = orig_emb_cache[cur_device]
         model.model.layers[i].cpu()
         position_ids = position_ids.cpu()
         attention_mask = attention_mask.cpu()

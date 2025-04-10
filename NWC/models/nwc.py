@@ -113,11 +113,11 @@ class SimpleVAECompressionModel(CompressionModel):
     def __init__(self, input_size, dim_encoder, n_resblock, M, scale, shift):
         super().__init__()
             
-        # self.register_buffer('scale', scale)    
-        # self.register_buffer('shift', shift)   
+        self.register_buffer('scale', scale)    
+        self.register_buffer('shift', shift)   
         
-        self.scale = scale
-        self.shift = shift        
+        # self.scale = scale
+        # self.shift = shift        
         
         self.input_size = input_size
         self.M = M

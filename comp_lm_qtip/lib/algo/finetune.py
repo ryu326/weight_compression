@@ -116,13 +116,15 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
         
         H_data = torch.load(in_hess_path, map_location=torch.device('cpu'))
         HR = utils.flat_to_sym(H_data['flatH'], H_data['n'])
+        n_h = H_data['n']
         if 'mu' in H_data:
             mu = H_data['mu']
             HR += mu[None, :] * mu[:, None]
             del mu
         del H_data
 
-        HR = utils.regularize_H(HR, args.sigma_reg)
+        # HR = utils.regularize_H(HR, args.sigma_reg)
+        HR = utils.regularize_H2(HR, n_h, args.sigma_reg)
         
         comp_model.to(dtype_)
         W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
@@ -135,6 +137,8 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
             f'{idx}_{name} proxy err {err.item()} tr(WHW.T) {torch.trace(W @ HR @ W.T)}'
         )
         
+        print(f'bpp_loss {bpp_loss_sum/num_pixels}')
+        
         save_path = f'{args.save_path}/{idx}_{name}.pt'
 
         torch.save(
@@ -144,6 +148,8 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
                 'SV': SV,
                 'scaleWH':scaleWH,
                 'proxy_err': err.item(),
+                'tr(WHW.T)': torch.trace(W @ HR @ W.T).item(),
+                'mse': torch.mean((W - W_hat) ** 2).item(),
                 'bpp_loss_sum': bpp_loss_sum,
                 'num_pixels': num_pixels,
             }, save_path)
@@ -160,10 +166,10 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
             attrgetter('.'.join(split_attr[:-1]))(mixed_layer), split_attr[-1],
             comp_linear)
 
-
-        with torch.enable_grad():
-            finetune_decoder_layer(mixed_layer, f'{idx}_{name}', device,
-                                   train_dl, valid_dl, orig_dtype, args) 
+        if args.ft_epochs > 0:
+            with torch.enable_grad():
+                finetune_decoder_layer(mixed_layer, f'{idx}_{name}', device,
+                                    train_dl, valid_dl, orig_dtype, args) 
         
         assert torch.equal(W_hat, attrgetter(linear_attr)(mixed_layer).weight)
         

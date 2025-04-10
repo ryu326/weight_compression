@@ -1,0 +1,912 @@
+I0316 05:01:16.038660 3340929 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:01:16.322447 3340929 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0316 05:01:17.283240 3340929 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+Loading checkpoint shards:   0%|          | 0/6 [00:00<?, ?it/s]Loading checkpoint shards:  17%|█▋        | 1/6 [00:00<00:00,  7.65it/s]Loading checkpoint shards:  33%|███▎      | 2/6 [00:00<00:00,  7.24it/s]Loading checkpoint shards:  50%|█████     | 3/6 [00:00<00:00,  7.70it/s]Loading checkpoint shards:  67%|██████▋   | 4/6 [00:00<00:00,  7.94it/s]Loading checkpoint shards:  83%|████████▎ | 5/6 [00:00<00:00,  8.09it/s]Loading checkpoint shards: 100%|██████████| 6/6 [00:00<00:00,  8.22it/s]Loading checkpoint shards: 100%|██████████| 6/6 [00:00<00:00,  7.98it/s]
+I0316 05:01:18.240993 3340929 quantize_finetune_llama.py:143] loaded model
+I0316 05:01:18.475821 3340929 quantize_finetune_llama.py:171] loaded compression model
+I0316 05:01:32.168468 3340929 quantize_finetune_llama.py:175] loaded dataset and devset
+I0316 05:01:41.262138 3340929 quantize_finetune_llama.py:195] layer 0 gpu 0
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:02:38.213838 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 0 in 56.75242877006531s
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+I0316 05:02:56.405228 3342310 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:02:56.689644 3342310 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0316 05:02:57.629071 3342310 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:02:57.633064 3340929 quantize_finetune_llama.py:195] layer 1 gpu 1
+I0316 05:02:57.787905 3342310 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:03:06.812094 3342310 finetune.py:45] layer 0_v initial loss 1.177364174509421e-05
+W0316 05:03:06.812439 3342310 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:03:15.699362 3342310 finetune.py:45] layer 0_q initial loss 1.2170483387308195e-05
+I0316 05:03:24.655783 3342310 finetune.py:45] layer 0_k initial loss 1.3045965715718921e-05
+I0316 05:03:33.684814 3342310 finetune.py:45] layer 0_o initial loss 1.6758975107222795e-05
+I0316 05:03:49.103042 3342310 finetune.py:45] layer 0_up initial loss 1.654180232435465e-05
+I0316 05:03:56.800462 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 1 in 58.99911189079285s
+I0316 05:04:07.920424 3342310 finetune.py:45] layer 0_gate initial loss 1.6589026927249506e-05
+I0316 05:04:09.118427 3343370 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:04:09.416338 3343370 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0316 05:04:10.456536 3343370 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:04:10.460690 3340929 quantize_finetune_llama.py:195] layer 2 gpu 2
+I0316 05:04:10.688652 3343370 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:04:19.843441 3343370 finetune.py:45] layer 1_v initial loss 0.00023199667339213192
+W0316 05:04:19.843793 3343370 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:04:25.373647 3342310 finetune.py:45] layer 0_down initial loss 1.8012420696322806e-05
+0_v proxy err 0.09194380044937134 tr(WHW.T) 4.225186347961426
+0_q proxy err 0.0011180969886481762 tr(WHW.T) 2710.363037109375
+0_k proxy err 0.001130098244175315 tr(WHW.T) 1698.7349853515625
+0_o proxy err 0.0072765713557600975 tr(WHW.T) 0.9668058156967163
+0_up proxy err 0.012285853736102581 tr(WHW.T) 43.27138900756836
+0_gate proxy err 0.008677436970174313 tr(WHW.T) 63.47430419921875
+0_down proxy err 0.008734097704291344 tr(WHW.T) 0.656814694404602
+I0316 05:04:29.089987 3343370 finetune.py:45] layer 1_q initial loss 0.0002640657185111195
+I0316 05:04:38.051774 3343370 finetune.py:45] layer 1_k initial loss 0.00027532275998964906
+I0316 05:04:47.067734 3343370 finetune.py:45] layer 1_o initial loss 0.00041492999298498034
+I0316 05:05:02.596640 3343370 finetune.py:45] layer 1_up initial loss 0.0012300697853788733
+I0316 05:05:12.751052 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 2 in 62.132179975509644s
+I0316 05:05:21.350375 3343370 finetune.py:45] layer 1_gate initial loss 0.0026885494589805603
+I0316 05:05:24.873960 3344465 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:05:25.159184 3344465 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0316 05:05:26.136266 3344465 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:05:26.140287 3340929 quantize_finetune_llama.py:195] layer 3 gpu 3
+I0316 05:05:26.304617 3344465 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:05:35.898003 3344465 finetune.py:45] layer 2_v initial loss 2.2993954189587384e-05
+W0316 05:05:35.898320 3344465 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:05:38.211718 3343370 finetune.py:45] layer 1_down initial loss 0.0076415929943323135
+1_v proxy err 0.13506942987442017 tr(WHW.T) 16.465883255004883
+1_q proxy err 0.0008757584728300571 tr(WHW.T) 4778.43994140625
+1_k proxy err 0.0008347461116500199 tr(WHW.T) 4995.39208984375
+1_o proxy err 0.024476241320371628 tr(WHW.T) 1.1115814447402954
+1_up proxy err 0.01320202462375164 tr(WHW.T) 109.66383361816406
+1_gate proxy err 0.006930531933903694 tr(WHW.T) 221.3038787841797
+1_down proxy err 0.0077232783660292625 tr(WHW.T) 2041.4736328125
+I0316 05:05:45.125402 3344465 finetune.py:45] layer 2_q initial loss 2.52209028985817e-05
+I0316 05:05:54.510413 3344465 finetune.py:45] layer 2_k initial loss 2.850386590580456e-05
+I0316 05:06:03.830358 3344465 finetune.py:45] layer 2_o initial loss 3.857593037537299e-05
+I0316 05:06:19.311558 3344465 finetune.py:45] layer 2_up initial loss 4.601837645168416e-05
+I0316 05:06:28.420141 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 3 in 62.107272148132324s
+I0316 05:06:35.676364 3344465 finetune.py:45] layer 2_gate initial loss 5.2521641919156536e-05
+I0316 05:06:37.048582 3345508 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:06:37.397769 3345508 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0316 05:06:38.355307 3345508 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:06:38.359260 3340929 quantize_finetune_llama.py:195] layer 4 gpu 4
+I0316 05:06:38.694824 3345508 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:06:48.004160 3345508 finetune.py:45] layer 3_v initial loss 3.2391220884164795e-05
+W0316 05:06:48.004477 3345508 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:06:53.060840 3344465 finetune.py:45] layer 2_down initial loss 6.614594894926995e-05
+2_v proxy err 0.0343615747988224 tr(WHW.T) 136.67332458496094
+2_q proxy err 0.0009638763149268925 tr(WHW.T) 7752.85205078125
+2_k proxy err 0.0007847723900340497 tr(WHW.T) 10205.837890625
+2_o proxy err 0.020336134359240532 tr(WHW.T) 1.4603197574615479
+2_up proxy err 0.015370871871709824 tr(WHW.T) 193.43603515625
+2_gate proxy err 0.010064754635095596 tr(WHW.T) 306.6622619628906
+2_down proxy err 0.017631562426686287 tr(WHW.T) 3.010739803314209
+I0316 05:06:57.304138 3345508 finetune.py:45] layer 3_q initial loss 3.652763189165853e-05
+I0316 05:07:06.334825 3345508 finetune.py:45] layer 3_k initial loss 4.2811487219296396e-05
+I0316 05:07:15.585149 3345508 finetune.py:45] layer 3_o initial loss 6.278226646827534e-05
+I0316 05:07:30.974284 3345508 finetune.py:45] layer 3_up initial loss 7.862821803428233e-05
+I0316 05:07:42.270119 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 4 in 63.74269390106201s
+I0316 05:07:50.272548 3345508 finetune.py:45] layer 3_gate initial loss 9.175171726383269e-05
+I0316 05:07:54.376613 3346629 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:07:54.674809 3346629 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0316 05:07:55.618477 3346629 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:07:55.622667 3340929 quantize_finetune_llama.py:195] layer 5 gpu 5
+I0316 05:07:55.797430 3346629 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:08:05.543851 3346629 finetune.py:45] layer 4_v initial loss 6.129750545369461e-05
+W0316 05:08:05.544085 3346629 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:08:08.678133 3345508 finetune.py:45] layer 3_down initial loss 0.00011892131442436948
+3_v proxy err 0.03300150856375694 tr(WHW.T) 284.77557373046875
+3_q proxy err 0.001795429503545165 tr(WHW.T) 7217.63720703125
+3_k proxy err 0.0013580310624092817 tr(WHW.T) 10074.73828125
+3_o proxy err 0.020122980698943138 tr(WHW.T) 3.3527450561523438
+3_up proxy err 0.017408719286322594 tr(WHW.T) 284.7950744628906
+3_gate proxy err 0.010777843184769154 tr(WHW.T) 478.13714599609375
+3_down proxy err 0.018003934994339943 tr(WHW.T) 6.133229732513428
+I0316 05:08:15.201989 3346629 finetune.py:45] layer 4_q initial loss 6.645214307354763e-05
+I0316 05:08:24.496438 3346629 finetune.py:45] layer 4_k initial loss 7.314005051739514e-05
+I0316 05:08:33.864068 3346629 finetune.py:45] layer 4_o initial loss 0.00010180444951402023
+I0316 05:08:49.591231 3346629 finetune.py:45] layer 4_up initial loss 0.00012955316924490035
+I0316 05:09:05.237788 3346629 finetune.py:45] layer 4_gate initial loss 0.00015074078692123294
+I0316 05:09:22.643448 3346629 finetune.py:45] layer 4_down initial loss 0.0002005829446716234
+I0316 05:09:23.436964 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 5 in 87.54928517341614s
+4_v proxy err 0.03206361085176468 tr(WHW.T) 274.6131286621094
+4_q proxy err 0.0017216331325471401 tr(WHW.T) 6914.9892578125
+4_k proxy err 0.0012303304392844439 tr(WHW.T) 10415.33203125
+4_o proxy err 0.02016446925699711 tr(WHW.T) 5.139806270599365
+4_up proxy err 0.01713414117693901 tr(WHW.T) 397.6960144042969
+4_gate proxy err 0.008770711719989777 tr(WHW.T) 821.1856689453125
+4_down proxy err 0.01798628456890583 tr(WHW.T) 11.562739372253418
+I0316 05:09:31.798669 3347994 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:09:32.079493 3347994 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0316 05:09:33.029936 3347994 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:09:33.033851 3340929 quantize_finetune_llama.py:195] layer 6 gpu 6
+I0316 05:09:33.182410 3347994 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:09:46.645015 3347994 finetune.py:45] layer 5_v initial loss 8.790839638095349e-05
+W0316 05:09:46.645259 3347994 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:09:59.656456 3347994 finetune.py:45] layer 5_q initial loss 9.585075895301998e-05
+I0316 05:10:12.739482 3347994 finetune.py:45] layer 5_k initial loss 0.00010718320845626295
+I0316 05:10:25.820591 3347994 finetune.py:45] layer 5_o initial loss 0.00016621671966277063
+I0316 05:10:46.576214 3347994 finetune.py:45] layer 5_up initial loss 0.00021143212507013232
+I0316 05:11:01.146573 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 6 in 87.91794919967651s
+I0316 05:11:07.894054 3347994 finetune.py:45] layer 5_gate initial loss 0.00024305906845256686
+I0316 05:11:09.360260 3349345 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:11:09.673835 3349345 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0316 05:11:10.607277 3349345 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:11:10.611251 3340929 quantize_finetune_llama.py:195] layer 7 gpu 7
+I0316 05:11:10.762771 3349345 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:11:24.589968 3349345 finetune.py:45] layer 6_v initial loss 0.00011687176447594538
+W0316 05:11:24.590514 3349345 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:11:30.900147 3347994 finetune.py:45] layer 5_down initial loss 0.000314027420245111
+5_v proxy err 0.03173542395234108 tr(WHW.T) 298.47540283203125
+5_q proxy err 0.0018992220284417272 tr(WHW.T) 6770.97509765625
+5_k proxy err 0.0012809046311303973 tr(WHW.T) 10841.955078125
+5_o proxy err 0.02817276492714882 tr(WHW.T) 7.947142601013184
+5_up proxy err 0.016814202070236206 tr(WHW.T) 506.6408386230469
+5_gate proxy err 0.00817339587956667 tr(WHW.T) 1104.867919921875
+5_down proxy err 0.018946245312690735 tr(WHW.T) 15.6494779586792
+I0316 05:11:38.155619 3349345 finetune.py:45] layer 6_q initial loss 0.00013918831245973706
+I0316 05:11:52.904151 3349345 finetune.py:45] layer 6_k initial loss 0.00016895323642529547
+I0316 05:12:06.615956 3349345 finetune.py:45] layer 6_o initial loss 0.0002471758925821632
+I0316 05:12:30.538835 3349345 finetune.py:45] layer 6_up initial loss 0.0003172589640598744
+I0316 05:12:38.611631 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 7 in 87.80669927597046s
+I0316 05:12:47.298946 3350701 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:12:47.598014 3350701 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0316 05:12:48.642670 3350701 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:12:48.646782 3340929 quantize_finetune_llama.py:195] layer 8 gpu 0
+I0316 05:12:48.803787 3350701 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:12:55.796056 3349345 finetune.py:45] layer 6_gate initial loss 0.00036201582406647503
+I0316 05:13:05.365980 3350701 finetune.py:45] layer 7_v initial loss 0.0001515057956567034
+W0316 05:13:05.366256 3350701 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:13:20.545067 3350701 finetune.py:45] layer 7_q initial loss 0.0001741410669637844
+I0316 05:13:20.775542 3349345 finetune.py:45] layer 6_down initial loss 0.0004666058230213821
+6_v proxy err 0.03160560131072998 tr(WHW.T) 443.5464782714844
+6_q proxy err 0.0024458984844386578 tr(WHW.T) 7576.53857421875
+6_k proxy err 0.0018351275939494371 tr(WHW.T) 10409.4033203125
+6_o proxy err 0.02601846307516098 tr(WHW.T) 11.564380645751953
+6_up proxy err 0.016853947192430496 tr(WHW.T) 617.2608642578125
+6_gate proxy err 0.007156213279813528 tr(WHW.T) 1554.7271728515625
+6_down proxy err 0.0195377916097641 tr(WHW.T) 22.988168716430664
+I0316 05:13:35.900334 3350701 finetune.py:45] layer 7_k initial loss 0.0002014346100622788
+I0316 05:13:50.697434 3350701 finetune.py:45] layer 7_o initial loss 0.0003033667162526399
+I0316 05:13:50.930862 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 8 in 61.115198612213135s
+I0316 05:13:54.417442 3351649 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:13:54.712116 3351649 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0316 05:13:55.647233 3351649 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:13:55.651597 3340929 quantize_finetune_llama.py:195] layer 9 gpu 1
+I0316 05:13:55.921279 3351649 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:14:05.462665 3351649 finetune.py:45] layer 8_v initial loss 0.0002167773200199008
+W0316 05:14:05.463027 3351649 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:14:13.005080 3350701 finetune.py:45] layer 7_up initial loss 0.0003987431700807065
+I0316 05:14:14.844384 3351649 finetune.py:45] layer 8_q initial loss 0.00024425843730568886
+I0316 05:14:24.221816 3351649 finetune.py:45] layer 8_k initial loss 0.0002735645102802664
+I0316 05:14:33.601179 3351649 finetune.py:45] layer 8_o initial loss 0.000418470473960042
+I0316 05:14:35.222405 3350701 finetune.py:45] layer 7_gate initial loss 0.00045931513886898756
+I0316 05:14:49.616858 3351649 finetune.py:45] layer 8_up initial loss 0.000530183082446456
+I0316 05:14:56.982519 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 9 in 60.82913160324097s
+I0316 05:14:59.369720 3350701 finetune.py:45] layer 7_down initial loss 0.0006014851969666779
+7_v proxy err 0.03112403303384781 tr(WHW.T) 489.9357604980469
+7_q proxy err 0.0026096294168382883 tr(WHW.T) 7672.17919921875
+7_k proxy err 0.0020057198125869036 tr(WHW.T) 10198.3701171875
+7_o proxy err 0.0295632965862751 tr(WHW.T) 15.11335563659668
+7_up proxy err 0.016608839854598045 tr(WHW.T) 735.8538818359375
+7_gate proxy err 0.006971940863877535 tr(WHW.T) 1876.0390625
+7_down proxy err 0.01978406310081482 tr(WHW.T) 30.58672523498535
+I0316 05:15:00.756242 3352610 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:15:01.125382 3352610 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0316 05:15:02.170521 3352610 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:15:02.174917 3340929 quantize_finetune_llama.py:195] layer 10 gpu 2
+I0316 05:15:02.695446 3352610 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0316 05:15:05.803936 3351649 finetune.py:45] layer 8_gate initial loss 0.0006056060665287077
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:15:12.508372 3352610 finetune.py:45] layer 9_v initial loss 0.00024698537890799344
+W0316 05:15:12.508675 3352610 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:15:21.887269 3352610 finetune.py:45] layer 9_q initial loss 0.0002763844677247107
+I0316 05:15:23.507163 3351649 finetune.py:45] layer 8_down initial loss 0.0007772049866616726
+8_v proxy err 0.02940060757100582 tr(WHW.T) 530.9967041015625
+8_q proxy err 0.002747507765889168 tr(WHW.T) 7228.1201171875
+8_k proxy err 0.0019617655780166388 tr(WHW.T) 10639.1015625
+8_o proxy err 0.03339172154664993 tr(WHW.T) 20.092191696166992
+8_up proxy err 0.015341016463935375 tr(WHW.T) 866.312744140625
+8_gate proxy err 0.007151759695261717 tr(WHW.T) 1970.857177734375
+8_down proxy err 0.019719596952199936 tr(WHW.T) 37.177734375
+I0316 05:15:31.109022 3352610 finetune.py:45] layer 9_k initial loss 0.0003176659229211509
+I0316 05:15:40.423468 3352610 finetune.py:45] layer 9_o initial loss 0.0005000559613108635
+I0316 05:15:55.882389 3352610 finetune.py:45] layer 9_up initial loss 0.000629626854788512
+I0316 05:16:04.224118 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 10 in 61.568055152893066s
+I0316 05:16:07.981090 3353614 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:16:08.301077 3353614 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0316 05:16:09.243255 3353614 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:16:09.247331 3340929 quantize_finetune_llama.py:195] layer 11 gpu 3
+I0316 05:16:09.689501 3353614 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0316 05:16:11.576457 3352610 finetune.py:45] layer 9_gate initial loss 0.0007197554223239422
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:16:19.686508 3353614 finetune.py:45] layer 10_v initial loss 0.0003502728941384703
+W0316 05:16:19.686892 3353614 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:16:28.886291 3352610 finetune.py:45] layer 9_down initial loss 0.0009158050525002182
+I0316 05:16:29.087034 3353614 finetune.py:45] layer 10_q initial loss 0.00039341754745692015
+9_v proxy err 0.027679922059178352 tr(WHW.T) 565.0663452148438
+9_q proxy err 0.0028529276605695486 tr(WHW.T) 6970.3359375
+9_k proxy err 0.001920834300108254 tr(WHW.T) 10987.3515625
+9_o proxy err 0.0333111546933651 tr(WHW.T) 25.610172271728516
+9_up proxy err 0.014828486368060112 tr(WHW.T) 970.8984375
+9_gate proxy err 0.007121123373508453 tr(WHW.T) 2132.69384765625
+9_down proxy err 0.019749244675040245 tr(WHW.T) 42.99482727050781
+I0316 05:16:37.981247 3353614 finetune.py:45] layer 10_k initial loss 0.0004567198338918388
+I0316 05:16:47.208275 3353614 finetune.py:45] layer 10_o initial loss 0.0007051361026242375
+I0316 05:17:02.867706 3353614 finetune.py:45] layer 10_up initial loss 0.0008533314103260636
+I0316 05:17:14.286765 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 11 in 64.52518367767334s
+I0316 05:17:18.047738 3354631 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:17:18.382564 3354631 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+I0316 05:17:18.621519 3353614 finetune.py:45] layer 10_gate initial loss 0.0009592061396688223
+W0316 05:17:19.319402 3354631 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:17:19.323422 3340929 quantize_finetune_llama.py:195] layer 12 gpu 4
+I0316 05:17:19.496782 3354631 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:17:29.065516 3354631 finetune.py:45] layer 11_v initial loss 0.0003860263095702976
+W0316 05:17:29.065799 3354631 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:17:36.038480 3353614 finetune.py:45] layer 10_down initial loss 0.001185157336294651
+10_v proxy err 0.027979211881756783 tr(WHW.T) 578.807373046875
+10_q proxy err 0.0029597273096442223 tr(WHW.T) 6915.87109375
+10_k proxy err 0.0019757321570068598 tr(WHW.T) 10996.2431640625
+10_o proxy err 0.03417243808507919 tr(WHW.T) 35.184165954589844
+10_up proxy err 0.014011358842253685 tr(WHW.T) 1080.198486328125
+10_gate proxy err 0.007050143089145422 tr(WHW.T) 2260.88330078125
+10_down proxy err 0.01883271336555481 tr(WHW.T) 52.33584976196289
+I0316 05:17:38.344762 3354631 finetune.py:45] layer 11_q initial loss 0.0004274774983059615
+I0316 05:17:47.543861 3354631 finetune.py:45] layer 11_k initial loss 0.0004982100799679756
+I0316 05:17:56.559690 3354631 finetune.py:45] layer 11_o initial loss 0.000757712172344327
+I0316 05:18:12.279145 3354631 finetune.py:45] layer 11_up initial loss 0.0009192314464598894
+I0316 05:18:27.903111 3354631 finetune.py:45] layer 11_gate initial loss 0.0010400107130408287
+I0316 05:18:40.813080 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 12 in 80.9563057422638s
+I0316 05:18:44.545469 3355843 config.py:54] PyTorch version 2.6.0 available.
+I0316 05:18:44.846875 3354631 finetune.py:45] layer 11_down initial loss 0.0012908033095300198
+W0316 05:18:44.854895 3355843 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+11_v proxy err 0.026753555983304977 tr(WHW.T) 723.1956176757812
+11_q proxy err 0.0033903103321790695 tr(WHW.T) 7027.10986328125
+11_k proxy err 0.0023778195027261972 tr(WHW.T) 10511.23046875
+11_o proxy err 0.03443674370646477 tr(WHW.T) 36.654052734375
+11_up proxy err 0.014283636584877968 tr(WHW.T) 1139.6044921875
+11_gate proxy err 0.007125893607735634 tr(WHW.T) 2392.716552734375
+11_down proxy err 0.019317181780934334 tr(WHW.T) 56.13530731201172
+W0316 05:18:45.838657 3355843 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:18:45.842659 3340929 quantize_finetune_llama.py:195] layer 13 gpu 5
+I0316 05:18:46.017994 3355843 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:19:01.750771 3355843 finetune.py:45] layer 12_v initial loss 0.00037403340684249997
+W0316 05:19:01.751063 3355843 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:19:17.228979 3355843 finetune.py:45] layer 12_q initial loss 0.0004233713261783123
+I0316 05:19:32.045985 3355843 finetune.py:45] layer 12_k initial loss 0.0004862509958911687
+I0316 05:19:46.513487 3355843 finetune.py:45] layer 12_o initial loss 0.0007676964160054922
+I0316 05:20:09.600289 3355843 finetune.py:45] layer 12_up initial loss 0.0009532708209007978
+I0316 05:20:18.038121 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 13 in 91.78860545158386s
+I0316 05:20:21.772369 3357184 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:20:22.085554 3357184 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0316 05:20:22.999679 3357184 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:20:23.003683 3340929 quantize_finetune_llama.py:195] layer 14 gpu 6
+I0316 05:20:23.217956 3357184 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:20:31.838040 3355843 finetune.py:45] layer 12_gate initial loss 0.0010929183335974813
+I0316 05:20:37.900637 3357184 finetune.py:45] layer 13_v initial loss 0.00037446789792738855
+W0316 05:20:37.900959 3357184 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:20:52.843939 3357184 finetune.py:45] layer 13_q initial loss 0.00042341506923548877
+I0316 05:20:56.487041 3355843 finetune.py:45] layer 12_down initial loss 0.0013830178650096059
+12_v proxy err 0.027445605024695396 tr(WHW.T) 703.318603515625
+12_q proxy err 0.0033766557462513447 tr(WHW.T) 7045.6435546875
+12_k proxy err 0.00228992966003716 tr(WHW.T) 10893.65625
+12_o proxy err 0.034964755177497864 tr(WHW.T) 39.29071044921875
+12_up proxy err 0.014124041423201561 tr(WHW.T) 1228.298583984375
+12_gate proxy err 0.007602319587022066 tr(WHW.T) 2381.994873046875
+12_down proxy err 0.019285520538687706 tr(WHW.T) 64.17745208740234
+I0316 05:21:06.807934 3357184 finetune.py:45] layer 13_k initial loss 0.0004922712105326355
+I0316 05:21:21.907786 3357184 finetune.py:45] layer 13_o initial loss 0.0007925801910459995
+I0316 05:21:44.154508 3357184 finetune.py:45] layer 13_up initial loss 0.0010166317224502563
+I0316 05:22:00.200805 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 14 in 96.70892930030823s
+I0316 05:22:03.763040 3358584 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:22:04.077136 3358584 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0316 05:22:05.016508 3358584 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:22:05.020728 3340929 quantize_finetune_llama.py:195] layer 15 gpu 7
+I0316 05:22:05.291657 3358584 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0316 05:22:06.678205 3357184 finetune.py:45] layer 13_gate initial loss 0.001193382777273655
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:22:20.963846 3358584 finetune.py:45] layer 14_v initial loss 0.00048236572183668613
+W0316 05:22:20.964128 3358584 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:22:29.689605 3357184 finetune.py:45] layer 13_down initial loss 0.0015520096058025956
+13_v proxy err 0.026999428868293762 tr(WHW.T) 714.5677490234375
+13_q proxy err 0.0033986058551818132 tr(WHW.T) 6956.03564453125
+13_k proxy err 0.0023799019400030375 tr(WHW.T) 10426.6318359375
+13_o proxy err 0.03130190074443817 tr(WHW.T) 45.8377571105957
+13_up proxy err 0.013646486215293407 tr(WHW.T) 1367.6221923828125
+13_gate proxy err 0.0074437465518713 tr(WHW.T) 2601.504638671875
+13_down proxy err 0.019348420202732086 tr(WHW.T) 79.3589096069336
+I0316 05:22:35.944862 3358584 finetune.py:45] layer 14_q initial loss 0.0005400560330599546
+I0316 05:22:50.497856 3358584 finetune.py:45] layer 14_k initial loss 0.0006008888594806194
+I0316 05:23:05.583251 3358584 finetune.py:45] layer 14_o initial loss 0.0009656880865804851
+I0316 05:23:27.174766 3358584 finetune.py:45] layer 14_up initial loss 0.0012195651652291417
+I0316 05:23:34.527405 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 15 in 88.98362874984741s
+I0316 05:23:38.249982 3359911 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:23:38.565013 3359911 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0316 05:23:39.599950 3359911 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:23:39.604257 3340929 quantize_finetune_llama.py:195] layer 16 gpu 0
+I0316 05:23:39.805022 3359911 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:23:50.235292 3358584 finetune.py:45] layer 14_gate initial loss 0.0014279198367148638
+I0316 05:23:54.410856 3359911 finetune.py:45] layer 15_v initial loss 0.00048472214257344604
+W0316 05:23:54.411104 3359911 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:24:07.803294 3359911 finetune.py:45] layer 15_q initial loss 0.0005470033502206206
+I0316 05:24:13.615657 3358584 finetune.py:45] layer 14_down initial loss 0.0018513377290219069
+14_v proxy err 0.028713703155517578 tr(WHW.T) 706.1612548828125
+14_q proxy err 0.003505072556436062 tr(WHW.T) 7077.06103515625
+14_k proxy err 0.002323003252968192 tr(WHW.T) 11295.16796875
+14_o proxy err 0.034407299011945724 tr(WHW.T) 50.921180725097656
+14_up proxy err 0.013789474964141846 tr(WHW.T) 1464.7159423828125
+14_gate proxy err 0.00780450226739049 tr(WHW.T) 2682.584716796875
+14_down proxy err 0.01972704753279686 tr(WHW.T) 90.28684997558594
+I0316 05:24:22.905241 3359911 finetune.py:45] layer 15_k initial loss 0.0006174114532768726
+I0316 05:24:39.192991 3359911 finetune.py:45] layer 15_o initial loss 0.000998124131001532
+I0316 05:24:42.689430 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 16 in 61.90366983413696s
+I0316 05:24:46.202163 3360916 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:24:46.515860 3360916 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0316 05:24:47.696115 3360916 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:24:47.702095 3340929 quantize_finetune_llama.py:195] layer 17 gpu 1
+I0316 05:24:48.064695 3360916 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:24:57.805580 3360916 finetune.py:45] layer 16_v initial loss 0.0005686312215402722
+W0316 05:24:57.805805 3360916 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:25:02.331060 3359911 finetune.py:45] layer 15_up initial loss 0.0013046239037066698
+I0316 05:25:07.107446 3360916 finetune.py:45] layer 16_q initial loss 0.0006430448847822845
+I0316 05:25:16.816670 3360916 finetune.py:45] layer 16_k initial loss 0.0007330086664296687
+I0316 05:25:25.272596 3359911 finetune.py:45] layer 15_gate initial loss 0.001559228403493762
+I0316 05:25:26.315392 3360916 finetune.py:45] layer 16_o initial loss 0.001212982228025794
+I0316 05:25:42.246433 3360916 finetune.py:45] layer 16_up initial loss 0.001613266533240676
+I0316 05:25:49.294855 3359911 finetune.py:45] layer 15_down initial loss 0.002096947282552719
+I0316 05:25:49.598398 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 17 in 61.426212787628174s
+15_v proxy err 0.026194505393505096 tr(WHW.T) 762.7275390625
+15_q proxy err 0.003363037947565317 tr(WHW.T) 7252.0009765625
+15_k proxy err 0.0023059730883687735 tr(WHW.T) 11072.3974609375
+15_o proxy err 0.02944529429078102 tr(WHW.T) 59.61664962768555
+15_up proxy err 0.013449192978441715 tr(WHW.T) 1641.0228271484375
+15_gate proxy err 0.007853193208575249 tr(WHW.T) 2905.140380859375
+15_down proxy err 0.019734065979719162 tr(WHW.T) 114.09001922607422
+I0316 05:25:53.399610 3361899 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:25:53.702461 3361899 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0316 05:25:54.665913 3361899 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:25:54.671846 3340929 quantize_finetune_llama.py:195] layer 18 gpu 2
+I0316 05:25:55.069431 3361899 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0316 05:25:58.485819 3360916 finetune.py:45] layer 16_gate initial loss 0.00195602816529572
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:26:05.072805 3361899 finetune.py:45] layer 17_v initial loss 0.00048103902372531593
+W0316 05:26:05.073179 3361899 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:26:14.423746 3361899 finetune.py:45] layer 17_q initial loss 0.0005461357068270445
+I0316 05:26:16.298301 3360916 finetune.py:45] layer 16_down initial loss 0.0026873601600527763
+16_v proxy err 0.026727750897407532 tr(WHW.T) 780.7407836914062
+16_q proxy err 0.0034624726977199316 tr(WHW.T) 7193.3974609375
+16_k proxy err 0.002292122459039092 tr(WHW.T) 11630.361328125
+16_o proxy err 0.023385532200336456 tr(WHW.T) 88.22785186767578
+16_up proxy err 0.01317662838846445 tr(WHW.T) 1890.9385986328125
+16_gate proxy err 0.00766499200835824 tr(WHW.T) 3369.859130859375
+16_down proxy err 0.01993466727435589 tr(WHW.T) 152.0294952392578
+I0316 05:26:23.693373 3361899 finetune.py:45] layer 17_k initial loss 0.0006291467580012977
+I0316 05:26:32.871538 3361899 finetune.py:45] layer 17_o initial loss 0.0009673181339167058
+I0316 05:26:48.676813 3361899 finetune.py:45] layer 17_up initial loss 0.0014054753119125962
+I0316 05:26:57.275990 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 18 in 62.07920479774475s
+I0316 05:27:01.028484 3362875 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:27:01.350515 3362875 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0316 05:27:02.331063 3362875 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:27:02.335403 3340929 quantize_finetune_llama.py:195] layer 19 gpu 3
+I0316 05:27:02.503121 3362875 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0316 05:27:04.484148 3361899 finetune.py:45] layer 17_gate initial loss 0.0017762971110641956
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:27:12.364016 3362875 finetune.py:45] layer 18_v initial loss 0.00048671686090528965
+W0316 05:27:12.364279 3362875 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:27:21.835378 3362875 finetune.py:45] layer 18_q initial loss 0.0005825484986416996
+I0316 05:27:21.965029 3361899 finetune.py:45] layer 17_down initial loss 0.002571838442236185
+17_v proxy err 0.025165555998682976 tr(WHW.T) 845.7654418945312
+17_q proxy err 0.003531406866386533 tr(WHW.T) 7163.2734375
+17_k proxy err 0.002482736948877573 tr(WHW.T) 10697.431640625
+17_o proxy err 0.025424545630812645 tr(WHW.T) 58.14826965332031
+17_up proxy err 0.014336633495986462 tr(WHW.T) 1921.07861328125
+17_gate proxy err 0.008024836890399456 tr(WHW.T) 3571.31640625
+17_down proxy err 0.019826263189315796 tr(WHW.T) 165.43495178222656
+I0316 05:27:31.023072 3362875 finetune.py:45] layer 18_k initial loss 0.0007378621376119554
+I0316 05:27:40.356923 3362875 finetune.py:45] layer 18_o initial loss 0.0011116322129964828
+I0316 05:27:56.191000 3362875 finetune.py:45] layer 18_up initial loss 0.0016444615321233869
+I0316 05:28:04.019774 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 19 in 61.147292137145996s
+I0316 05:28:07.760240 3363857 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:28:08.041424 3363857 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0316 05:28:09.068156 3363857 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:28:09.072184 3340929 quantize_finetune_llama.py:195] layer 20 gpu 4
+I0316 05:28:09.259002 3363857 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0316 05:28:12.547009 3362875 finetune.py:45] layer 18_gate initial loss 0.0020889160223305225
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:28:19.122630 3363857 finetune.py:45] layer 19_v initial loss 0.00047192603233270347
+W0316 05:28:19.122945 3363857 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:28:29.474709 3363857 finetune.py:45] layer 19_q initial loss 0.0005550570785999298
+I0316 05:28:31.047962 3362875 finetune.py:45] layer 18_down initial loss 0.003052528016269207
+18_v proxy err 0.023241057991981506 tr(WHW.T) 1003.7705078125
+18_q proxy err 0.003636107314378023 tr(WHW.T) 7510.48046875
+18_k proxy err 0.0027172169648110867 tr(WHW.T) 10462.6650390625
+18_o proxy err 0.02242547832429409 tr(WHW.T) 69.96558380126953
+18_up proxy err 0.01521242968738079 tr(WHW.T) 2023.183837890625
+18_gate proxy err 0.008451673202216625 tr(WHW.T) 3783.076416015625
+18_down proxy err 0.019914858043193817 tr(WHW.T) 198.52699279785156
+I0316 05:28:39.240812 3363857 finetune.py:45] layer 19_k initial loss 0.0006677179480902851
+I0316 05:28:48.398284 3363857 finetune.py:45] layer 19_o initial loss 0.0010111178271472454
+I0316 05:29:03.955226 3363857 finetune.py:45] layer 19_up initial loss 0.001602079952135682
+I0316 05:29:17.371446 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 20 in 67.79290866851807s
+I0316 05:29:19.680632 3363857 finetune.py:45] layer 19_gate initial loss 0.0021060945000499487
+I0316 05:29:21.060286 3364946 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:29:21.384747 3364946 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0316 05:29:22.465869 3364946 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:29:22.470154 3340929 quantize_finetune_llama.py:195] layer 21 gpu 5
+I0316 05:29:22.788084 3364946 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:29:36.950679 3363857 finetune.py:45] layer 19_down initial loss 0.0031628531869500875
+19_v proxy err 0.02279665693640709 tr(WHW.T) 1019.1412353515625
+19_q proxy err 0.0038580335676670074 tr(WHW.T) 6944.4130859375
+19_k proxy err 0.0026646899059414864 tr(WHW.T) 10548.4892578125
+19_o proxy err 0.02215900830924511 tr(WHW.T) 62.291683197021484
+19_up proxy err 0.015317880548536777 tr(WHW.T) 2149.330322265625
+19_gate proxy err 0.009249539114534855 tr(WHW.T) 3687.5126953125
+19_down proxy err 0.01939690113067627 tr(WHW.T) 222.93177795410156
+I0316 05:29:38.943104 3364946 finetune.py:45] layer 20_v initial loss 0.0005495859077200294
+W0316 05:29:38.943380 3364946 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:29:54.681774 3364946 finetune.py:45] layer 20_q initial loss 0.0006486370111815631
+I0316 05:30:09.945290 3364946 finetune.py:45] layer 20_k initial loss 0.000769658712670207
+I0316 05:30:25.745534 3364946 finetune.py:45] layer 20_o initial loss 0.001196546945720911
+I0316 05:30:48.456637 3364946 finetune.py:45] layer 20_up initial loss 0.0019080383935943246
+I0316 05:30:55.968239 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 21 in 93.09263610839844s
+I0316 05:30:59.656924 3366318 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:30:59.975469 3366318 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0316 05:31:00.990074 3366318 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:31:00.994004 3340929 quantize_finetune_llama.py:195] layer 22 gpu 6
+I0316 05:31:01.180970 3366318 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:31:10.923494 3364946 finetune.py:45] layer 20_gate initial loss 0.002515659434720874
+I0316 05:31:16.745435 3366318 finetune.py:45] layer 21_v initial loss 0.0004931451403535903
+W0316 05:31:16.745661 3366318 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:31:31.599068 3366318 finetune.py:45] layer 21_q initial loss 0.0005668358062393963
+I0316 05:31:34.639560 3364946 finetune.py:45] layer 20_down initial loss 0.0038294056430459023
+20_v proxy err 0.023503266274929047 tr(WHW.T) 990.5983276367188
+20_q proxy err 0.003777274861931801 tr(WHW.T) 7150.947265625
+20_k proxy err 0.002702105790376663 tr(WHW.T) 10386.2470703125
+20_o proxy err 0.016540352255105972 tr(WHW.T) 100.31707000732422
+20_up proxy err 0.015011430718004704 tr(WHW.T) 2340.89453125
+20_gate proxy err 0.00906587764620781 tr(WHW.T) 4024.62744140625
+20_down proxy err 0.01926763914525509 tr(WHW.T) 274.8815002441406
+I0316 05:31:46.990320 3366318 finetune.py:45] layer 21_k initial loss 0.0006610885029658675
+I0316 05:32:01.899909 3366318 finetune.py:45] layer 21_o initial loss 0.0009939743904396892
+I0316 05:32:23.936412 3366318 finetune.py:45] layer 21_up initial loss 0.0017539886757731438
+I0316 05:32:35.563533 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 22 in 94.1635992527008s
+I0316 05:32:39.086735 3367700 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:32:39.388469 3367700 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0316 05:32:40.337658 3367700 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:32:40.341720 3340929 quantize_finetune_llama.py:195] layer 23 gpu 7
+I0316 05:32:40.664029 3367700 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:32:46.522139 3366318 finetune.py:45] layer 21_gate initial loss 0.0023921974934637547
+I0316 05:32:56.443718 3367700 finetune.py:45] layer 22_v initial loss 0.0005901505937799811
+W0316 05:32:56.444013 3367700 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:33:10.036988 3366318 finetune.py:45] layer 21_down initial loss 0.0037150592543184757
+21_v proxy err 0.022640163078904152 tr(WHW.T) 1144.5655517578125
+21_q proxy err 0.004163566045463085 tr(WHW.T) 7064.314453125
+21_k proxy err 0.003036778187379241 tr(WHW.T) 9976.4658203125
+21_o proxy err 0.017675936222076416 tr(WHW.T) 75.50972747802734
+21_up proxy err 0.015761040151119232 tr(WHW.T) 2361.650390625
+21_gate proxy err 0.009651169180870056 tr(WHW.T) 4004.37646484375
+21_down proxy err 0.019293557852506638 tr(WHW.T) 276.5857849121094
+I0316 05:33:11.414285 3367700 finetune.py:45] layer 22_q initial loss 0.0007211955962702632
+I0316 05:33:27.133683 3367700 finetune.py:45] layer 22_k initial loss 0.0008990369969978929
+I0316 05:33:42.207801 3367700 finetune.py:45] layer 22_o initial loss 0.001356611493974924
+I0316 05:34:04.356425 3367700 finetune.py:45] layer 22_up initial loss 0.0022283222060650587
+I0316 05:34:13.792103 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 23 in 93.01910638809204s
+I0316 05:34:17.434062 3369076 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:34:17.755028 3369076 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0316 05:34:18.714381 3369076 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:34:18.718628 3340929 quantize_finetune_llama.py:195] layer 24 gpu 0
+I0316 05:34:18.878483 3369076 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:34:27.173541 3367700 finetune.py:45] layer 22_gate initial loss 0.0029542946722358465
+I0316 05:34:34.368334 3369076 finetune.py:45] layer 23_v initial loss 0.0005779720959253609
+W0316 05:34:34.368763 3369076 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:34:48.054838 3369076 finetune.py:45] layer 23_q initial loss 0.0006625298992730677
+I0316 05:34:50.068605 3367700 finetune.py:45] layer 22_down initial loss 0.004453645553439856
+22_v proxy err 0.021612297743558884 tr(WHW.T) 1243.2529296875
+22_q proxy err 0.0039317612536251545 tr(WHW.T) 7746.84765625
+22_k proxy err 0.0029702407773584127 tr(WHW.T) 10603.2041015625
+22_o proxy err 0.014924024231731892 tr(WHW.T) 114.30065155029297
+22_up proxy err 0.01586817391216755 tr(WHW.T) 2474.510498046875
+22_gate proxy err 0.009812095202505589 tr(WHW.T) 4156.64013671875
+22_down proxy err 0.019216779619455338 tr(WHW.T) 311.8800048828125
+I0316 05:35:01.439662 3369076 finetune.py:45] layer 23_k initial loss 0.0007661792333237827
+I0316 05:35:13.794739 3369076 finetune.py:45] layer 23_o initial loss 0.001153457211330533
+I0316 05:35:21.892641 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 24 in 61.986079692840576s
+I0316 05:35:25.693397 3370064 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:35:26.023017 3370064 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0316 05:35:27.007638 3370064 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:35:27.012137 3340929 quantize_finetune_llama.py:195] layer 25 gpu 1
+I0316 05:35:27.217694 3370064 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:35:35.041624 3369076 finetune.py:45] layer 23_up initial loss 0.002097571035847068
+I0316 05:35:36.660661 3370064 finetune.py:45] layer 24_v initial loss 0.0006731695029884577
+W0316 05:35:36.660975 3370064 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:35:46.969229 3370064 finetune.py:45] layer 24_q initial loss 0.0007817989098839462
+I0316 05:35:56.742541 3369076 finetune.py:45] layer 23_gate initial loss 0.002897389465942979
+I0316 05:35:58.035803 3370064 finetune.py:45] layer 24_k initial loss 0.0009083581389859319
+I0316 05:36:08.048364 3370064 finetune.py:45] layer 24_o initial loss 0.0013954987516626716
+I0316 05:36:19.982439 3369076 finetune.py:45] layer 23_down initial loss 0.004431723151355982
+23_v proxy err 0.019769461825489998 tr(WHW.T) 1486.037353515625
+23_q proxy err 0.004447310231626034 tr(WHW.T) 7346.60986328125
+23_k proxy err 0.003358755726367235 tr(WHW.T) 9982.2392578125
+23_o proxy err 0.018016133457422256 tr(WHW.T) 85.13458251953125
+23_up proxy err 0.016432220116257668 tr(WHW.T) 2533.51025390625
+23_gate proxy err 0.01052370946854353 tr(WHW.T) 4097.51953125
+23_down proxy err 0.019326193258166313 tr(WHW.T) 321.33892822265625
+I0316 05:36:25.490415 3370064 finetune.py:45] layer 24_up initial loss 0.0024207301903516054
+I0316 05:36:29.780253 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 25 in 62.32378005981445s
+I0316 05:36:33.452908 3371072 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:36:33.779777 3371072 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0316 05:36:34.755334 3371072 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:36:34.759436 3340929 quantize_finetune_llama.py:195] layer 26 gpu 2
+I0316 05:36:34.981266 3371072 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:36:42.325848 3370064 finetune.py:45] layer 24_gate initial loss 0.003309296676889062
+I0316 05:36:45.391630 3371072 finetune.py:45] layer 25_v initial loss 0.0007259103003889322
+W0316 05:36:45.392189 3371072 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:36:56.060349 3371072 finetune.py:45] layer 25_q initial loss 0.0008369602146558464
+I0316 05:37:00.336172 3370064 finetune.py:45] layer 24_down initial loss 0.00494863698258996
+24_v proxy err 0.020938564091920853 tr(WHW.T) 1394.900634765625
+24_q proxy err 0.00460688304156065 tr(WHW.T) 7020.447265625
+24_k proxy err 0.00325039797462523 tr(WHW.T) 10323.43359375
+24_o proxy err 0.014213637448847294 tr(WHW.T) 133.98797607421875
+24_up proxy err 0.016651516780257225 tr(WHW.T) 2621.76513671875
+24_gate proxy err 0.010599496774375439 tr(WHW.T) 4262.74853515625
+24_down proxy err 0.01937820203602314 tr(WHW.T) 340.22412109375
+I0316 05:37:05.696466 3371072 finetune.py:45] layer 25_k initial loss 0.0010252892971038818
+I0316 05:37:15.432567 3371072 finetune.py:45] layer 25_o initial loss 0.0013866117224097252
+I0316 05:37:30.857515 3371072 finetune.py:45] layer 25_up initial loss 0.0025186450220644474
+I0316 05:37:37.723952 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 26 in 62.492268323898315s
+I0316 05:37:41.423074 3372056 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:37:41.728254 3372056 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0316 05:37:42.710937 3372056 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:37:42.716153 3340929 quantize_finetune_llama.py:195] layer 27 gpu 3
+I0316 05:37:42.932135 3372056 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0316 05:37:46.300059 3371072 finetune.py:45] layer 25_gate initial loss 0.0034922577906399965
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:37:52.765318 3372056 finetune.py:45] layer 26_v initial loss 0.0009814952500164509
+W0316 05:37:52.765678 3372056 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:38:02.143502 3372056 finetune.py:45] layer 26_q initial loss 0.0011551458155736327
+I0316 05:38:03.933918 3371072 finetune.py:45] layer 25_down initial loss 0.005254879593849182
+25_v proxy err 0.019107794389128685 tr(WHW.T) 1707.664794921875
+25_q proxy err 0.004958775360137224 tr(WHW.T) 7162.16357421875
+25_k proxy err 0.0037960687186568975 tr(WHW.T) 9611.58984375
+25_o proxy err 0.017049280926585197 tr(WHW.T) 83.535888671875
+25_up proxy err 0.01654430478811264 tr(WHW.T) 2805.728515625
+25_gate proxy err 0.010312404483556747 tr(WHW.T) 4666.4404296875
+25_down proxy err 0.019228853285312653 tr(WHW.T) 373.460693359375
+I0316 05:38:11.782533 3372056 finetune.py:45] layer 26_k initial loss 0.0013633756898343563
+I0316 05:38:20.875760 3372056 finetune.py:45] layer 26_o initial loss 0.001993373967707157
+I0316 05:38:36.527352 3372056 finetune.py:45] layer 26_up initial loss 0.0032461700029671192
+I0316 05:38:45.385848 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 27 in 62.10092043876648s
+I0316 05:38:49.014758 3373051 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:38:49.347889 3373051 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0316 05:38:50.354651 3373051 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:38:50.359243 3340929 quantize_finetune_llama.py:195] layer 28 gpu 4
+I0316 05:38:50.703791 3373051 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0316 05:38:52.391492 3372056 finetune.py:45] layer 26_gate initial loss 0.0043417224660515785
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:39:00.101171 3373051 finetune.py:45] layer 27_v initial loss 0.0007413725834339857
+W0316 05:39:00.101467 3373051 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:39:09.294227 3373051 finetune.py:45] layer 27_q initial loss 0.0008765522507019341
+I0316 05:39:09.831324 3372056 finetune.py:45] layer 26_down initial loss 0.006294229067862034
+26_v proxy err 0.01910107024013996 tr(WHW.T) 1668.8843994140625
+26_q proxy err 0.004663908388465643 tr(WHW.T) 7469.98291015625
+26_k proxy err 0.003423253772780299 tr(WHW.T) 10487.8740234375
+26_o proxy err 0.011738810688257217 tr(WHW.T) 202.88172912597656
+26_up proxy err 0.015565499663352966 tr(WHW.T) 3154.75146484375
+26_gate proxy err 0.009601812809705734 tr(WHW.T) 5302.16455078125
+26_down proxy err 0.019726654514670372 tr(WHW.T) 401.19390869140625
+I0316 05:39:18.284529 3373051 finetune.py:45] layer 27_k initial loss 0.001034183194860816
+I0316 05:39:27.678517 3373051 finetune.py:45] layer 27_o initial loss 0.0015684586251154542
+I0316 05:39:43.558147 3373051 finetune.py:45] layer 27_up initial loss 0.0029883666429668665
+I0316 05:39:53.538230 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 28 in 62.675214767456055s
+I0316 05:39:57.267969 3374037 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:39:57.599558 3374037 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0316 05:39:58.679395 3374037 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:39:58.683706 3340929 quantize_finetune_llama.py:195] layer 29 gpu 5
+I0316 05:39:58.855148 3374037 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0316 05:39:59.671426 3373051 finetune.py:45] layer 27_gate initial loss 0.0042532640509307384
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:40:08.373747 3374037 finetune.py:45] layer 28_v initial loss 0.000940704601816833
+W0316 05:40:08.373999 3374037 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:40:16.980310 3373051 finetune.py:45] layer 27_down initial loss 0.006526727695018053
+I0316 05:40:17.778854 3374037 finetune.py:45] layer 28_q initial loss 0.0011154937092214823
+27_v proxy err 0.01746547408401966 tr(WHW.T) 1799.3350830078125
+27_q proxy err 0.004481180105358362 tr(WHW.T) 7691.708984375
+27_k proxy err 0.003316108137369156 tr(WHW.T) 10618.70703125
+27_o proxy err 0.015958616510033607 tr(WHW.T) 126.13690185546875
+27_up proxy err 0.014212047681212425 tr(WHW.T) 3691.557861328125
+27_gate proxy err 0.00906944926828146 tr(WHW.T) 5990.82568359375
+27_down proxy err 0.019984422251582146 tr(WHW.T) 466.9318542480469
+I0316 05:40:27.147026 3374037 finetune.py:45] layer 28_k initial loss 0.0013417351292446256
+I0316 05:40:36.783071 3374037 finetune.py:45] layer 28_o initial loss 0.002023426117375493
+I0316 05:40:52.975571 3374037 finetune.py:45] layer 28_up initial loss 0.003704046830534935
+I0316 05:41:11.041437 3374037 finetune.py:45] layer 28_gate initial loss 0.00521657383069396
+I0316 05:41:24.410628 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 29 in 85.22596836090088s
+I0316 05:41:27.941344 3375325 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:41:28.251526 3375325 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+I0316 05:41:28.908908 3374037 finetune.py:45] layer 28_down initial loss 0.008150467649102211
+W0316 05:41:29.206588 3375325 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:41:29.210246 3340929 quantize_finetune_llama.py:195] layer 30 gpu 6
+I0316 05:41:29.377048 3375325 data_utils.py:336] using 256 training seqs, 128 validation seqs
+28_v proxy err 0.016351040452718735 tr(WHW.T) 2018.944091796875
+28_q proxy err 0.004647740162909031 tr(WHW.T) 7651.126953125
+28_k proxy err 0.0034655441995710135 tr(WHW.T) 10544.8251953125
+28_o proxy err 0.013242583721876144 tr(WHW.T) 194.8240966796875
+28_up proxy err 0.011972730979323387 tr(WHW.T) 4661.2666015625
+28_gate proxy err 0.00874937605112791 tr(WHW.T) 6547.48193359375
+28_down proxy err 0.020007004961371422 tr(WHW.T) 603.8403930664062
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:41:43.142927 3375325 finetune.py:45] layer 29_v initial loss 0.000907299923710525
+W0316 05:41:43.143171 3375325 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:41:56.340588 3375325 finetune.py:45] layer 29_q initial loss 0.0010813514236360788
+I0316 05:42:09.422594 3375325 finetune.py:45] layer 29_k initial loss 0.0012936423299834132
+I0316 05:42:22.698553 3375325 finetune.py:45] layer 29_o initial loss 0.0019322829321026802
+I0316 05:42:44.129594 3375325 finetune.py:45] layer 29_up initial loss 0.003905011573806405
+I0316 05:42:56.089828 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 30 in 86.44310879707336s
+I0316 05:42:59.647288 3376587 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:42:59.952792 3376587 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0316 05:43:00.918788 3376587 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:43:00.923486 3340929 quantize_finetune_llama.py:195] layer 31 gpu 7
+I0316 05:43:01.117415 3376587 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0316 05:43:05.073438 3375325 finetune.py:45] layer 29_gate initial loss 0.005717535503208637
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:43:14.960417 3376587 finetune.py:45] layer 30_v initial loss 0.0009410767816007137
+W0316 05:43:14.960696 3376587 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:43:27.137313 3375325 finetune.py:45] layer 29_down initial loss 0.009563682600855827
+29_v proxy err 0.017242690548300743 tr(WHW.T) 1801.7730712890625
+29_q proxy err 0.004649644251912832 tr(WHW.T) 7227.0009765625
+29_k proxy err 0.0032965857535600662 tr(WHW.T) 10558.609375
+29_o proxy err 0.01117666531354189 tr(WHW.T) 207.9054412841797
+29_up proxy err 0.009624800644814968 tr(WHW.T) 6070.0498046875
+29_gate proxy err 0.008081831969320774 tr(WHW.T) 7369.6142578125
+29_down proxy err 0.020142916589975357 tr(WHW.T) 782.2448120117188
+I0316 05:43:28.745743 3376587 finetune.py:45] layer 30_q initial loss 0.0012336953077465296
+I0316 05:43:42.265102 3376587 finetune.py:45] layer 30_k initial loss 0.0016585399862378836
+I0316 05:43:55.973971 3376587 finetune.py:45] layer 30_o initial loss 0.0024978050496429205
+I0316 05:44:17.616354 3376587 finetune.py:45] layer 30_up initial loss 0.0059846071526408195
+I0316 05:44:24.873496 3340929 quantize_finetune_llama.py:222] computed original embedding for layer 31 in 83.5005612373352s
+I0316 05:44:28.479486 3377848 config.py:54] PyTorch version 2.6.0 available.
+W0316 05:44:28.790048 3377848 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0316 05:44:29.769577 3377848 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0316 05:44:29.998810 3377848 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0316 05:44:40.023826 3376587 finetune.py:45] layer 30_gate initial loss 0.009220575913786888
+I0316 05:44:43.601996 3377848 finetune.py:45] layer 31_v initial loss 0.0017983469879254699
+W0316 05:44:43.602240 3377848 warnings.py:109] /workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py:46: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
+
+I0316 05:44:56.840191 3377848 finetune.py:45] layer 31_q initial loss 0.0027837541420012712
+I0316 05:45:03.122092 3376587 finetune.py:45] layer 30_down initial loss 0.020474392920732498
+30_v proxy err 0.014269975014030933 tr(WHW.T) 2261.489501953125
+30_q proxy err 0.00444357143715024 tr(WHW.T) 7815.9453125
+30_k proxy err 0.003373278770595789 tr(WHW.T) 10521.625
+30_o proxy err 0.01169076282531023 tr(WHW.T) 251.96908569335938
+30_up proxy err 0.006091889925301075 tr(WHW.T) 10016.376953125
+30_gate proxy err 0.005622902885079384 tr(WHW.T) 11001.119140625
+30_down proxy err 0.011862381361424923 tr(WHW.T) 3582.617919921875
+I0316 05:45:10.269531 3377848 finetune.py:45] layer 31_k initial loss 0.003704526461660862
+I0316 05:45:23.643952 3377848 finetune.py:45] layer 31_o initial loss 0.005501290317624807
+I0316 05:45:45.659305 3377848 finetune.py:45] layer 31_up initial loss 0.013991156592965126
+I0316 05:46:07.150177 3377848 finetune.py:45] layer 31_gate initial loss 0.020670996978878975
+I0316 05:46:30.462145 3377848 finetune.py:45] layer 31_down initial loss 0.06108617037534714
+31_v proxy err 0.016948938369750977 tr(WHW.T) 1268.2034912109375
+31_q proxy err 0.0035391319543123245 tr(WHW.T) 6858.09130859375
+31_k proxy err 0.002498907269909978 tr(WHW.T) 10233.677734375
+31_o proxy err 0.009049699641764164 tr(WHW.T) 457.7950744628906
+31_up proxy err 0.0036076512187719345 tr(WHW.T) 14563.890625
+31_gate proxy err 0.0035656574182212353 tr(WHW.T) 14836.2939453125
+31_down proxy err 0.008473697118461132 tr(WHW.T) 17873.55859375

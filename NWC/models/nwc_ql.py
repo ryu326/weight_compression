@@ -107,14 +107,14 @@ class NWC_ql(CompressionModel):
     def __init__(self, input_size, dim_encoder, n_resblock, Q, scale, shift):
         super().__init__()
             
-        # self.register_buffer('scale', scale)    
-        # self.register_buffer('shift', shift)
+        self.register_buffer('scale', scale)    
+        self.register_buffer('shift', shift)
         
         ## quality level 개수
         self.Q = Q
         
-        self.scale = scale
-        self.shift = shift    
+        # self.scale = scale
+        # self.shift = shift    
         
         self.input_size = input_size
         self.dim_encoder_out = input_size

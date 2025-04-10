@@ -55,15 +55,17 @@ parser.add_argument('--ft_grad_ckpt', action='store_true')
 parser.add_argument('--skip_list', default=None, type=str)
 
 parser.add_argument("--bundle", action='store_true', default = True)
-parser.add_argument("--ql", type=str, default = None)
+parser.add_argument("--ql", action='store_true')
+parser.add_argument("--ql_path", type=str, default = None)
 parser.add_argument("--hesseigen", type=str, default = None)
 parser.add_argument("--gptq", action='store_true', default = False)
 parser.add_argument("--ldlq", action='store_true', default = False)
 parser.add_argument("--comp_model_path", type=str)
 parser.add_argument("--direction", type=str, default='col')
-parser.add_argument("--comp_batch_size", type=int, default=32768)
+parser.add_argument("--comp_batch_size", type=int, default=2048)
 parser.add_argument('--quip_tune_iters', default=0, type=int)
 parser.add_argument('--rescale_WH', action='store_true')
+parser.add_argument('--rescale_WH_2', action='store_true')
 parser.add_argument('--incoh_mode',
                     default='none',
                     type=str,
@@ -72,6 +74,8 @@ parser.add_argument('--lora_rank',
                     default=0,
                     type=int,
                     help='if <=0 then turned off')
+parser.add_argument('--ql_invH', action='store_true', default=False)
+parser.add_argument('--use_train_scale', action='store_true', default=False)
 
 def check_exist(idx, args):
     suffix = ['q', 'k', 'v', 'o', 'up', 'down', 'layernorm']
@@ -137,6 +141,10 @@ def main(args):
     all_config['model_config'].update({'quip_params': quip_params})
     torch.save(all_config, os.path.join(args.save_path, 'config.pt'))
 
+    all_config = {'quant_args': vars(args), 'model_config': model.config.to_dict()}
+    with open(os.path.join(args.save_path, 'config.json'), 'w') as f:
+        json.dump(all_config, f, indent=4)
+
     tokenizer = AutoTokenizer.from_pretrained(args.base_model)
     tokenizer.pad_token = tokenizer.eos_token
     glog.info('loaded model')
@@ -147,23 +155,33 @@ def main(args):
         config = json.load(file)
     config = Config(**config)
     
-    shift, scale = utils.get_model_weight_stats(model, args, config.input_size)    
+    shift, scale = None, None
     if config.architecture == 'nwc_ql' and not hasattr(config, "Q"):
         config.Q = 4
     comp_model = get_model(config.architecture, config, scale=scale, shift=shift)      
     ckpt = torch.load(args.comp_model_path, weights_only=False)
     
-    if 'scale' in ckpt["state_dict"]:
-        del ckpt["state_dict"]['scale']
-    if 'shift' in ckpt["state_dict"]:
-        del ckpt["state_dict"]['shift']
-    
-    comp_model.load_state_dict(ckpt["state_dict"])
+    if args.use_train_scale:
+        scale = ckpt["state_dict"]["scale"]
+        shift = ckpt["state_dict"]["shift"]
+        print('Use train scale and shift')
+    else:
+        if 'scale' in ckpt["state_dict"]:
+            del ckpt["state_dict"]['scale']
+        if 'shift' in ckpt["state_dict"]:
+            del ckpt["state_dict"]['shift']
+        shift, scale = utils.get_model_weight_stats(model, args, config.input_size)
+    print(shift, scale)
 
+    comp_model.load_state_dict(ckpt["state_dict"], strict = False)
+    comp_model.scale = scale
+    comp_model.shift = shift
+    print(comp_model.scale, comp_model.shift)
+    
     q_level = None
-    if args.ql is not None:
+    if args.ql_path is not None:
         assert args.direction == 'col'
-        q_level = torch.load(args.ql, weights_only=False)
+        q_level = torch.load(args.ql_path, weights_only=False)
     glog.info('loaded compression model')
 
     devset = utils.sample_rp1t(tokenizer, args.devset_size, args.ctx_size,
@@ -202,15 +220,19 @@ def main(args):
         position_ids = position_ids.to(cur_device)
         attention_mask = attention_mask.to(cur_device)
         model.model.layers[i].to(cur_device)
-        for j in range(args.devset_size // args.batch_size):
-            utils.clean()
-            orig_emb_cache[cur_device + 1][args.batch_size * j : args.batch_size * (j + 1)] = \
-                model.model.layers[i](
-                    orig_emb_cache[cur_device][args.batch_size * j : args.batch_size * (j + 1)].to(cur_device),
-                    position_ids=position_ids,
-                    attention_mask=attention_mask,
-                    use_cache=False,
-                    output_attentions=False)[0].cpu()
+        
+        if args.ft_epochs > 0:
+            for j in range(args.devset_size // args.batch_size):
+                utils.clean()
+                orig_emb_cache[cur_device + 1][args.batch_size * j : args.batch_size * (j + 1)] = \
+                    model.model.layers[i](
+                        orig_emb_cache[cur_device][args.batch_size * j : args.batch_size * (j + 1)].to(cur_device),
+                        position_ids=position_ids,
+                        attention_mask=attention_mask,
+                        use_cache=False,
+                        output_attentions=False)[0].cpu()
+        else:
+            orig_emb_cache[cur_device + 1] = orig_emb_cache[cur_device]
         model.model.layers[i].cpu()
         position_ids = position_ids.cpu()
         attention_mask = attention_mask.cpu()

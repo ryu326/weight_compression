@@ -247,6 +247,8 @@ def quantize_finetune_decoder_layer(mixed_layer, quant_order, idx, cb, args,
                 Wscale,
                 'proxy_err':
                 err.item(),
+                'tr(WHW.T)': torch.trace(Wr @ HRr @ Wr.T).item(),
+                'mse': torch.mean((Wr - hatWr) ** 2).item(),
                 'tlut':
                 cb.tlut.data.to(orig_dtype).cpu()
                 if hasattr(cb, 'tlut') else None,
@@ -255,7 +257,6 @@ def quantize_finetune_decoder_layer(mixed_layer, quant_order, idx, cb, args,
                 'tp_rank':
                 args.tp_rank
             }, save_path)
-
 
         del HRr, Wr, hatWr, LRr, Qidxs
         utils.clean()

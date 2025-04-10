@@ -17,11 +17,12 @@ torch.set_grad_enabled(False)
 parser = argparse.ArgumentParser()
 parser.add_argument('--quantized_path', type=str)
 parser.add_argument('--hf_output_path', type=str)
+parser.add_argument('--skip_list', type=str)
 
 
 def main(args):
     assert os.path.exists(args.quantized_path)
-    saved_config = torch.load(os.path.join(args.quantized_path, 'config.pt'))
+    saved_config = torch.load(os.path.join(args.quantized_path, 'config.pt'), weights_only=False)
     model_config = saved_config['model_config']
     glog.info(model_config)
     fused = model_config.quip_params.get('fused', True)
@@ -33,16 +34,18 @@ def main(args):
                                                 low_cpu_mem_usage=True,
                                                 config=model_config)
 
-    # orig_model = OrigLlama.from_pretrained(model_config._name_or_path,
-    #                                        torch_dtype='auto',
-    #                                        low_cpu_mem_usage=True,
-    #                                        config=model_config)
+    orig_model = OrigLlama.from_pretrained(model_config._name_or_path,
+                                           torch_dtype='auto',
+                                           low_cpu_mem_usage=True,
+                                           config=model_config)
 
-    try:
-        if model_config.quip_params['skip_list'] is None:
-            model_config.quip_params['skip_list'] = []
-    except:
-        model_config.quip_params['skip_list'] = []
+    # try:
+    #     if skip_list is None:
+    #         skip_list = []
+    # except:
+    #     skip_list = []
+    
+    skip_list = args.skip_list.split(',') if args.skip_list else []
     
     comp_result = {}
     comp_result['bpp_loss'] = 0
@@ -52,7 +55,7 @@ def main(args):
     cpu = torch.device('cpu')
     if os.path.exists(f'{args.quantized_path}/lmhead.pt'):
         lmhead_data = torch.load(f'{args.quantized_path}/lmhead.pt',
-                                 map_location=cpu)
+                                 map_location=cpu, weights_only=False)
         model.lm_head.weight.copy_(lmhead_data['lm_head'].to(
             model.lm_head.weight.dtype))
         model.model.norm.weight.copy_(lmhead_data['norm'].to(
@@ -63,81 +66,88 @@ def main(args):
 
         if os.path.exists(f'{args.quantized_path}/{ii}_layernorm.pt'):
             ln_data = torch.load(f'{args.quantized_path}/{ii}_layernorm.pt',
-                                 map_location=cpu)
+                                 map_location=cpu, weights_only=False)
             layer.input_layernorm.weight.copy_(ln_data['input_layernorm'].to(
                 layer.input_layernorm.weight.dtype))
             layer.post_attention_layernorm.weight.copy_(
                 ln_data['post_attention_layernorm'].to(
                     layer.post_attention_layernorm.weight.dtype))
 
-        if f'{ii}_q' not in model_config.quip_params['skip_list']:
+        if f'{ii}_q' not in skip_list:
             saved_layer = torch.load(f'{args.quantized_path}/{ii}_q.pt',
-                                     map_location=cpu)
+                                     map_location=cpu, weights_only=False)
             layer.self_attn.q_proj.weight.copy_(saved_layer['W_hat'].to(layer.self_attn.q_proj.weight.dtype))
             comp_result[f'{ii}_q.pt'] = {k:v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor)}
             comp_result['bpp_loss'] += saved_layer['bpp_loss_sum']
             comp_result['num_pixels'] += saved_layer['num_pixels']
         else:
+            print('### skip ####')
             layer.self_attn.q_proj = orig_model.model.layers[ii].self_attn.q_proj
         
-        if f'{ii}_k' not in model_config.quip_params['skip_list']:
+        if f'{ii}_k' not in skip_list:
             saved_layer = torch.load(f'{args.quantized_path}/{ii}_k.pt',
-                                     map_location=cpu)
+                                     map_location=cpu, weights_only=False)
             layer.self_attn.k_proj.weight.copy_(saved_layer['W_hat'].to(layer.self_attn.k_proj.weight.dtype))            
             comp_result[f'{ii}_k.pt'] = {k:v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor)}
             comp_result['bpp_loss'] += saved_layer['bpp_loss_sum']
             comp_result['num_pixels'] += saved_layer['num_pixels']
         else:
+            print('### skip ####')
             layer.self_attn.k_proj = orig_model.model.layers[ii].self_attn.k_proj
             
-        if f'{ii}_v' not in model_config.quip_params['skip_list']:
+        if f'{ii}_v' not in skip_list:
             saved_layer = torch.load(f'{args.quantized_path}/{ii}_v.pt',
-                                     map_location=cpu)
+                                     map_location=cpu, weights_only=False)
             layer.self_attn.v_proj.weight.copy_(saved_layer['W_hat'].to(layer.self_attn.v_proj.weight.dtype))            
             comp_result[f'{ii}_v.pt'] = {k:v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor)}
             comp_result['bpp_loss'] += saved_layer['bpp_loss_sum']
             comp_result['num_pixels'] += saved_layer['num_pixels']
         else:
+            print('### skip ####')
             layer.self_attn.v_proj = orig_model.model.layers[ii].self_attn.v_proj
 
-        if f'{ii}_o' not in model_config.quip_params['skip_list']:
+        if f'{ii}_o' not in skip_list:
             saved_layer = torch.load(f'{args.quantized_path}/{ii}_o.pt',
-                                     map_location=cpu)
+                                     map_location=cpu, weights_only=False)
             layer.self_attn.o_proj.weight.copy_(saved_layer['W_hat'].to(layer.self_attn.o_proj.weight.dtype))            
             comp_result[f'{ii}_o.pt'] = {k:v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor)}
             comp_result['bpp_loss'] += saved_layer['bpp_loss_sum']
             comp_result['num_pixels'] += saved_layer['num_pixels']
         else:
+            print('### skip ####')
             layer.self_attn.o_proj = orig_model.model.layers[ii].self_attn.o_proj
 
-        if f'{ii}_up' not in model_config.quip_params['skip_list']:
+        if f'{ii}_up' not in skip_list:
             saved_layer = torch.load(f'{args.quantized_path}/{ii}_up.pt',
-                                     map_location=cpu)
+                                     map_location=cpu, weights_only=False)
             layer.mlp.up_proj.weight.copy_(saved_layer['W_hat'].to(layer.mlp.up_proj.weight.dtype))            
             comp_result[f'{ii}_up.pt'] = {k:v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor)}
             comp_result['bpp_loss'] += saved_layer['bpp_loss_sum']
             comp_result['num_pixels'] += saved_layer['num_pixels']
         else:
+            print('### skip ####')
             layer.mlp.up_proj = orig_model.model.layers[ii].mlp.up_proj
             
-        if f'{ii}_gate' not in model_config.quip_params['skip_list']:
+        if f'{ii}_gate' not in skip_list:
             saved_layer = torch.load(f'{args.quantized_path}/{ii}_gate.pt',
-                                     map_location=cpu)
+                                     map_location=cpu, weights_only=False)
             layer.mlp.gate_proj.weight.copy_(saved_layer['W_hat'].to(layer.mlp.gate_proj.weight.dtype))            
             comp_result[f'{ii}_gate.pt'] = {k:v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor)}
             comp_result['bpp_loss'] += saved_layer['bpp_loss_sum']
             comp_result['num_pixels'] += saved_layer['num_pixels']
         else:
+            print('### skip ####')
             layer.mlp.gate_proj = orig_model.model.layers[ii].mlp.gate_proj
                       
-        if f'{ii}_down' not in model_config.quip_params['skip_list']:
+        if f'{ii}_down' not in skip_list:
             saved_layer = torch.load(f'{args.quantized_path}/{ii}_down.pt',
-                                     map_location=cpu)
+                                     map_location=cpu, weights_only=False)
             layer.mlp.down_proj.weight.copy_(saved_layer['W_hat'].to(layer.mlp.down_proj.weight.dtype))            
             comp_result[f'{ii}_down.pt'] = {k:v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor)}
             comp_result['bpp_loss'] += saved_layer['bpp_loss_sum']
             comp_result['num_pixels'] += saved_layer['num_pixels']
         else:
+            print('### skip ####')
             layer.mlp.down_proj = orig_model.model.layers[ii].mlp.down_proj
 
         glog.info(f'loaded layer {ii}')

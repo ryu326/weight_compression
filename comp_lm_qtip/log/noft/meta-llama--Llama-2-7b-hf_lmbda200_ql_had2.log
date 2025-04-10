@@ -1,0 +1,785 @@
+I0318 08:55:08.641213 473042 config.py:54] PyTorch version 2.6.0 available.
+W0318 08:55:08.930058 473042 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0318 08:55:09.801444 473042 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+Loading checkpoint shards:   0%|          | 0/6 [00:00<?, ?it/s]Loading checkpoint shards:  17%|█▋        | 1/6 [00:00<00:00,  7.13it/s]Loading checkpoint shards:  33%|███▎      | 2/6 [00:00<00:00,  7.73it/s]Loading checkpoint shards:  50%|█████     | 3/6 [00:00<00:00,  8.12it/s]Loading checkpoint shards:  67%|██████▋   | 4/6 [00:00<00:00,  8.32it/s]Loading checkpoint shards:  83%|████████▎ | 5/6 [00:00<00:00,  8.43it/s]Loading checkpoint shards: 100%|██████████| 6/6 [00:00<00:00,  8.50it/s]Loading checkpoint shards: 100%|██████████| 6/6 [00:00<00:00,  8.27it/s]
+I0318 08:55:10.731046 473042 quantize_finetune_llama.py:144] loaded model
+calculating model weight mean & std:   0%|          | 0/32 [00:00<?, ?it/s]calculating model weight mean & std:   3%|▎         | 1/32 [00:00<00:15,  2.05it/s]calculating model weight mean & std:   6%|▋         | 2/32 [00:00<00:14,  2.11it/s]calculating model weight mean & std:   9%|▉         | 3/32 [00:01<00:13,  2.17it/s]calculating model weight mean & std:  12%|█▎        | 4/32 [00:01<00:13,  2.15it/s]calculating model weight mean & std:  16%|█▌        | 5/32 [00:02<00:12,  2.18it/s]calculating model weight mean & std:  19%|█▉        | 6/32 [00:02<00:11,  2.23it/s]calculating model weight mean & std:  22%|██▏       | 7/32 [00:03<00:11,  2.26it/s]calculating model weight mean & std:  25%|██▌       | 8/32 [00:03<00:10,  2.33it/s]calculating model weight mean & std:  28%|██▊       | 9/32 [00:03<00:09,  2.34it/s]calculating model weight mean & std:  31%|███▏      | 10/32 [00:04<00:09,  2.34it/s]calculating model weight mean & std:  34%|███▍      | 11/32 [00:04<00:08,  2.37it/s]calculating model weight mean & std:  38%|███▊      | 12/32 [00:05<00:08,  2.37it/s]calculating model weight mean & std:  41%|████      | 13/32 [00:05<00:07,  2.38it/s]calculating model weight mean & std:  44%|████▍     | 14/32 [00:06<00:07,  2.38it/s]calculating model weight mean & std:  47%|████▋     | 15/32 [00:06<00:07,  2.39it/s]calculating model weight mean & std:  50%|█████     | 16/32 [00:06<00:06,  2.37it/s]calculating model weight mean & std:  53%|█████▎    | 17/32 [00:07<00:06,  2.38it/s]calculating model weight mean & std:  56%|█████▋    | 18/32 [00:07<00:05,  2.36it/s]calculating model weight mean & std:  59%|█████▉    | 19/32 [00:08<00:05,  2.38it/s]calculating model weight mean & std:  62%|██████▎   | 20/32 [00:08<00:05,  2.40it/s]calculating model weight mean & std:  66%|██████▌   | 21/32 [00:09<00:04,  2.41it/s]calculating model weight mean & std:  69%|██████▉   | 22/32 [00:09<00:04,  2.42it/s]calculating model weight mean & std:  72%|███████▏  | 23/32 [00:09<00:03,  2.42it/s]calculating model weight mean & std:  75%|███████▌  | 24/32 [00:10<00:03,  2.43it/s]calculating model weight mean & std:  78%|███████▊  | 25/32 [00:10<00:02,  2.42it/s]calculating model weight mean & std:  81%|████████▏ | 26/32 [00:11<00:02,  2.40it/s]calculating model weight mean & std:  84%|████████▍ | 27/32 [00:11<00:02,  2.41it/s]calculating model weight mean & std:  88%|████████▊ | 28/32 [00:11<00:01,  2.36it/s]calculating model weight mean & std:  91%|█████████ | 29/32 [00:12<00:01,  2.38it/s]calculating model weight mean & std:  94%|█████████▍| 30/32 [00:12<00:00,  2.40it/s]calculating model weight mean & std:  97%|█████████▋| 31/32 [00:13<00:00,  2.38it/s]calculating model weight mean & std: 100%|██████████| 32/32 [00:13<00:00,  2.38it/s]calculating model weight mean & std: 100%|██████████| 32/32 [00:13<00:00,  2.35it/s]
+I0318 08:55:29.067768 473042 quantize_finetune_llama.py:179] loaded compression model
+I0318 08:55:43.152156 473042 quantize_finetune_llama.py:183] loaded dataset and devset
+I0318 08:55:49.013601 473042 quantize_finetune_llama.py:203] layer 0 gpu 0
+I0318 08:55:51.141472 473042 quantize_finetune_llama.py:234] computed original embedding for layer 0 in 1.9692785739898682s
+tensor(0.0192) tensor(-3.6338e-06)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+I0318 08:56:07.315707 473879 config.py:54] PyTorch version 2.6.0 available.
+W0318 08:56:07.597222 473879 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0318 08:56:08.560085 473879 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 08:56:08.564031 473042 quantize_finetune_llama.py:203] layer 1 gpu 1
+I0318 08:56:08.577266 473879 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0318 08:56:11.396912 473042 quantize_finetune_llama.py:234] computed original embedding for layer 1 in 2.66860032081604s
+I0318 08:56:14.966911 474034 config.py:54] PyTorch version 2.6.0 available.
+W0318 08:56:15.276405 474034 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0318 08:56:16.232405 474034 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 08:56:16.236549 473042 quantize_finetune_llama.py:203] layer 2 gpu 2
+I0318 08:56:16.250640 474034 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0318 08:56:20.898525 473042 quantize_finetune_llama.py:234] computed original embedding for layer 2 in 4.499610424041748s
+I0318 08:56:24.500475 474202 config.py:54] PyTorch version 2.6.0 available.
+W0318 08:56:24.807559 474202 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0318 08:56:25.727290 474202 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 08:56:25.731124 473042 quantize_finetune_llama.py:203] layer 3 gpu 3
+I0318 08:56:25.744099 474202 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0318 08:56:29.836452 473042 quantize_finetune_llama.py:234] computed original embedding for layer 3 in 3.9746129512786865s
+I0318 08:56:33.795872 474357 config.py:54] PyTorch version 2.6.0 available.
+W0318 08:56:34.144651 474357 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0318 08:56:35.155938 474357 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 08:56:35.160678 473042 quantize_finetune_llama.py:203] layer 4 gpu 0
+I0318 08:56:35.175879 474357 data_utils.py:336] using 256 training seqs, 128 validation seqs
+0_v proxy err 0.053806666284799576 tr(WHW.T) 4.225186347961426
+bpp_loss 3.1544406414031982
+0_q proxy err 0.00021454751549754292 tr(WHW.T) 2710.363037109375
+bpp_loss 3.300845503807068
+0_k proxy err 0.00027096259873360395 tr(WHW.T) 1698.7349853515625
+bpp_loss 3.396445631980896
+0_o proxy err 0.0034694760106503963 tr(WHW.T) 0.9668058156967163
+bpp_loss 2.9753037691116333
+0_up proxy err 0.006578400265425444 tr(WHW.T) 43.27138900756836
+bpp_loss 3.459752459858739
+0_gate proxy err 0.004535237327218056 tr(WHW.T) 63.47430419921875
+bpp_loss 3.4780624744504
+0_down proxy err 0.004548967350274324 tr(WHW.T) 0.656814694404602
+bpp_loss 3.5061276901599974
+1_v proxy err 0.08047027885913849 tr(WHW.T) 16.465883255004883
+bpp_loss 3.1021363735198975
+1_q proxy err 0.0003507406509015709 tr(WHW.T) 4778.43994140625
+bpp_loss 4.1924803256988525
+1_k proxy err 0.0003430139913689345 tr(WHW.T) 4995.39208984375
+bpp_loss 4.189136266708374
+1_o proxy err 0.014284783974289894 tr(WHW.T) 1.1115814447402954
+bpp_loss 3.0184134244918823
+1_up proxy err 0.007000881712883711 tr(WHW.T) 109.66383361816406
+bpp_loss 3.528412752373274
+1_gate proxy err 0.003532028989866376 tr(WHW.T) 221.3038787841797
+bpp_loss 3.601511045943859
+1_down proxy err 0.004014463163912296 tr(WHW.T) 2041.4736328125
+bpp_loss 3.545819459959518
+I0318 08:57:12.937336 473042 quantize_finetune_llama.py:234] computed original embedding for layer 4 in 0.7850024700164795s
+I0318 08:57:16.901984 474911 config.py:54] PyTorch version 2.6.0 available.
+W0318 08:57:17.262958 474911 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0318 08:57:18.319215 474911 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 08:57:18.323630 473042 quantize_finetune_llama.py:203] layer 5 gpu 1
+I0318 08:57:18.342963 474911 data_utils.py:336] using 256 training seqs, 128 validation seqs
+2_v proxy err 0.01937500759959221 tr(WHW.T) 136.67332458496094
+bpp_loss 3.3454724550247192
+2_q proxy err 0.0004051539581269026 tr(WHW.T) 7752.85205078125
+bpp_loss 4.205479860305786
+2_k proxy err 0.00031734665390104055 tr(WHW.T) 10205.837890625
+bpp_loss 4.307217359542847
+2_o proxy err 0.011276214383542538 tr(WHW.T) 1.4603197574615479
+bpp_loss 3.3192981481552124
+2_up proxy err 0.0081863384693861 tr(WHW.T) 193.43603515625
+bpp_loss 3.549326164777889
+2_gate proxy err 0.005229542031884193 tr(WHW.T) 306.6622619628906
+bpp_loss 3.636947986691497
+2_down proxy err 0.009443385526537895 tr(WHW.T) 3.010739803314209
+bpp_loss 3.5573567900546763
+I0318 08:57:24.134238 473042 quantize_finetune_llama.py:234] computed original embedding for layer 5 in 0.8521032333374023s
+I0318 08:57:27.804085 475087 config.py:54] PyTorch version 2.6.0 available.
+W0318 08:57:28.085290 475087 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0318 08:57:29.057433 475087 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 08:57:29.061532 473042 quantize_finetune_llama.py:203] layer 6 gpu 2
+I0318 08:57:29.075043 475087 data_utils.py:336] using 256 training seqs, 128 validation seqs
+3_v proxy err 0.018738791346549988 tr(WHW.T) 284.77557373046875
+bpp_loss 3.3002777099609375
+3_q proxy err 0.0008321870700456202 tr(WHW.T) 7217.63720703125
+bpp_loss 4.100318908691406
+3_k proxy err 0.0006075631827116013 tr(WHW.T) 10074.73828125
+bpp_loss 4.175769090652466
+3_o proxy err 0.011219042353332043 tr(WHW.T) 3.3527450561523438
+bpp_loss 3.282975673675537
+3_up proxy err 0.009312012232840061 tr(WHW.T) 284.7950744628906
+bpp_loss 3.5577717270962026
+3_gate proxy err 0.0056152124889194965 tr(WHW.T) 478.13714599609375
+bpp_loss 3.6559261943018715
+3_down proxy err 0.00964065920561552 tr(WHW.T) 6.133229732513428
+bpp_loss 3.5610079654427462
+I0318 08:57:40.286264 473042 quantize_finetune_llama.py:234] computed original embedding for layer 6 in 0.9123425483703613s
+I0318 08:57:44.052006 475328 config.py:54] PyTorch version 2.6.0 available.
+W0318 08:57:44.393188 475328 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0318 08:57:45.395002 475328 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 08:57:45.399200 473042 quantize_finetune_llama.py:203] layer 7 gpu 3
+I0318 08:57:45.413131 475328 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0318 08:57:46.796062 473042 quantize_finetune_llama.py:234] computed original embedding for layer 7 in 0.8914768695831299s
+I0318 08:57:50.575475 475454 config.py:54] PyTorch version 2.6.0 available.
+W0318 08:57:50.924242 475454 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0318 08:57:51.967789 475454 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 08:57:51.972101 473042 quantize_finetune_llama.py:203] layer 8 gpu 0
+I0318 08:57:51.986575 475454 data_utils.py:336] using 256 training seqs, 128 validation seqs
+4_v proxy err 0.017978651449084282 tr(WHW.T) 274.6131286621094
+bpp_loss 3.346514940261841
+4_q proxy err 0.0007940218201838434 tr(WHW.T) 6914.9892578125
+bpp_loss 4.179857015609741
+4_k proxy err 0.0005444162525236607 tr(WHW.T) 10415.33203125
+bpp_loss 4.220987319946289
+4_o proxy err 0.01116974838078022 tr(WHW.T) 5.139806270599365
+bpp_loss 3.3277761936187744
+4_up proxy err 0.009182052686810493 tr(WHW.T) 397.6960144042969
+bpp_loss 3.5493213742278344
+4_gate proxy err 0.004523465875536203 tr(WHW.T) 821.1856689453125
+bpp_loss 3.6834283873092297
+4_down proxy err 0.009645811282098293 tr(WHW.T) 11.562739372253418
+bpp_loss 3.547087469766306
+5_v proxy err 0.017742859199643135 tr(WHW.T) 298.47540283203125
+bpp_loss 3.3699212074279785
+5_q proxy err 0.0008686496876180172 tr(WHW.T) 6770.97509765625
+bpp_loss 4.189456224441528
+5_k proxy err 0.0005645751371048391 tr(WHW.T) 10841.955078125
+bpp_loss 4.269397735595703
+5_o proxy err 0.015753740444779396 tr(WHW.T) 7.947142601013184
+bpp_loss 3.3499834537506104
+5_up proxy err 0.009010697714984417 tr(WHW.T) 506.6408386230469
+bpp_loss 3.5492816304051598
+5_gate proxy err 0.004210100509226322 tr(WHW.T) 1104.867919921875
+bpp_loss 3.6916697302529977
+5_down proxy err 0.010183765552937984 tr(WHW.T) 15.6494779586792
+bpp_loss 3.548043650250102
+I0318 08:58:27.056575 473042 quantize_finetune_llama.py:234] computed original embedding for layer 8 in 0.9015922546386719s
+I0318 08:58:30.533350 475988 config.py:54] PyTorch version 2.6.0 available.
+W0318 08:58:30.855400 475988 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0318 08:58:31.863248 475988 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 08:58:31.867343 473042 quantize_finetune_llama.py:203] layer 9 gpu 1
+I0318 08:58:31.881037 475988 data_utils.py:336] using 256 training seqs, 128 validation seqs
+6_v proxy err 0.01792825199663639 tr(WHW.T) 443.5464782714844
+bpp_loss 3.3039203882217407
+6_q proxy err 0.0011441285023465753 tr(WHW.T) 7576.53857421875
+bpp_loss 4.080687522888184
+6_k proxy err 0.0008530204650014639 tr(WHW.T) 10409.4033203125
+bpp_loss 4.117392301559448
+6_o proxy err 0.014600732363760471 tr(WHW.T) 11.564380645751953
+bpp_loss 3.292520523071289
+6_up proxy err 0.009020744822919369 tr(WHW.T) 617.2608642578125
+bpp_loss 3.545173999875091
+6_gate proxy err 0.0036629054229706526 tr(WHW.T) 1554.7271728515625
+bpp_loss 3.71516631370367
+6_down proxy err 0.010508985258638859 tr(WHW.T) 22.988168716430664
+bpp_loss 3.5413622301678327
+I0318 08:58:43.070982 473042 quantize_finetune_llama.py:234] computed original embedding for layer 9 in 0.8871383666992188s
+I0318 08:58:46.749520 476219 config.py:54] PyTorch version 2.6.0 available.
+W0318 08:58:47.083783 476219 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0318 08:58:48.090731 476219 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 08:58:48.095149 473042 quantize_finetune_llama.py:203] layer 10 gpu 2
+I0318 08:58:48.110028 476219 data_utils.py:336] using 256 training seqs, 128 validation seqs
+7_v proxy err 0.017618725076317787 tr(WHW.T) 489.9357604980469
+bpp_loss 3.314495801925659
+7_q proxy err 0.001226877560839057 tr(WHW.T) 7672.17919921875
+bpp_loss 4.0771164894104
+7_k proxy err 0.0009315132047049701 tr(WHW.T) 10198.3701171875
+bpp_loss 4.086277961730957
+7_o proxy err 0.016736112534999847 tr(WHW.T) 15.11335563659668
+bpp_loss 3.2987669706344604
+7_up proxy err 0.008883924223482609 tr(WHW.T) 735.8538818359375
+bpp_loss 3.549295469771984
+7_gate proxy err 0.003562822239473462 tr(WHW.T) 1876.0390625
+bpp_loss 3.714359904444495
+7_down proxy err 0.010649376548826694 tr(WHW.T) 30.58672523498535
+bpp_loss 3.5432051725165787
+I0318 08:58:57.801836 473042 quantize_finetune_llama.py:234] computed original embedding for layer 10 in 1.014033317565918s
+I0318 08:59:01.574319 476435 config.py:54] PyTorch version 2.6.0 available.
+W0318 08:59:01.873034 476435 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0318 08:59:02.846810 476435 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 08:59:02.851197 473042 quantize_finetune_llama.py:203] layer 11 gpu 3
+I0318 08:59:02.867774 476435 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0318 08:59:04.612527 473042 quantize_finetune_llama.py:234] computed original embedding for layer 11 in 1.2765405178070068s
+I0318 08:59:08.482961 476558 config.py:54] PyTorch version 2.6.0 available.
+W0318 08:59:08.825005 476558 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0318 08:59:09.838495 476558 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 08:59:09.842938 473042 quantize_finetune_llama.py:203] layer 12 gpu 0
+I0318 08:59:09.872353 476558 data_utils.py:336] using 256 training seqs, 128 validation seqs
+8_v proxy err 0.01635761559009552 tr(WHW.T) 530.9967041015625
+bpp_loss 3.3377288579940796
+8_q proxy err 0.001316711655817926 tr(WHW.T) 7228.1201171875
+bpp_loss 4.095168828964233
+8_k proxy err 0.0009092106483876705 tr(WHW.T) 10639.1015625
+bpp_loss 4.106208801269531
+8_o proxy err 0.018788659945130348 tr(WHW.T) 20.092191696166992
+bpp_loss 3.3237425088882446
+8_up proxy err 0.008160140365362167 tr(WHW.T) 866.312744140625
+bpp_loss 3.5640917046125544
+8_gate proxy err 0.003668998135253787 tr(WHW.T) 1970.857177734375
+bpp_loss 3.6920327474904613
+8_down proxy err 0.01060018502175808 tr(WHW.T) 37.177734375
+bpp_loss 3.5555699370628178
+9_v proxy err 0.015503326430916786 tr(WHW.T) 565.0663452148438
+bpp_loss 3.3554937839508057
+9_q proxy err 0.0013602765975520015 tr(WHW.T) 6970.3359375
+bpp_loss 4.097746849060059
+9_k proxy err 0.0008839253569021821 tr(WHW.T) 10987.3515625
+bpp_loss 4.144429445266724
+9_o proxy err 0.01867835968732834 tr(WHW.T) 25.610172271728516
+bpp_loss 3.343132495880127
+9_up proxy err 0.007879982702434063 tr(WHW.T) 970.8984375
+bpp_loss 3.5723206276117367
+9_gate proxy err 0.0036553128156811 tr(WHW.T) 2132.69384765625
+bpp_loss 3.678973353186319
+9_down proxy err 0.010608552023768425 tr(WHW.T) 42.99482727050781
+bpp_loss 3.563884823821312
+I0318 08:59:45.631287 473042 quantize_finetune_llama.py:234] computed original embedding for layer 12 in 0.944556713104248s
+I0318 08:59:49.268113 477102 config.py:54] PyTorch version 2.6.0 available.
+W0318 08:59:49.617341 477102 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0318 08:59:50.668708 477102 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 08:59:50.672958 473042 quantize_finetune_llama.py:203] layer 13 gpu 1
+I0318 08:59:50.689485 477102 data_utils.py:336] using 256 training seqs, 128 validation seqs
+10_v proxy err 0.0157329048961401 tr(WHW.T) 578.807373046875
+bpp_loss 3.346583366394043
+10_q proxy err 0.001429127063602209 tr(WHW.T) 6915.87109375
+bpp_loss 4.095308065414429
+10_k proxy err 0.0009149691322818398 tr(WHW.T) 10996.2431640625
+bpp_loss 4.151835203170776
+10_o proxy err 0.01925712265074253 tr(WHW.T) 35.184165954589844
+bpp_loss 3.3393203020095825
+10_up proxy err 0.0074181328527629375 tr(WHW.T) 1080.198486328125
+bpp_loss 3.585171189419059
+10_gate proxy err 0.003610918764024973 tr(WHW.T) 2260.88330078125
+bpp_loss 3.674740813499273
+10_down proxy err 0.010095820762217045 tr(WHW.T) 52.33584976196289
+bpp_loss 3.5742497555045194
+I0318 09:00:00.702794 473042 quantize_finetune_llama.py:234] computed original embedding for layer 13 in 0.9677870273590088s
+I0318 09:00:04.356219 477323 config.py:54] PyTorch version 2.6.0 available.
+W0318 09:00:04.685874 477323 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0318 09:00:05.706428 477323 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 09:00:05.710607 473042 quantize_finetune_llama.py:203] layer 14 gpu 2
+I0318 09:00:05.725994 477323 data_utils.py:336] using 256 training seqs, 128 validation seqs
+11_v proxy err 0.014918298460543156 tr(WHW.T) 723.1956176757812
+bpp_loss 3.385241389274597
+11_q proxy err 0.0016416627913713455 tr(WHW.T) 7027.10986328125
+bpp_loss 4.00410270690918
+11_k proxy err 0.0011283274507150054 tr(WHW.T) 10511.23046875
+bpp_loss 3.9994510412216187
+11_o proxy err 0.01926502212882042 tr(WHW.T) 36.654052734375
+bpp_loss 3.37590491771698
+11_up proxy err 0.007560356520116329 tr(WHW.T) 1139.6044921875
+bpp_loss 3.5956309118936227
+11_gate proxy err 0.003658178262412548 tr(WHW.T) 2392.716552734375
+bpp_loss 3.669748350631359
+11_down proxy err 0.01033720187842846 tr(WHW.T) 56.13530731201172
+bpp_loss 3.5820985394854876
+I0318 09:00:13.587840 473042 quantize_finetune_llama.py:234] computed original embedding for layer 14 in 1.0172216892242432s
+I0318 09:00:17.396032 477532 config.py:54] PyTorch version 2.6.0 available.
+W0318 09:00:17.753162 477532 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0318 09:00:18.769436 477532 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 09:00:18.773570 473042 quantize_finetune_llama.py:203] layer 15 gpu 3
+I0318 09:00:18.787639 477532 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0318 09:00:20.194457 473042 quantize_finetune_llama.py:234] computed original embedding for layer 15 in 0.9409422874450684s
+I0318 09:00:24.097431 477661 config.py:54] PyTorch version 2.6.0 available.
+W0318 09:00:24.412806 477661 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0318 09:00:25.460135 477661 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 09:00:25.464377 473042 quantize_finetune_llama.py:203] layer 16 gpu 0
+I0318 09:00:25.492825 477661 data_utils.py:336] using 256 training seqs, 128 validation seqs
+12_v proxy err 0.015198945999145508 tr(WHW.T) 703.318603515625
+bpp_loss 3.3732305765151978
+12_q proxy err 0.001632210798561573 tr(WHW.T) 7045.6435546875
+bpp_loss 4.039517164230347
+12_k proxy err 0.0010745530016720295 tr(WHW.T) 10893.65625
+bpp_loss 4.095158338546753
+12_o proxy err 0.01971624605357647 tr(WHW.T) 39.29071044921875
+bpp_loss 3.365275025367737
+12_up proxy err 0.007469291798770428 tr(WHW.T) 1228.298583984375
+bpp_loss 3.607020001078761
+12_gate proxy err 0.003914149012416601 tr(WHW.T) 2381.994873046875
+bpp_loss 3.661273867584938
+12_down proxy err 0.010309248231351376 tr(WHW.T) 64.17745208740234
+bpp_loss 3.5923877316851947
+13_v proxy err 0.015026170760393143 tr(WHW.T) 714.5677490234375
+bpp_loss 3.4075454473495483
+13_q proxy err 0.0016477789031341672 tr(WHW.T) 6956.03564453125
+bpp_loss 4.023196458816528
+13_k proxy err 0.001123648602515459 tr(WHW.T) 10426.6318359375
+bpp_loss 4.055018186569214
+13_o proxy err 0.017422394827008247 tr(WHW.T) 45.8377571105957
+bpp_loss 3.398118734359741
+13_up proxy err 0.007196846418082714 tr(WHW.T) 1367.6221923828125
+bpp_loss 3.6197956883630087
+13_gate proxy err 0.003832744201645255 tr(WHW.T) 2601.504638671875
+bpp_loss 3.656603081281795
+13_down proxy err 0.010329675860702991 tr(WHW.T) 79.3589096069336
+bpp_loss 3.6022618537725406
+I0318 09:01:03.791035 473042 quantize_finetune_llama.py:234] computed original embedding for layer 16 in 1.0386765003204346s
+I0318 09:01:07.633465 478143 config.py:54] PyTorch version 2.6.0 available.
+W0318 09:01:07.978589 478143 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0318 09:01:08.966250 478143 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 09:01:08.970629 473042 quantize_finetune_llama.py:203] layer 17 gpu 1
+I0318 09:01:08.985767 478143 data_utils.py:336] using 256 training seqs, 128 validation seqs
+14_v proxy err 0.01596739888191223 tr(WHW.T) 706.1612548828125
+bpp_loss 3.3896117210388184
+14_q proxy err 0.0017074100906029344 tr(WHW.T) 7077.06103515625
+bpp_loss 4.017950534820557
+14_k proxy err 0.001088730408810079 tr(WHW.T) 11295.16796875
+bpp_loss 4.052514553070068
+14_o proxy err 0.019299283623695374 tr(WHW.T) 50.921180725097656
+bpp_loss 3.3789076805114746
+14_up proxy err 0.007274265866726637 tr(WHW.T) 1464.7159423828125
+bpp_loss 3.6211317195448767
+14_gate proxy err 0.00401779729872942 tr(WHW.T) 2682.584716796875
+bpp_loss 3.6540271847747094
+14_down proxy err 0.01055738516151905 tr(WHW.T) 90.28684997558594
+bpp_loss 3.6035754625187364
+I0318 09:01:16.880012 473042 quantize_finetune_llama.py:234] computed original embedding for layer 17 in 1.2726528644561768s
+I0318 09:01:20.638619 478347 config.py:54] PyTorch version 2.6.0 available.
+W0318 09:01:20.990302 478347 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+15_v proxy err 0.014479774050414562 tr(WHW.T) 762.7275390625
+bpp_loss 3.4281158447265625
+15_q proxy err 0.0016262506833299994 tr(WHW.T) 7252.0009765625
+bpp_loss 3.9965373277664185
+15_k proxy err 0.001088842749595642 tr(WHW.T) 11072.3974609375
+bpp_loss 4.05694317817688
+15_o proxy err 0.01632699742913246 tr(WHW.T) 59.61664962768555
+bpp_loss 3.414927363395691
+15_up proxy err 0.007086203899234533 tr(WHW.T) 1641.0228271484375
+bpp_loss 3.6282254596089207
+15_gate proxy err 0.004049445036798716 tr(WHW.T) 2905.140380859375
+bpp_loss 3.6610687610714936
+15_down proxy err 0.01055161189287901 tr(WHW.T) 114.09001922607422
+bpp_loss 3.6080576209134834
+W0318 09:01:21.956036 478347 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 09:01:21.960043 473042 quantize_finetune_llama.py:203] layer 18 gpu 2
+I0318 09:01:21.973272 478347 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0318 09:01:23.838147 473042 quantize_finetune_llama.py:234] computed original embedding for layer 18 in 0.9258301258087158s
+I0318 09:01:27.480824 478485 config.py:54] PyTorch version 2.6.0 available.
+W0318 09:01:27.758843 478485 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0318 09:01:28.744796 478485 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 09:01:28.749129 473042 quantize_finetune_llama.py:203] layer 19 gpu 3
+I0318 09:01:28.764193 478485 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0318 09:01:30.286242 473042 quantize_finetune_llama.py:234] computed original embedding for layer 19 in 1.0450496673583984s
+I0318 09:01:34.185861 478608 config.py:54] PyTorch version 2.6.0 available.
+W0318 09:01:34.540351 478608 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0318 09:01:35.538608 478608 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 09:01:35.542984 473042 quantize_finetune_llama.py:203] layer 20 gpu 0
+I0318 09:01:35.557210 478608 data_utils.py:336] using 256 training seqs, 128 validation seqs
+16_v proxy err 0.014598850160837173 tr(WHW.T) 780.7407836914062
+bpp_loss 3.4712995290756226
+16_q proxy err 0.00168712402228266 tr(WHW.T) 7193.3974609375
+bpp_loss 3.9843116998672485
+16_k proxy err 0.0010723299346864223 tr(WHW.T) 11630.361328125
+bpp_loss 4.030788898468018
+16_o proxy err 0.012721328064799309 tr(WHW.T) 88.22785186767578
+bpp_loss 3.4604432582855225
+16_up proxy err 0.006933101452887058 tr(WHW.T) 1890.9385986328125
+bpp_loss 3.627200814180596
+16_gate proxy err 0.003939338959753513 tr(WHW.T) 3369.859130859375
+bpp_loss 3.670316296954488
+16_down proxy err 0.010671927593648434 tr(WHW.T) 152.0294952392578
+bpp_loss 3.6072028625843138
+17_v proxy err 0.013739666901528835 tr(WHW.T) 845.7654418945312
+bpp_loss 3.467739701271057
+17_q proxy err 0.001727055525407195 tr(WHW.T) 7163.2734375
+bpp_loss 3.9707988500595093
+17_k proxy err 0.0011817559134215117 tr(WHW.T) 10697.431640625
+bpp_loss 4.00936484336853
+17_o proxy err 0.01401243545114994 tr(WHW.T) 58.14826965332031
+bpp_loss 3.461187720298767
+17_up proxy err 0.0075729056261479855 tr(WHW.T) 1921.07861328125
+bpp_loss 3.622363245764444
+17_gate proxy err 0.00412426283583045 tr(WHW.T) 3571.31640625
+bpp_loss 3.682810761207758
+17_down proxy err 0.0105903847143054 tr(WHW.T) 165.43495178222656
+bpp_loss 3.6057926444120185
+I0318 09:02:20.583639 473042 quantize_finetune_llama.py:234] computed original embedding for layer 20 in 1.0117413997650146s
+I0318 09:02:24.324980 479172 config.py:54] PyTorch version 2.6.0 available.
+W0318 09:02:24.674525 479172 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+18_v proxy err 0.012596954591572285 tr(WHW.T) 1003.7705078125
+bpp_loss 3.5183794498443604
+18_q proxy err 0.001778916222974658 tr(WHW.T) 7510.48046875
+bpp_loss 3.933001756668091
+18_k proxy err 0.0012966819340363145 tr(WHW.T) 10462.6650390625
+bpp_loss 3.9695266485214233
+18_o proxy err 0.012183720245957375 tr(WHW.T) 69.96558380126953
+bpp_loss 3.5026743412017822
+18_up proxy err 0.008064396679401398 tr(WHW.T) 2023.183837890625
+bpp_loss 3.61858261463254
+18_gate proxy err 0.004367380402982235 tr(WHW.T) 3783.076416015625
+bpp_loss 3.695009630779887
+18_down proxy err 0.010627242736518383 tr(WHW.T) 198.52699279785156
+bpp_loss 3.604490324508312
+W0318 09:02:25.647572 479172 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 09:02:25.652084 473042 quantize_finetune_llama.py:203] layer 21 gpu 1
+I0318 09:02:25.665758 479172 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0318 09:02:27.602216 473042 quantize_finetune_llama.py:234] computed original embedding for layer 21 in 0.9755663871765137s
+I0318 09:02:31.313153 479288 config.py:54] PyTorch version 2.6.0 available.
+W0318 09:02:31.618261 479288 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+19_v proxy err 0.012318412773311138 tr(WHW.T) 1019.1412353515625
+bpp_loss 3.528357148170471
+19_q proxy err 0.001915340544655919 tr(WHW.T) 6944.4130859375
+bpp_loss 3.912254810333252
+19_k proxy err 0.001275140792131424 tr(WHW.T) 10548.4892578125
+bpp_loss 3.9443899393081665
+19_o proxy err 0.012007174082100391 tr(WHW.T) 62.291683197021484
+bpp_loss 3.5166938304901123
+19_up proxy err 0.008101952262222767 tr(WHW.T) 2149.330322265625
+bpp_loss 3.6185831469158796
+19_gate proxy err 0.004782472271472216 tr(WHW.T) 3687.5126953125
+bpp_loss 3.6997544044672055
+19_down proxy err 0.010355675593018532 tr(WHW.T) 222.93177795410156
+bpp_loss 3.607461086539335
+W0318 09:02:32.591519 479288 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 09:02:32.595551 473042 quantize_finetune_llama.py:203] layer 22 gpu 2
+I0318 09:02:32.608499 479288 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0318 09:02:34.176926 473042 quantize_finetune_llama.py:234] computed original embedding for layer 22 in 1.0052990913391113s
+I0318 09:02:37.935060 479424 config.py:54] PyTorch version 2.6.0 available.
+W0318 09:02:38.246266 479424 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0318 09:02:39.240111 479424 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 09:02:39.244149 473042 quantize_finetune_llama.py:203] layer 23 gpu 3
+I0318 09:02:39.260546 479424 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0318 09:02:40.903364 473042 quantize_finetune_llama.py:234] computed original embedding for layer 23 in 1.1736631393432617s
+I0318 09:02:44.696651 479552 config.py:54] PyTorch version 2.6.0 available.
+W0318 09:02:45.067538 479552 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0318 09:02:46.059413 479552 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 09:02:46.063645 473042 quantize_finetune_llama.py:203] layer 24 gpu 0
+I0318 09:02:46.077804 479552 data_utils.py:336] using 256 training seqs, 128 validation seqs
+20_v proxy err 0.012755787000060081 tr(WHW.T) 990.5983276367188
+bpp_loss 3.546258807182312
+20_q proxy err 0.0018551464891061187 tr(WHW.T) 7150.947265625
+bpp_loss 3.9229140281677246
+20_k proxy err 0.0012980883475393057 tr(WHW.T) 10386.2470703125
+bpp_loss 3.9536635875701904
+20_o proxy err 0.008853932842612267 tr(WHW.T) 100.31707000732422
+bpp_loss 3.5389935970306396
+20_up proxy err 0.007948607206344604 tr(WHW.T) 2340.89453125
+bpp_loss 3.617720138194949
+20_gate proxy err 0.004678444005548954 tr(WHW.T) 4024.62744140625
+bpp_loss 3.707191644712936
+20_down proxy err 0.010269595310091972 tr(WHW.T) 274.8815002441406
+bpp_loss 3.607246066248694
+21_v proxy err 0.01215928141027689 tr(WHW.T) 1144.5655517578125
+bpp_loss 3.582775831222534
+21_q proxy err 0.0020635402761399746 tr(WHW.T) 7064.314453125
+bpp_loss 3.886361002922058
+21_k proxy err 0.0014803250087425113 tr(WHW.T) 9976.4658203125
+bpp_loss 3.9041073322296143
+21_o proxy err 0.009452982805669308 tr(WHW.T) 75.50972747802734
+bpp_loss 3.565341830253601
+21_up proxy err 0.008354864083230495 tr(WHW.T) 2361.650390625
+bpp_loss 3.6155663423759994
+21_gate proxy err 0.004993515554815531 tr(WHW.T) 4004.37646484375
+bpp_loss 3.7164975543354832
+21_down proxy err 0.010291063226759434 tr(WHW.T) 276.5857849121094
+bpp_loss 3.607141694357229
+I0318 09:03:29.964307 473042 quantize_finetune_llama.py:234] computed original embedding for layer 24 in 0.891923189163208s
+I0318 09:03:33.656296 480099 config.py:54] PyTorch version 2.6.0 available.
+W0318 09:03:34.022956 480099 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0318 09:03:35.018057 480099 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 09:03:35.022298 473042 quantize_finetune_llama.py:203] layer 25 gpu 1
+I0318 09:03:35.038171 480099 data_utils.py:336] using 256 training seqs, 128 validation seqs
+22_v proxy err 0.011613667011260986 tr(WHW.T) 1243.2529296875
+bpp_loss 3.5871331691741943
+22_q proxy err 0.0019522656220942736 tr(WHW.T) 7746.84765625
+bpp_loss 3.920042872428894
+22_k proxy err 0.001440261141397059 tr(WHW.T) 10603.2041015625
+bpp_loss 3.941424608230591
+22_o proxy err 0.007955577224493027 tr(WHW.T) 114.30065155029297
+bpp_loss 3.5687566995620728
+22_up proxy err 0.008413123898208141 tr(WHW.T) 2474.510498046875
+bpp_loss 3.614872244901435
+22_gate proxy err 0.005078898277133703 tr(WHW.T) 4156.64013671875
+bpp_loss 3.7246796364007992
+22_down proxy err 0.010257991030812263 tr(WHW.T) 311.8800048828125
+bpp_loss 3.6076291771822198
+I0318 09:03:37.705846 473042 quantize_finetune_llama.py:234] computed original embedding for layer 25 in 0.9927282333374023s
+I0318 09:03:41.498633 480232 config.py:54] PyTorch version 2.6.0 available.
+W0318 09:03:41.841200 480232 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+23_v proxy err 0.01054401509463787 tr(WHW.T) 1486.037353515625
+bpp_loss 3.645579218864441
+23_q proxy err 0.002222356153652072 tr(WHW.T) 7346.60986328125
+bpp_loss 3.908587694168091
+23_k proxy err 0.0016538003692403436 tr(WHW.T) 9982.2392578125
+bpp_loss 3.921597957611084
+23_o proxy err 0.009557580575346947 tr(WHW.T) 85.13458251953125
+bpp_loss 3.6297727823257446
+23_up proxy err 0.008715873584151268 tr(WHW.T) 2533.51025390625
+bpp_loss 3.62111096049464
+23_gate proxy err 0.005451281554996967 tr(WHW.T) 4097.51953125
+bpp_loss 3.7239814580873003
+23_down proxy err 0.010300882160663605 tr(WHW.T) 321.33892822265625
+bpp_loss 3.615044261133948
+W0318 09:03:42.823317 480232 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 09:03:42.827338 473042 quantize_finetune_llama.py:203] layer 26 gpu 2
+I0318 09:03:42.841069 480232 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0318 09:03:44.661968 473042 quantize_finetune_llama.py:234] computed original embedding for layer 26 in 0.9050922393798828s
+I0318 09:03:48.404258 480370 config.py:54] PyTorch version 2.6.0 available.
+W0318 09:03:48.688918 480370 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0318 09:03:49.653548 480370 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 09:03:49.658028 473042 quantize_finetune_llama.py:203] layer 27 gpu 3
+I0318 09:03:49.672564 480370 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0318 09:03:51.258881 473042 quantize_finetune_llama.py:234] computed original embedding for layer 27 in 1.1076171398162842s
+I0318 09:03:55.043566 480498 config.py:54] PyTorch version 2.6.0 available.
+W0318 09:03:55.387353 480498 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0318 09:03:56.397395 480498 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 09:03:56.401850 473042 quantize_finetune_llama.py:203] layer 28 gpu 0
+I0318 09:03:56.416926 480498 data_utils.py:336] using 256 training seqs, 128 validation seqs
+24_v proxy err 0.011147352866828442 tr(WHW.T) 1394.900634765625
+bpp_loss 3.63371741771698
+24_q proxy err 0.0022994668688625097 tr(WHW.T) 7020.447265625
+bpp_loss 3.8632630109786987
+24_k proxy err 0.0015781891997903585 tr(WHW.T) 10323.43359375
+bpp_loss 3.872070550918579
+24_o proxy err 0.007543187588453293 tr(WHW.T) 133.98797607421875
+bpp_loss 3.6117453575134277
+24_up proxy err 0.008829358965158463 tr(WHW.T) 2621.76513671875
+bpp_loss 3.6250839233398438
+24_gate proxy err 0.005494666285812855 tr(WHW.T) 4262.74853515625
+bpp_loss 3.7276197921398073
+24_down proxy err 0.01033045630902052 tr(WHW.T) 340.22412109375
+bpp_loss 3.6197046013765557
+25_v proxy err 0.010115035809576511 tr(WHW.T) 1707.664794921875
+bpp_loss 3.682591676712036
+25_q proxy err 0.002480729715898633 tr(WHW.T) 7162.16357421875
+bpp_loss 3.8766212463378906
+25_k proxy err 0.0018699783831834793 tr(WHW.T) 9611.58984375
+bpp_loss 3.8824483156204224
+25_o proxy err 0.009029324166476727 tr(WHW.T) 83.535888671875
+bpp_loss 3.6637656688690186
+25_up proxy err 0.008768522180616856 tr(WHW.T) 2805.728515625
+bpp_loss 3.6306489456531614
+25_gate proxy err 0.005339053459465504 tr(WHW.T) 4666.4404296875
+bpp_loss 3.7302888382312864
+25_down proxy err 0.010237636044621468 tr(WHW.T) 373.460693359375
+bpp_loss 3.6260016019954238
+I0318 09:04:40.155920 473042 quantize_finetune_llama.py:234] computed original embedding for layer 28 in 1.0148546695709229s
+I0318 09:04:43.931405 481043 config.py:54] PyTorch version 2.6.0 available.
+W0318 09:04:44.260198 481043 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0318 09:04:45.249941 481043 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 09:04:45.254211 473042 quantize_finetune_llama.py:203] layer 29 gpu 1
+I0318 09:04:45.268485 481043 data_utils.py:336] using 256 training seqs, 128 validation seqs
+26_v proxy err 0.01010087225586176 tr(WHW.T) 1668.8843994140625
+bpp_loss 3.704426407814026
+26_q proxy err 0.0023292279802262783 tr(WHW.T) 7469.98291015625
+bpp_loss 3.8515008687973022
+26_k proxy err 0.001686577801592648 tr(WHW.T) 10487.8740234375
+bpp_loss 3.8642505407333374
+26_o proxy err 0.0061454311944544315 tr(WHW.T) 202.88172912597656
+bpp_loss 3.695811152458191
+26_up proxy err 0.008237834088504314 tr(WHW.T) 3154.75146484375
+bpp_loss 3.635270584461301
+26_gate proxy err 0.004961030557751656 tr(WHW.T) 5302.16455078125
+bpp_loss 3.7346972088481105
+26_down proxy err 0.01050412654876709 tr(WHW.T) 401.19390869140625
+bpp_loss 3.6300600628520168
+I0318 09:04:47.677176 473042 quantize_finetune_llama.py:234] computed original embedding for layer 29 in 1.1956205368041992s
+I0318 09:04:51.551690 481178 config.py:54] PyTorch version 2.6.0 available.
+W0318 09:04:51.901088 481178 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+27_v proxy err 0.009207163006067276 tr(WHW.T) 1799.3350830078125
+bpp_loss 3.70710825920105
+27_q proxy err 0.002223433693870902 tr(WHW.T) 7691.708984375
+bpp_loss 3.910210371017456
+27_k proxy err 0.0016271850327029824 tr(WHW.T) 10618.70703125
+bpp_loss 3.926968216896057
+27_o proxy err 0.008374313823878765 tr(WHW.T) 126.13690185546875
+bpp_loss 3.7044804096221924
+27_up proxy err 0.007505418732762337 tr(WHW.T) 3691.557861328125
+bpp_loss 3.641922351925872
+27_gate proxy err 0.004681495949625969 tr(WHW.T) 5990.82568359375
+bpp_loss 3.736306301383085
+27_down proxy err 0.010661700740456581 tr(WHW.T) 466.9318542480469
+bpp_loss 3.636823388033135
+W0318 09:04:52.855437 481178 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 09:04:52.859619 473042 quantize_finetune_llama.py:203] layer 30 gpu 2
+I0318 09:04:52.875928 481178 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0318 09:04:54.368942 473042 quantize_finetune_llama.py:234] computed original embedding for layer 30 in 0.9498245716094971s
+I0318 09:04:58.124518 481304 config.py:54] PyTorch version 2.6.0 available.
+W0318 09:04:58.417160 481304 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0318 09:04:59.355846 481304 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 09:04:59.360372 473042 quantize_finetune_llama.py:203] layer 31 gpu 3
+I0318 09:04:59.375289 481304 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0318 09:05:00.953177 473042 quantize_finetune_llama.py:234] computed original embedding for layer 31 in 1.095322847366333s
+I0318 09:05:04.722512 481432 config.py:54] PyTorch version 2.6.0 available.
+W0318 09:05:05.061267 481432 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0318 09:05:06.112529 481432 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0318 09:05:06.135309 481432 data_utils.py:336] using 256 training seqs, 128 validation seqs
+28_v proxy err 0.008534102700650692 tr(WHW.T) 2018.944091796875
+bpp_loss 3.751258373260498
+28_q proxy err 0.002324478467926383 tr(WHW.T) 7651.126953125
+bpp_loss 3.8642863035202026
+28_k proxy err 0.0016989829018712044 tr(WHW.T) 10544.8251953125
+bpp_loss 3.8837298154830933
+28_o proxy err 0.0068872724659740925 tr(WHW.T) 194.8240966796875
+bpp_loss 3.745198130607605
+28_up proxy err 0.0062715415842831135 tr(WHW.T) 4661.2666015625
+bpp_loss 3.6549363247183866
+28_gate proxy err 0.004512118641287088 tr(WHW.T) 6547.48193359375
+bpp_loss 3.730045052461846
+28_down proxy err 0.010626561939716339 tr(WHW.T) 603.8403930664062
+bpp_loss 3.644789363062659
+29_v proxy err 0.00901858787983656 tr(WHW.T) 1801.7730712890625
+bpp_loss 3.7568596601486206
+29_q proxy err 0.0023156916722655296 tr(WHW.T) 7227.0009765625
+bpp_loss 3.823501467704773
+29_k proxy err 0.0016026693629100919 tr(WHW.T) 10558.609375
+bpp_loss 3.8372347354888916
+29_o proxy err 0.005792936775833368 tr(WHW.T) 207.9054412841797
+bpp_loss 3.762477397918701
+29_up proxy err 0.005012944340705872 tr(WHW.T) 6070.0498046875
+bpp_loss 3.667414288188136
+29_gate proxy err 0.00415272731333971 tr(WHW.T) 7369.6142578125
+bpp_loss 3.7338501686273617
+29_down proxy err 0.010744795203208923 tr(WHW.T) 782.2448120117188
+bpp_loss 3.649366911067519
+30_v proxy err 0.007422975730150938 tr(WHW.T) 2261.489501953125
+bpp_loss 3.7910115718841553
+30_q proxy err 0.0021994835697114468 tr(WHW.T) 7815.9453125
+bpp_loss 3.8335959911346436
+30_k proxy err 0.0016528621781617403 tr(WHW.T) 10521.625
+bpp_loss 3.855193853378296
+30_o proxy err 0.006034983787685633 tr(WHW.T) 251.96908569335938
+bpp_loss 3.7986886501312256
+30_up proxy err 0.0030900652054697275 tr(WHW.T) 10016.376953125
+bpp_loss 3.6905948727629907
+30_gate proxy err 0.0028314138762652874 tr(WHW.T) 11001.119140625
+bpp_loss 3.766875688419786
+30_down proxy err 0.006191577296704054 tr(WHW.T) 3582.617919921875
+bpp_loss 3.641582777333814
+31_v proxy err 0.008966929279267788 tr(WHW.T) 1268.2034912109375
+bpp_loss 3.660096526145935
+31_q proxy err 0.0017304556677117944 tr(WHW.T) 6858.09130859375
+bpp_loss 3.853074073791504
+31_k proxy err 0.0011831435840576887 tr(WHW.T) 10233.677734375
+bpp_loss 3.9108301401138306
+31_o proxy err 0.004680227022618055 tr(WHW.T) 457.7950744628906
+bpp_loss 3.673792004585266
+31_up proxy err 0.0017791643040254712 tr(WHW.T) 14563.890625
+bpp_loss 3.7451739643895348
+31_gate proxy err 0.0017521744593977928 tr(WHW.T) 14836.2939453125
+bpp_loss 3.8315190159997274
+31_down proxy err 0.004379719961434603 tr(WHW.T) 17873.55859375
+bpp_loss 3.6400206144465956

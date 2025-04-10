@@ -20,9 +20,13 @@ def get_wikitext2(nsamples, seed, seqlen, model):
     # tokenizer = AutoTokenizer.from_pretrained(model, use_fast=False)
     ## 
     if '13b' in model:
-        tokenizer = AutoTokenizer.from_pretrained('/home/jgryu/Weight_compression/Wparam_dataset/hf_model/meta-llama--Llama-2-13b-hf', use_fast=False)
+        tokenizer = AutoTokenizer.from_pretrained('../Wparam_dataset/hf_model/meta-llama--Llama-2-13b-hf', use_fast=False)
+    elif '7b' in model:
+        tokenizer = AutoTokenizer.from_pretrained('../Wparam_dataset/hf_model/meta-llama--Llama-2-7b-hf', use_fast=False)
+    elif '8b' in model.lower():
+        tokenizer = AutoTokenizer.from_pretrained('../Wparam_dataset/hf_model/meta-llama--Meta-Llama-3-8B', use_fast=False)
     else:
-        tokenizer = AutoTokenizer.from_pretrained('/home/jgryu/Weight_compression/Wparam_dataset/hf_model/meta-llama--Llama-2-7b-hf', use_fast=False)
+        raise Exception
     trainenc = tokenizer("\n\n".join(traindata['text']), return_tensors='pt')
     testenc = tokenizer("\n\n".join(testdata['text']), return_tensors='pt')
 

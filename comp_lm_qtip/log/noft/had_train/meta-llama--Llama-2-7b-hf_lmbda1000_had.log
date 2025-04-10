@@ -1,0 +1,19 @@
+I0317 14:18:32.389402 3926204 config.py:54] PyTorch version 2.6.0 available.
+W0317 14:18:32.671919 3926204 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0317 14:18:33.537287 3926204 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+Loading checkpoint shards:   0%|          | 0/6 [00:00<?, ?it/s]Loading checkpoint shards:  17%|█▋        | 1/6 [00:00<00:00,  7.12it/s]Loading checkpoint shards:  33%|███▎      | 2/6 [00:00<00:00,  7.80it/s]Loading checkpoint shards:  50%|█████     | 3/6 [00:00<00:00,  8.09it/s]Loading checkpoint shards:  67%|██████▋   | 4/6 [00:00<00:00,  8.25it/s]Loading checkpoint shards:  83%|████████▎ | 5/6 [00:00<00:00,  8.34it/s]Loading checkpoint shards: 100%|██████████| 6/6 [00:00<00:00,  8.46it/s]Loading checkpoint shards: 100%|██████████| 6/6 [00:00<00:00,  8.24it/s]
+I0317 14:18:34.472139 3926204 quantize_finetune_llama.py:144] loaded model
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/opt/conda/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 262, in <module>
+    main(args)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 148, in main
+    with open(config, 'r', encoding='utf-8') as file:
+FileNotFoundError: [Errno 2] No such file or directory: '../NWC/checkpoint/nwc/block_seq_scaler_meta-llama--Meta-Llama-3-8B__col_4096_RHT.pt/lmbda1000_*/config.json'

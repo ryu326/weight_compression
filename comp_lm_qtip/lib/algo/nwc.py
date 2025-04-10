@@ -4,6 +4,7 @@ import math
 from lib import utils
 import os
 from lib.algo import quip
+import numpy as np
 
 def compress_linear(W, H, comp_model, ql, args, device='cpu'):
     
@@ -12,12 +13,45 @@ def compress_linear(W, H, comp_model, ql, args, device='cpu'):
     comp_model.shift = comp_model.shift.to(device)
     W = W.to(device)
     H = H.to(device)
+    
+    SU, SV, scaleWH = None, None, None
+    if args.incoh_mode != 'none':
+        Lhr, H, W, SU, SV, scaleWH = quip.incoherence_preprocess(H, W, args)
+
+    if args.ql == True:
+        assert ql == None
+        assert comp_model.Q == 4
+        top = np.array([0.1, 1, 10])
+        qlevel = [3, 2, 1]
+        in_norm = torch.diag(H)
+        topk = (top * len(in_norm)/100).astype(int)
+        ql = torch.zeros_like(in_norm, dtype=torch.int32)
+        _, topk_indices = torch.topk(in_norm, k=topk.sum())
+        start = 0    
+        for count, value in zip(topk , qlevel):
+            indices = topk_indices[start:start + count]
+            ql[indices] = value
+            start += count
+        
+    if args.ql_invH == True:
+        assert ql == None
+        assert comp_model.Q == 4
+        Lhr = torch.linalg.cholesky(H)
+        H_inv = torch.cholesky_inverse(Lhr)
+        top = np.array([0.1, 1, 10])
+        qlevel = [3, 2, 1]
+        diag = torch.diag(H_inv)
+        topk = (top * len(diag)/100).astype(int)
+        ql = torch.zeros_like(diag, dtype=torch.int32)
+        _, topk_indices = torch.topk(diag, k=topk.sum(), largest=False)
+        start = 0    
+        for count, value in zip(topk , qlevel):
+            indices = topk_indices[start:start + count]
+            ql[indices] = value
+            start += count
+        
     ql = ql.to(device) if ql is not None else None
     
-    SU, SV = None, None
-    if args.incoh_mode != 'none':
-        Lhr, H, W, SU, SV, scaleWH = quip.incoherence_preprocess(H, W, args) 
-        
     if args.gptq:
         out = pseudo_compress_tensor_gptq(W, comp_model, args.direction, args.comp_batch_size, ql, H, device, args)                
     elif args.ldlq:
@@ -41,6 +75,7 @@ def compress_weight_block_with_model(weight_block, model, ql=None):
     data['weight_block'] = weight_block
     if ql is not None:
         # assert ql.shape[0] == ori_shape
+        # print(weight_block.shape, ql.shape)
         data['q_level'] = ql.reshape(ori_shape[0],)
     # import ipdb; ipdb.set_trace()
     # print(data['q_level'].shape)

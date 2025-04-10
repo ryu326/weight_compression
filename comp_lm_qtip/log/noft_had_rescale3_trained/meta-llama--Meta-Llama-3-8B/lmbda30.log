@@ -1,0 +1,101 @@
+I0324 04:58:02.106601 3956324 config.py:54] PyTorch version 2.6.0 available.
+W0324 04:58:02.388605 3956324 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0324 04:58:03.268141 3956324 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+Loading checkpoint shards:   0%|          | 0/7 [00:00<?, ?it/s]Loading checkpoint shards:  14%|█▍        | 1/7 [00:00<00:00,  7.23it/s]Loading checkpoint shards:  29%|██▊       | 2/7 [00:00<00:00,  7.97it/s]Loading checkpoint shards:  43%|████▎     | 3/7 [00:00<00:00,  8.16it/s]Loading checkpoint shards:  57%|█████▋    | 4/7 [00:00<00:00,  8.29it/s]Loading checkpoint shards:  71%|███████▏  | 5/7 [00:00<00:00,  8.41it/s]Loading checkpoint shards:  86%|████████▌ | 6/7 [00:00<00:00,  8.44it/s]Loading checkpoint shards: 100%|██████████| 7/7 [00:00<00:00,  8.08it/s]Loading checkpoint shards: 100%|██████████| 7/7 [00:00<00:00,  8.14it/s]
+I0324 04:58:04.702176 3956324 quantize_finetune_llama.py:150] loaded model
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/opt/conda/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 270, in <module>
+    main(args)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 154, in main
+    with open(config, 'r', encoding='utf-8') as file:
+FileNotFoundError: [Errno 2] No such file or directory: '../NWC/checkpoint/nwc/block_seq_scaler_meta-llama--Meta-Llama-3-8B__scaled3_RHT_sig1e-06_col_1024.pt/lmbda30_*/config.json'
+I0324 04:58:08.505581 3956424 config.py:54] PyTorch version 2.6.0 available.
+W0324 04:58:08.814039 3956424 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+I0324 04:58:09.068094 3956424 hfize_llama.py:27] LlamaConfig {
+  "_attn_implementation_autoset": true,
+  "_name_or_path": "../Wparam_dataset/hf_model/meta-llama--Meta-Llama-3-8B",
+  "architectures": [
+    "LlamaForCausalLM"
+  ],
+  "attention_bias": false,
+  "attention_dropout": 0.0,
+  "bos_token_id": 128000,
+  "eos_token_id": 128001,
+  "head_dim": 128,
+  "hidden_act": "silu",
+  "hidden_size": 4096,
+  "initializer_range": 0.02,
+  "intermediate_size": 14336,
+  "max_position_embeddings": 8192,
+  "mlp_bias": false,
+  "model_type": "llama",
+  "num_attention_heads": 32,
+  "num_hidden_layers": 32,
+  "num_key_value_heads": 8,
+  "pretraining_tp": 1,
+  "quip_params": {},
+  "rms_norm_eps": 1e-05,
+  "rope_scaling": null,
+  "rope_theta": 500000.0,
+  "tie_word_embeddings": false,
+  "torch_dtype": "float32",
+  "transformers_version": "4.47.1",
+  "use_cache": true,
+  "vocab_size": 128256
+}
+
+Loading checkpoint shards:   0%|          | 0/7 [00:00<?, ?it/s]Loading checkpoint shards:  14%|█▍        | 1/7 [00:00<00:01,  3.11it/s]Loading checkpoint shards:  29%|██▊       | 2/7 [00:00<00:01,  4.15it/s]Loading checkpoint shards:  43%|████▎     | 3/7 [00:00<00:00,  4.45it/s]Loading checkpoint shards:  57%|█████▋    | 4/7 [00:00<00:00,  4.61it/s]Loading checkpoint shards:  71%|███████▏  | 5/7 [00:01<00:00,  4.02it/s]Loading checkpoint shards:  86%|████████▌ | 6/7 [00:01<00:00,  4.70it/s]Loading checkpoint shards: 100%|██████████| 7/7 [00:01<00:00,  4.78it/s]
+Loading checkpoint shards:   0%|          | 0/7 [00:00<?, ?it/s]Loading checkpoint shards:  14%|█▍        | 1/7 [00:00<00:00,  9.46it/s]Loading checkpoint shards:  29%|██▊       | 2/7 [00:00<00:00,  9.68it/s]Loading checkpoint shards:  43%|████▎     | 3/7 [00:00<00:00,  9.71it/s]Loading checkpoint shards:  57%|█████▋    | 4/7 [00:00<00:00,  9.37it/s]Loading checkpoint shards:  86%|████████▌ | 6/7 [00:00<00:00,  9.89it/s]Loading checkpoint shards: 100%|██████████| 7/7 [00:00<00:00,  9.83it/s]
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/opt/conda/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/hfize_llama.py", line 186, in <module>
+    main(args)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/hfize_llama.py", line 77, in main
+    saved_layer = torch.load(f'{args.quantized_path}/{ii}_q.pt',
+  File "/opt/conda/lib/python3.10/site-packages/torch/serialization.py", line 1425, in load
+    with _open_file_like(f, "rb") as opened_file:
+  File "/opt/conda/lib/python3.10/site-packages/torch/serialization.py", line 751, in _open_file_like
+    return _open_file(name_or_buffer, mode)
+  File "/opt/conda/lib/python3.10/site-packages/torch/serialization.py", line 732, in __init__
+    super().__init__(open(name, mode))
+FileNotFoundError: [Errno 2] No such file or directory: './ckpt/noft_had_rescale3_trained/meta-llama--Meta-Llama-3-8B/lmbda30/0_q.pt'
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/site-packages/transformers/utils/hub.py", line 403, in cached_file
+    resolved_file = hf_hub_download(
+  File "/opt/conda/lib/python3.10/site-packages/huggingface_hub/utils/_validators.py", line 106, in _inner_fn
+    validate_repo_id(arg_value)
+  File "/opt/conda/lib/python3.10/site-packages/huggingface_hub/utils/_validators.py", line 154, in validate_repo_id
+    raise HFValidationError(
+huggingface_hub.errors.HFValidationError: Repo id must be in the form 'repo_name' or 'namespace/repo_name': './hf/noft_had_rescale3_trained/meta-llama--Meta-Llama-3-8B/lmbda30'. Use `repo_type` argument if needed.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/workspace/Weight_compression/comp_lm_qtip/eval_ppl.py", line 124, in <module>
+    main(args)
+  File "/workspace/Weight_compression/comp_lm_qtip/eval_ppl.py", line 71, in main
+    model, model_str = model_from_hf_path(
+  File "/workspace/Weight_compression/comp_lm_qtip/eval_ppl.py", line 34, in model_from_hf_path
+    bad_config = transformers.AutoConfig.from_pretrained(path)
+  File "/opt/conda/lib/python3.10/site-packages/transformers/models/auto/configuration_auto.py", line 1021, in from_pretrained
+    config_dict, unused_kwargs = PretrainedConfig.get_config_dict(pretrained_model_name_or_path, **kwargs)
+  File "/opt/conda/lib/python3.10/site-packages/transformers/configuration_utils.py", line 590, in get_config_dict
+    config_dict, kwargs = cls._get_config_dict(pretrained_model_name_or_path, **kwargs)
+  File "/opt/conda/lib/python3.10/site-packages/transformers/configuration_utils.py", line 649, in _get_config_dict
+    resolved_config_file = cached_file(
+  File "/opt/conda/lib/python3.10/site-packages/transformers/utils/hub.py", line 469, in cached_file
+    raise EnvironmentError(
+OSError: Incorrect path_or_model_id: './hf/noft_had_rescale3_trained/meta-llama--Meta-Llama-3-8B/lmbda30'. Please provide either the path to a local folder or the repo_id of a model on the Hub.

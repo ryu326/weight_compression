@@ -1,0 +1,619 @@
+I0314 10:20:06.817305 2588621 config.py:54] PyTorch version 2.1.1 available.
+Loading checkpoint shards:   0%|          | 0/6 [00:00<?, ?it/s]Loading checkpoint shards:  17%|█▋        | 1/6 [00:00<00:00,  8.25it/s]Loading checkpoint shards:  50%|█████     | 3/6 [00:00<00:00,  9.97it/s]Loading checkpoint shards:  83%|████████▎ | 5/6 [00:00<00:00, 10.50it/s]Loading checkpoint shards: 100%|██████████| 6/6 [00:00<00:00, 10.43it/s]
+I0314 10:20:08.521856 2588621 quantize_finetune_llama.py:142] loaded model
+calculating model weight mean & std:   0%|          | 0/32 [00:00<?, ?it/s]calculating model weight mean & std:   3%|▎         | 1/32 [00:00<00:20,  1.48it/s]calculating model weight mean & std:   6%|▋         | 2/32 [00:01<00:20,  1.48it/s]calculating model weight mean & std:   9%|▉         | 3/32 [00:02<00:19,  1.47it/s]calculating model weight mean & std:  12%|█▎        | 4/32 [00:02<00:18,  1.47it/s]calculating model weight mean & std:  16%|█▌        | 5/32 [00:03<00:18,  1.47it/s]calculating model weight mean & std:  19%|█▉        | 6/32 [00:04<00:17,  1.49it/s]calculating model weight mean & std:  22%|██▏       | 7/32 [00:04<00:16,  1.48it/s]calculating model weight mean & std:  25%|██▌       | 8/32 [00:05<00:18,  1.33it/s]calculating model weight mean & std:  28%|██▊       | 9/32 [00:06<00:16,  1.37it/s]calculating model weight mean & std:  31%|███▏      | 10/32 [00:07<00:15,  1.40it/s]calculating model weight mean & std:  34%|███▍      | 11/32 [00:07<00:14,  1.42it/s]calculating model weight mean & std:  38%|███▊      | 12/32 [00:08<00:13,  1.44it/s]calculating model weight mean & std:  41%|████      | 13/32 [00:09<00:13,  1.45it/s]calculating model weight mean & std:  44%|████▍     | 14/32 [00:09<00:12,  1.45it/s]calculating model weight mean & std:  47%|████▋     | 15/32 [00:10<00:11,  1.44it/s]calculating model weight mean & std:  50%|█████     | 16/32 [00:11<00:11,  1.44it/s]calculating model weight mean & std:  53%|█████▎    | 17/32 [00:11<00:10,  1.44it/s]calculating model weight mean & std:  56%|█████▋    | 18/32 [00:12<00:09,  1.43it/s]calculating model weight mean & std:  59%|█████▉    | 19/32 [00:13<00:08,  1.46it/s]calculating model weight mean & std:  62%|██████▎   | 20/32 [00:13<00:08,  1.49it/s]calculating model weight mean & std:  66%|██████▌   | 21/32 [00:14<00:07,  1.51it/s]calculating model weight mean & std:  69%|██████▉   | 22/32 [00:15<00:06,  1.52it/s]calculating model weight mean & std:  72%|███████▏  | 23/32 [00:15<00:05,  1.52it/s]calculating model weight mean & std:  75%|███████▌  | 24/32 [00:16<00:05,  1.53it/s]calculating model weight mean & std:  78%|███████▊  | 25/32 [00:17<00:04,  1.53it/s]calculating model weight mean & std:  81%|████████▏ | 26/32 [00:17<00:03,  1.53it/s]calculating model weight mean & std:  84%|████████▍ | 27/32 [00:18<00:03,  1.53it/s]calculating model weight mean & std:  88%|████████▊ | 28/32 [00:19<00:02,  1.53it/s]calculating model weight mean & std:  91%|█████████ | 29/32 [00:19<00:01,  1.53it/s]calculating model weight mean & std:  94%|█████████▍| 30/32 [00:20<00:01,  1.54it/s]calculating model weight mean & std:  97%|█████████▋| 31/32 [00:20<00:00,  1.55it/s]calculating model weight mean & std: 100%|██████████| 32/32 [00:21<00:00,  1.55it/s]calculating model weight mean & std: 100%|██████████| 32/32 [00:21<00:00,  1.48it/s]
+I0314 10:20:39.835584 2588621 quantize_finetune_llama.py:167] loaded compression model
+I0314 10:20:54.544394 2588621 quantize_finetune_llama.py:171] loaded dataset and devset
+I0314 10:20:59.946040 2588621 quantize_finetune_llama.py:191] layer 0 gpu 0
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 10:22:14.358078 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 0 in 74.28265619277954s
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+I0314 10:22:42.026937 2589038 config.py:54] PyTorch version 2.1.1 available.
+I0314 10:22:43.105454 2588621 quantize_finetune_llama.py:191] layer 1 gpu 1
+I0314 10:22:43.161221 2589038 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 10:22:52.029606 2589038 finetune.py:45] layer 0_v initial loss 1.5422153865074506e-07
+I0314 10:23:00.799536 2589038 finetune.py:45] layer 0_q initial loss 1.5442716971847403e-07
+I0314 10:23:09.765332 2589038 finetune.py:45] layer 0_k initial loss 1.5408400599881134e-07
+I0314 10:23:18.816690 2589038 finetune.py:45] layer 0_o initial loss 1.8146305080790626e-07
+I0314 10:23:34.269857 2589038 finetune.py:45] layer 0_up initial loss 1.8423970971070958e-07
+I0314 10:23:49.449561 2589038 finetune.py:45] layer 0_gate initial loss 1.8735998708052648e-07
+I0314 10:23:53.782373 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 1 in 70.51320624351501s
+I0314 10:24:05.026295 2589272 config.py:54] PyTorch version 2.1.1 available.
+I0314 10:24:06.054225 2588621 quantize_finetune_llama.py:191] layer 2 gpu 2
+I0314 10:24:06.121816 2589272 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0314 10:24:09.178068 2589038 finetune.py:45] layer 0_down initial loss 2.1458724575040833e-07
+0_v proxy err 0.0012580656912177801 tr(WHW.T) 4.225186347961426
+0_q proxy err 5.3743922762805596e-05 tr(WHW.T) 2710.363037109375
+0_k proxy err 5.1348986744415015e-05 tr(WHW.T) 1698.7349853515625
+0_o proxy err 0.00012347869051154703 tr(WHW.T) 0.9668058156967163
+0_up proxy err 0.00018749077571555972 tr(WHW.T) 43.27138900756836
+0_gate proxy err 0.0001432101271348074 tr(WHW.T) 63.47430419921875
+0_down proxy err 0.0001449037663405761 tr(WHW.T) 0.656814694404602
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 10:24:14.835150 2589272 finetune.py:45] layer 1_v initial loss 2.3981654067029012e-06
+I0314 10:24:23.475193 2589272 finetune.py:45] layer 1_q initial loss 2.894538738473784e-06
+I0314 10:24:32.471880 2589272 finetune.py:45] layer 1_k initial loss 2.510271087885485e-06
+I0314 10:24:41.248822 2589272 finetune.py:45] layer 1_o initial loss 2.7616461011348292e-06
+I0314 10:24:56.128502 2589272 finetune.py:45] layer 1_up initial loss 2.1064240627310937e-06
+I0314 10:25:11.063729 2589272 finetune.py:45] layer 1_gate initial loss 2.6247184905514587e-06
+I0314 10:25:18.251533 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 2 in 72.02829146385193s
+I0314 10:25:28.826441 2589506 config.py:54] PyTorch version 2.1.1 available.
+I0314 10:25:29.836694 2589272 finetune.py:45] layer 1_down initial loss 5.45744551345706e-05
+I0314 10:25:29.866106 2588621 quantize_finetune_llama.py:191] layer 3 gpu 3
+I0314 10:25:29.923098 2589506 data_utils.py:336] using 256 training seqs, 128 validation seqs
+1_v proxy err 0.0018122851615771651 tr(WHW.T) 16.465883255004883
+1_q proxy err 5.9692432841984555e-05 tr(WHW.T) 4778.43994140625
+1_k proxy err 5.7561261201044545e-05 tr(WHW.T) 4995.39208984375
+1_o proxy err 0.00040069458191283047 tr(WHW.T) 1.1115814447402954
+1_up proxy err 0.0001940399524755776 tr(WHW.T) 109.66383361816406
+1_gate proxy err 0.0001223441940965131 tr(WHW.T) 221.3038787841797
+1_down proxy err 0.00010627472511259839 tr(WHW.T) 2041.4736328125
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 10:25:38.609844 2589506 finetune.py:45] layer 2_v initial loss 2.863024803900771e-07
+I0314 10:25:47.271696 2589506 finetune.py:45] layer 2_q initial loss 3.679460860439576e-07
+I0314 10:25:55.982629 2589506 finetune.py:45] layer 2_k initial loss 4.2181059711765556e-07
+I0314 10:26:04.886646 2589506 finetune.py:45] layer 2_o initial loss 5.479523679241538e-07
+I0314 10:26:19.908094 2589506 finetune.py:45] layer 2_up initial loss 6.3439887298955e-07
+I0314 10:26:35.079700 2589506 finetune.py:45] layer 2_gate initial loss 7.080109867274587e-07
+I0314 10:26:42.363347 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 3 in 72.35757184028625s
+I0314 10:26:54.253685 2589506 finetune.py:45] layer 2_down initial loss 8.817710863695538e-07
+I0314 10:26:54.322787 2589743 config.py:54] PyTorch version 2.1.1 available.
+2_v proxy err 0.0004777052963618189 tr(WHW.T) 136.67332458496094
+2_q proxy err 6.155934534035623e-05 tr(WHW.T) 7752.85205078125
+2_k proxy err 6.223793752724305e-05 tr(WHW.T) 10205.837890625
+2_o proxy err 0.00027914412203244865 tr(WHW.T) 1.4603197574615479
+2_up proxy err 0.00021813050261698663 tr(WHW.T) 193.43603515625
+2_gate proxy err 0.0001570573222124949 tr(WHW.T) 306.6622619628906
+2_down proxy err 0.0002441506367176771 tr(WHW.T) 3.010739803314209
+I0314 10:26:55.277813 2588621 quantize_finetune_llama.py:191] layer 4 gpu 0
+I0314 10:26:55.332360 2589743 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 10:27:04.355257 2589743 finetune.py:45] layer 3_v initial loss 4.302431193536904e-07
+I0314 10:27:12.972787 2589743 finetune.py:45] layer 3_q initial loss 5.451994979921437e-07
+I0314 10:27:21.692514 2589743 finetune.py:45] layer 3_k initial loss 6.909012313371932e-07
+I0314 10:27:30.403014 2589743 finetune.py:45] layer 3_o initial loss 9.58945292950375e-07
+I0314 10:27:45.490833 2589743 finetune.py:45] layer 3_up initial loss 1.1598895071074367e-06
+I0314 10:28:00.708126 2589743 finetune.py:45] layer 3_gate initial loss 1.3274125194584485e-06
+I0314 10:28:06.643065 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 4 in 70.3057930469513s
+I0314 10:28:09.784476 2589966 config.py:54] PyTorch version 2.1.1 available.
+I0314 10:28:10.884633 2588621 quantize_finetune_llama.py:191] layer 5 gpu 1
+I0314 10:28:10.957672 2589966 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 10:28:17.467580 2589743 finetune.py:45] layer 3_down initial loss 1.6911644706851803e-06
+3_v proxy err 0.0004538341599982232 tr(WHW.T) 284.77557373046875
+3_q proxy err 6.612455763388425e-05 tr(WHW.T) 7217.63720703125
+3_k proxy err 6.447956548072398e-05 tr(WHW.T) 10074.73828125
+3_o proxy err 0.0002727896498981863 tr(WHW.T) 3.3527450561523438
+3_up proxy err 0.0002417784126009792 tr(WHW.T) 284.7950744628906
+3_gate proxy err 0.00016528140986338258 tr(WHW.T) 478.13714599609375
+3_down proxy err 0.00024676386965438724 tr(WHW.T) 6.133229732513428
+I0314 10:28:20.138786 2589966 finetune.py:45] layer 4_v initial loss 7.662620760129357e-07
+I0314 10:28:29.048942 2589966 finetune.py:45] layer 4_q initial loss 9.35943205604417e-07
+I0314 10:28:37.956498 2589966 finetune.py:45] layer 4_k initial loss 1.1721397186192917e-06
+I0314 10:28:47.014911 2589966 finetune.py:45] layer 4_o initial loss 1.5640079027434695e-06
+I0314 10:29:02.510656 2589966 finetune.py:45] layer 4_up initial loss 1.9494007119646994e-06
+I0314 10:29:18.039755 2589966 finetune.py:45] layer 4_gate initial loss 2.255563686048845e-06
+I0314 10:29:20.406210 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 5 in 69.07100749015808s
+I0314 10:29:23.524784 2590183 config.py:54] PyTorch version 2.1.1 available.
+I0314 10:29:24.566609 2588621 quantize_finetune_llama.py:191] layer 6 gpu 2
+I0314 10:29:24.636446 2590183 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 10:29:33.777965 2590183 finetune.py:45] layer 5_v initial loss 1.1550617955435882e-06
+I0314 10:29:34.924507 2589966 finetune.py:45] layer 4_down initial loss 2.94274991574639e-06
+4_v proxy err 0.00043574610026553273 tr(WHW.T) 274.6131286621094
+4_q proxy err 7.460935012204573e-05 tr(WHW.T) 6914.9892578125
+4_k proxy err 6.670442235190421e-05 tr(WHW.T) 10415.33203125
+4_o proxy err 0.0002753833250608295 tr(WHW.T) 5.139806270599365
+4_up proxy err 0.00023840944049879909 tr(WHW.T) 397.6960144042969
+4_gate proxy err 0.0001427551469532773 tr(WHW.T) 821.1856689453125
+4_down proxy err 0.0002470354666002095 tr(WHW.T) 11.562739372253418
+I0314 10:29:42.694141 2590183 finetune.py:45] layer 5_q initial loss 1.341975575996912e-06
+I0314 10:29:51.336770 2590183 finetune.py:45] layer 5_k initial loss 1.6325232081726426e-06
+I0314 10:30:00.113367 2590183 finetune.py:45] layer 5_o initial loss 2.376948486926267e-06
+I0314 10:30:15.185519 2590183 finetune.py:45] layer 5_up initial loss 2.995363729496603e-06
+I0314 10:30:30.401894 2590183 finetune.py:45] layer 5_gate initial loss 3.477025529718958e-06
+I0314 10:30:34.591604 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 6 in 69.6135642528534s
+I0314 10:30:37.832114 2590403 config.py:54] PyTorch version 2.1.1 available.
+I0314 10:30:38.883360 2588621 quantize_finetune_llama.py:191] layer 7 gpu 3
+I0314 10:30:38.956904 2590403 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 10:30:47.038670 2590183 finetune.py:45] layer 5_down initial loss 4.45038449470303e-06
+I0314 10:30:47.954486 2590403 finetune.py:45] layer 6_v initial loss 1.518014983048488e-06
+5_v proxy err 0.000431212829425931 tr(WHW.T) 298.47540283203125
+5_q proxy err 6.196845788508654e-05 tr(WHW.T) 6770.97509765625
+5_k proxy err 5.809087451780215e-05 tr(WHW.T) 10841.955078125
+5_o proxy err 0.0003769429458770901 tr(WHW.T) 7.947142601013184
+5_up proxy err 0.00023564450384583324 tr(WHW.T) 506.6408386230469
+5_gate proxy err 0.00013751052028965205 tr(WHW.T) 1104.867919921875
+5_down proxy err 0.0002582079905550927 tr(WHW.T) 15.6494779586792
+I0314 10:30:56.573254 2590403 finetune.py:45] layer 6_q initial loss 2.0727252376673277e-06
+I0314 10:31:05.331415 2590403 finetune.py:45] layer 6_k initial loss 2.85539795186196e-06
+I0314 10:31:14.169314 2590403 finetune.py:45] layer 6_o initial loss 3.7856398193980567e-06
+I0314 10:31:29.313735 2590403 finetune.py:45] layer 6_up initial loss 4.735545644507511e-06
+I0314 10:31:44.442744 2590403 finetune.py:45] layer 6_gate initial loss 5.45001239515841e-06
+I0314 10:31:47.550602 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 7 in 68.25516152381897s
+I0314 10:31:50.701378 2590620 config.py:54] PyTorch version 2.1.1 available.
+I0314 10:31:51.744134 2588621 quantize_finetune_llama.py:191] layer 8 gpu 0
+I0314 10:31:51.807906 2590620 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 10:32:01.451128 2590620 finetune.py:45] layer 7_v initial loss 1.958495204235078e-06
+I0314 10:32:01.521083 2590403 finetune.py:45] layer 6_down initial loss 6.915860012668418e-06
+6_v proxy err 0.0004273879458196461 tr(WHW.T) 443.5464782714844
+6_q proxy err 7.495512545574456e-05 tr(WHW.T) 7576.53857421875
+6_k proxy err 6.945180939510465e-05 tr(WHW.T) 10409.4033203125
+6_o proxy err 0.0003452133387327194 tr(WHW.T) 11.564380645751953
+6_up proxy err 0.00023598149709869176 tr(WHW.T) 617.2608642578125
+6_gate proxy err 0.00012610752310138196 tr(WHW.T) 1554.7271728515625
+6_down proxy err 0.0002644373453222215 tr(WHW.T) 22.988168716430664
+I0314 10:32:10.199746 2590620 finetune.py:45] layer 7_q initial loss 2.7410067104938207e-06
+I0314 10:32:18.979079 2590620 finetune.py:45] layer 7_k initial loss 3.6237668155081337e-06
+I0314 10:32:27.797184 2590620 finetune.py:45] layer 7_o initial loss 5.004108970751986e-06
+I0314 10:32:43.028270 2590620 finetune.py:45] layer 7_up initial loss 6.310482604021672e-06
+I0314 10:32:58.249889 2590620 finetune.py:45] layer 7_gate initial loss 7.2793677645677235e-06
+I0314 10:33:03.422832 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 8 in 70.56478071212769s
+I0314 10:33:06.518692 2590840 config.py:54] PyTorch version 2.1.1 available.
+I0314 10:33:07.580029 2588621 quantize_finetune_llama.py:191] layer 9 gpu 1
+I0314 10:33:07.650777 2590840 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 10:33:14.925609 2590620 finetune.py:45] layer 7_down initial loss 9.23149855225347e-06
+7_v proxy err 0.0004202288982924074 tr(WHW.T) 489.9357604980469
+7_q proxy err 7.81494309194386e-05 tr(WHW.T) 7672.17919921875
+7_k proxy err 6.89165317453444e-05 tr(WHW.T) 10198.3701171875
+7_o proxy err 0.0004105734988115728 tr(WHW.T) 15.11335563659668
+7_up proxy err 0.0002328560221940279 tr(WHW.T) 735.8538818359375
+7_gate proxy err 0.00012340009561739862 tr(WHW.T) 1876.0390625
+7_down proxy err 0.000267586117843166 tr(WHW.T) 30.58672523498535
+I0314 10:33:16.980480 2590840 finetune.py:45] layer 8_v initial loss 3.014435833392781e-06
+I0314 10:33:26.093812 2590840 finetune.py:45] layer 8_q initial loss 3.724593170773005e-06
+I0314 10:33:35.185533 2590840 finetune.py:45] layer 8_k initial loss 4.762044227391016e-06
+I0314 10:33:44.294308 2590840 finetune.py:45] layer 8_o initial loss 6.687119821435772e-06
+I0314 10:33:59.758454 2590840 finetune.py:45] layer 8_up initial loss 8.2991546150879e-06
+I0314 10:34:15.252931 2590840 finetune.py:45] layer 8_gate initial loss 9.572455383022316e-06
+I0314 10:34:17.296015 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 9 in 69.28248763084412s
+I0314 10:34:20.476516 2591060 config.py:54] PyTorch version 2.1.1 available.
+I0314 10:34:21.577342 2588621 quantize_finetune_llama.py:191] layer 10 gpu 2
+I0314 10:34:21.647576 2591060 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 10:34:30.917518 2591060 finetune.py:45] layer 9_v initial loss 3.288748075647163e-06
+I0314 10:34:32.464320 2590840 finetune.py:45] layer 8_down initial loss 1.1923750207643025e-05
+8_v proxy err 0.0004013161233160645 tr(WHW.T) 530.9967041015625
+8_q proxy err 7.459191692760214e-05 tr(WHW.T) 7228.1201171875
+8_k proxy err 6.658916390733793e-05 tr(WHW.T) 10639.1015625
+8_o proxy err 0.00043200491927564144 tr(WHW.T) 20.092191696166992
+8_up proxy err 0.00021895025565754622 tr(WHW.T) 866.312744140625
+8_gate proxy err 0.00012694147881120443 tr(WHW.T) 1970.857177734375
+8_down proxy err 0.0002666535438038409 tr(WHW.T) 37.177734375
+I0314 10:34:39.954913 2591060 finetune.py:45] layer 9_q initial loss 4.009268650406739e-06
+I0314 10:34:48.841802 2591060 finetune.py:45] layer 9_k initial loss 5.186513590160757e-06
+I0314 10:34:57.417084 2591060 finetune.py:45] layer 9_o initial loss 7.560896392533323e-06
+I0314 10:35:12.247155 2591060 finetune.py:45] layer 9_up initial loss 9.441460861125961e-06
+I0314 10:35:27.283200 2591060 finetune.py:45] layer 9_gate initial loss 1.10086148197297e-05
+I0314 10:35:30.761542 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 10 in 68.73611569404602s
+I0314 10:35:33.913179 2591277 config.py:54] PyTorch version 2.1.1 available.
+I0314 10:35:35.031712 2588621 quantize_finetune_llama.py:191] layer 11 gpu 3
+I0314 10:35:35.109006 2591277 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 10:35:44.081810 2591060 finetune.py:45] layer 9_down initial loss 1.3755651707469951e-05
+I0314 10:35:44.683312 2591277 finetune.py:45] layer 10_v initial loss 4.435966729943175e-06
+9_v proxy err 0.00037675336352549493 tr(WHW.T) 565.0663452148438
+9_q proxy err 7.812751573510468e-05 tr(WHW.T) 6970.3359375
+9_k proxy err 6.741903780493885e-05 tr(WHW.T) 10987.3515625
+9_o proxy err 0.0004288358904886991 tr(WHW.T) 25.610172271728516
+9_up proxy err 0.00021210289560258389 tr(WHW.T) 970.8984375
+9_gate proxy err 0.00012623764632735401 tr(WHW.T) 2132.69384765625
+9_down proxy err 0.00026861552032642066 tr(WHW.T) 42.99482727050781
+I0314 10:35:53.463385 2591277 finetune.py:45] layer 10_q initial loss 5.405755473475438e-06
+I0314 10:36:02.200296 2591277 finetune.py:45] layer 10_k initial loss 6.52482913210406e-06
+I0314 10:36:11.047905 2591277 finetune.py:45] layer 10_o initial loss 9.838771802606061e-06
+I0314 10:36:26.271563 2591277 finetune.py:45] layer 10_up initial loss 1.2003913980151992e-05
+I0314 10:36:41.559918 2591277 finetune.py:45] layer 10_gate initial loss 1.3873116586182732e-05
+I0314 10:36:44.209563 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 11 in 68.69112920761108s
+I0314 10:36:47.368693 2591497 config.py:54] PyTorch version 2.1.1 available.
+I0314 10:36:48.399303 2588621 quantize_finetune_llama.py:191] layer 12 gpu 0
+I0314 10:36:48.469515 2591497 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 10:36:59.124022 2591497 finetune.py:45] layer 11_v initial loss 5.073371085018152e-06
+I0314 10:36:59.896491 2591277 finetune.py:45] layer 10_down initial loss 1.703008820186369e-05
+10_v proxy err 0.0003780877741519362 tr(WHW.T) 578.807373046875
+10_q proxy err 8.013754995772615e-05 tr(WHW.T) 6915.87109375
+10_k proxy err 7.09858795744367e-05 tr(WHW.T) 10996.2431640625
+10_o proxy err 0.000439083349192515 tr(WHW.T) 35.184165954589844
+10_up proxy err 0.00020334428700152785 tr(WHW.T) 1080.198486328125
+10_gate proxy err 0.0001242779690073803 tr(WHW.T) 2260.88330078125
+10_down proxy err 0.00025598518550395966 tr(WHW.T) 52.33584976196289
+I0314 10:37:08.517847 2591497 finetune.py:45] layer 11_q initial loss 6.578086413355777e-06
+I0314 10:37:16.967769 2591497 finetune.py:45] layer 11_k initial loss 8.679139682499226e-06
+I0314 10:37:25.565717 2591497 finetune.py:45] layer 11_o initial loss 1.2124119166401215e-05
+I0314 10:37:40.505075 2591497 finetune.py:45] layer 11_up initial loss 1.4513001588056795e-05
+I0314 10:37:55.627091 2591497 finetune.py:45] layer 11_gate initial loss 1.6589832739555277e-05
+I0314 10:38:00.072100 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 12 in 70.52915239334106s
+I0314 10:38:03.301850 2591717 config.py:54] PyTorch version 2.1.1 available.
+I0314 10:38:04.395720 2588621 quantize_finetune_llama.py:191] layer 13 gpu 1
+I0314 10:38:04.466077 2591717 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 10:38:12.095345 2591497 finetune.py:45] layer 11_down initial loss 2.0090097677893937e-05
+11_v proxy err 0.0003616869216784835 tr(WHW.T) 723.1956176757812
+11_q proxy err 8.190218795789406e-05 tr(WHW.T) 7027.10986328125
+11_k proxy err 7.409228419419378e-05 tr(WHW.T) 10511.23046875
+11_o proxy err 0.00044578895904123783 tr(WHW.T) 36.654052734375
+11_up proxy err 0.00020605312602128834 tr(WHW.T) 1139.6044921875
+11_gate proxy err 0.00012393762881401926 tr(WHW.T) 2392.716552734375
+11_down proxy err 0.0002616959682200104 tr(WHW.T) 56.13530731201172
+I0314 10:38:13.466395 2591717 finetune.py:45] layer 12_v initial loss 5.116819465911249e-06
+I0314 10:38:22.105918 2591717 finetune.py:45] layer 12_q initial loss 6.572472557309084e-06
+I0314 10:38:30.799534 2591717 finetune.py:45] layer 12_k initial loss 8.193320354621392e-06
+I0314 10:38:39.567350 2591717 finetune.py:45] layer 12_o initial loss 1.2017124390695244e-05
+I0314 10:38:54.665171 2591717 finetune.py:45] layer 12_up initial loss 1.4759401892661117e-05
+I0314 10:39:09.786103 2591717 finetune.py:45] layer 12_gate initial loss 1.7149057384813204e-05
+I0314 10:39:12.547018 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 13 in 67.73925185203552s
+I0314 10:39:15.567903 2591934 config.py:54] PyTorch version 2.1.1 available.
+I0314 10:39:16.595942 2588621 quantize_finetune_llama.py:191] layer 14 gpu 2
+I0314 10:39:16.666551 2591934 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 10:39:25.356461 2591934 finetune.py:45] layer 13_v initial loss 4.995269136998104e-06
+I0314 10:39:26.303199 2591717 finetune.py:45] layer 12_down initial loss 2.114327253366355e-05
+12_v proxy err 0.0003683090035337955 tr(WHW.T) 703.318603515625
+12_q proxy err 8.447680011158809e-05 tr(WHW.T) 7045.6435546875
+12_k proxy err 7.142022514017299e-05 tr(WHW.T) 10893.65625
+12_o proxy err 0.000453548738732934 tr(WHW.T) 39.29071044921875
+12_up proxy err 0.00020475429482758045 tr(WHW.T) 1228.298583984375
+12_gate proxy err 0.00013043997751083225 tr(WHW.T) 2381.994873046875
+12_down proxy err 0.0002614577242638916 tr(WHW.T) 64.17745208740234
+I0314 10:39:33.829105 2591934 finetune.py:45] layer 13_q initial loss 6.254016170714749e-06
+I0314 10:39:42.347122 2591934 finetune.py:45] layer 13_k initial loss 7.667706086067483e-06
+I0314 10:39:50.894822 2591934 finetune.py:45] layer 13_o initial loss 1.1579246347537264e-05
+I0314 10:40:05.707986 2591934 finetune.py:45] layer 13_up initial loss 1.4839584764558822e-05
+I0314 10:40:20.627372 2591934 finetune.py:45] layer 13_gate initial loss 1.780043021426536e-05
+I0314 10:40:24.858686 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 14 in 67.84600901603699s
+I0314 10:40:28.111387 2592151 config.py:54] PyTorch version 2.1.1 available.
+I0314 10:40:29.197529 2588621 quantize_finetune_llama.py:191] layer 15 gpu 3
+I0314 10:40:29.265307 2592151 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 10:40:36.780312 2591934 finetune.py:45] layer 13_down initial loss 2.2751766664441675e-05
+13_v proxy err 0.00036448833998292685 tr(WHW.T) 714.5677490234375
+13_q proxy err 9.007469634525478e-05 tr(WHW.T) 6956.03564453125
+13_k proxy err 7.374092820100486e-05 tr(WHW.T) 10426.6318359375
+13_o proxy err 0.00040792443905957043 tr(WHW.T) 45.8377571105957
+13_up proxy err 0.00019845017232000828 tr(WHW.T) 1367.6221923828125
+13_gate proxy err 0.00012902833987027407 tr(WHW.T) 2601.504638671875
+13_down proxy err 0.0002617927675601095 tr(WHW.T) 79.3589096069336
+I0314 10:40:37.996882 2592151 finetune.py:45] layer 14_v initial loss 6.493099135695957e-06
+I0314 10:40:46.615031 2592151 finetune.py:45] layer 14_q initial loss 7.937444934214e-06
+I0314 10:40:55.135890 2592151 finetune.py:45] layer 14_k initial loss 9.87946168606868e-06
+I0314 10:41:03.732837 2592151 finetune.py:45] layer 14_o initial loss 1.49318602780113e-05
+I0314 10:41:18.629544 2592151 finetune.py:45] layer 14_up initial loss 1.8580878531793132e-05
+I0314 10:41:33.547120 2592151 finetune.py:45] layer 14_gate initial loss 2.193660657212604e-05
+I0314 10:41:36.764692 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 15 in 67.1454930305481s
+I0314 10:41:39.817048 2592368 config.py:54] PyTorch version 2.1.1 available.
+I0314 10:41:40.838436 2588621 quantize_finetune_llama.py:191] layer 16 gpu 0
+I0314 10:41:40.909437 2592368 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 10:41:50.086009 2592368 finetune.py:45] layer 15_v initial loss 6.254824256757274e-06
+I0314 10:41:50.156582 2592151 finetune.py:45] layer 14_down initial loss 2.7729103749152273e-05
+14_v proxy err 0.0003835404640994966 tr(WHW.T) 706.1612548828125
+14_q proxy err 8.254347631009296e-05 tr(WHW.T) 7077.06103515625
+14_k proxy err 7.361110328929499e-05 tr(WHW.T) 11295.16796875
+14_o proxy err 0.0004599848762154579 tr(WHW.T) 50.921180725097656
+14_up proxy err 0.0002008707815548405 tr(WHW.T) 1464.7159423828125
+14_gate proxy err 0.00013284046144690365 tr(WHW.T) 2682.584716796875
+14_down proxy err 0.00026728902594186366 tr(WHW.T) 90.28684997558594
+I0314 10:41:58.544312 2592368 finetune.py:45] layer 15_q initial loss 7.803317203070037e-06
+I0314 10:42:07.085081 2592368 finetune.py:45] layer 15_k initial loss 9.726045391289517e-06
+I0314 10:42:15.638383 2592368 finetune.py:45] layer 15_o initial loss 1.4633943465014454e-05
+I0314 10:42:30.358011 2592368 finetune.py:45] layer 15_up initial loss 1.9062541468883865e-05
+I0314 10:42:45.102686 2592368 finetune.py:45] layer 15_gate initial loss 2.3213642634800635e-05
+I0314 10:42:50.221997 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 16 in 68.2949116230011s
+I0314 10:42:53.356743 2592585 config.py:54] PyTorch version 2.1.1 available.
+I0314 10:42:54.411373 2588621 quantize_finetune_llama.py:191] layer 17 gpu 1
+I0314 10:42:54.482127 2592585 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 10:43:01.112519 2592368 finetune.py:45] layer 15_down initial loss 3.0505210816045292e-05
+15_v proxy err 0.0003544306382536888 tr(WHW.T) 762.7275390625
+15_q proxy err 8.34363600006327e-05 tr(WHW.T) 7252.0009765625
+15_k proxy err 7.195145735749975e-05 tr(WHW.T) 11072.3974609375
+15_o proxy err 0.00038056098856031895 tr(WHW.T) 59.61664962768555
+15_up proxy err 0.00019502681971061975 tr(WHW.T) 1641.0228271484375
+15_gate proxy err 0.0001332748361164704 tr(WHW.T) 2905.140380859375
+15_down proxy err 0.00026682973839342594 tr(WHW.T) 114.09001922607422
+I0314 10:43:03.577514 2592585 finetune.py:45] layer 16_v initial loss 7.5775437835545745e-06
+I0314 10:43:12.689670 2592585 finetune.py:45] layer 16_q initial loss 9.345458238385618e-06
+I0314 10:43:21.695682 2592585 finetune.py:45] layer 16_k initial loss 1.1413090760470368e-05
+I0314 10:43:30.866985 2592585 finetune.py:45] layer 16_o initial loss 1.7532978745293804e-05
+I0314 10:43:46.293570 2592585 finetune.py:45] layer 16_up initial loss 2.3265998606802896e-05
+I0314 10:44:01.579622 2592585 finetune.py:45] layer 16_gate initial loss 2.871460310416296e-05
+I0314 10:44:03.852176 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 17 in 69.00975799560547s
+I0314 10:44:07.059397 2592805 config.py:54] PyTorch version 2.1.1 available.
+I0314 10:44:08.080050 2588621 quantize_finetune_llama.py:191] layer 18 gpu 2
+I0314 10:44:08.136752 2592805 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 10:44:17.148051 2592805 finetune.py:45] layer 17_v initial loss 6.3047896219359245e-06
+I0314 10:44:18.524605 2592585 finetune.py:45] layer 16_down initial loss 3.8523048715433106e-05
+16_v proxy err 0.0003569705586414784 tr(WHW.T) 780.7407836914062
+16_q proxy err 8.747206447878852e-05 tr(WHW.T) 7193.3974609375
+16_k proxy err 7.551065209554508e-05 tr(WHW.T) 11630.361328125
+16_o proxy err 0.00030796477221883833 tr(WHW.T) 88.22785186767578
+16_up proxy err 0.0001932377490447834 tr(WHW.T) 1890.9385986328125
+16_gate proxy err 0.00013153972395230085 tr(WHW.T) 3369.859130859375
+16_down proxy err 0.0002698536263778806 tr(WHW.T) 152.0294952392578
+I0314 10:44:25.907855 2592805 finetune.py:45] layer 17_q initial loss 7.694080522924196e-06
+I0314 10:44:34.617136 2592805 finetune.py:45] layer 17_k initial loss 9.62342801358318e-06
+I0314 10:44:43.358234 2592805 finetune.py:45] layer 17_o initial loss 1.441119638911914e-05
+I0314 10:44:58.475000 2592805 finetune.py:45] layer 17_up initial loss 2.05538217414869e-05
+I0314 10:45:13.427239 2592805 finetune.py:45] layer 17_gate initial loss 2.6426016120240092e-05
+I0314 10:45:17.933651 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 18 in 69.42345690727234s
+I0314 10:45:21.054114 2593022 config.py:54] PyTorch version 2.1.1 available.
+I0314 10:45:22.223693 2588621 quantize_finetune_llama.py:191] layer 19 gpu 3
+I0314 10:45:22.293528 2593022 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 10:45:32.008093 2592805 finetune.py:45] layer 17_down initial loss 3.702029789565131e-05
+17_v proxy err 0.0003389495250303298 tr(WHW.T) 845.7654418945312
+17_q proxy err 8.444717241218314e-05 tr(WHW.T) 7163.2734375
+17_k proxy err 7.064290548441932e-05 tr(WHW.T) 10697.431640625
+17_o proxy err 0.0003534859570208937 tr(WHW.T) 58.14826965332031
+17_up proxy err 0.00020568157196976244 tr(WHW.T) 1921.07861328125
+17_gate proxy err 0.00013469249824993312 tr(WHW.T) 3571.31640625
+17_down proxy err 0.0002686380175873637 tr(WHW.T) 165.43495178222656
+I0314 10:45:33.579694 2593022 finetune.py:45] layer 18_v initial loss 6.322321951302001e-06
+I0314 10:45:43.063055 2593022 finetune.py:45] layer 18_q initial loss 8.37126026453916e-06
+I0314 10:45:52.179117 2593022 finetune.py:45] layer 18_k initial loss 1.0769982509373222e-05
+I0314 10:46:01.019433 2593022 finetune.py:45] layer 18_o initial loss 1.580765820108354e-05
+I0314 10:46:15.979243 2593022 finetune.py:45] layer 18_up initial loss 2.3062062609824352e-05
+I0314 10:46:31.295312 2593022 finetune.py:45] layer 18_gate initial loss 2.9729078960372135e-05
+I0314 10:46:31.673108 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 19 in 69.01259636878967s
+I0314 10:46:34.918966 2593242 config.py:54] PyTorch version 2.1.1 available.
+I0314 10:46:35.936255 2588621 quantize_finetune_llama.py:191] layer 20 gpu 0
+I0314 10:46:36.006346 2593242 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 10:46:47.964005 2593242 finetune.py:45] layer 19_v initial loss 6.020259206707124e-06
+I0314 10:46:51.929828 2593022 finetune.py:45] layer 18_down initial loss 4.248675759299658e-05
+18_v proxy err 0.00031427020439878106 tr(WHW.T) 1003.7705078125
+18_q proxy err 8.479673124384135e-05 tr(WHW.T) 7510.48046875
+18_k proxy err 7.622292469022796e-05 tr(WHW.T) 10462.6650390625
+18_o proxy err 0.0002975374518427998 tr(WHW.T) 69.96558380126953
+18_up proxy err 0.00021597332670353353 tr(WHW.T) 2023.183837890625
+18_gate proxy err 0.00013912635040469468 tr(WHW.T) 3783.076416015625
+18_down proxy err 0.0002688634267542511 tr(WHW.T) 198.52699279785156
+I0314 10:46:59.153505 2593242 finetune.py:45] layer 19_q initial loss 8.046778020798229e-06
+I0314 10:47:09.624358 2593242 finetune.py:45] layer 19_k initial loss 1.1295743206574116e-05
+I0314 10:47:20.220267 2593242 finetune.py:45] layer 19_o initial loss 1.583943776495289e-05
+I0314 10:47:37.801225 2593242 finetune.py:45] layer 19_up initial loss 2.410688466625288e-05
+I0314 10:47:54.736315 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 20 in 77.78880429267883s
+I0314 10:47:55.418285 2593242 finetune.py:45] layer 19_gate initial loss 3.182761065545492e-05
+I0314 10:47:58.143076 2593474 config.py:54] PyTorch version 2.1.1 available.
+I0314 10:47:59.205362 2588621 quantize_finetune_llama.py:191] layer 21 gpu 1
+I0314 10:47:59.260924 2593474 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 10:48:11.216750 2593474 finetune.py:45] layer 20_v initial loss 6.856155323475832e-06
+I0314 10:48:16.258420 2593242 finetune.py:45] layer 19_down initial loss 4.581813118420541e-05
+19_v proxy err 0.0003073408151976764 tr(WHW.T) 1019.1412353515625
+19_q proxy err 9.334495553048328e-05 tr(WHW.T) 6944.4130859375
+19_k proxy err 7.992734754225239e-05 tr(WHW.T) 10548.4892578125
+19_o proxy err 0.00029743992490693927 tr(WHW.T) 62.291683197021484
+19_up proxy err 0.0002171533415094018 tr(WHW.T) 2149.330322265625
+19_gate proxy err 0.0001483912783442065 tr(WHW.T) 3687.5126953125
+19_down proxy err 0.00026284760679118335 tr(WHW.T) 222.93177795410156
+I0314 10:48:23.089417 2593474 finetune.py:45] layer 20_q initial loss 9.22278286452638e-06
+I0314 10:48:33.748619 2593474 finetune.py:45] layer 20_k initial loss 1.144713860412594e-05
+I0314 10:48:43.249161 2593474 finetune.py:45] layer 20_o initial loss 1.6897882233024575e-05
+I0314 10:48:59.017221 2593474 finetune.py:45] layer 20_up initial loss 2.642957042553462e-05
+I0314 10:49:11.086300 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 21 in 71.51984477043152s
+I0314 10:49:14.351702 2593694 config.py:54] PyTorch version 2.1.1 available.
+I0314 10:49:15.138531 2593474 finetune.py:45] layer 20_gate initial loss 3.529374225763604e-05
+I0314 10:49:15.366225 2588621 quantize_finetune_llama.py:191] layer 22 gpu 2
+I0314 10:49:15.424478 2593694 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 10:49:24.216327 2593694 finetune.py:45] layer 21_v initial loss 6.110064987296937e-06
+I0314 10:49:32.919837 2593474 finetune.py:45] layer 20_down initial loss 5.2505558414850384e-05
+I0314 10:49:32.974157 2593694 finetune.py:45] layer 21_q initial loss 7.896001989138313e-06
+20_v proxy err 0.0003143598441965878 tr(WHW.T) 990.5983276367188
+20_q proxy err 9.023652819450945e-05 tr(WHW.T) 7150.947265625
+20_k proxy err 7.875284791225567e-05 tr(WHW.T) 10386.2470703125
+20_o proxy err 0.00022844254272058606 tr(WHW.T) 100.31707000732422
+20_up proxy err 0.00021378649398684502 tr(WHW.T) 2340.89453125
+20_gate proxy err 0.0001453691511414945 tr(WHW.T) 4024.62744140625
+20_down proxy err 0.0002610392984934151 tr(WHW.T) 274.8815002441406
+I0314 10:49:41.734815 2593694 finetune.py:45] layer 21_k initial loss 1.1227784852962941e-05
+I0314 10:49:50.450568 2593694 finetune.py:45] layer 21_o initial loss 1.5908304703771137e-05
+I0314 10:50:05.288972 2593694 finetune.py:45] layer 21_up initial loss 2.6281450118403882e-05
+I0314 10:50:20.443006 2593694 finetune.py:45] layer 21_gate initial loss 3.567934618331492e-05
+I0314 10:50:23.385188 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 22 in 67.62373900413513s
+I0314 10:50:26.548034 2593911 config.py:54] PyTorch version 2.1.1 available.
+I0314 10:50:27.562214 2588621 quantize_finetune_llama.py:191] layer 23 gpu 3
+I0314 10:50:27.633187 2593911 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 10:50:37.816876 2593694 finetune.py:45] layer 21_down initial loss 5.315057569532655e-05
+I0314 10:50:37.941771 2593911 finetune.py:45] layer 22_v initial loss 7.458836080331821e-06
+21_v proxy err 0.00030415685614570975 tr(WHW.T) 1144.5655517578125
+21_q proxy err 8.875349158188328e-05 tr(WHW.T) 7064.314453125
+21_k proxy err 8.23156296974048e-05 tr(WHW.T) 9976.4658203125
+21_o proxy err 0.00024123555340338498 tr(WHW.T) 75.50972747802734
+21_up proxy err 0.00022212797193787992 tr(WHW.T) 2361.650390625
+21_gate proxy err 0.00015255955804605037 tr(WHW.T) 4004.37646484375
+21_down proxy err 0.00026167629403062165 tr(WHW.T) 276.5857849121094
+I0314 10:50:46.961646 2593911 finetune.py:45] layer 22_q initial loss 9.917610441334546e-06
+I0314 10:50:55.734932 2593911 finetune.py:45] layer 22_k initial loss 1.2909977158415131e-05
+I0314 10:51:04.520231 2593911 finetune.py:45] layer 22_o initial loss 1.8856509996112436e-05
+I0314 10:51:19.749058 2593911 finetune.py:45] layer 22_up initial loss 3.054476110264659e-05
+I0314 10:51:34.832001 2593911 finetune.py:45] layer 22_gate initial loss 4.1221526771551e-05
+I0314 10:51:36.178554 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 23 in 68.17843222618103s
+I0314 10:51:39.244413 2594128 config.py:54] PyTorch version 2.1.1 available.
+I0314 10:51:40.302798 2588621 quantize_finetune_llama.py:191] layer 24 gpu 0
+I0314 10:51:40.368972 2594128 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 10:51:51.921663 2594128 finetune.py:45] layer 23_v initial loss 7.307155556190992e-06
+I0314 10:51:53.406997 2593911 finetune.py:45] layer 22_down initial loss 6.05083660047967e-05
+22_v proxy err 0.00029181857826188207 tr(WHW.T) 1243.2529296875
+22_q proxy err 8.989537309389561e-05 tr(WHW.T) 7746.84765625
+22_k proxy err 7.978724897839129e-05 tr(WHW.T) 10603.2041015625
+22_o proxy err 0.00020549839246086776 tr(WHW.T) 114.30065155029297
+22_up proxy err 0.0002230322133982554 tr(WHW.T) 2474.510498046875
+22_gate proxy err 0.00015416905807796866 tr(WHW.T) 4156.64013671875
+22_down proxy err 0.0002613202668726444 tr(WHW.T) 311.8800048828125
+I0314 10:52:01.261555 2594128 finetune.py:45] layer 23_q initial loss 9.55525683821179e-06
+I0314 10:52:10.005089 2594128 finetune.py:45] layer 23_k initial loss 1.2758102457155474e-05
+I0314 10:52:18.904130 2594128 finetune.py:45] layer 23_o initial loss 1.7987391402130015e-05
+I0314 10:52:33.869030 2594128 finetune.py:45] layer 23_up initial loss 3.067126090172678e-05
+I0314 10:52:48.931137 2594128 finetune.py:45] layer 23_gate initial loss 4.241364149493165e-05
+I0314 10:52:50.557992 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 24 in 69.18111085891724s
+I0314 10:52:53.729582 2594348 config.py:54] PyTorch version 2.1.1 available.
+I0314 10:52:54.867922 2588621 quantize_finetune_llama.py:191] layer 25 gpu 1
+I0314 10:52:54.925612 2594348 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 10:53:06.069646 2594348 finetune.py:45] layer 24_v initial loss 8.75177101988811e-06
+I0314 10:53:07.500162 2594128 finetune.py:45] layer 23_down initial loss 6.23606683802791e-05
+23_v proxy err 0.00026899005752056837 tr(WHW.T) 1486.037353515625
+23_q proxy err 9.875098476186395e-05 tr(WHW.T) 7346.60986328125
+23_k proxy err 8.429132140008733e-05 tr(WHW.T) 9982.2392578125
+23_o proxy err 0.00024334491172339767 tr(WHW.T) 85.13458251953125
+23_up proxy err 0.00022947770776227117 tr(WHW.T) 2533.51025390625
+23_gate proxy err 0.0001623998978175223 tr(WHW.T) 4097.51953125
+23_down proxy err 0.0002625509805511683 tr(WHW.T) 321.33892822265625
+I0314 10:53:16.181379 2594348 finetune.py:45] layer 24_q initial loss 1.1452023500169162e-05
+I0314 10:53:25.661514 2594348 finetune.py:45] layer 24_k initial loss 1.4627896234742366e-05
+I0314 10:53:34.839572 2594348 finetune.py:45] layer 24_o initial loss 2.1485077013494447e-05
+I0314 10:53:50.057690 2594348 finetune.py:45] layer 24_up initial loss 3.51623457390815e-05
+I0314 10:54:04.466432 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 25 in 69.16736555099487s
+I0314 10:54:05.265295 2594348 finetune.py:45] layer 24_gate initial loss 4.8125915782293305e-05
+I0314 10:54:07.807882 2594568 config.py:54] PyTorch version 2.1.1 available.
+I0314 10:54:08.879514 2588621 quantize_finetune_llama.py:191] layer 26 gpu 2
+I0314 10:54:08.930765 2594568 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 10:54:19.443022 2594568 finetune.py:45] layer 25_v initial loss 9.111973668041173e-06
+I0314 10:54:24.329348 2594348 finetune.py:45] layer 24_down initial loss 6.925651541678235e-05
+24_v proxy err 0.0002820277295541018 tr(WHW.T) 1394.900634765625
+24_q proxy err 9.837679681368172e-05 tr(WHW.T) 7020.447265625
+24_k proxy err 8.580779103795066e-05 tr(WHW.T) 10323.43359375
+24_o proxy err 0.00019668677123263478 tr(WHW.T) 133.98797607421875
+24_up proxy err 0.00023134994262363762 tr(WHW.T) 2621.76513671875
+24_gate proxy err 0.00016361018060706556 tr(WHW.T) 4262.74853515625
+24_down proxy err 0.0002625752240419388 tr(WHW.T) 340.22412109375
+I0314 10:54:29.780426 2594568 finetune.py:45] layer 25_q initial loss 1.1754833394661546e-05
+I0314 10:54:38.823078 2594568 finetune.py:45] layer 25_k initial loss 1.542251993669197e-05
+I0314 10:54:48.058144 2594568 finetune.py:45] layer 25_o initial loss 2.065214721369557e-05
+I0314 10:55:05.617501 2594568 finetune.py:45] layer 25_up initial loss 3.60267331416253e-05
+I0314 10:55:22.521870 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 26 in 73.24202346801758s
+I0314 10:55:23.870805 2594568 finetune.py:45] layer 25_gate initial loss 5.055558358435519e-05
+I0314 10:55:25.951210 2594791 config.py:54] PyTorch version 2.1.1 available.
+I0314 10:55:26.981348 2588621 quantize_finetune_llama.py:191] layer 27 gpu 3
+I0314 10:55:27.039767 2594791 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 10:55:38.310584 2594791 finetune.py:45] layer 26_v initial loss 1.2165372027084231e-05
+I0314 10:55:44.929111 2594568 finetune.py:45] layer 25_down initial loss 7.383512274827808e-05
+25_v proxy err 0.00025928160175681114 tr(WHW.T) 1707.664794921875
+25_q proxy err 0.0001007156097330153 tr(WHW.T) 7162.16357421875
+25_k proxy err 8.498940587742254e-05 tr(WHW.T) 9611.58984375
+25_o proxy err 0.00023849667923059314 tr(WHW.T) 83.535888671875
+25_up proxy err 0.00023046224669087678 tr(WHW.T) 2805.728515625
+25_gate proxy err 0.00015986512880772352 tr(WHW.T) 4666.4404296875
+25_down proxy err 0.0002605773042887449 tr(WHW.T) 373.460693359375
+I0314 10:55:49.937759 2594791 finetune.py:45] layer 26_q initial loss 1.5629169865860604e-05
+I0314 10:56:00.154399 2594791 finetune.py:45] layer 26_k initial loss 1.951237936737016e-05
+I0314 10:56:10.973386 2594791 finetune.py:45] layer 26_o initial loss 2.8296522941673175e-05
+I0314 10:56:28.729674 2594791 finetune.py:45] layer 26_up initial loss 4.511785300564952e-05
+I0314 10:56:41.813237 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 27 in 74.43844723701477s
+I0314 10:56:45.160351 2595017 config.py:54] PyTorch version 2.1.1 available.
+I0314 10:56:45.804209 2594791 finetune.py:45] layer 26_gate initial loss 6.181050412124023e-05
+I0314 10:56:46.191292 2588621 quantize_finetune_llama.py:191] layer 28 gpu 0
+I0314 10:56:46.256833 2595017 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 10:56:56.607375 2595017 finetune.py:45] layer 27_v initial loss 9.311449503002223e-06
+I0314 10:57:06.270996 2594791 finetune.py:45] layer 26_down initial loss 8.716165029909462e-05
+26_v proxy err 0.0002595971745904535 tr(WHW.T) 1668.8843994140625
+26_q proxy err 9.662281081546098e-05 tr(WHW.T) 7469.98291015625
+26_k proxy err 8.1730104284361e-05 tr(WHW.T) 10487.8740234375
+26_o proxy err 0.00016654246428515762 tr(WHW.T) 202.88172912597656
+26_up proxy err 0.00021961232414469123 tr(WHW.T) 3154.75146484375
+26_gate proxy err 0.0001537929492769763 tr(WHW.T) 5302.16455078125
+26_down proxy err 0.00026691643870435655 tr(WHW.T) 401.19390869140625
+I0314 10:57:07.770507 2595017 finetune.py:45] layer 27_q initial loss 1.2454514035198372e-05
+I0314 10:57:16.448705 2595017 finetune.py:45] layer 27_k initial loss 1.6068859622464515e-05
+I0314 10:57:25.187387 2595017 finetune.py:45] layer 27_o initial loss 2.3307751689571887e-05
+I0314 10:57:40.624468 2595017 finetune.py:45] layer 27_up initial loss 4.2952364310622215e-05
+I0314 10:57:57.257467 2595017 finetune.py:45] layer 27_gate initial loss 6.253249011933804e-05
+I0314 10:58:00.934524 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 28 in 73.67957377433777s
+I0314 10:58:04.443457 2595246 config.py:54] PyTorch version 2.1.1 available.
+I0314 10:58:05.571192 2588621 quantize_finetune_llama.py:191] layer 29 gpu 1
+I0314 10:58:05.648063 2595246 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 10:58:16.283522 2595017 finetune.py:45] layer 27_down initial loss 9.271238377550617e-05
+I0314 10:58:16.659518 2595246 finetune.py:45] layer 28_v initial loss 1.2129294191254303e-05
+27_v proxy err 0.00024023950390983373 tr(WHW.T) 1799.3350830078125
+27_q proxy err 9.857086115516722e-05 tr(WHW.T) 7691.708984375
+27_k proxy err 8.41028377180919e-05 tr(WHW.T) 10618.70703125
+27_o proxy err 0.00021908583585172892 tr(WHW.T) 126.13690185546875
+27_up proxy err 0.00020487185975071043 tr(WHW.T) 3691.557861328125
+27_gate proxy err 0.00014714915596414357 tr(WHW.T) 5990.82568359375
+27_down proxy err 0.00027170698740519583 tr(WHW.T) 466.9318542480469
+I0314 10:58:26.750943 2595246 finetune.py:45] layer 28_q initial loss 1.593781416886486e-05
+I0314 10:58:37.907240 2595246 finetune.py:45] layer 28_k initial loss 2.0667168428190053e-05
+I0314 10:58:49.274777 2595246 finetune.py:45] layer 28_o initial loss 3.0394539862754755e-05
+I0314 10:59:07.956692 2595246 finetune.py:45] layer 28_up initial loss 5.481399057316594e-05
+I0314 10:59:21.160930 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 29 in 75.15567469596863s
+I0314 10:59:24.782282 2595472 config.py:54] PyTorch version 2.1.1 available.
+I0314 10:59:25.889798 2588621 quantize_finetune_llama.py:191] layer 30 gpu 2
+I0314 10:59:25.960310 2595472 data_utils.py:336] using 256 training seqs, 128 validation seqs
+I0314 10:59:26.670654 2595246 finetune.py:45] layer 28_gate initial loss 7.850442489143461e-05
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 10:59:37.469473 2595472 finetune.py:45] layer 29_v initial loss 1.1571216418815311e-05
+I0314 10:59:47.854948 2595246 finetune.py:45] layer 28_down initial loss 0.00011765356612158939
+I0314 10:59:48.761501 2595472 finetune.py:45] layer 29_q initial loss 1.603406599315349e-05
+28_v proxy err 0.00022767960035707802 tr(WHW.T) 2018.944091796875
+28_q proxy err 9.986593067878857e-05 tr(WHW.T) 7651.126953125
+28_k proxy err 8.230989624280483e-05 tr(WHW.T) 10544.8251953125
+28_o proxy err 0.00018631225975695997 tr(WHW.T) 194.8240966796875
+28_up proxy err 0.00018004114099312574 tr(WHW.T) 4661.2666015625
+28_gate proxy err 0.0001430281699867919 tr(WHW.T) 6547.48193359375
+28_down proxy err 0.0002722078643273562 tr(WHW.T) 603.8403930664062
+I0314 10:59:58.014255 2595472 finetune.py:45] layer 29_k initial loss 2.1373069102992304e-05
+I0314 11:00:07.070141 2595472 finetune.py:45] layer 29_o initial loss 3.0433060601353645e-05
+I0314 11:00:22.618270 2595472 finetune.py:45] layer 29_up initial loss 6.13814772805199e-05
+I0314 11:00:37.572266 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 30 in 71.1431610584259s
+I0314 11:00:38.273384 2595472 finetune.py:45] layer 29_gate initial loss 9.068680083146319e-05
+I0314 11:00:40.563685 2595695 config.py:54] PyTorch version 2.1.1 available.
+I0314 11:00:41.541672 2588621 quantize_finetune_llama.py:191] layer 31 gpu 3
+I0314 11:00:41.598677 2595695 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 11:00:50.425672 2595695 finetune.py:45] layer 30_v initial loss 1.2214353773742914e-05
+I0314 11:00:55.548718 2595472 finetune.py:45] layer 29_down initial loss 0.00014264241326600313
+29_v proxy err 0.0002371266600675881 tr(WHW.T) 1801.7730712890625
+29_q proxy err 9.615535964258015e-05 tr(WHW.T) 7227.0009765625
+29_k proxy err 8.12024882179685e-05 tr(WHW.T) 10558.609375
+29_o proxy err 0.00016243872232735157 tr(WHW.T) 207.9054412841797
+29_up proxy err 0.00015461916336789727 tr(WHW.T) 6070.0498046875
+29_gate proxy err 0.00013676064554601908 tr(WHW.T) 7369.6142578125
+29_down proxy err 0.0002781930088531226 tr(WHW.T) 782.2448120117188
+I0314 11:00:59.728197 2595695 finetune.py:45] layer 30_q initial loss 1.6723310181987472e-05
+I0314 11:01:08.347983 2595695 finetune.py:45] layer 30_k initial loss 2.2820462618255988e-05
+I0314 11:01:17.067565 2595695 finetune.py:45] layer 30_o initial loss 3.417038533370942e-05
+I0314 11:01:32.210730 2595695 finetune.py:45] layer 30_up initial loss 9.245381079381332e-05
+I0314 11:01:47.377297 2595695 finetune.py:45] layer 30_gate initial loss 0.00013510166900232434
+I0314 11:01:49.518741 2588621 quantize_finetune_llama.py:218] computed original embedding for layer 31 in 67.57936239242554s
+I0314 11:01:52.530643 2595912 config.py:54] PyTorch version 2.1.1 available.
+I0314 11:01:53.603293 2595912 data_utils.py:336] using 256 training seqs, 128 validation seqs
+The attention layers in this model are transitioning from computing the RoPE embeddings internally through `position_ids` (2D tensor with the indexes of the tokens), to using externally computed `position_embeddings` (Tuple of tensors, containing cos and sin). In v4.46 `position_ids` will be removed and `position_embeddings` will be mandatory.
+I0314 11:02:02.216081 2595912 finetune.py:45] layer 31_v initial loss 2.1807767552672885e-05
+I0314 11:02:03.934440 2595695 finetune.py:45] layer 30_down initial loss 0.0002779745846055448
+30_v proxy err 0.00020415891776792705 tr(WHW.T) 2261.489501953125
+30_q proxy err 9.07421563169919e-05 tr(WHW.T) 7815.9453125
+30_k proxy err 7.980973168741912e-05 tr(WHW.T) 10521.625
+30_o proxy err 0.00016811161185614765 tr(WHW.T) 251.96908569335938
+30_up proxy err 0.0001152529803221114 tr(WHW.T) 10016.376953125
+30_gate proxy err 0.00011036294017685577 tr(WHW.T) 11001.119140625
+30_down proxy err 0.0001672723883530125 tr(WHW.T) 3582.617919921875
+I0314 11:02:11.356200 2595912 finetune.py:45] layer 31_q initial loss 6.208405102370307e-05
+I0314 11:02:19.797227 2595912 finetune.py:45] layer 31_k initial loss 8.25756651465781e-05
+I0314 11:02:28.337425 2595912 finetune.py:45] layer 31_o initial loss 0.00010380628373241052
+I0314 11:02:43.027662 2595912 finetune.py:45] layer 31_up initial loss 0.0003199726343154907
+I0314 11:02:57.835362 2595912 finetune.py:45] layer 31_gate initial loss 0.0004143072001170367
+I0314 11:03:13.823953 2595912 finetune.py:45] layer 31_down initial loss 0.0010068335104733706
+31_v proxy err 0.00023566374147776514 tr(WHW.T) 1268.2034912109375
+31_q proxy err 8.785157115198672e-05 tr(WHW.T) 6858.09130859375
+31_k proxy err 7.987031858647242e-05 tr(WHW.T) 10233.677734375
+31_o proxy err 0.00014350701530929655 tr(WHW.T) 457.7950744628906
+31_up proxy err 8.902104309527203e-05 tr(WHW.T) 14563.890625
+31_gate proxy err 8.635557605884969e-05 tr(WHW.T) 14836.2939453125
+31_down proxy err 0.00013954690075479448 tr(WHW.T) 17873.55859375

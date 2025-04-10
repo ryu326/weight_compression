@@ -43,6 +43,21 @@ def incoherence_preprocess(H, W, args):
         Hr = Hr / scaleWH[:, None]
         scaleWH = scaleWH.cpu()
 
+    if args.rescale_WH_2:
+        assert args.rescale_WH == False
+        # Hr = H / H.abs().max()
+        diagH = torch.diag(Hr)
+        diagW2 = torch.diag(W.T @ W)
+        diagH = torch.clamp(diagH, min=1e-8)
+        diagW2 = torch.clamp(diagW2, min=1e-8)
+        scaleWH = (diagH / diagW2).sqrt().to(torch.float32)
+        # scaleWH = scaleWH.clamp(min=1e-8)
+        scaleWH = scaleWH.clamp(min=1)
+        Wr = Wr * scaleWH[None, :]
+        Hr = Hr / scaleWH[None, :]
+        Hr = Hr / scaleWH[:, None]
+        scaleWH = scaleWH.cpu()    
+
     # randomized hadamard transformation on H, W
     if args.incoh_mode == "had":
         SU = (torch.randn(n, device=device).sign() + 1e-5).sign().to(dtype_)
@@ -60,8 +75,8 @@ def incoherence_preprocess(H, W, args):
     SV = SV.cpu()
     SU = SU.cpu()
 
-    # Lhr = torch.linalg.cholesky(Hr)
     Lhr = None
+    # Lhr = torch.linalg.cholesky(Hr)
     # if not torch.all(torch.isfinite(Lhr)):
     #     return None
 
@@ -82,7 +97,7 @@ def incoherence_process(hatWr, SU, SV, scaleWH, args):
         raise NotImplementedError
 
     # reverse rescale W,H
-    if args.rescale_WH:
+    if args.rescale_WH or args.rescale_WH_2:
         hatWr /= scaleWH[None, :].to(device)
 
     assert torch.isfinite(hatWr).all()
