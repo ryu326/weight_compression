@@ -1,0 +1,938 @@
+I0409 16:44:52.328833 1489438 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:44:52.328919 1489438 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:44:52.328955 1489438 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:44:52.649426 1489438 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:44:52.835014 1489438 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:44:53.406181 1489438 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+Loading checkpoint shards:   0%|          | 0/7 [00:00<?, ?it/s]Loading checkpoint shards:  14%|█▍        | 1/7 [00:00<00:00,  7.20it/s]Loading checkpoint shards:  29%|██▊       | 2/7 [00:00<00:00,  7.46it/s]Loading checkpoint shards:  43%|████▎     | 3/7 [00:00<00:00,  7.70it/s]Loading checkpoint shards:  57%|█████▋    | 4/7 [00:00<00:00,  7.84it/s]Loading checkpoint shards:  71%|███████▏  | 5/7 [00:00<00:00,  7.96it/s]Loading checkpoint shards:  86%|████████▌ | 6/7 [00:00<00:00,  8.06it/s]Loading checkpoint shards: 100%|██████████| 7/7 [00:00<00:00,  8.18it/s]Loading checkpoint shards: 100%|██████████| 7/7 [00:00<00:00,  7.95it/s]
+I0409 16:44:54.841971 1489438 quantize_finetune_llama.py:160] loaded model
+calculating model weight mean & std:   0%|          | 0/32 [00:00<?, ?it/s]calculating model weight mean & std:   3%|▎         | 1/32 [00:00<00:19,  1.59it/s]calculating model weight mean & std:   6%|▋         | 2/32 [00:01<00:18,  1.59it/s]calculating model weight mean & std:   9%|▉         | 3/32 [00:01<00:17,  1.62it/s]calculating model weight mean & std:  12%|█▎        | 4/32 [00:02<00:15,  1.79it/s]calculating model weight mean & std:  16%|█▌        | 5/32 [00:02<00:14,  1.92it/s]calculating model weight mean & std:  19%|█▉        | 6/32 [00:03<00:13,  1.97it/s]calculating model weight mean & std:  22%|██▏       | 7/32 [00:03<00:12,  1.93it/s]calculating model weight mean & std:  25%|██▌       | 8/32 [00:04<00:12,  1.95it/s]calculating model weight mean & std:  28%|██▊       | 9/32 [00:04<00:11,  1.95it/s]calculating model weight mean & std:  31%|███▏      | 10/32 [00:05<00:11,  1.98it/s]calculating model weight mean & std:  34%|███▍      | 11/32 [00:05<00:10,  2.02it/s]calculating model weight mean & std:  38%|███▊      | 12/32 [00:06<00:09,  2.04it/s]calculating model weight mean & std:  41%|████      | 13/32 [00:06<00:09,  2.05it/s]calculating model weight mean & std:  44%|████▍     | 14/32 [00:07<00:08,  2.05it/s]calculating model weight mean & std:  47%|████▋     | 15/32 [00:07<00:08,  2.04it/s]calculating model weight mean & std:  50%|█████     | 16/32 [00:08<00:07,  2.01it/s]calculating model weight mean & std:  53%|█████▎    | 17/32 [00:08<00:08,  1.82it/s]calculating model weight mean & std:  56%|█████▋    | 18/32 [00:09<00:08,  1.64it/s]calculating model weight mean & std:  59%|█████▉    | 19/32 [00:10<00:07,  1.72it/s]calculating model weight mean & std:  62%|██████▎   | 20/32 [00:10<00:06,  1.77it/s]calculating model weight mean & std:  66%|██████▌   | 21/32 [00:11<00:06,  1.80it/s]calculating model weight mean & std:  69%|██████▉   | 22/32 [00:11<00:05,  1.84it/s]calculating model weight mean & std:  72%|███████▏  | 23/32 [00:12<00:04,  1.86it/s]calculating model weight mean & std:  75%|███████▌  | 24/32 [00:12<00:04,  1.90it/s]calculating model weight mean & std:  78%|███████▊  | 25/32 [00:13<00:03,  1.97it/s]calculating model weight mean & std:  81%|████████▏ | 26/32 [00:13<00:03,  1.99it/s]calculating model weight mean & std:  84%|████████▍ | 27/32 [00:14<00:02,  2.01it/s]calculating model weight mean & std:  88%|████████▊ | 28/32 [00:14<00:01,  2.02it/s]calculating model weight mean & std:  91%|█████████ | 29/32 [00:15<00:01,  2.03it/s]calculating model weight mean & std:  94%|█████████▍| 30/32 [00:15<00:00,  2.04it/s]calculating model weight mean & std:  97%|█████████▋| 31/32 [00:16<00:00,  2.08it/s]calculating model weight mean & std: 100%|██████████| 32/32 [00:16<00:00,  2.10it/s]calculating model weight mean & std: 100%|██████████| 32/32 [00:16<00:00,  1.93it/s]
+I0409 16:45:20.902621 1489438 quantize_finetune_llama.py:198] loaded compression model
+I0409 16:45:43.950448 1489438 quantize_finetune_llama.py:202] loaded dataset and devset
+I0409 16:45:46.355936 1489438 quantize_finetune_llama.py:222] layer 0 gpu 0
+I0409 16:45:50.081474 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 0 in 3.5520119667053223s
+tensor(-4.7143e-06) tensor(0.0125)
+tensor(0.0125) tensor(-4.7143e-06)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+I0409 16:46:04.226640 1490503 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:46:04.226726 1490503 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:46:04.226763 1490503 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:46:04.554942 1490503 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:46:04.757605 1490503 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:46:05.333370 1490503 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:46:05.337201 1489438 quantize_finetune_llama.py:222] layer 1 gpu 0
+I0409 16:46:05.350361 1490503 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-1:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 128, in compress_llama_decoder
+    finetune.compress_finetune_decoder_layer(layer, quant_order, idx, comp_model, ql_i, args,
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuning is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuning'
+I0409 16:46:07.916753 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 1 in 0.7855672836303711s
+I0409 16:46:11.428688 1490756 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:46:11.428777 1490756 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:46:11.428814 1490756 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:46:11.750893 1490756 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:46:11.937531 1490756 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:46:12.522722 1490756 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:46:12.526451 1489438 quantize_finetune_llama.py:222] layer 2 gpu 0
+I0409 16:46:12.539436 1490756 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-2:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 128, in compress_llama_decoder
+    finetune.compress_finetune_decoder_layer(layer, quant_order, idx, comp_model, ql_i, args,
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuning is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuning'
+I0409 16:46:15.009670 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 2 in 0.7815582752227783s
+I0409 16:46:18.573657 1491017 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:46:18.573742 1491017 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:46:18.573781 1491017 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:46:18.897254 1491017 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:46:19.084324 1491017 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:46:19.661244 1491017 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:46:19.664911 1489438 quantize_finetune_llama.py:222] layer 3 gpu 0
+I0409 16:46:19.677689 1491017 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-3:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 128, in compress_llama_decoder
+    finetune.compress_finetune_decoder_layer(layer, quant_order, idx, comp_model, ql_i, args,
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuning is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuning'
+I0409 16:46:22.239578 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 3 in 0.8211712837219238s
+I0409 16:46:25.905242 1491275 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:46:25.905328 1491275 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:46:25.905364 1491275 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:46:26.224091 1491275 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:46:26.413553 1491275 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:46:27.034919 1491275 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:46:27.038672 1489438 quantize_finetune_llama.py:222] layer 4 gpu 0
+I0409 16:46:27.051991 1491275 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-4:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 128, in compress_llama_decoder
+    finetune.compress_finetune_decoder_layer(layer, quant_order, idx, comp_model, ql_i, args,
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuning is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuning'
+I0409 16:46:29.723225 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 4 in 0.8988697528839111s
+I0409 16:46:33.430357 1491526 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:46:33.430449 1491526 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:46:33.430493 1491526 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:46:33.754725 1491526 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:46:33.949830 1491526 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:46:34.523949 1491526 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:46:34.527596 1489438 quantize_finetune_llama.py:222] layer 5 gpu 0
+I0409 16:46:34.540783 1491526 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-5:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 128, in compress_llama_decoder
+    finetune.compress_finetune_decoder_layer(layer, quant_order, idx, comp_model, ql_i, args,
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuning is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuning'
+I0409 16:46:37.059829 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 5 in 0.8278875350952148s
+I0409 16:46:40.839830 1491849 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:46:40.839919 1491849 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:46:40.839957 1491849 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:46:41.160628 1491849 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:46:41.347029 1491849 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:46:41.935780 1491849 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:46:41.939446 1489438 quantize_finetune_llama.py:222] layer 6 gpu 0
+I0409 16:46:41.952031 1491849 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-6:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 128, in compress_llama_decoder
+    finetune.compress_finetune_decoder_layer(layer, quant_order, idx, comp_model, ql_i, args,
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuning is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuning'
+I0409 16:46:44.410758 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 6 in 0.7728383541107178s
+I0409 16:46:48.082724 1492108 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:46:48.082818 1492108 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:46:48.082858 1492108 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:46:48.403665 1492108 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:46:48.590973 1492108 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:46:49.275546 1492108 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:46:49.279804 1489438 quantize_finetune_llama.py:222] layer 7 gpu 0
+I0409 16:46:49.294639 1492108 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-7:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 128, in compress_llama_decoder
+    finetune.compress_finetune_decoder_layer(layer, quant_order, idx, comp_model, ql_i, args,
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuning is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuning'
+I0409 16:46:51.964167 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 7 in 0.7789733409881592s
+I0409 16:46:55.896869 1492361 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:46:55.897007 1492361 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:46:55.897070 1492361 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:46:56.268564 1492361 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:46:56.574538 1492361 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:46:57.236389 1492361 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:46:57.240504 1489438 quantize_finetune_llama.py:222] layer 8 gpu 0
+I0409 16:46:57.265829 1492361 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-8:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 128, in compress_llama_decoder
+    print(f'skipping {idx}_{thing[1]}')
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuning is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuning'
+I0409 16:47:00.834742 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 8 in 1.4074163436889648s
+I0409 16:47:04.591230 1492668 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:47:04.591317 1492668 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:47:04.591353 1492668 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:47:04.916547 1492668 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:47:05.120970 1492668 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:47:05.687503 1492668 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:47:05.691255 1489438 quantize_finetune_llama.py:222] layer 9 gpu 0
+I0409 16:47:05.719124 1492668 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-9:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 129, in compress_llama_decoder
+    finetune.compress_finetune_decoder_layer(layer, quant_order, idx, comp_model, ql_i, args,
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuning is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuning'
+I0409 16:47:08.104737 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 9 in 0.5875201225280762s
+I0409 16:47:11.891143 1492964 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:47:11.891232 1492964 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:47:11.891274 1492964 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:47:12.252164 1492964 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:47:12.450414 1492964 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:47:13.075493 1492964 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:47:13.079166 1489438 quantize_finetune_llama.py:222] layer 10 gpu 0
+I0409 16:47:13.091952 1492964 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-10:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 129, in compress_llama_decoder
+    print(f'skipping {idx}_{thing[1]}')
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuning is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuning'
+I0409 16:47:15.474155 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 10 in 0.5903379917144775s
+I0409 16:47:19.266648 1493232 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:47:19.266749 1493232 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:47:19.266789 1493232 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:47:19.596616 1493232 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:47:19.839428 1493232 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:47:20.409875 1493232 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:47:20.413624 1489438 quantize_finetune_llama.py:222] layer 11 gpu 0
+I0409 16:47:20.426971 1493232 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-11:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 131, in compress_llama_decoder
+    finetune.compress_finetune_decoder_layer(layer, quant_order, idx, comp_model, ql_i, args,
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuned is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuned'
+I0409 16:47:23.487835 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 11 in 1.2170062065124512s
+I0409 16:47:27.557529 1493505 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:47:27.557627 1493505 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:47:27.557667 1493505 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:47:27.891880 1493505 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:47:28.079478 1493505 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:47:28.634219 1493505 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:47:28.638203 1489438 quantize_finetune_llama.py:222] layer 12 gpu 0
+I0409 16:47:28.651398 1493505 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-12:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 131, in compress_llama_decoder
+    finetune.compress_finetune_decoder_layer(layer, quant_order, idx, comp_model, ql_i, args,
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuned is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuned'
+I0409 16:47:32.539048 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 12 in 1.064150094985962s
+I0409 16:47:36.115291 1493783 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:47:36.115380 1493783 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:47:36.115417 1493783 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:47:36.453046 1493783 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:47:36.650606 1493783 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:47:37.216383 1493783 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:47:37.220327 1489438 quantize_finetune_llama.py:222] layer 13 gpu 0
+I0409 16:47:37.264120 1493783 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-13:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 131, in compress_llama_decoder
+    finetune.compress_finetune_decoder_layer(layer, quant_order, idx, comp_model, ql_i, args,
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuned is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuned'
+I0409 16:47:39.850526 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 13 in 0.837627649307251s
+I0409 16:47:43.549439 1494116 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:47:43.549533 1494116 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:47:43.549577 1494116 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:47:43.890042 1494116 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:47:44.078449 1494116 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:47:44.651689 1494116 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:47:44.655745 1489438 quantize_finetune_llama.py:222] layer 14 gpu 0
+I0409 16:47:44.712138 1494116 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-14:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 131, in compress_llama_decoder
+    finetune.compress_finetune_decoder_layer(layer, quant_order, idx, comp_model, ql_i, args,
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuned is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuned'
+I0409 16:47:47.485914 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 14 in 0.9520730972290039s
+I0409 16:47:51.056467 1494435 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:47:51.056555 1494435 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:47:51.056591 1494435 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:47:51.397114 1494435 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:47:51.585873 1494435 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:47:52.154492 1494435 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:47:52.158192 1489438 quantize_finetune_llama.py:222] layer 15 gpu 0
+I0409 16:47:52.171253 1494435 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-15:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 131, in compress_llama_decoder
+    finetune.compress_finetune_decoder_layer(layer, quant_order, idx, comp_model, ql_i, args,
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuned is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuned'
+I0409 16:47:54.677623 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 15 in 0.722374677658081s
+I0409 16:47:58.417094 1494761 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:47:58.417185 1494761 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:47:58.417226 1494761 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:47:58.754262 1494761 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:47:58.940656 1494761 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:47:59.524144 1494761 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:47:59.528298 1489438 quantize_finetune_llama.py:222] layer 16 gpu 0
+I0409 16:47:59.560135 1494761 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-16:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 131, in compress_llama_decoder
+    finetune.compress_finetune_decoder_layer(layer, quant_order, idx, comp_model, ql_i, args,
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuned is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuned'
+I0409 16:48:02.139519 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 16 in 0.8678593635559082s
+I0409 16:48:05.898544 1495088 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:48:05.898633 1495088 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:48:05.898669 1495088 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:48:06.217103 1495088 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:48:06.404798 1495088 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:48:06.966871 1495088 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:48:06.970829 1489438 quantize_finetune_llama.py:222] layer 17 gpu 0
+I0409 16:48:07.010356 1495088 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-17:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 131, in compress_llama_decoder
+    finetune.compress_finetune_decoder_layer(layer, quant_order, idx, comp_model, ql_i, args,
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuned is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuned'
+I0409 16:48:09.341478 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 17 in 0.5412242412567139s
+I0409 16:48:12.972922 1495407 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:48:12.973014 1495407 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:48:12.973051 1495407 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:48:13.289776 1495407 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:48:13.479031 1495407 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:48:14.099006 1495407 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:48:14.103078 1489438 quantize_finetune_llama.py:222] layer 18 gpu 0
+I0409 16:48:14.116593 1495407 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-18:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 131, in compress_llama_decoder
+    finetune.compress_finetune_decoder_layer(layer, quant_order, idx, comp_model, ql_i, args,
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuned is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuned'
+I0409 16:48:16.493829 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 18 in 0.6896767616271973s
+I0409 16:48:20.120403 1495730 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:48:20.120492 1495730 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:48:20.120530 1495730 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:48:20.440816 1495730 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:48:20.627216 1495730 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:48:21.191940 1495730 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:48:21.195932 1489438 quantize_finetune_llama.py:222] layer 19 gpu 0
+I0409 16:48:21.211068 1495730 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-19:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 131, in compress_llama_decoder
+    finetune.compress_finetune_decoder_layer(layer, quant_order, idx, comp_model, ql_i, args,
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuned is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuned'
+I0409 16:48:23.519858 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 19 in 0.6232414245605469s
+I0409 16:48:27.143855 1496040 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:48:27.143946 1496040 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:48:27.143986 1496040 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:48:27.465657 1496040 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:48:27.652122 1496040 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:48:28.217590 1496040 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:48:28.221258 1489438 quantize_finetune_llama.py:222] layer 20 gpu 0
+I0409 16:48:28.235292 1496040 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-20:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 131, in compress_llama_decoder
+    finetune.compress_finetune_decoder_layer(layer, quant_order, idx, comp_model, ql_i, args,
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuned is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuned'
+I0409 16:48:30.679551 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 20 in 0.7022676467895508s
+I0409 16:48:34.358283 1496352 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:48:34.358377 1496352 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:48:34.358418 1496352 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:48:34.684356 1496352 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:48:34.876528 1496352 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:48:35.446472 1496352 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:48:35.450371 1489438 quantize_finetune_llama.py:222] layer 21 gpu 0
+I0409 16:48:35.463543 1496352 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-21:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 131, in compress_llama_decoder
+    finetune.compress_finetune_decoder_layer(layer, quant_order, idx, comp_model, ql_i, args,
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuned is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuned'
+I0409 16:48:37.910858 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 21 in 0.7539787292480469s
+I0409 16:48:41.583042 1496667 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:48:41.583136 1496667 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:48:41.583177 1496667 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:48:41.929452 1496667 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:48:42.116916 1496667 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:48:42.674418 1496667 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:48:42.678323 1489438 quantize_finetune_llama.py:222] layer 22 gpu 0
+I0409 16:48:42.691086 1496667 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-22:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 131, in compress_llama_decoder
+    finetune.compress_finetune_decoder_layer(layer, quant_order, idx, comp_model, ql_i, args,
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuned is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuned'
+I0409 16:48:45.249532 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 22 in 0.804718017578125s
+I0409 16:48:48.878386 1496993 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:48:48.878482 1496993 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:48:48.878523 1496993 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:48:49.207469 1496993 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:48:49.395453 1496993 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:48:49.963302 1496993 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:48:49.966967 1489438 quantize_finetune_llama.py:222] layer 23 gpu 0
+I0409 16:48:49.981352 1496993 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-23:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 131, in compress_llama_decoder
+    finetune.compress_finetune_decoder_layer(layer, quant_order, idx, comp_model, ql_i, args,
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuned is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuned'
+I0409 16:48:52.591150 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 23 in 0.9732627868652344s
+I0409 16:48:56.333992 1497314 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:48:56.334090 1497314 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:48:56.334129 1497314 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:48:56.660004 1497314 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:48:56.846422 1497314 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:48:57.392611 1497314 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:48:57.396635 1489438 quantize_finetune_llama.py:222] layer 24 gpu 0
+I0409 16:48:57.411474 1497314 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-24:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 131, in compress_llama_decoder
+    finetune.compress_finetune_decoder_layer(layer, quant_order, idx, comp_model, ql_i, args,
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuned is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuned'
+I0409 16:48:59.958216 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 24 in 0.7584023475646973s
+I0409 16:49:03.600193 1497646 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:49:03.600298 1497646 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:49:03.600345 1497646 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:49:03.938576 1497646 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:49:04.126929 1497646 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:49:04.725950 1497646 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:49:04.729675 1489438 quantize_finetune_llama.py:222] layer 25 gpu 0
+I0409 16:49:04.742402 1497646 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-25:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 131, in compress_llama_decoder
+    finetune.compress_finetune_decoder_layer(layer, quant_order, idx, comp_model, ql_i, args,
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuned is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuned'
+I0409 16:49:07.050518 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 25 in 0.6422562599182129s
+I0409 16:49:10.706082 1497967 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:49:10.706172 1497967 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:49:10.706213 1497967 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:49:11.037485 1497967 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:49:11.244912 1497967 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:49:11.825792 1497967 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:49:11.829788 1489438 quantize_finetune_llama.py:222] layer 26 gpu 0
+I0409 16:49:11.864124 1497967 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-26:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 131, in compress_llama_decoder
+    finetune.compress_finetune_decoder_layer(layer, quant_order, idx, comp_model, ql_i, args,
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuned is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuned'
+I0409 16:49:14.087507 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 26 in 0.5616345405578613s
+I0409 16:49:17.702937 1498274 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:49:17.703035 1498274 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:49:17.703075 1498274 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:49:18.025504 1498274 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:49:18.211888 1498274 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:49:18.828341 1498274 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:49:18.832404 1489438 quantize_finetune_llama.py:222] layer 27 gpu 0
+I0409 16:49:18.845676 1498274 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-27:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 131, in compress_llama_decoder
+    finetune.compress_finetune_decoder_layer(layer, quant_order, idx, comp_model, ql_i, args,
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuned is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuned'
+I0409 16:49:21.086915 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 27 in 0.5927131175994873s
+I0409 16:49:24.629921 1498562 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:49:24.630006 1498562 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:49:24.630042 1498562 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:49:24.957053 1498562 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:49:25.145093 1498562 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:49:25.697466 1498562 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:49:25.701211 1489438 quantize_finetune_llama.py:222] layer 28 gpu 0
+I0409 16:49:25.716057 1498562 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-28:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 131, in compress_llama_decoder
+    finetune.compress_finetune_decoder_layer(layer, quant_order, idx, comp_model, ql_i, args,
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuned is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuned'
+I0409 16:49:28.105286 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 28 in 0.6377971172332764s
+I0409 16:49:31.666645 1498881 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:49:31.666738 1498881 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:49:31.666776 1498881 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:49:31.990452 1498881 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:49:32.184805 1498881 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:49:32.741267 1498881 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:49:32.745307 1489438 quantize_finetune_llama.py:222] layer 29 gpu 0
+I0409 16:49:32.759318 1498881 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-29:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 131, in compress_llama_decoder
+    finetune.compress_finetune_decoder_layer(layer, quant_order, idx, comp_model, ql_i, args,
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuned is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuned'
+I0409 16:49:35.251182 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 29 in 0.7344117164611816s
+I0409 16:49:38.965564 1499197 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:49:38.965649 1499197 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:49:38.965686 1499197 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:49:39.286226 1499197 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:49:39.474503 1499197 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:49:40.042750 1499197 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:49:40.046823 1489438 quantize_finetune_llama.py:222] layer 30 gpu 0
+I0409 16:49:40.060635 1499197 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-30:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 131, in compress_llama_decoder
+    finetune.compress_finetune_decoder_layer(layer, quant_order, idx, comp_model, ql_i, args,
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuned is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuned'
+I0409 16:49:42.595385 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 30 in 0.831549882888794s
+I0409 16:49:46.206071 1499515 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:49:46.206158 1499515 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:49:46.206196 1499515 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:49:46.525854 1499515 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:49:46.714105 1499515 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:49:47.300553 1499515 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:49:47.304283 1489438 quantize_finetune_llama.py:222] layer 31 gpu 0
+I0409 16:49:47.317455 1499515 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-31:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 131, in compress_llama_decoder
+    finetune.compress_finetune_decoder_layer(layer, quant_order, idx, comp_model, ql_i, args,
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuned is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuned'
+I0409 16:49:49.991566 1489438 quantize_finetune_llama.py:253] computed original embedding for layer 31 in 0.9188683032989502s
+I0409 16:49:53.493013 1499841 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:49:53.493102 1499841 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:49:53.493139 1499841 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:49:53.818619 1499841 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:49:54.005600 1499841 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 16:49:54.558224 1499841 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 16:49:54.578147 1499841 data_utils.py:336] using 256 training seqs, 128 validation seqs
+Process Process-32:
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/conda/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 131, in compress_llama_decoder
+    finetune.compress_finetune_decoder_layer(layer, quant_order, idx, comp_model, ql_i, args,
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/finetune.py", line 132, in compress_finetune_decoder_layer
+    W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+  File "/workspace/Weight_compression/comp_lm_qtip/lib/algo/nwc.py", line 256, in compress_linear
+    if args.ql_tuned is not None:
+AttributeError: 'Namespace' object has no attribute 'ql_tuned'
+I0409 16:50:05.282651 1500244 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 16:50:05.282754 1500244 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 16:50:05.282799 1500244 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 16:50:05.593540 1500244 config.py:54] PyTorch version 2.6.0 available.
+W0409 16:50:05.801009 1500244 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+I0409 16:50:05.908913 1500244 hfize_llama.py:27] LlamaConfig {
+  "_attn_implementation_autoset": true,
+  "_name_or_path": "../Wparam_dataset/hf_model/meta-llama--Meta-Llama-3-8B",
+  "architectures": [
+    "LlamaForCausalLM"
+  ],
+  "attention_bias": false,
+  "attention_dropout": 0.0,
+  "bos_token_id": 128000,
+  "eos_token_id": 128001,
+  "head_dim": 128,
+  "hidden_act": "silu",
+  "hidden_size": 4096,
+  "initializer_range": 0.02,
+  "intermediate_size": 14336,
+  "max_position_embeddings": 8192,
+  "mlp_bias": false,
+  "model_type": "llama",
+  "num_attention_heads": 32,
+  "num_hidden_layers": 32,
+  "num_key_value_heads": 8,
+  "pretraining_tp": 1,
+  "quip_params": {},
+  "rms_norm_eps": 1e-05,
+  "rope_scaling": null,
+  "rope_theta": 500000.0,
+  "tie_word_embeddings": false,
+  "torch_dtype": "float32",
+  "transformers_version": "4.47.1",
+  "use_cache": true,
+  "vocab_size": 128256
+}
+
+Loading checkpoint shards:   0%|          | 0/7 [00:00<?, ?it/s]Loading checkpoint shards:  14%|█▍        | 1/7 [00:00<00:00,  7.40it/s]Loading checkpoint shards:  29%|██▊       | 2/7 [00:00<00:00,  8.34it/s]Loading checkpoint shards:  43%|████▎     | 3/7 [00:00<00:00,  8.88it/s]Loading checkpoint shards:  57%|█████▋    | 4/7 [00:00<00:00,  9.11it/s]Loading checkpoint shards:  71%|███████▏  | 5/7 [00:00<00:00,  9.34it/s]Loading checkpoint shards:  86%|████████▌ | 6/7 [00:00<00:00,  9.39it/s]Loading checkpoint shards: 100%|██████████| 7/7 [00:00<00:00,  9.21it/s]
+Loading checkpoint shards:   0%|          | 0/7 [00:00<?, ?it/s]Loading checkpoint shards:  14%|█▍        | 1/7 [00:00<00:00,  9.16it/s]Loading checkpoint shards:  29%|██▊       | 2/7 [00:00<00:00,  9.31it/s]Loading checkpoint shards:  43%|████▎     | 3/7 [00:00<00:00,  9.16it/s]Loading checkpoint shards:  57%|█████▋    | 4/7 [00:00<00:00,  9.02it/s]Loading checkpoint shards:  71%|███████▏  | 5/7 [00:00<00:00,  9.19it/s]Loading checkpoint shards:  86%|████████▌ | 6/7 [00:00<00:00,  9.21it/s]Loading checkpoint shards: 100%|██████████| 7/7 [00:00<00:00,  9.31it/s]Loading checkpoint shards: 100%|██████████| 7/7 [00:00<00:00,  9.23it/s]
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/opt/conda/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/hfize_llama.py", line 194, in <module>
+    main(args)
+  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/hfize_llama.py", line 85, in main
+    saved_layer = torch.load(f'{args.quantized_path}/{ii}_q.pt',
+  File "/opt/conda/lib/python3.10/site-packages/torch/serialization.py", line 1425, in load
+    with _open_file_like(f, "rb") as opened_file:
+  File "/opt/conda/lib/python3.10/site-packages/torch/serialization.py", line 751, in _open_file_like
+    return _open_file(name_or_buffer, mode)
+  File "/opt/conda/lib/python3.10/site-packages/torch/serialization.py", line 732, in __init__
+    super().__init__(open(name, mode))
+FileNotFoundError: [Errno 2] No such file or directory: '../hf_model_comp/comp_qtip/ckpt/ql_search/layerdown_val2/meta-llama--Meta-Llama-3-8B/lmbda100/0_q.pt'
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/site-packages/transformers/utils/hub.py", line 403, in cached_file
+    resolved_file = hf_hub_download(
+  File "/opt/conda/lib/python3.10/site-packages/huggingface_hub/utils/_validators.py", line 106, in _inner_fn
+    validate_repo_id(arg_value)
+  File "/opt/conda/lib/python3.10/site-packages/huggingface_hub/utils/_validators.py", line 154, in validate_repo_id
+    raise HFValidationError(
+huggingface_hub.errors.HFValidationError: Repo id must be in the form 'repo_name' or 'namespace/repo_name': '../hf_model_comp/comp_qtip/hf/ql_search/layerdown_val2/meta-llama--Meta-Llama-3-8B/lmbda100'. Use `repo_type` argument if needed.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/workspace/Weight_compression/comp_lm_qtip/eval_ppl.py", line 124, in <module>
+    main(args)
+  File "/workspace/Weight_compression/comp_lm_qtip/eval_ppl.py", line 71, in main
+    model, model_str = model_from_hf_path(
+  File "/workspace/Weight_compression/comp_lm_qtip/eval_ppl.py", line 34, in model_from_hf_path
+    bad_config = transformers.AutoConfig.from_pretrained(path)
+  File "/opt/conda/lib/python3.10/site-packages/transformers/models/auto/configuration_auto.py", line 1021, in from_pretrained
+    config_dict, unused_kwargs = PretrainedConfig.get_config_dict(pretrained_model_name_or_path, **kwargs)
+  File "/opt/conda/lib/python3.10/site-packages/transformers/configuration_utils.py", line 590, in get_config_dict
+    config_dict, kwargs = cls._get_config_dict(pretrained_model_name_or_path, **kwargs)
+  File "/opt/conda/lib/python3.10/site-packages/transformers/configuration_utils.py", line 649, in _get_config_dict
+    resolved_config_file = cached_file(
+  File "/opt/conda/lib/python3.10/site-packages/transformers/utils/hub.py", line 469, in cached_file
+    raise EnvironmentError(
+OSError: Incorrect path_or_model_id: '../hf_model_comp/comp_qtip/hf/ql_search/layerdown_val2/meta-llama--Meta-Llama-3-8B/lmbda100'. Please provide either the path to a local folder or the repo_id of a model on the Hub.

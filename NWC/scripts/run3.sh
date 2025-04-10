@@ -1,11 +1,11 @@
 CUDA_VISIBLE_DEVICES=3 taskset -c 24-31 python -u train_nwc.py \
     --architecture nwc \
-    --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
+    --dataset_path ../Wparam_dataset/block_pt/meta-llama--Llama-2-7b-hf/scaled3_RHT_sig0.0001_col_4096.pt \
     --dataset block_seq \
     --iter 200000 \
     --input_size 16 \
     --M 16 \
     --dim_encoder 512 \
-    --batch_size 2048 \
+    --batch_size 1024 \
     --loss rdloss \
-    --lmbda 30
+    --lmbda 300

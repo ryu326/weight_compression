@@ -35,8 +35,7 @@ class Weight_Vector_Dataset(Dataset):
         img = self.dataset[idx].view(-1, self.input_size)
         q_level = random.choice(self.random_values)
         return {'weight_block': img,
-                'input_block': torch.zeros(1),
-                'q_level': q_level}
+                'q_level': q_level.unsqueeze(0)}
 
 
 def get_datasets_block_seq_random_qlevel(dataset_pt_path, input_size, Q, args):

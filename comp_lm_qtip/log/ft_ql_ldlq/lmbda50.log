@@ -1,0 +1,45 @@
+I0327 17:13:02.529862 2008678 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0327 17:13:02.529961 2008678 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0327 17:13:02.530002 2008678 utils.py:162] NumExpr defaulting to 16 threads.
+I0327 17:13:02.868001 2008678 config.py:54] PyTorch version 2.6.0 available.
+W0327 17:13:03.060322 2008678 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0327 17:13:03.715013 2008678 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+usage: quantize_finetune_llama.py [-h] [--seed SEED]
+                                  [--num_cpu_threads NUM_CPU_THREADS]
+                                  [--batch_size BATCH_SIZE]
+                                  [--devset_size DEVSET_SIZE]
+                                  [--ctx_size CTX_SIZE]
+                                  [--save_path SAVE_PATH]
+                                  [--in_hess_path IN_HESS_PATH]
+                                  [--base_model BASE_MODEL]
+                                  [--sigma_reg SIGMA_REG]
+                                  [--sigma_reg2 SIGMA_REG2]
+                                  [--scale_override SCALE_OVERRIDE]
+                                  [--use_fp64] [--no_use_buffered]
+                                  [--sample_proc SAMPLE_PROC] [--lowmem_ldlq]
+                                  [--ft_lr FT_LR] [--ft_bs FT_BS]
+                                  [--ft_update_freq FT_UPDATE_FREQ]
+                                  [--ft_epochs FT_EPOCHS]
+                                  [--ft_valid_freq FT_VALID_FREQ]
+                                  [--ft_valid_size FT_VALID_SIZE]
+                                  [--ft_early_stop FT_EARLY_STOP]
+                                  [--ft_grad_ckpt] [--skip_list SKIP_LIST]
+                                  [--bundle] [--ql] [--ql_path QL_PATH]
+                                  [--hesseigen HESSEIGEN] [--gptq] [--ldlq]
+                                  [--comp_model_path COMP_MODEL_PATH]
+                                  [--direction DIRECTION]
+                                  [--comp_batch_size COMP_BATCH_SIZE]
+                                  [--quip_tune_iters QUIP_TUNE_ITERS]
+                                  [--rescale_WH] [--rescale_WH_2]
+                                  [--incoh_mode {had,kron,none}]
+                                  [--lora_rank LORA_RANK] [--ql_invH]
+                                  [--use_train_scale]
+quantize_finetune_llama.py: error: argument --in_hess_path: expected one argument
+I0327 17:13:07.970835 2008794 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0327 17:13:07.970960 2008794 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0327 17:13:07.971005 2008794 utils.py:162] NumExpr defaulting to 16 threads.
+I0327 17:13:08.299223 2008794 config.py:54] PyTorch version 2.6.0 available.

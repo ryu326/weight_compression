@@ -1,17 +1,53 @@
 CUDA_VISIBLE_DEVICES=0 taskset -c 0-7 python -u train_nwc.py \
     --architecture nwc \
-    --dataset_path ../Wparam_dataset/block_pt/meta-llama--Llama-2-7b-hf/scaled3_RHT_sig0.0001_col_4096.pt \
+    --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/scaled3_RHT_sig1e-06_col_1024.pt \
     --dataset block_seq \
     --iter 200000 \
     --input_size 16 \
     --M 16 \
     --dim_encoder 512 \
-    --batch_size 1024 \
+    --batch_size 2048 \
     --loss rdloss \
-    --lmbda 10
+    --lmbda 30
     
     
 ###############
+    # --architecture nwc_ql_cdt \
+    # --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_layerwise_stats.pt \
+    # --dataset block_seq_ql_random_lstats \
+    # --iter 200000 \
+    # --input_size 16 \
+    # --M 16 \
+    # --Q 4 \
+    # --C 7 \
+    # --dim_encoder 512 \
+    # --batch_size 2048 \
+    # --loss rdloss_ql \
+    # --lmbda 1000
+
+    # --architecture nwc_ql_bn \
+    # --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
+    # --dataset block_seq \
+    # --iter 200000 \
+    # --input_size 16 \
+    # --M 16 \
+    # --Q 4 \
+    # --dim_encoder 512 \
+    # --batch_size 2048 \
+    # --loss rdloss_ql \
+    # --lmbda 1000
+
+    # --architecture nwc \
+    # --dataset_path ../Wparam_dataset/block_pt/meta-llama--Llama-2-7b-hf/scaled3_RHT_sig0.0001_col_4096.pt \
+    # --dataset block_seq \
+    # --iter 200000 \
+    # --input_size 16 \
+    # --M 16 \
+    # --dim_encoder 512 \
+    # --batch_size 1024 \
+    # --loss rdloss \
+    # --lmbda 10
+
     # --architecture nwc_ql \
     # --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
     # --dataset block_seq_ql_random \

@@ -52,6 +52,14 @@ def main(args):
     comp_result['ppl'] = 0
     comp_result['num_pixels'] = 0
     
+    try:
+        with open(os.path.join(args.quantized_path, 'config.json'), 'r') as f:
+            saved_config = json.load(f)
+        comp_result['config'] = saved_config
+    except Exception as e:
+        print(f"Failed to load config: {e}")
+
+    
     cpu = torch.device('cpu')
     if os.path.exists(f'{args.quantized_path}/lmhead.pt'):
         lmhead_data = torch.load(f'{args.quantized_path}/lmhead.pt',

@@ -84,8 +84,6 @@ class Encoder(nn.Module):
         perm = list(range(x.dim()))
         perm[-1], perm[1] = perm[1], perm[-1]
         x = x.permute(*perm).contiguous()
-        # print(x.shape)
-        # import ipdb; ipdb.set_trace()
         x = self.weight_in(x)
         for i, layer in enumerate(self.weight_stack):
             x = layer(x)
@@ -141,9 +139,11 @@ class SimpleVAECompressionModel(CompressionModel):
     #     return self.latent_codec[key]
 
     def forward(self, data):
-        x = data['weight_block']    
+        x = data['weight_block']
+        assert not 'q_level' in data.keys()
         x_shift = (x - self.shift) / self.scale
-
+        if 'pe' in data:
+            x_shift = data['pe2']*x_shift + data['pe']
         y = self.g_a(x_shift)
         
         perm = list(range(y.dim()))
@@ -173,7 +173,8 @@ class SimpleVAECompressionModel(CompressionModel):
     def compress(self, data):
         x = data['weight_block']    
         x_shift = (x - self.shift) / self.scale
-        
+        if 'pe' in data:
+            x_shift = data['pe2']*x_shift + data['pe']
         y = self.g_a(x_shift)
         
         perm = list(range(y.dim()))
@@ -189,7 +190,10 @@ class SimpleVAECompressionModel(CompressionModel):
         return {"strings": [y_strings], "shape": shape, "y_hat": y_hat}
 
     # def decompress(self, strings: List[List[bytes]], shape, **kwargs):
-    def decompress(self, strings, shape, **kwargs):
+    # def decompress(self, strings, shape, **kwargs):
+    def decompress(self, enc_data, **kwargs):
+        strings = enc_data["strings"]
+        shape = enc_data["shape"]
         
         y_hat = self.entropy_bottleneck.decompress(strings[0], shape, **kwargs)
         
@@ -409,14 +413,14 @@ class MeanScaleHyperprior(ScaleHyperprior):
         self.h_s = Encoder(N, n_resblock, M*2, M*2)
 
     def forward(self, data):
-        
         x = data['weight_block']    
         x_shift = (x - self.shift) / self.scale
+        if 'pe' in data:
+            x_shift = x_shift + data['pe']
         
         perm = list(range(x_shift.dim()))
         perm[-1], perm[1] = perm[1], perm[-1]
         x_shift = x_shift.permute(*perm).contiguous()
-        # import ipdb; ipdb.set_trace()
         y = self.g_a(x_shift)
         z = self.h_a(y)
         z_hat, z_likelihoods = self.entropy_bottleneck(z)
@@ -435,9 +439,11 @@ class MeanScaleHyperprior(ScaleHyperprior):
         }
 
     def compress(self, data):
-        x = data['weight_block']    
+        x = data['weight_block']
         x_shift = (x - self.shift) / self.scale
-        
+        if 'pe' in data:
+            x_shift = x_shift + data['pe']
+            
         perm = list(range(x_shift.dim()))
         perm[-1], perm[1] = perm[1], perm[-1]
         x_shift = x_shift.permute(*perm).contiguous()

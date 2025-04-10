@@ -135,13 +135,9 @@ class NWC_ql(CompressionModel):
         q_level = data['q_level']
         
         q_embed = self.quality_embedding(q_level)
-        # print(q_embed.shape)
-        # assert q_embed.dim() == 2
-        # q_embed = self.quality_embedding(q_level).unsqueeze(0).unsqueeze(0)
-        q_embed = self.quality_embedding(q_level).unsqueeze(1)
-        # import ipdb; ipdb.set_trace()
         x_shift = (x - self.shift) / self.scale
-
+        if 'pe' in data:
+            x_shift = x_shift + data['pe']
         y = self.g_a(x_shift, q_embed)
         
         perm = list(range(y.dim()))
@@ -169,8 +165,10 @@ class NWC_ql(CompressionModel):
         }
 
     def compress(self, data):
-        x = data['weight_block']    
+        x = data['weight_block']
         x_shift = (x - self.shift) / self.scale
+        if 'pe' in data:
+            x_shift = x_shift + data['pe']
         
         q_level = data['q_level']
         
@@ -192,7 +190,11 @@ class NWC_ql(CompressionModel):
         return {"strings": [y_strings], "shape": shape, "y_hat": y_hat, "q_level": q_level}
 
     # def decompress(self, strings: List[List[bytes]], shape, q_level, **kwargs):
-    def decompress(self, strings, shape, q_level, **kwargs):
+    # def decompress(self, strings, shape, q_level, **kwargs):
+    def decompress(self, enc_data, **kwargs):
+        strings = enc_data["strings"]
+        shape = enc_data["shape"]
+        q_level = enc_data["q_level"]
         
         y_hat = self.entropy_bottleneck.decompress(strings[0], shape, **kwargs)
         
@@ -200,8 +202,8 @@ class NWC_ql(CompressionModel):
         perm[-1], perm[1] = perm[1], perm[-1]
         y_hat = y_hat.permute(*perm).contiguous()
         
-        # q_embed = self.quality_embedding(q_level)
-        q_embed = self.quality_embedding(q_level).unsqueeze(1)
+        q_embed = self.quality_embedding(q_level)
+        # q_embed = self.quality_embedding(q_level).unsqueeze(1)
         
         # x_hat = self.g_s(y_hat).clamp_(0, 1)
         x_hat = self.g_s(y_hat, q_embed)

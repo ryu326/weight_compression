@@ -22,7 +22,7 @@ do
         echo "Running evaluation for directory: $pretrain_path"
 
         # 평가 실행 및 로그 저장
-        /home/jgryu/miniconda3/envs/lmeval/bin/lm_eval --model hf \
+        lm_eval --model hf \
             --model_args pretrained=$pretrain_path,parallelize=True \
             --tasks arc_easy,arc_challenge,winogrande,boolq,hellaswag \
             --batch_size 1 \

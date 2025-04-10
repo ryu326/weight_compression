@@ -76,6 +76,18 @@ parser.add_argument('--lora_rank',
                     help='if <=0 then turned off')
 parser.add_argument('--ql_invH', action='store_true', default=False)
 parser.add_argument('--use_train_scale', action='store_true', default=False)
+parser.add_argument('--layerwise_cdt', action='store_true', default=False)
+parser.add_argument('--ft_comp_model', action='store_true', default=False)
+parser.add_argument('--ft_comp_lmbda', type=int, default=None)
+parser.add_argument('--ft_comp_ep', type=int, default=None)
+parser.add_argument("--ft_comp_learning_rate", default=1e-4, type=float)
+parser.add_argument("--ft_comp_aux_learning_rate", default=1e-3,)
+parser.add_argument("--ql_search", action='store_true', default=False)
+parser.add_argument("--ql_search_layer_name", type=str, default=None)
+# parser.add_argument("--ql_search_layer_idx", type=str, default='0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31')
+parser.add_argument("--ql_search_layer_idx", type=str, default='')
+parser.add_argument("--ql_search_value", type=int, default=None)
+parser.add_argument("--ql_tuned", action='store_true', default=False)
 
 def check_exist(idx, args):
     suffix = ['q', 'k', 'v', 'o', 'up', 'down', 'layernorm']
@@ -102,7 +114,8 @@ def compress_llama_decoder(layer, idx, comp_model, q_level, args, device, pre_or
     
     # layer name, save_name, input hessian file, output hessian file
     quant_order = []
-    for thing in [('self_attn.v_proj', 'v', 'qkv', 'v', 'col'),
+    for thing in [
+                    ('self_attn.v_proj', 'v', 'qkv', 'v', 'col'),
                   ('self_attn.q_proj', 'q', 'qkv', 'q', 'col'),
                   ('self_attn.k_proj', 'k', 'qkv', 'k', 'col'),
                   ('self_attn.o_proj', 'o', 'o', 'o', 'row'),
@@ -161,10 +174,13 @@ def main(args):
     comp_model = get_model(config.architecture, config, scale=scale, shift=shift)      
     ckpt = torch.load(args.comp_model_path, weights_only=False)
     
-    if args.use_train_scale:
-        scale = ckpt["state_dict"]["scale"]
-        shift = ckpt["state_dict"]["shift"]
-        print('Use train scale and shift')
+    if args.use_train_scale or args.layerwise_cdt:
+        try:
+            scale = ckpt["state_dict"]["scale"]
+            shift = ckpt["state_dict"]["shift"]
+            print('Use train scale and shift')
+        except:
+            scale, shift  = torch.zeros(1), torch.zeros(1)
     else:
         if 'scale' in ckpt["state_dict"]:
             del ckpt["state_dict"]['scale']

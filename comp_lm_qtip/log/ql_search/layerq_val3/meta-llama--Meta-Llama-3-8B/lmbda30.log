@@ -1,0 +1,974 @@
+I0409 07:27:31.729959 1067236 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:27:31.730082 1067236 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:27:31.730129 1067236 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:27:32.128393 1067236 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:27:32.360730 1067236 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:27:33.084028 1067236 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+Loading checkpoint shards:   0%|          | 0/7 [00:00<?, ?it/s]Loading checkpoint shards:  14%|█▍        | 1/7 [00:00<00:00,  6.42it/s]Loading checkpoint shards:  29%|██▊       | 2/7 [00:00<00:00,  6.81it/s]Loading checkpoint shards:  43%|████▎     | 3/7 [00:00<00:00,  6.87it/s]Loading checkpoint shards:  57%|█████▋    | 4/7 [00:00<00:00,  6.94it/s]Loading checkpoint shards:  71%|███████▏  | 5/7 [00:00<00:00,  6.58it/s]Loading checkpoint shards:  86%|████████▌ | 6/7 [00:00<00:00,  6.41it/s]Loading checkpoint shards: 100%|██████████| 7/7 [00:01<00:00,  6.54it/s]Loading checkpoint shards: 100%|██████████| 7/7 [00:01<00:00,  6.61it/s]
+I0409 07:27:34.782764 1067236 quantize_finetune_llama.py:160] loaded model
+calculating model weight mean & std:   0%|          | 0/32 [00:00<?, ?it/s]calculating model weight mean & std:   3%|▎         | 1/32 [00:00<00:23,  1.33it/s]calculating model weight mean & std:   6%|▋         | 2/32 [00:01<00:22,  1.32it/s]calculating model weight mean & std:   9%|▉         | 3/32 [00:02<00:21,  1.33it/s]calculating model weight mean & std:  12%|█▎        | 4/32 [00:02<00:19,  1.46it/s]calculating model weight mean & std:  16%|█▌        | 5/32 [00:03<00:17,  1.56it/s]calculating model weight mean & std:  19%|█▉        | 6/32 [00:03<00:16,  1.61it/s]calculating model weight mean & std:  22%|██▏       | 7/32 [00:04<00:15,  1.66it/s]calculating model weight mean & std:  25%|██▌       | 8/32 [00:05<00:14,  1.71it/s]calculating model weight mean & std:  28%|██▊       | 9/32 [00:05<00:13,  1.73it/s]calculating model weight mean & std:  31%|███▏      | 10/32 [00:06<00:12,  1.75it/s]calculating model weight mean & std:  34%|███▍      | 11/32 [00:06<00:11,  1.78it/s]calculating model weight mean & std:  38%|███▊      | 12/32 [00:07<00:11,  1.80it/s]calculating model weight mean & std:  41%|████      | 13/32 [00:07<00:10,  1.83it/s]calculating model weight mean & std:  44%|████▍     | 14/32 [00:08<00:09,  1.87it/s]calculating model weight mean & std:  47%|████▋     | 15/32 [00:08<00:09,  1.88it/s]calculating model weight mean & std:  50%|█████     | 16/32 [00:09<00:08,  1.86it/s]calculating model weight mean & std:  53%|█████▎    | 17/32 [00:09<00:08,  1.85it/s]calculating model weight mean & std:  56%|█████▋    | 18/32 [00:10<00:07,  1.84it/s]calculating model weight mean & std:  59%|█████▉    | 19/32 [00:11<00:07,  1.84it/s]calculating model weight mean & std:  62%|██████▎   | 20/32 [00:11<00:06,  1.84it/s]calculating model weight mean & std:  66%|██████▌   | 21/32 [00:12<00:06,  1.82it/s]calculating model weight mean & std:  69%|██████▉   | 22/32 [00:12<00:05,  1.87it/s]calculating model weight mean & std:  72%|███████▏  | 23/32 [00:13<00:04,  1.91it/s]calculating model weight mean & std:  75%|███████▌  | 24/32 [00:13<00:04,  1.94it/s]calculating model weight mean & std:  78%|███████▊  | 25/32 [00:14<00:03,  1.98it/s]calculating model weight mean & std:  81%|████████▏ | 26/32 [00:14<00:03,  1.96it/s]calculating model weight mean & std:  84%|████████▍ | 27/32 [00:15<00:02,  1.94it/s]calculating model weight mean & std:  88%|████████▊ | 28/32 [00:15<00:02,  1.97it/s]calculating model weight mean & std:  91%|█████████ | 29/32 [00:16<00:01,  2.03it/s]calculating model weight mean & std:  94%|█████████▍| 30/32 [00:16<00:00,  2.05it/s]calculating model weight mean & std:  97%|█████████▋| 31/32 [00:17<00:00,  2.04it/s]calculating model weight mean & std: 100%|██████████| 32/32 [00:17<00:00,  2.05it/s]calculating model weight mean & std: 100%|██████████| 32/32 [00:17<00:00,  1.82it/s]
+I0409 07:28:04.119756 1067236 quantize_finetune_llama.py:198] loaded compression model
+I0409 07:28:24.606901 1067236 quantize_finetune_llama.py:202] loaded dataset and devset
+I0409 07:28:26.889882 1067236 quantize_finetune_llama.py:222] layer 0 gpu 0
+I0409 07:28:29.502617 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 0 in 2.4131410121917725s
+tensor(-4.7143e-06) tensor(0.0125)
+tensor(0.0125) tensor(-4.7143e-06)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+I0409 07:28:44.841244 1068796 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:28:44.841355 1068796 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:28:44.841407 1068796 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:28:45.245727 1068796 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:28:45.472224 1068796 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:28:46.137211 1068796 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:28:46.141529 1067236 quantize_finetune_llama.py:222] layer 1 gpu 0
+I0409 07:28:46.156430 1068796 data_utils.py:336] using 256 training seqs, 128 validation seqs
+0_v proxy err 0.20893007516860962 err 12.721094131469727 tr(WHW.T) 60.88684844970703
+bpp_loss 1.6846774220466614
+0_q proxy err 0.00014901088434271514 err 42.92924118041992 tr(WHW.T) 288094.65625
+bpp_loss 5.641045570373535
+0_k proxy err 0.00036382683902047575 err 36.44844055175781 tr(WHW.T) 100180.734375
+bpp_loss 2.9445894956588745
+0_o proxy err 0.029903067275881767 err 93.39378356933594 tr(WHW.T) 3123.217529296875
+bpp_loss 1.8001657128334045
+0_up proxy err 0.060492753982543945 err 539.8646240234375 tr(WHW.T) 8924.451171875
+bpp_loss 2.0922208513532365
+0_gate proxy err 0.03555373474955559 err 560.990478515625 tr(WHW.T) 15778.666015625
+bpp_loss 2.1976406233651296
+0_down proxy err 0.04266523942351341 err 461.5613098144531 tr(WHW.T) 10818.205078125
+bpp_loss 2.086120912006923
+I0409 07:29:24.317037 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 1 in 0.8197646141052246s
+I0409 07:29:28.109223 1069656 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:29:28.109335 1069656 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:29:28.109380 1069656 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:29:28.503070 1069656 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:29:28.727907 1069656 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:29:29.384864 1069656 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:29:29.389117 1067236 quantize_finetune_llama.py:222] layer 2 gpu 0
+I0409 07:29:29.404465 1069656 data_utils.py:336] using 256 training seqs, 128 validation seqs
+1_v proxy err 0.14767533540725708 err 16.10708999633789 tr(WHW.T) 109.07096099853516
+bpp_loss 1.8151487112045288
+1_q proxy err 0.00011943155550397933 err 17.296852111816406 tr(WHW.T) 144826.484375
+bpp_loss 7.518120050430298
+1_k proxy err 0.00039947102777659893 err 30.175661087036133 tr(WHW.T) 75539.046875
+bpp_loss 3.3235710859298706
+1_o proxy err 0.060156140476465225 err 119.33968353271484 tr(WHW.T) 1983.8321533203125
+bpp_loss 1.8821290731430054
+1_up proxy err 0.06633812934160233 err 546.0172119140625 tr(WHW.T) 8230.8203125
+bpp_loss 2.1065331867762973
+1_gate proxy err 0.040670640766620636 err 567.45166015625 tr(WHW.T) 13952.365234375
+bpp_loss 2.208733218056815
+1_down proxy err 0.0020061370451003313 err 28.041845321655273 tr(WHW.T) 13978.03125
+bpp_loss 2.10089533669608
+I0409 07:30:07.534282 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 2 in 0.890141487121582s
+I0409 07:30:11.360300 1070455 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:30:11.360404 1070455 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:30:11.360444 1070455 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:30:11.758094 1070455 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:30:11.988868 1070455 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:30:12.661938 1070455 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:30:12.666164 1067236 quantize_finetune_llama.py:222] layer 3 gpu 0
+I0409 07:30:12.682717 1070455 data_utils.py:336] using 256 training seqs, 128 validation seqs
+2_v proxy err 0.14844438433647156 err 23.15131187438965 tr(WHW.T) 155.95950317382812
+bpp_loss 1.71983003616333
+2_q proxy err 0.00028309517074376345 err 11.741416931152344 tr(WHW.T) 41475.15625
+bpp_loss 7.5125205516815186
+2_k proxy err 0.0017732592532411218 err 40.1014289855957 tr(WHW.T) 22614.533203125
+bpp_loss 3.4244394302368164
+2_o proxy err 0.05404764413833618 err 106.32915496826172 tr(WHW.T) 1967.3226318359375
+bpp_loss 1.8369559049606323
+2_up proxy err 0.07307139039039612 err 555.3772583007812 tr(WHW.T) 7600.474609375
+bpp_loss 2.0987893513270786
+2_gate proxy err 0.03851804882287979 err 582.1354370117188 tr(WHW.T) 15113.31640625
+bpp_loss 2.2398565156119212
+2_down proxy err 0.06431978195905685 err 496.9812927246094 tr(WHW.T) 7726.72509765625
+bpp_loss 2.1033995832715715
+I0409 07:30:50.676721 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 3 in 0.755753755569458s
+I0409 07:30:54.576721 1071260 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:30:54.576832 1071260 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:30:54.576871 1071260 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:30:54.979020 1071260 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:30:55.260141 1071260 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:30:55.928526 1071260 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:30:55.932840 1067236 quantize_finetune_llama.py:222] layer 4 gpu 0
+I0409 07:30:55.950295 1071260 data_utils.py:336] using 256 training seqs, 128 validation seqs
+3_v proxy err 0.10121957212686539 err 29.286178588867188 tr(WHW.T) 289.3331604003906
+bpp_loss 1.8263331055641174
+3_q proxy err 0.00025465208454988897 err 12.115564346313477 tr(WHW.T) 47576.9296875
+bpp_loss 7.675566673278809
+3_k proxy err 0.0017719612224027514 err 46.380226135253906 tr(WHW.T) 26174.515625
+bpp_loss 3.497908353805542
+3_o proxy err 0.07010843604803085 err 130.20242309570312 tr(WHW.T) 1857.15771484375
+bpp_loss 1.94123375415802
+3_up proxy err 0.07272423803806305 err 548.0836791992188 tr(WHW.T) 7536.46484375
+bpp_loss 2.0815252576555525
+3_gate proxy err 0.028355702757835388 err 592.1903686523438 tr(WHW.T) 20884.34765625
+bpp_loss 2.309978485107422
+3_down proxy err 0.0737491324543953 err 516.1414184570312 tr(WHW.T) 6998.6103515625
+bpp_loss 2.081653050013951
+I0409 07:31:34.002601 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 4 in 0.8432989120483398s
+I0409 07:31:37.928561 1072107 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:31:37.928670 1072107 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:31:37.928713 1072107 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:31:38.313402 1072107 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:31:38.547644 1072107 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:31:39.205790 1072107 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:31:39.210155 1067236 quantize_finetune_llama.py:222] layer 5 gpu 0
+I0409 07:31:39.227105 1072107 data_utils.py:336] using 256 training seqs, 128 validation seqs
+4_v proxy err 0.09478600323200226 err 27.043123245239258 tr(WHW.T) 285.30712890625
+bpp_loss 1.8702280521392822
+4_q proxy err 0.00024995923740789294 err 12.52667236328125 tr(WHW.T) 50114.859375
+bpp_loss 7.561289548873901
+4_k proxy err 0.0014453609474003315 err 42.3519287109375 tr(WHW.T) 29301.974609375
+bpp_loss 3.4828044176101685
+4_o proxy err 0.09127691388130188 err 118.4088134765625 tr(WHW.T) 1297.2481689453125
+bpp_loss 1.9493895173072815
+4_up proxy err 0.07220988720655441 err 533.1608276367188 tr(WHW.T) 7383.48779296875
+bpp_loss 2.054471901484898
+4_gate proxy err 0.02028506062924862 err 590.923583984375 tr(WHW.T) 29130.974609375
+bpp_loss 2.3770216533115933
+4_down proxy err 0.0827142596244812 err 529.0174560546875 tr(WHW.T) 6395.72265625
+bpp_loss 2.0577762808118547
+I0409 07:32:17.248060 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 5 in 0.8708410263061523s
+I0409 07:32:20.985491 1072953 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:32:20.985589 1072953 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:32:20.985630 1072953 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:32:21.347430 1072953 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:32:21.555973 1072953 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:32:22.230247 1072953 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:32:22.234377 1067236 quantize_finetune_llama.py:222] layer 6 gpu 0
+I0409 07:32:22.251662 1072953 data_utils.py:336] using 256 training seqs, 128 validation seqs
+5_v proxy err 0.12709644436836243 err 26.540266036987305 tr(WHW.T) 208.81988525390625
+bpp_loss 1.7567432522773743
+5_q proxy err 0.0003150749544147402 err 11.340059280395508 tr(WHW.T) 35991.625
+bpp_loss 7.472173452377319
+5_k proxy err 0.001828203909099102 err 42.04458236694336 tr(WHW.T) 22997.75390625
+bpp_loss 3.4552531242370605
+5_o proxy err 0.10626985132694244 err 112.1770248413086 tr(WHW.T) 1055.5865478515625
+bpp_loss 1.896180808544159
+5_up proxy err 0.0692036971449852 err 529.8534545898438 tr(WHW.T) 7656.43310546875
+bpp_loss 2.0598603657313754
+5_gate proxy err 0.019317856058478355 err 587.0106811523438 tr(WHW.T) 30386.947265625
+bpp_loss 2.3799495697021484
+5_down proxy err 0.0811571255326271 err 520.308837890625 tr(WHW.T) 6411.12939453125
+bpp_loss 2.0622627053942
+I0409 07:33:00.100022 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 6 in 0.9088170528411865s
+I0409 07:33:03.883876 1073740 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:33:03.883982 1073740 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:33:03.884022 1073740 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:33:04.268370 1073740 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:33:04.489687 1073740 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:33:05.277655 1073740 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:33:05.281928 1067236 quantize_finetune_llama.py:222] layer 7 gpu 0
+I0409 07:33:05.297408 1073740 data_utils.py:336] using 256 training seqs, 128 validation seqs
+6_v proxy err 0.10847195237874985 err 27.512149810791016 tr(WHW.T) 253.63377380371094
+bpp_loss 1.8044180870056152
+6_q proxy err 0.00031718265381641686 err 11.304258346557617 tr(WHW.T) 35639.5859375
+bpp_loss 7.6595447063446045
+6_k proxy err 0.0016935544554144144 err 44.309574127197266 tr(WHW.T) 26163.654296875
+bpp_loss 3.5229077339172363
+6_o proxy err 0.12149108201265335 err 122.60253143310547 tr(WHW.T) 1009.1483764648438
+bpp_loss 1.9305211901664734
+6_up proxy err 0.06576671451330185 err 521.1049194335938 tr(WHW.T) 7923.53564453125
+bpp_loss 2.0591941561017717
+6_gate proxy err 0.016202248632907867 err 579.204345703125 tr(WHW.T) 35748.39453125
+bpp_loss 2.3841202599661693
+6_down proxy err 0.08064228296279907 err 522.8490600585938 tr(WHW.T) 6483.5595703125
+bpp_loss 2.063042095729283
+I0409 07:33:43.385038 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 7 in 0.9806597232818604s
+I0409 07:33:47.188251 1074590 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:33:47.188351 1074590 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:33:47.188394 1074590 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:33:47.547720 1074590 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:33:47.764900 1074590 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:33:48.415792 1074590 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:33:48.420056 1067236 quantize_finetune_llama.py:222] layer 8 gpu 0
+I0409 07:33:48.437404 1074590 data_utils.py:336] using 256 training seqs, 128 validation seqs
+7_v proxy err 0.09107766300439835 err 28.181896209716797 tr(WHW.T) 309.4270935058594
+bpp_loss 1.8025281429290771
+7_q proxy err 0.0003198397171217948 err 11.240752220153809 tr(WHW.T) 35144.953125
+bpp_loss 7.437350034713745
+7_k proxy err 0.0017545598093420267 err 47.11079406738281 tr(WHW.T) 26850.4921875
+bpp_loss 3.5417085886001587
+7_o proxy err 0.1235940232872963 err 118.55330657958984 tr(WHW.T) 959.2155151367188
+bpp_loss 1.9409180879592896
+7_up proxy err 0.05993662029504776 err 517.1002197265625 tr(WHW.T) 8627.4501953125
+bpp_loss 2.0713579995291576
+7_gate proxy err 0.01628594659268856 err 568.4371337890625 tr(WHW.T) 34903.53515625
+bpp_loss 2.356522423880441
+7_down proxy err 0.08096864819526672 err 529.0999755859375 tr(WHW.T) 6534.6279296875
+bpp_loss 2.0766972473689487
+I0409 07:34:26.568303 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 8 in 1.1809511184692383s
+I0409 07:34:30.465538 1075449 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:34:30.465640 1075449 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:34:30.465684 1075449 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:34:30.850752 1075449 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:34:31.073194 1075449 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:34:31.733546 1075449 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:34:31.737917 1067236 quantize_finetune_llama.py:222] layer 9 gpu 0
+I0409 07:34:31.753472 1075449 data_utils.py:336] using 256 training seqs, 128 validation seqs
+8_v proxy err 0.10259221494197845 err 26.43855094909668 tr(WHW.T) 257.7052307128906
+bpp_loss 1.821737289428711
+8_q proxy err 0.00040586982504464686 err 10.796533584594727 tr(WHW.T) 26600.9765625
+bpp_loss 7.392068147659302
+8_k proxy err 0.0017942605772987008 err 40.42244338989258 tr(WHW.T) 22528.748046875
+bpp_loss 3.461038112640381
+8_o proxy err 0.16101223230361938 err 120.05170440673828 tr(WHW.T) 745.6061401367188
+bpp_loss 1.9507015347480774
+8_up proxy err 0.06059904769062996 err 514.792236328125 tr(WHW.T) 8495.0546875
+bpp_loss 2.06728458404541
+8_gate proxy err 0.015206586569547653 err 566.26513671875 tr(WHW.T) 37238.1484375
+bpp_loss 2.360641751970564
+8_down proxy err 0.0825096145272255 err 535.3898315429688 tr(WHW.T) 6488.8173828125
+bpp_loss 2.074810368674142
+I0409 07:35:09.478557 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 9 in 0.792273759841919s
+I0409 07:35:13.266871 1076252 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:35:13.266980 1076252 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:35:13.267022 1076252 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:35:13.635425 1076252 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:35:13.851905 1076252 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:35:14.503056 1076252 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:35:14.507175 1067236 quantize_finetune_llama.py:222] layer 10 gpu 0
+I0409 07:35:14.521464 1076252 data_utils.py:336] using 256 training seqs, 128 validation seqs
+9_v proxy err 0.07706370204687119 err 27.08240509033203 tr(WHW.T) 351.4288024902344
+bpp_loss 1.9205366373062134
+9_q proxy err 0.00042814220068976283 err 10.983231544494629 tr(WHW.T) 25653.232421875
+bpp_loss 7.4165191650390625
+9_k proxy err 0.0019091354915872216 err 39.98233413696289 tr(WHW.T) 20942.638671875
+bpp_loss 3.4791146516799927
+9_o proxy err 0.15230780839920044 err 118.28250885009766 tr(WHW.T) 776.6017456054688
+bpp_loss 2.0042662024497986
+9_up proxy err 0.05780329927802086 err 518.5328979492188 tr(WHW.T) 8970.6455078125
+bpp_loss 2.0763224193028043
+9_gate proxy err 0.014508519321680069 err 571.8637084960938 tr(WHW.T) 39415.71875
+bpp_loss 2.373028482709612
+9_down proxy err 0.08360347896814346 err 524.4365844726562 tr(WHW.T) 6272.90380859375
+bpp_loss 2.075998749051775
+I0409 07:35:52.110022 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 10 in 0.7466895580291748s
+I0409 07:35:55.899908 1077029 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:35:55.900023 1077029 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:35:55.900063 1077029 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:35:56.277841 1077029 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:35:56.498704 1077029 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:35:57.159073 1077029 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:35:57.163225 1067236 quantize_finetune_llama.py:222] layer 11 gpu 0
+I0409 07:35:57.177989 1077029 data_utils.py:336] using 256 training seqs, 128 validation seqs
+10_v proxy err 0.10172607749700546 err 25.61858367919922 tr(WHW.T) 251.83889770507812
+bpp_loss 1.810444176197052
+10_q proxy err 0.0004625872534234077 err 10.795933723449707 tr(WHW.T) 23338.15625
+bpp_loss 7.38921594619751
+10_k proxy err 0.0019838062580674887 err 39.16818618774414 tr(WHW.T) 19743.95703125
+bpp_loss 3.477612257003784
+10_o proxy err 0.16973312199115753 err 115.53123474121094 tr(WHW.T) 680.6640625
+bpp_loss 1.9433330297470093
+10_up proxy err 0.057028885930776596 err 524.61767578125 tr(WHW.T) 9199.1572265625
+bpp_loss 2.093191010611398
+10_gate proxy err 0.015318753197789192 err 572.9117431640625 tr(WHW.T) 37399.37109375
+bpp_loss 2.345354897635324
+10_down proxy err 0.08101324737071991 err 528.63037109375 tr(WHW.T) 6525.2333984375
+bpp_loss 2.0923798084259033
+I0409 07:36:34.883055 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 11 in 0.8574380874633789s
+I0409 07:36:38.802443 1077862 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:36:38.802552 1077862 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:36:38.802592 1077862 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:36:39.183442 1077862 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:36:39.401372 1077862 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:36:40.023533 1077862 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:36:40.027518 1067236 quantize_finetune_llama.py:222] layer 12 gpu 0
+I0409 07:36:40.041038 1077862 data_utils.py:336] using 256 training seqs, 128 validation seqs
+11_v proxy err 0.08286979794502258 err 26.482627868652344 tr(WHW.T) 319.5691223144531
+bpp_loss 1.820645034313202
+11_q proxy err 0.0004888178664259613 err 10.847308158874512 tr(WHW.T) 22190.8984375
+bpp_loss 7.2531914710998535
+11_k proxy err 0.0022110752761363983 err 39.85999298095703 tr(WHW.T) 18027.423828125
+bpp_loss 3.478442430496216
+11_o proxy err 0.19481977820396423 err 110.25780487060547 tr(WHW.T) 565.9476928710938
+bpp_loss 1.9625091552734375
+11_up proxy err 0.05616606026887894 err 516.3118896484375 tr(WHW.T) 9192.595703125
+bpp_loss 2.0973662648882185
+11_gate proxy err 0.015218903310596943 err 561.33544921875 tr(WHW.T) 36884.09375
+bpp_loss 2.3247263772147044
+11_down proxy err 0.07806464284658432 err 519.5897216796875 tr(WHW.T) 6655.890625
+bpp_loss 2.0993992260524204
+I0409 07:37:17.589929 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 12 in 0.8830471038818359s
+I0409 07:37:21.415053 1078717 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:37:21.415163 1078717 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:37:21.415202 1078717 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:37:21.803690 1078717 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:37:22.031322 1078717 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:37:22.680419 1078717 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:37:22.684583 1067236 quantize_finetune_llama.py:222] layer 13 gpu 0
+I0409 07:37:22.699876 1078717 data_utils.py:336] using 256 training seqs, 128 validation seqs
+12_v proxy err 0.07779178023338318 err 28.286911010742188 tr(WHW.T) 363.6233825683594
+bpp_loss 1.9373193383216858
+12_q proxy err 0.0003313819761388004 err 11.300994873046875 tr(WHW.T) 34102.625
+bpp_loss 7.476882457733154
+12_k proxy err 0.0018920714501291513 err 43.62556838989258 tr(WHW.T) 23057.041015625
+bpp_loss 3.481645107269287
+12_o proxy err 0.15197059512138367 err 118.50231170654297 tr(WHW.T) 779.7713012695312
+bpp_loss 2.0080376863479614
+12_up proxy err 0.05058971419930458 err 507.27093505859375 tr(WHW.T) 10027.1552734375
+bpp_loss 2.1150503158569336
+12_gate proxy err 0.01468851137906313 err 548.3823852539062 tr(WHW.T) 37334.1015625
+bpp_loss 2.3052428109305247
+12_down proxy err 0.07515048235654831 err 512.7301025390625 tr(WHW.T) 6822.7119140625
+bpp_loss 2.1109847341265
+I0409 07:38:00.466888 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 13 in 0.9132919311523438s
+I0409 07:38:04.257086 1079507 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:38:04.257186 1079507 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:38:04.257226 1079507 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:38:04.650936 1079507 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:38:04.875422 1079507 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:38:05.467400 1079507 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:38:05.471408 1067236 quantize_finetune_llama.py:222] layer 14 gpu 0
+I0409 07:38:05.486424 1079507 data_utils.py:336] using 256 training seqs, 128 validation seqs
+13_v proxy err 0.09372009336948395 err 26.256017684936523 tr(WHW.T) 280.153564453125
+bpp_loss 1.8788566589355469
+13_q proxy err 0.0005067637539468706 err 10.590032577514648 tr(WHW.T) 20897.375
+bpp_loss 7.327925443649292
+13_k proxy err 0.0022301364224404097 err 39.69401168823242 tr(WHW.T) 17798.916015625
+bpp_loss 3.490813732147217
+13_o proxy err 0.1724107414484024 err 116.41291809082031 tr(WHW.T) 675.2068481445312
+bpp_loss 1.9906858205795288
+13_up proxy err 0.05077844858169556 err 508.306884765625 tr(WHW.T) 10010.2880859375
+bpp_loss 2.118748732975551
+13_gate proxy err 0.014263472519814968 err 555.15234375 tr(WHW.T) 38921.26171875
+bpp_loss 2.3101159504481723
+13_down proxy err 0.07777149975299835 err 510.22039794921875 tr(WHW.T) 6560.505859375
+bpp_loss 2.110994509288243
+I0409 07:38:44.676116 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 14 in 1.0641822814941406s
+I0409 07:38:48.438422 1080346 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:38:48.438522 1080346 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:38:48.438567 1080346 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:38:48.831191 1080346 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:38:49.053247 1080346 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:38:49.709935 1080346 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:38:49.714101 1067236 quantize_finetune_llama.py:222] layer 15 gpu 0
+I0409 07:38:49.728479 1080346 data_utils.py:336] using 256 training seqs, 128 validation seqs
+14_v proxy err 0.09041432291269302 err 25.437009811401367 tr(WHW.T) 281.3382873535156
+bpp_loss 1.8695977330207825
+14_q proxy err 0.0005117150139994919 err 10.685548782348633 tr(WHW.T) 20881.8359375
+bpp_loss 7.280430316925049
+14_k proxy err 0.002122612902894616 err 39.52156448364258 tr(WHW.T) 18619.298828125
+bpp_loss 3.4429142475128174
+14_o proxy err 0.17652997374534607 err 121.15210723876953 tr(WHW.T) 686.2976684570312
+bpp_loss 1.9824351072311401
+14_up proxy err 0.05488113686442375 err 502.9465026855469 tr(WHW.T) 9164.287109375
+bpp_loss 2.113440445491246
+14_gate proxy err 0.01333985012024641 err 557.4165649414062 tr(WHW.T) 41785.8203125
+bpp_loss 2.3380843571254184
+14_down proxy err 0.07950685918331146 err 508.12164306640625 tr(WHW.T) 6390.916015625
+bpp_loss 2.1071365560804094
+I0409 07:39:29.802680 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 15 in 0.800562858581543s
+I0409 07:39:33.671853 1081212 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:39:33.671947 1081212 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:39:33.671988 1081212 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:39:34.012437 1081212 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:39:34.226897 1081212 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:39:34.863531 1081212 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:39:34.867730 1067236 quantize_finetune_llama.py:222] layer 16 gpu 0
+I0409 07:39:34.920285 1081212 data_utils.py:336] using 256 training seqs, 128 validation seqs
+15_v proxy err 0.09534316509962082 err 27.080045700073242 tr(WHW.T) 284.0271301269531
+bpp_loss 1.9314613342285156
+15_q proxy err 0.00039262662176042795 err 11.024682998657227 tr(WHW.T) 28079.306640625
+bpp_loss 7.560772895812988
+15_k proxy err 0.0021621123887598515 err 40.80266571044922 tr(WHW.T) 18871.66796875
+bpp_loss 3.4900583028793335
+15_o proxy err 0.1544114500284195 err 127.841552734375 tr(WHW.T) 827.9279174804688
+bpp_loss 2.0120944380760193
+15_up proxy err 0.056283194571733475 err 506.24310302734375 tr(WHW.T) 8994.5693359375
+bpp_loss 2.106809275490897
+15_gate proxy err 0.012307856231927872 err 568.8441162109375 tr(WHW.T) 46217.96875
+bpp_loss 2.374043737139021
+15_down proxy err 0.08053611218929291 err 515.3817138671875 tr(WHW.T) 6399.38671875
+bpp_loss 2.1014466285705566
+I0409 07:40:16.492115 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 16 in 0.8327603340148926s
+I0409 07:40:20.335459 1082101 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:40:20.335553 1082101 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:40:20.335597 1082101 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:40:20.688009 1082101 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:40:20.889357 1082101 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:40:21.450397 1082101 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:40:21.454738 1067236 quantize_finetune_llama.py:222] layer 17 gpu 0
+I0409 07:40:21.471927 1082101 data_utils.py:336] using 256 training seqs, 128 validation seqs
+16_v proxy err 0.09080977737903595 err 24.90745735168457 tr(WHW.T) 274.28167724609375
+bpp_loss 1.8905983567237854
+16_q proxy err 0.0004424146027304232 err 10.83324909210205 tr(WHW.T) 24486.64453125
+bpp_loss 7.566033363342285
+16_k proxy err 0.0019433351699262857 err 37.90739059448242 tr(WHW.T) 19506.357421875
+bpp_loss 3.4825265407562256
+16_o proxy err 0.1294948011636734 err 125.49192810058594 tr(WHW.T) 969.0885620117188
+bpp_loss 1.9945262670516968
+16_up proxy err 0.06208747252821922 err 517.2620849609375 tr(WHW.T) 8331.1826171875
+bpp_loss 2.094976084572928
+16_gate proxy err 0.014172546565532684 err 583.5706176757812 tr(WHW.T) 41176.12890625
+bpp_loss 2.4059881482805525
+16_down proxy err 0.08059677481651306 err 506.81512451171875 tr(WHW.T) 6288.2802734375
+bpp_loss 2.0880933148520335
+I0409 07:41:03.038705 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 17 in 0.6844496726989746s
+I0409 07:41:07.066535 1082899 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:41:07.066669 1082899 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:41:07.066714 1082899 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:41:07.450513 1082899 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:41:07.649481 1082899 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:41:08.322875 1082899 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:41:08.327046 1067236 quantize_finetune_llama.py:222] layer 18 gpu 0
+I0409 07:41:08.344553 1082899 data_utils.py:336] using 256 training seqs, 128 validation seqs
+17_v proxy err 0.09557513147592545 err 27.140758514404297 tr(WHW.T) 283.9730224609375
+bpp_loss 1.9595608115196228
+17_q proxy err 0.0003971448168158531 err 10.949854850769043 tr(WHW.T) 27571.44140625
+bpp_loss 7.57938814163208
+17_k proxy err 0.0023155277594923973 err 40.35921859741211 tr(WHW.T) 17429.814453125
+bpp_loss 3.5088021755218506
+17_o proxy err 0.1184573695063591 err 131.09669494628906 tr(WHW.T) 1106.6993408203125
+bpp_loss 2.021821141242981
+17_up proxy err 0.061998043209314346 err 524.0410766601562 tr(WHW.T) 8452.5419921875
+bpp_loss 2.093078817640032
+17_gate proxy err 0.014259923249483109 err 594.8892211914062 tr(WHW.T) 41717.5625
+bpp_loss 2.4192021233694896
+17_down proxy err 0.08198830485343933 err 509.337158203125 tr(WHW.T) 6212.31494140625
+bpp_loss 2.0840890066964284
+I0409 07:41:49.727480 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 18 in 0.5842304229736328s
+I0409 07:41:53.588536 1083728 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:41:53.588643 1083728 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:41:53.588691 1083728 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:41:53.966576 1083728 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:41:54.187297 1083728 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:41:54.905226 1083728 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:41:54.909261 1067236 quantize_finetune_llama.py:222] layer 19 gpu 0
+I0409 07:41:54.922919 1083728 data_utils.py:336] using 256 training seqs, 128 validation seqs
+18_v proxy err 0.0958719328045845 err 27.57408905029297 tr(WHW.T) 287.61376953125
+bpp_loss 1.8853811025619507
+18_q proxy err 0.0004787906655110419 err 10.72467041015625 tr(WHW.T) 22399.498046875
+bpp_loss 7.640145301818848
+18_k proxy err 0.00238988408818841 err 41.57157897949219 tr(WHW.T) 17394.810546875
+bpp_loss 3.5772221088409424
+18_o proxy err 0.10538879781961441 err 126.8031234741211 tr(WHW.T) 1203.193603515625
+bpp_loss 2.003133773803711
+18_up proxy err 0.06688806414604187 err 533.9596557617188 tr(WHW.T) 7982.8837890625
+bpp_loss 2.090266704559326
+18_gate proxy err 0.017067285254597664 err 601.5117797851562 tr(WHW.T) 35243.5546875
+bpp_loss 2.42780944279262
+18_down proxy err 0.0811489149928093 err 505.28009033203125 tr(WHW.T) 6226.57861328125
+bpp_loss 2.084256274359567
+I0409 07:42:37.491451 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 19 in 0.7309203147888184s
+I0409 07:42:41.556716 1084610 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:42:41.556812 1084610 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:42:41.556854 1084610 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:42:41.900132 1084610 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:42:42.115179 1084610 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:42:42.813354 1084610 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:42:42.819472 1067236 quantize_finetune_llama.py:222] layer 20 gpu 0
+I0409 07:42:42.842419 1084610 data_utils.py:336] using 256 training seqs, 128 validation seqs
+19_v proxy err 0.08361168950796127 err 28.51657485961914 tr(WHW.T) 341.0596618652344
+bpp_loss 1.9303929805755615
+19_q proxy err 0.0004501393996179104 err 10.820466995239258 tr(WHW.T) 24038.03515625
+bpp_loss 7.635957717895508
+19_k proxy err 0.002685388782992959 err 41.766624450683594 tr(WHW.T) 15553.287109375
+bpp_loss 3.4956952333450317
+19_o proxy err 0.10711506754159927 err 125.2059326171875 tr(WHW.T) 1168.891845703125
+bpp_loss 2.0165030360221863
+19_up proxy err 0.07013257592916489 err 536.4645385742188 tr(WHW.T) 7649.2919921875
+bpp_loss 2.087205273764474
+19_gate proxy err 0.018345942720770836 err 601.9669799804688 tr(WHW.T) 32811.99609375
+bpp_loss 2.4384994506835938
+19_down proxy err 0.08072417974472046 err 499.0962829589844 tr(WHW.T) 6182.73583984375
+bpp_loss 2.082441943032401
+I0409 07:43:26.516097 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 20 in 0.993384838104248s
+I0409 07:43:30.641871 1085506 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:43:30.641975 1085506 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:43:30.642018 1085506 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:43:31.018627 1085506 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:43:31.218208 1085506 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:43:31.885459 1085506 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:43:31.889691 1067236 quantize_finetune_llama.py:222] layer 21 gpu 0
+I0409 07:43:31.907549 1085506 data_utils.py:336] using 256 training seqs, 128 validation seqs
+20_v proxy err 0.08401723206043243 err 27.74182891845703 tr(WHW.T) 330.192138671875
+bpp_loss 1.9643619060516357
+20_q proxy err 0.000510800105985254 err 10.592841148376465 tr(WHW.T) 20737.7421875
+bpp_loss 7.538829803466797
+20_k proxy err 0.0025848664809018373 err 39.79611587524414 tr(WHW.T) 15395.810546875
+bpp_loss 3.456614851951599
+20_o proxy err 0.10756637901067734 err 129.63070678710938 tr(WHW.T) 1205.1229248046875
+bpp_loss 2.0033291578292847
+20_up proxy err 0.07083013653755188 err 538.2848510742188 tr(WHW.T) 7599.658203125
+bpp_loss 2.0910539627075195
+20_gate proxy err 0.01965203694999218 err 602.6300048828125 tr(WHW.T) 30665.015625
+bpp_loss 2.44095584324428
+20_down proxy err 0.07892753183841705 err 497.3114929199219 tr(WHW.T) 6300.8623046875
+bpp_loss 2.0867505414145335
+I0409 07:44:14.803553 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 21 in 1.0925979614257812s
+I0409 07:44:18.940241 1086368 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:44:18.940394 1086368 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:44:18.940438 1086368 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:44:19.380204 1086368 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:44:19.601632 1086368 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:44:20.249071 1086368 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:44:20.252836 1067236 quantize_finetune_llama.py:222] layer 22 gpu 0
+I0409 07:44:20.270308 1086368 data_utils.py:336] using 256 training seqs, 128 validation seqs
+21_v proxy err 0.07793718576431274 err 28.281309127807617 tr(WHW.T) 362.87310791015625
+bpp_loss 1.9896823167800903
+21_q proxy err 0.0004264044400770217 err 11.017485618591309 tr(WHW.T) 25838.111328125
+bpp_loss 7.575054883956909
+21_k proxy err 0.0024462142027914524 err 41.06570816040039 tr(WHW.T) 16787.453125
+bpp_loss 3.4935141801834106
+21_o proxy err 0.09094240516424179 err 115.19392395019531 tr(WHW.T) 1266.6689453125
+bpp_loss 2.017763912677765
+21_up proxy err 0.069117471575737 err 537.220458984375 tr(WHW.T) 7772.57080078125
+bpp_loss 2.0938346726553783
+21_gate proxy err 0.019107632339000702 err 603.1588134765625 tr(WHW.T) 31566.3828125
+bpp_loss 2.451663153512137
+21_down proxy err 0.0762886330485344 err 484.5445556640625 tr(WHW.T) 6351.46484375
+bpp_loss 2.086880479540144
+I0409 07:45:05.028406 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 22 in 1.5536737442016602s
+I0409 07:45:09.330086 1087288 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:45:09.330218 1087288 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:45:09.330260 1087288 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:45:09.731965 1087288 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:45:09.956254 1087288 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:45:10.661614 1087288 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:45:10.665888 1067236 quantize_finetune_llama.py:222] layer 23 gpu 0
+I0409 07:45:10.680032 1087288 data_utils.py:336] using 256 training seqs, 128 validation seqs
+22_v proxy err 0.07929825782775879 err 27.443458557128906 tr(WHW.T) 346.0789489746094
+bpp_loss 2.037992000579834
+22_q proxy err 0.0005182699533179402 err 10.531041145324707 tr(WHW.T) 20319.60546875
+bpp_loss 7.471493721008301
+22_k proxy err 0.0025742463767528534 err 37.9034538269043 tr(WHW.T) 14724.09765625
+bpp_loss 3.4383957386016846
+22_o proxy err 0.1085638627409935 err 132.6466827392578 tr(WHW.T) 1221.8309326171875
+bpp_loss 2.0500916242599487
+22_up proxy err 0.07153882086277008 err 539.9217529296875 tr(WHW.T) 7547.25537109375
+bpp_loss 2.0981700079781667
+22_gate proxy err 0.020435497164726257 err 603.5440063476562 tr(WHW.T) 29534.099609375
+bpp_loss 2.4566078186035156
+22_down proxy err 0.07555433362722397 err 493.33135986328125 tr(WHW.T) 6529.4912109375
+bpp_loss 2.0930543627057756
+I0409 07:45:53.546208 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 23 in 1.1262245178222656s
+I0409 07:45:57.801081 1088050 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:45:57.801224 1088050 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:45:57.801269 1088050 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:45:58.248940 1088050 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:45:58.468286 1088050 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:45:59.197990 1088050 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:45:59.201737 1067236 quantize_finetune_llama.py:222] layer 24 gpu 0
+I0409 07:45:59.225667 1088050 data_utils.py:336] using 256 training seqs, 128 validation seqs
+23_v proxy err 0.07396911084651947 err 29.432830810546875 tr(WHW.T) 397.90704345703125
+bpp_loss 2.0884429216384888
+23_q proxy err 0.00047606785665266216 err 10.763385772705078 tr(WHW.T) 22608.931640625
+bpp_loss 7.482890367507935
+23_k proxy err 0.0026996906381100416 err 40.1105842590332 tr(WHW.T) 14857.474609375
+bpp_loss 3.442221522331238
+23_o proxy err 0.07778418064117432 err 135.69224548339844 tr(WHW.T) 1744.470947265625
+bpp_loss 2.0730303525924683
+23_up proxy err 0.07279420644044876 err 540.0753784179688 tr(WHW.T) 7419.2080078125
+bpp_loss 2.102006503513881
+23_gate proxy err 0.021959181874990463 err 599.3023681640625 tr(WHW.T) 27291.65234375
+bpp_loss 2.4587597165788924
+23_down proxy err 0.07353852689266205 err 490.2803039550781 tr(WHW.T) 6666.9853515625
+bpp_loss 2.09845655305045
+I0409 07:46:43.590460 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 24 in 1.166762351989746s
+I0409 07:46:47.952831 1088962 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:46:47.952979 1088962 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:46:47.953021 1088962 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:46:48.382948 1088962 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:46:48.623755 1088962 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:46:49.305506 1088962 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:46:49.310024 1067236 quantize_finetune_llama.py:222] layer 25 gpu 0
+I0409 07:46:49.328456 1088962 data_utils.py:336] using 256 training seqs, 128 validation seqs
+24_v proxy err 0.06275264918804169 err 29.322954177856445 tr(WHW.T) 467.2783508300781
+bpp_loss 2.179842233657837
+24_q proxy err 0.0004788556252606213 err 10.74365234375 tr(WHW.T) 22436.099609375
+bpp_loss 7.37646746635437
+24_k proxy err 0.002708723535761237 err 38.419002532958984 tr(WHW.T) 14183.4345703125
+bpp_loss 3.2944973707199097
+24_o proxy err 0.08100932091474533 err 128.763671875 tr(WHW.T) 1589.4920654296875
+bpp_loss 2.111969828605652
+24_up proxy err 0.07411013543605804 err 541.829833984375 tr(WHW.T) 7311.1435546875
+bpp_loss 2.106416770390102
+24_gate proxy err 0.02316562458872795 err 599.4629516601562 tr(WHW.T) 25877.26171875
+bpp_loss 2.464186532156808
+24_down proxy err 0.07167378067970276 err 483.2201232910156 tr(WHW.T) 6741.93701171875
+bpp_loss 2.103865078517369
+I0409 07:47:33.532087 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 25 in 0.8261129856109619s
+I0409 07:47:37.785610 1089857 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:47:37.785753 1089857 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:47:37.785797 1089857 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:47:38.203905 1089857 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:47:38.415966 1089857 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:47:39.084262 1089857 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:47:39.088419 1067236 quantize_finetune_llama.py:222] layer 26 gpu 0
+I0409 07:47:39.102106 1089857 data_utils.py:336] using 256 training seqs, 128 validation seqs
+25_v proxy err 0.05426700413227081 err 30.270605087280273 tr(WHW.T) 557.8086547851562
+bpp_loss 2.1910715103149414
+25_q proxy err 0.0004165391146671027 err 10.876681327819824 tr(WHW.T) 26112.029296875
+bpp_loss 7.338137865066528
+25_k proxy err 0.0027178791351616383 err 39.18263244628906 tr(WHW.T) 14416.6201171875
+bpp_loss 3.274505138397217
+25_o proxy err 0.0647057443857193 err 128.79556274414062 tr(WHW.T) 1990.481201171875
+bpp_loss 2.109564185142517
+25_up proxy err 0.07320376485586166 err 540.4041748046875 tr(WHW.T) 7382.19091796875
+bpp_loss 2.1151533126831055
+25_gate proxy err 0.022673042491078377 err 596.4696044921875 tr(WHW.T) 26307.435546875
+bpp_loss 2.4720521654401506
+25_down proxy err 0.07069605588912964 err 467.7216491699219 tr(WHW.T) 6615.951171875
+bpp_loss 2.112436192376273
+I0409 07:48:23.148868 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 26 in 0.7720155715942383s
+I0409 07:48:27.411395 1090760 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:48:27.411547 1090760 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:48:27.411592 1090760 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:48:27.859233 1090760 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:48:28.081172 1090760 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:48:28.788549 1090760 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:48:28.792708 1067236 quantize_finetune_llama.py:222] layer 27 gpu 0
+I0409 07:48:28.807029 1090760 data_utils.py:336] using 256 training seqs, 128 validation seqs
+26_v proxy err 0.06601326167583466 err 28.685789108276367 tr(WHW.T) 434.54583740234375
+bpp_loss 2.236975312232971
+26_q proxy err 0.0004913443117402494 err 10.516380310058594 tr(WHW.T) 21403.28125
+bpp_loss 7.349093437194824
+26_k proxy err 0.0024465022142976522 err 37.738731384277344 tr(WHW.T) 15425.5859375
+bpp_loss 3.3474745750427246
+26_o proxy err 0.05373120680451393 err 128.34902954101562 tr(WHW.T) 2388.72412109375
+bpp_loss 2.1264625787734985
+26_up proxy err 0.0708000436425209 err 541.3128051757812 tr(WHW.T) 7645.65625
+bpp_loss 2.124152728489467
+26_gate proxy err 0.020672934129834175 err 597.4776611328125 tr(WHW.T) 28901.4453125
+bpp_loss 2.4764946528843472
+26_down proxy err 0.07134596258401871 err 472.2264404296875 tr(WHW.T) 6618.82470703125
+bpp_loss 2.1198302677699496
+I0409 07:49:13.253633 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 27 in 1.176081895828247s
+I0409 07:49:17.671236 1091659 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:49:17.671390 1091659 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:49:17.671432 1091659 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:49:18.107792 1091659 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:49:18.327486 1091659 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:49:19.021895 1091659 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:49:19.026467 1067236 quantize_finetune_llama.py:222] layer 28 gpu 0
+I0409 07:49:19.043840 1091659 data_utils.py:336] using 256 training seqs, 128 validation seqs
+27_v proxy err 0.046066123992204666 err 31.21872901916504 tr(WHW.T) 677.69384765625
+bpp_loss 2.321457266807556
+27_q proxy err 0.0004968117573298514 err 10.58505630493164 tr(WHW.T) 21305.96875
+bpp_loss 7.25605320930481
+27_k proxy err 0.0028836613055318594 err 40.40476608276367 tr(WHW.T) 14011.6201171875
+bpp_loss 3.306148886680603
+27_o proxy err 0.06137092411518097 err 132.55850219726562 tr(WHW.T) 2159.9560546875
+bpp_loss 2.1663979291915894
+27_up proxy err 0.06456661969423294 err 547.240478515625 tr(WHW.T) 8475.5947265625
+bpp_loss 2.138979434967041
+27_gate proxy err 0.018434472382068634 err 604.8173217773438 tr(WHW.T) 32809.0390625
+bpp_loss 2.4856737681797574
+27_down proxy err 0.062073320150375366 err 406.1679382324219 tr(WHW.T) 6543.35791015625
+bpp_loss 2.1302955831800188
+I0409 07:50:03.564425 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 28 in 1.4277050495147705s
+I0409 07:50:07.783727 1092502 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:50:07.783901 1092502 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:50:07.783942 1092502 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:50:08.183848 1092502 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:50:08.419127 1092502 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:50:09.092346 1092502 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:50:09.096862 1067236 quantize_finetune_llama.py:222] layer 29 gpu 0
+I0409 07:50:09.112386 1092502 data_utils.py:336] using 256 training seqs, 128 validation seqs
+28_v proxy err 0.05178561434149742 err 31.14824104309082 tr(WHW.T) 601.4844360351562
+bpp_loss 2.368144154548645
+28_q proxy err 0.00046834888053126633 err 10.84878158569336 tr(WHW.T) 23163.888671875
+bpp_loss 7.296964645385742
+28_k proxy err 0.0027487988118082285 err 41.21607208251953 tr(WHW.T) 14994.2119140625
+bpp_loss 3.277058720588684
+28_o proxy err 0.05352609604597092 err 134.42787170410156 tr(WHW.T) 2511.445556640625
+bpp_loss 2.1933481693267822
+28_up proxy err 0.05345432460308075 err 547.69677734375 tr(WHW.T) 10246.0703125
+bpp_loss 2.1598824773515974
+28_gate proxy err 0.016711866483092308 err 600.3062744140625 tr(WHW.T) 35920.9609375
+bpp_loss 2.471912111554827
+28_down proxy err 0.06170886382460594 err 444.9263000488281 tr(WHW.T) 7210.08740234375
+bpp_loss 2.1442619391850064
+I0409 07:50:44.933244 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 29 in 0.8021798133850098s
+I0409 07:50:49.027142 1093391 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:50:49.027248 1093391 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:50:49.027287 1093391 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:50:49.421376 1093391 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:50:49.639078 1093391 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:50:50.282756 1093391 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:50:50.287234 1067236 quantize_finetune_llama.py:222] layer 30 gpu 0
+I0409 07:50:50.303221 1093391 data_utils.py:336] using 256 training seqs, 128 validation seqs
+29_v proxy err 0.04038940370082855 err 34.34832000732422 tr(WHW.T) 850.4290161132812
+bpp_loss 2.432438611984253
+29_q proxy err 0.0005227687652222812 err 10.79686164855957 tr(WHW.T) 20653.2265625
+bpp_loss 7.275596618652344
+29_k proxy err 0.0028894436545670033 err 47.288047790527344 tr(WHW.T) 16365.796875
+bpp_loss 3.347841262817383
+29_o proxy err 0.03689985349774361 err 114.4945297241211 tr(WHW.T) 3102.844970703125
+bpp_loss 2.2262706756591797
+29_up proxy err 0.04356471449136734 err 560.61279296875 tr(WHW.T) 12868.505859375
+bpp_loss 2.1915831565856934
+29_gate proxy err 0.015813833102583885 err 606.6893920898438 tr(WHW.T) 38364.47265625
+bpp_loss 2.4631212779453824
+29_down proxy err 0.05378328636288643 err 401.78936767578125 tr(WHW.T) 7470.5244140625
+bpp_loss 2.15710381099156
+I0409 07:51:26.535661 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 30 in 0.835930347442627s
+I0409 07:51:30.309173 1094237 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:51:30.309274 1094237 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:51:30.309315 1094237 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:51:30.680845 1094237 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:51:30.896109 1094237 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:51:31.509848 1094237 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:51:31.513935 1067236 quantize_finetune_llama.py:222] layer 31 gpu 0
+I0409 07:51:31.530685 1094237 data_utils.py:336] using 256 training seqs, 128 validation seqs
+30_v proxy err 0.03803471848368645 err 32.82627487182617 tr(WHW.T) 863.060791015625
+bpp_loss 2.6812050342559814
+30_q proxy err 0.00045062447316013277 err 10.837803840637207 tr(WHW.T) 24050.6328125
+bpp_loss 6.885441303253174
+30_k proxy err 0.0030166655778884888 err 42.32559585571289 tr(WHW.T) 14030.5888671875
+bpp_loss 3.0635828971862793
+30_o proxy err 0.02919192984700203 err 142.14060974121094 tr(WHW.T) 4869.1748046875
+bpp_loss 2.306312322616577
+30_up proxy err 0.0277758426964283 err 603.0467529296875 tr(WHW.T) 21711.1953125
+bpp_loss 2.221611704145159
+30_gate proxy err 0.012374626472592354 err 642.9169311523438 tr(WHW.T) 51954.453125
+bpp_loss 2.5071450642177036
+30_down proxy err 0.03827453404664993 err 337.2054748535156 tr(WHW.T) 8810.1787109375
+bpp_loss 2.1559010573795865
+I0409 07:52:07.073259 1067236 quantize_finetune_llama.py:253] computed original embedding for layer 31 in 1.095850944519043s
+I0409 07:52:10.895219 1095173 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:52:10.895325 1095173 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:52:10.895366 1095173 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:52:11.259597 1095173 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:52:11.470093 1095173 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+W0409 07:52:12.067264 1095173 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  @amp.autocast(enabled=False)
+
+I0409 07:52:12.086952 1095173 data_utils.py:336] using 256 training seqs, 128 validation seqs
+31_v proxy err 0.021987291052937508 err 39.76893997192383 tr(WHW.T) 1808.723876953125
+bpp_loss 2.52354097366333
+31_q proxy err 0.0002609390066936612 err 12.049030303955078 tr(WHW.T) 46175.66015625
+bpp_loss 7.390567302703857
+31_k proxy err 0.0031459301244467497 err 64.38977813720703 tr(WHW.T) 20467.64453125
+bpp_loss 3.2608284950256348
+31_o proxy err 0.03415093198418617 err 75.59587097167969 tr(WHW.T) 2213.58154296875
+bpp_loss 2.26132333278656
+31_up proxy err 0.01108135748654604 err 764.8291625976562 tr(WHW.T) 69019.4453125
+bpp_loss 2.39838136945452
+31_gate proxy err 0.0058469404466450214 err 844.6055297851562 tr(WHW.T) 144452.5625
+bpp_loss 2.6971520015171597
+31_down proxy err 0.024376971647143364 err 242.7992401123047 tr(WHW.T) 9960.1884765625
+bpp_loss 2.175667013440813
+I0409 07:52:55.741965 1096201 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:52:55.742122 1096201 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:52:55.742167 1096201 utils.py:162] NumExpr defaulting to 16 threads.
+I0409 07:52:56.064149 1096201 config.py:54] PyTorch version 2.6.0 available.
+W0409 07:52:56.277046 1096201 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+I0409 07:52:56.385440 1096201 hfize_llama.py:27] LlamaConfig {
+  "_attn_implementation_autoset": true,
+  "_name_or_path": "../Wparam_dataset/hf_model/meta-llama--Meta-Llama-3-8B",
+  "architectures": [
+    "LlamaForCausalLM"
+  ],
+  "attention_bias": false,
+  "attention_dropout": 0.0,
+  "bos_token_id": 128000,
+  "eos_token_id": 128001,
+  "head_dim": 128,
+  "hidden_act": "silu",
+  "hidden_size": 4096,
+  "initializer_range": 0.02,
+  "intermediate_size": 14336,
+  "max_position_embeddings": 8192,
+  "mlp_bias": false,
+  "model_type": "llama",
+  "num_attention_heads": 32,
+  "num_hidden_layers": 32,
+  "num_key_value_heads": 8,
+  "pretraining_tp": 1,
+  "quip_params": {},
+  "rms_norm_eps": 1e-05,
+  "rope_scaling": null,
+  "rope_theta": 500000.0,
+  "tie_word_embeddings": false,
+  "torch_dtype": "float32",
+  "transformers_version": "4.47.1",
+  "use_cache": true,
+  "vocab_size": 128256
+}
+
+Loading checkpoint shards:   0%|          | 0/7 [00:00<?, ?it/s]Loading checkpoint shards:  14%|█▍        | 1/7 [00:00<00:00,  8.17it/s]Loading checkpoint shards:  29%|██▊       | 2/7 [00:00<00:00,  8.64it/s]Loading checkpoint shards:  43%|████▎     | 3/7 [00:00<00:00,  8.94it/s]Loading checkpoint shards:  57%|█████▋    | 4/7 [00:00<00:00,  9.07it/s]Loading checkpoint shards:  71%|███████▏  | 5/7 [00:00<00:00,  9.18it/s]Loading checkpoint shards:  86%|████████▌ | 6/7 [00:00<00:00,  9.18it/s]Loading checkpoint shards: 100%|██████████| 7/7 [00:00<00:00,  9.34it/s]Loading checkpoint shards: 100%|██████████| 7/7 [00:00<00:00,  9.12it/s]
+Loading checkpoint shards:   0%|          | 0/7 [00:00<?, ?it/s]Loading checkpoint shards:  14%|█▍        | 1/7 [00:00<00:00,  8.82it/s]Loading checkpoint shards:  29%|██▊       | 2/7 [00:00<00:00,  8.86it/s]Loading checkpoint shards:  43%|████▎     | 3/7 [00:00<00:00,  8.95it/s]Loading checkpoint shards:  57%|█████▋    | 4/7 [00:00<00:00,  9.12it/s]Loading checkpoint shards:  71%|███████▏  | 5/7 [00:00<00:00,  9.11it/s]Loading checkpoint shards:  86%|████████▌ | 6/7 [00:00<00:00,  9.15it/s]Loading checkpoint shards: 100%|██████████| 7/7 [00:00<00:00,  9.30it/s]Loading checkpoint shards: 100%|██████████| 7/7 [00:00<00:00,  9.15it/s]
+I0409 07:52:59.957402 1096201 hfize_llama.py:161] loaded layer 0
+I0409 07:53:01.002113 1096201 hfize_llama.py:161] loaded layer 1
+I0409 07:53:02.042563 1096201 hfize_llama.py:161] loaded layer 2
+I0409 07:53:03.205852 1096201 hfize_llama.py:161] loaded layer 3
+I0409 07:53:04.206271 1096201 hfize_llama.py:161] loaded layer 4
+I0409 07:53:05.183081 1096201 hfize_llama.py:161] loaded layer 5
+I0409 07:53:06.156623 1096201 hfize_llama.py:161] loaded layer 6
+I0409 07:53:07.121076 1096201 hfize_llama.py:161] loaded layer 7
+I0409 07:53:08.091073 1096201 hfize_llama.py:161] loaded layer 8
+I0409 07:53:09.065181 1096201 hfize_llama.py:161] loaded layer 9
+I0409 07:53:10.037272 1096201 hfize_llama.py:161] loaded layer 10
+I0409 07:53:10.993715 1096201 hfize_llama.py:161] loaded layer 11
+I0409 07:53:11.978745 1096201 hfize_llama.py:161] loaded layer 12
+I0409 07:53:12.892390 1096201 hfize_llama.py:161] loaded layer 13
+I0409 07:53:13.755085 1096201 hfize_llama.py:161] loaded layer 14
+I0409 07:53:14.630611 1096201 hfize_llama.py:161] loaded layer 15
+I0409 07:53:15.700731 1096201 hfize_llama.py:161] loaded layer 16
+I0409 07:53:16.604520 1096201 hfize_llama.py:161] loaded layer 17
+I0409 07:53:17.715965 1096201 hfize_llama.py:161] loaded layer 18
+I0409 07:53:18.616938 1096201 hfize_llama.py:161] loaded layer 19
+I0409 07:53:19.507306 1096201 hfize_llama.py:161] loaded layer 20
+I0409 07:53:20.352452 1096201 hfize_llama.py:161] loaded layer 21
+I0409 07:53:21.210289 1096201 hfize_llama.py:161] loaded layer 22
+I0409 07:53:22.033008 1096201 hfize_llama.py:161] loaded layer 23
+I0409 07:53:22.862632 1096201 hfize_llama.py:161] loaded layer 24
+I0409 07:53:23.751433 1096201 hfize_llama.py:161] loaded layer 25
+I0409 07:53:24.580931 1096201 hfize_llama.py:161] loaded layer 26
+I0409 07:53:25.454395 1096201 hfize_llama.py:161] loaded layer 27
+I0409 07:53:26.283306 1096201 hfize_llama.py:161] loaded layer 28
+I0409 07:53:27.165785 1096201 hfize_llama.py:161] loaded layer 29
+I0409 07:53:28.045889 1096201 hfize_llama.py:161] loaded layer 30
+I0409 07:53:28.923096 1096201 hfize_llama.py:161] loaded layer 31
+I0409 07:53:28.923331 1096201 hfize_llama.py:165] saving model...
+Loading checkpoint shards:   0%|          | 0/7 [00:00<?, ?it/s]Loading checkpoint shards:  14%|█▍        | 1/7 [00:01<00:10,  1.81s/it]Loading checkpoint shards:  29%|██▊       | 2/7 [00:03<00:07,  1.49s/it]Loading checkpoint shards:  43%|████▎     | 3/7 [00:04<00:05,  1.35s/it]Loading checkpoint shards:  57%|█████▋    | 4/7 [00:05<00:03,  1.27s/it]Loading checkpoint shards:  71%|███████▏  | 5/7 [00:06<00:02,  1.21s/it]Loading checkpoint shards:  86%|████████▌ | 6/7 [00:07<00:01,  1.19s/it]Loading checkpoint shards: 100%|██████████| 7/7 [00:08<00:00,  1.02it/s]Loading checkpoint shards: 100%|██████████| 7/7 [00:08<00:00,  1.17s/it]
+I0409 07:54:24.468817 1096201 hfize_llama.py:175] successfully loaded hfized model
+I0409 07:54:29.482875 1098064 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0409 07:54:29.483017 1098064 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0409 07:54:29.483056 1098064 utils.py:162] NumExpr defaulting to 16 threads.
+W0409 07:54:29.848431 1098064 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+
+I0409 07:54:30.218682 1098064 modeling.py:990] We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+Loading checkpoint shards:   0%|          | 0/7 [00:00<?, ?it/s]Loading checkpoint shards:  14%|█▍        | 1/7 [00:01<00:10,  1.75s/it]Loading checkpoint shards:  29%|██▊       | 2/7 [00:03<00:08,  1.60s/it]Loading checkpoint shards:  43%|████▎     | 3/7 [00:04<00:06,  1.51s/it]Loading checkpoint shards:  57%|█████▋    | 4/7 [00:06<00:04,  1.47s/it]Loading checkpoint shards:  71%|███████▏  | 5/7 [00:07<00:02,  1.41s/it]Loading checkpoint shards:  86%|████████▌ | 6/7 [00:08<00:01,  1.37s/it]Loading checkpoint shards: 100%|██████████| 7/7 [00:09<00:00,  1.13s/it]Loading checkpoint shards: 100%|██████████| 7/7 [00:09<00:00,  1.33s/it]
+I0409 07:54:39.621205 1098064 config.py:54] PyTorch version 2.6.0 available.
+  0%|          | 0/141 [00:00<?, ?it/s]avg_loss = 2.260136365890503:   0%|          | 0/141 [00:01<?, ?it/s]avg_loss = 2.260136365890503:   1%|          | 1/141 [00:01<04:20,  1.86s/it]avg_loss = 2.548182249069214:   1%|          | 1/141 [00:03<04:20,  1.86s/it]avg_loss = 2.548182249069214:   1%|▏         | 2/141 [00:03<03:43,  1.61s/it]avg_loss = 2.6968029340108237:   1%|▏         | 2/141 [00:04<03:43,  1.61s/it]avg_loss = 2.6968029340108237:   2%|▏         | 3/141 [00:04<03:31,  1.53s/it]avg_loss = 2.660462975502014:   2%|▏         | 3/141 [00:06<03:31,  1.53s/it] avg_loss = 2.660462975502014:   3%|▎         | 4/141 [00:06<03:25,  1.50s/it]avg_loss = 2.632166528701782:   3%|▎         | 4/141 [00:07<03:25,  1.50s/it]avg_loss = 2.632166528701782:   4%|▎         | 5/141 [00:07<03:21,  1.48s/it]avg_loss = 2.5436571836471558:   4%|▎         | 5/141 [00:09<03:21,  1.48s/it]avg_loss = 2.5436571836471558:   4%|▍         | 6/141 [00:09<03:18,  1.47s/it]avg_loss = 2.493469612939017:   4%|▍         | 6/141 [00:10<03:18,  1.47s/it] avg_loss = 2.493469612939017:   5%|▍         | 7/141 [00:10<03:16,  1.46s/it]avg_loss = 2.4919008910655975:   5%|▍         | 7/141 [00:11<03:16,  1.46s/it]avg_loss = 2.4919008910655975:   6%|▌         | 8/141 [00:11<03:14,  1.46s/it]avg_loss = 2.5407349268595376:   6%|▌         | 8/141 [00:13<03:14,  1.46s/it]avg_loss = 2.5407349268595376:   6%|▋         | 9/141 [00:13<03:13,  1.46s/it]avg_loss = 2.530775547027588:   6%|▋         | 9/141 [00:14<03:13,  1.46s/it] avg_loss = 2.530775547027588:   7%|▋         | 10/141 [00:14<03:11,  1.46s/it]avg_loss = 2.5213636485013096:   7%|▋         | 10/141 [00:16<03:11,  1.46s/it]avg_loss = 2.5213636485013096:   8%|▊         | 11/141 [00:16<03:10,  1.46s/it]avg_loss = 2.5437421003977456:   8%|▊         | 11/141 [00:17<03:10,  1.46s/it]avg_loss = 2.5437421003977456:   9%|▊         | 12/141 [00:17<03:09,  1.47s/it]avg_loss = 2.5582574147444506:   9%|▊         | 12/141 [00:19<03:09,  1.47s/it]avg_loss = 2.5582574147444506:   9%|▉         | 13/141 [00:19<03:08,  1.47s/it]avg_loss = 2.5775908402034213:   9%|▉         | 13/141 [00:20<03:08,  1.47s/it]avg_loss = 2.5775908402034213:  10%|▉         | 14/141 [00:20<03:06,  1.47s/it]avg_loss = 2.586855951944987:  10%|▉         | 14/141 [00:22<03:06,  1.47s/it] avg_loss = 2.586855951944987:  11%|█         | 15/141 [00:22<03:05,  1.48s/it]avg_loss = 2.6072464287281036:  11%|█         | 15/141 [00:23<03:05,  1.48s/it]avg_loss = 2.6072464287281036:  11%|█▏        | 16/141 [00:23<03:04,  1.48s/it]avg_loss = 2.6105979049907013:  11%|█▏        | 16/141 [00:25<03:04,  1.48s/it]avg_loss = 2.6105979049907013:  12%|█▏        | 17/141 [00:25<03:03,  1.48s/it]avg_loss = 2.612326012717353:  12%|█▏        | 17/141 [00:26<03:03,  1.48s/it] avg_loss = 2.612326012717353:  13%|█▎        | 18/141 [00:26<03:03,  1.49s/it]avg_loss = 2.59815482089394:  13%|█▎        | 18/141 [00:28<03:03,  1.49s/it] avg_loss = 2.59815482089394:  13%|█▎        | 19/141 [00:28<03:02,  1.49s/it]avg_loss = 2.59837611913681:  13%|█▎        | 19/141 [00:29<03:02,  1.49s/it]avg_loss = 2.59837611913681:  14%|█▍        | 20/141 [00:29<03:01,  1.50s/it]avg_loss = 2.6030874025254023:  14%|█▍        | 20/141 [00:31<03:01,  1.50s/it]avg_loss = 2.6030874025254023:  15%|█▍        | 21/141 [00:31<02:59,  1.50s/it]avg_loss = 2.603184862570329:  15%|█▍        | 21/141 [00:32<02:59,  1.50s/it] avg_loss = 2.603184862570329:  16%|█▌        | 22/141 [00:32<02:58,  1.50s/it]avg_loss = 2.604881245156993:  16%|█▌        | 22/141 [00:34<02:58,  1.50s/it]avg_loss = 2.604881245156993:  16%|█▋        | 23/141 [00:34<02:56,  1.50s/it]avg_loss = 2.6089162727197013:  16%|█▋        | 23/141 [00:35<02:56,  1.50s/it]avg_loss = 2.6089162727197013:  17%|█▋        | 24/141 [00:35<02:55,  1.50s/it]avg_loss = 2.6153043365478514:  17%|█▋        | 24/141 [00:37<02:55,  1.50s/it]avg_loss = 2.6153043365478514:  18%|█▊        | 25/141 [00:37<02:54,  1.50s/it]avg_loss = 2.623706368299631:  18%|█▊        | 25/141 [00:38<02:54,  1.50s/it] avg_loss = 2.623706368299631:  18%|█▊        | 26/141 [00:38<02:52,  1.50s/it]avg_loss = 2.63471488599424:  18%|█▊        | 26/141 [00:40<02:52,  1.50s/it] avg_loss = 2.63471488599424:  19%|█▉        | 27/141 [00:40<02:51,  1.51s/it]avg_loss = 2.6370286515780856:  19%|█▉        | 27/141 [00:41<02:51,  1.51s/it]avg_loss = 2.6370286515780856:  20%|█▉        | 28/141 [00:41<02:50,  1.51s/it]avg_loss = 2.633639393181636:  20%|█▉        | 28/141 [00:43<02:50,  1.51s/it] avg_loss = 2.633639393181636:  21%|██        | 29/141 [00:43<02:49,  1.51s/it]avg_loss = 2.623683222134908:  21%|██        | 29/141 [00:44<02:49,  1.51s/it]avg_loss = 2.623683222134908:  21%|██▏       | 30/141 [00:44<02:47,  1.51s/it]avg_loss = 2.615252202556979:  21%|██▏       | 30/141 [00:46<02:47,  1.51s/it]avg_loss = 2.615252202556979:  22%|██▏       | 31/141 [00:46<02:46,  1.51s/it]avg_loss = 2.6048813089728355:  22%|██▏       | 31/141 [00:47<02:46,  1.51s/it]avg_loss = 2.6048813089728355:  23%|██▎       | 32/141 [00:47<02:44,  1.51s/it]avg_loss = 2.6026080666166362:  23%|██▎       | 32/141 [00:49<02:44,  1.51s/it]avg_loss = 2.6026080666166362:  23%|██▎       | 33/141 [00:49<02:43,  1.52s/it]avg_loss = 2.6000707429998062:  23%|██▎       | 33/141 [00:50<02:43,  1.52s/it]avg_loss = 2.6000707429998062:  24%|██▍       | 34/141 [00:50<02:42,  1.52s/it]avg_loss = 2.603925779887608:  24%|██▍       | 34/141 [00:52<02:42,  1.52s/it] avg_loss = 2.603925779887608:  25%|██▍       | 35/141 [00:52<02:41,  1.52s/it]avg_loss = 2.586246218946245:  25%|██▍       | 35/141 [00:53<02:41,  1.52s/it]avg_loss = 2.586246218946245:  26%|██▌       | 36/141 [00:53<02:39,  1.52s/it]avg_loss = 2.5728571543822416:  26%|██▌       | 36/141 [00:55<02:39,  1.52s/it]avg_loss = 2.5728571543822416:  26%|██▌       | 37/141 [00:55<02:38,  1.52s/it]avg_loss = 2.5587604296834847:  26%|██▌       | 37/141 [00:57<02:38,  1.52s/it]avg_loss = 2.5587604296834847:  27%|██▋       | 38/141 [00:57<02:37,  1.53s/it]avg_loss = 2.5448333300077:  27%|██▋       | 38/141 [00:58<02:37,  1.53s/it]   avg_loss = 2.5448333300077:  28%|██▊       | 39/141 [00:58<02:35,  1.53s/it]avg_loss = 2.5365237474441527:  28%|██▊       | 39/141 [01:00<02:35,  1.53s/it]avg_loss = 2.5365237474441527:  28%|██▊       | 40/141 [01:00<02:34,  1.53s/it]avg_loss = 2.5424107167778947:  28%|██▊       | 40/141 [01:01<02:34,  1.53s/it]avg_loss = 2.5424107167778947:  29%|██▉       | 41/141 [01:01<02:33,  1.53s/it]avg_loss = 2.5568194559642246:  29%|██▉       | 41/141 [01:03<02:33,  1.53s/it]avg_loss = 2.5568194559642246:  30%|██▉       | 42/141 [01:03<02:31,  1.53s/it]avg_loss = 2.5720993862595667:  30%|██▉       | 42/141 [01:04<02:31,  1.53s/it]avg_loss = 2.5720993862595667:  30%|███       | 43/141 [01:04<02:30,  1.53s/it]avg_loss = 2.5812351432713596:  30%|███       | 43/141 [01:06<02:30,  1.53s/it]avg_loss = 2.5812351432713596:  31%|███       | 44/141 [01:06<02:28,  1.53s/it]avg_loss = 2.588010385301378:  31%|███       | 44/141 [01:07<02:28,  1.53s/it] avg_loss = 2.588010385301378:  32%|███▏      | 45/141 [01:07<02:27,  1.54s/it]avg_loss = 2.591904106347457:  32%|███▏      | 45/141 [01:09<02:27,  1.54s/it]avg_loss = 2.591904106347457:  33%|███▎      | 46/141 [01:09<02:26,  1.54s/it]avg_loss = 2.597874920418922:  33%|███▎      | 46/141 [01:10<02:26,  1.54s/it]avg_loss = 2.597874920418922:  33%|███▎      | 47/141 [01:10<02:25,  1.54s/it]avg_loss = 2.599032148718834:  33%|███▎      | 47/141 [01:12<02:25,  1.54s/it]avg_loss = 2.599032148718834:  34%|███▍      | 48/141 [01:12<02:23,  1.55s/it]avg_loss = 2.596893801981089:  34%|███▍      | 48/141 [01:14<02:23,  1.55s/it]avg_loss = 2.596893801981089:  35%|███▍      | 49/141 [01:14<02:22,  1.55s/it]avg_loss = 2.594708523750305:  35%|███▍      | 49/141 [01:15<02:22,  1.55s/it]avg_loss = 2.594708523750305:  35%|███▌      | 50/141 [01:15<02:21,  1.55s/it]avg_loss = 2.588296371347764:  35%|███▌      | 50/141 [01:17<02:21,  1.55s/it]avg_loss = 2.588296371347764:  36%|███▌      | 51/141 [01:17<02:19,  1.55s/it]avg_loss = 2.582947318370526:  36%|███▌      | 51/141 [01:18<02:19,  1.55s/it]avg_loss = 2.582947318370526:  37%|███▋      | 52/141 [01:18<02:18,  1.56s/it]avg_loss = 2.5765266778334133:  37%|███▋      | 52/141 [01:20<02:18,  1.56s/it]avg_loss = 2.5765266778334133:  38%|███▊      | 53/141 [01:20<02:16,  1.56s/it]avg_loss = 2.57283561318009:  38%|███▊      | 53/141 [01:21<02:16,  1.56s/it]  avg_loss = 2.57283561318009:  38%|███▊      | 54/141 [01:21<02:15,  1.56s/it]avg_loss = 2.5637181065299295:  38%|███▊      | 54/141 [01:23<02:15,  1.56s/it]avg_loss = 2.5637181065299295:  39%|███▉      | 55/141 [01:23<02:13,  1.56s/it]avg_loss = 2.5553281051771983:  39%|███▉      | 55/141 [01:24<02:13,  1.56s/it]avg_loss = 2.5553281051771983:  40%|███▉      | 56/141 [01:24<02:12,  1.56s/it]avg_loss = 2.5542439619700112:  40%|███▉      | 56/141 [01:26<02:12,  1.56s/it]avg_loss = 2.5542439619700112:  40%|████      | 57/141 [01:26<02:11,  1.56s/it]avg_loss = 2.550878385017658:  40%|████      | 57/141 [01:28<02:11,  1.56s/it] avg_loss = 2.550878385017658:  41%|████      | 58/141 [01:28<02:09,  1.56s/it]avg_loss = 2.5528863486597095:  41%|████      | 58/141 [01:29<02:09,  1.56s/it]avg_loss = 2.5528863486597095:  42%|████▏     | 59/141 [01:29<02:07,  1.56s/it]avg_loss = 2.5575822710990908:  42%|████▏     | 59/141 [01:31<02:07,  1.56s/it]avg_loss = 2.5575822710990908:  43%|████▎     | 60/141 [01:31<02:06,  1.56s/it]avg_loss = 2.561348528158469:  43%|████▎     | 60/141 [01:32<02:06,  1.56s/it] avg_loss = 2.561348528158469:  43%|████▎     | 61/141 [01:32<02:04,  1.56s/it]avg_loss = 2.5689896614320817:  43%|████▎     | 61/141 [01:34<02:04,  1.56s/it]avg_loss = 2.5689896614320817:  44%|████▍     | 62/141 [01:34<02:03,  1.56s/it]avg_loss = 2.5615852181873624:  44%|████▍     | 62/141 [01:35<02:03,  1.56s/it]avg_loss = 2.5615852181873624:  45%|████▍     | 63/141 [01:35<02:02,  1.57s/it]avg_loss = 2.5588617958128452:  45%|████▍     | 63/141 [01:37<02:02,  1.57s/it]avg_loss = 2.5588617958128452:  45%|████▌     | 64/141 [01:37<02:00,  1.57s/it]avg_loss = 2.557750555185171:  45%|████▌     | 64/141 [01:39<02:00,  1.57s/it] avg_loss = 2.557750555185171:  46%|████▌     | 65/141 [01:39<01:59,  1.57s/it]avg_loss = 2.5524655869512847:  46%|████▌     | 65/141 [01:40<01:59,  1.57s/it]avg_loss = 2.5524655869512847:  47%|████▋     | 66/141 [01:40<01:57,  1.57s/it]avg_loss = 2.548879135900469:  47%|████▋     | 66/141 [01:42<01:57,  1.57s/it] avg_loss = 2.548879135900469:  48%|████▊     | 67/141 [01:42<01:56,  1.57s/it]avg_loss = 2.5476944411502167:  48%|████▊     | 67/141 [01:43<01:56,  1.57s/it]avg_loss = 2.5476944411502167:  48%|████▊     | 68/141 [01:43<01:54,  1.57s/it]avg_loss = 2.5457250760949175:  48%|████▊     | 68/141 [01:45<01:54,  1.57s/it]avg_loss = 2.5457250760949175:  49%|████▉     | 69/141 [01:45<01:53,  1.57s/it]avg_loss = 2.547183748653957:  49%|████▉     | 69/141 [01:46<01:53,  1.57s/it] avg_loss = 2.547183748653957:  50%|████▉     | 70/141 [01:46<01:51,  1.57s/it]avg_loss = 2.5515778064727783:  50%|████▉     | 70/141 [01:48<01:51,  1.57s/it]avg_loss = 2.5515778064727783:  50%|█████     | 71/141 [01:48<01:50,  1.57s/it]avg_loss = 2.554257548517651:  50%|█████     | 71/141 [01:50<01:50,  1.57s/it] avg_loss = 2.554257548517651:  51%|█████     | 72/141 [01:50<01:48,  1.57s/it]avg_loss = 2.552156866413273:  51%|█████     | 72/141 [01:51<01:48,  1.57s/it]avg_loss = 2.552156866413273:  52%|█████▏    | 73/141 [01:51<01:47,  1.57s/it]avg_loss = 2.552603289887712:  52%|█████▏    | 73/141 [01:53<01:47,  1.57s/it]avg_loss = 2.552603289887712:  52%|█████▏    | 74/141 [01:53<01:45,  1.57s/it]avg_loss = 2.5525436147054035:  52%|█████▏    | 74/141 [01:54<01:45,  1.57s/it]avg_loss = 2.5525436147054035:  53%|█████▎    | 75/141 [01:54<01:44,  1.58s/it]avg_loss = 2.550918299900858:  53%|█████▎    | 75/141 [01:56<01:44,  1.58s/it] avg_loss = 2.550918299900858:  54%|█████▍    | 76/141 [01:56<01:42,  1.57s/it]avg_loss = 2.5509338255052443:  54%|█████▍    | 76/141 [01:57<01:42,  1.57s/it]avg_loss = 2.5509338255052443:  55%|█████▍    | 77/141 [01:57<01:40,  1.57s/it]avg_loss = 2.55285238302671:  55%|█████▍    | 77/141 [01:59<01:40,  1.57s/it]  avg_loss = 2.55285238302671:  55%|█████▌    | 78/141 [01:59<01:38,  1.57s/it]avg_loss = 2.5555065130885644:  55%|█████▌    | 78/141 [02:01<01:38,  1.57s/it]avg_loss = 2.5555065130885644:  56%|█████▌    | 79/141 [02:01<01:37,  1.57s/it]avg_loss = 2.54984472990036:  56%|█████▌    | 79/141 [02:02<01:37,  1.57s/it]  avg_loss = 2.54984472990036:  57%|█████▋    | 80/141 [02:02<01:35,  1.56s/it]avg_loss = 2.547316062597581:  57%|█████▋    | 80/141 [02:04<01:35,  1.56s/it]avg_loss = 2.547316062597581:  57%|█████▋    | 81/141 [02:04<01:33,  1.56s/it]avg_loss = 2.545619002202662:  57%|█████▋    | 81/141 [02:05<01:33,  1.56s/it]avg_loss = 2.545619002202662:  58%|█████▊    | 82/141 [02:05<01:32,  1.57s/it]avg_loss = 2.5430613770542374:  58%|█████▊    | 82/141 [02:07<01:32,  1.57s/it]avg_loss = 2.5430613770542374:  59%|█████▉    | 83/141 [02:07<01:31,  1.57s/it]avg_loss = 2.5406061581202914:  59%|█████▉    | 83/141 [02:08<01:31,  1.57s/it]avg_loss = 2.5406061581202914:  60%|█████▉    | 84/141 [02:08<01:29,  1.58s/it]avg_loss = 2.53863881335539:  60%|█████▉    | 84/141 [02:10<01:29,  1.58s/it]  avg_loss = 2.53863881335539:  60%|██████    | 85/141 [02:10<01:28,  1.58s/it]avg_loss = 2.5398559847543405:  60%|██████    | 85/141 [02:12<01:28,  1.58s/it]avg_loss = 2.5398559847543405:  61%|██████    | 86/141 [02:12<01:26,  1.57s/it]avg_loss = 2.54114669492875:  61%|██████    | 86/141 [02:13<01:26,  1.57s/it]  avg_loss = 2.54114669492875:  62%|██████▏   | 87/141 [02:13<01:25,  1.57s/it]avg_loss = 2.54294693199071:  62%|██████▏   | 87/141 [02:15<01:25,  1.57s/it]avg_loss = 2.54294693199071:  62%|██████▏   | 88/141 [02:15<01:23,  1.57s/it]avg_loss = 2.5514990667278847:  62%|██████▏   | 88/141 [02:16<01:23,  1.57s/it]avg_loss = 2.5514990667278847:  63%|██████▎   | 89/141 [02:16<01:21,  1.57s/it]avg_loss = 2.558877404530843:  63%|██████▎   | 89/141 [02:18<01:21,  1.57s/it] avg_loss = 2.558877404530843:  64%|██████▍   | 90/141 [02:18<01:20,  1.57s/it]avg_loss = 2.5615040260356863:  64%|██████▍   | 90/141 [02:19<01:20,  1.57s/it]avg_loss = 2.5615040260356863:  65%|██████▍   | 91/141 [02:19<01:18,  1.57s/it]avg_loss = 2.5669364773708843:  65%|██████▍   | 91/141 [02:21<01:18,  1.57s/it]avg_loss = 2.5669364773708843:  65%|██████▌   | 92/141 [02:21<01:16,  1.57s/it]avg_loss = 2.5716623798493417:  65%|██████▌   | 92/141 [02:23<01:16,  1.57s/it]avg_loss = 2.5716623798493417:  66%|██████▌   | 93/141 [02:23<01:15,  1.57s/it]avg_loss = 2.5717272834574922:  66%|██████▌   | 93/141 [02:24<01:15,  1.57s/it]avg_loss = 2.5717272834574922:  67%|██████▋   | 94/141 [02:24<01:13,  1.57s/it]avg_loss = 2.5757420640242725:  67%|██████▋   | 94/141 [02:26<01:13,  1.57s/it]avg_loss = 2.5757420640242725:  67%|██████▋   | 95/141 [02:26<01:12,  1.57s/it]avg_loss = 2.575792829195658:  67%|██████▋   | 95/141 [02:27<01:12,  1.57s/it] avg_loss = 2.575792829195658:  68%|██████▊   | 96/141 [02:27<01:10,  1.58s/it]avg_loss = 2.5771747888977994:  68%|██████▊   | 96/141 [02:29<01:10,  1.58s/it]avg_loss = 2.5771747888977994:  69%|██████▉   | 97/141 [02:29<01:09,  1.58s/it]avg_loss = 2.5756839270494423:  69%|██████▉   | 97/141 [02:30<01:09,  1.58s/it]avg_loss = 2.5756839270494423:  70%|██████▉   | 98/141 [02:30<01:07,  1.58s/it]avg_loss = 2.577078371336966:  70%|██████▉   | 98/141 [02:32<01:07,  1.58s/it] avg_loss = 2.577078371336966:  70%|███████   | 99/141 [02:32<01:06,  1.58s/it]avg_loss = 2.579810025691986:  70%|███████   | 99/141 [02:34<01:06,  1.58s/it]avg_loss = 2.579810025691986:  71%|███████   | 100/141 [02:34<01:04,  1.58s/it]avg_loss = 2.5801780979232034:  71%|███████   | 100/141 [02:35<01:04,  1.58s/it]avg_loss = 2.5801780979232034:  72%|███████▏  | 101/141 [02:35<01:03,  1.58s/it]avg_loss = 2.5812356962877163:  72%|███████▏  | 101/141 [02:37<01:03,  1.58s/it]avg_loss = 2.5812356962877163:  72%|███████▏  | 102/141 [02:37<01:01,  1.58s/it]avg_loss = 2.5822201168652876:  72%|███████▏  | 102/141 [02:38<01:01,  1.58s/it]avg_loss = 2.5822201168652876:  73%|███████▎  | 103/141 [02:38<01:00,  1.58s/it]avg_loss = 2.5865120933606076:  73%|███████▎  | 103/141 [02:40<01:00,  1.58s/it]avg_loss = 2.5865120933606076:  74%|███████▍  | 104/141 [02:40<00:58,  1.58s/it]avg_loss = 2.5862170174008323:  74%|███████▍  | 104/141 [02:41<00:58,  1.58s/it]avg_loss = 2.5862170174008323:  74%|███████▍  | 105/141 [02:41<00:56,  1.58s/it]avg_loss = 2.5861455674441354:  74%|███████▍  | 105/141 [02:43<00:56,  1.58s/it]avg_loss = 2.5861455674441354:  75%|███████▌  | 106/141 [02:43<00:55,  1.58s/it]avg_loss = 2.5848817134571966:  75%|███████▌  | 106/141 [02:45<00:55,  1.58s/it]avg_loss = 2.5848817134571966:  76%|███████▌  | 107/141 [02:45<00:53,  1.58s/it]avg_loss = 2.5829652746518454:  76%|███████▌  | 107/141 [02:46<00:53,  1.58s/it]avg_loss = 2.5829652746518454:  77%|███████▋  | 108/141 [02:46<00:52,  1.58s/it]avg_loss = 2.5821330350473386:  77%|███████▋  | 108/141 [02:48<00:52,  1.58s/it]avg_loss = 2.5821330350473386:  77%|███████▋  | 109/141 [02:48<00:50,  1.58s/it]avg_loss = 2.5790964473377573:  77%|███████▋  | 109/141 [02:49<00:50,  1.58s/it]avg_loss = 2.5790964473377573:  78%|███████▊  | 110/141 [02:49<00:49,  1.58s/it]avg_loss = 2.581971413380391:  78%|███████▊  | 110/141 [02:51<00:49,  1.58s/it] avg_loss = 2.581971413380391:  79%|███████▊  | 111/141 [02:51<00:47,  1.58s/it]avg_loss = 2.5817749010665074:  79%|███████▊  | 111/141 [02:53<00:47,  1.58s/it]avg_loss = 2.5817749010665074:  79%|███████▉  | 112/141 [02:53<00:45,  1.58s/it]avg_loss = 2.5830743755914467:  79%|███████▉  | 112/141 [02:54<00:45,  1.58s/it]avg_loss = 2.5830743755914467:  80%|████████  | 113/141 [02:54<00:44,  1.58s/it]avg_loss = 2.5853007069805214:  80%|████████  | 113/141 [02:56<00:44,  1.58s/it]avg_loss = 2.5853007069805214:  81%|████████  | 114/141 [02:56<00:42,  1.59s/it]avg_loss = 2.5836814403533936:  81%|████████  | 114/141 [02:57<00:42,  1.59s/it]avg_loss = 2.5836814403533936:  82%|████████▏ | 115/141 [02:57<00:41,  1.59s/it]avg_loss = 2.581893528329915:  82%|████████▏ | 115/141 [02:59<00:41,  1.59s/it] avg_loss = 2.581893528329915:  82%|████████▏ | 116/141 [02:59<00:39,  1.59s/it]avg_loss = 2.5841012510479007:  82%|████████▏ | 116/141 [03:01<00:39,  1.59s/it]avg_loss = 2.5841012510479007:  83%|████████▎ | 117/141 [03:01<00:38,  1.59s/it]avg_loss = 2.5825649257433616:  83%|████████▎ | 117/141 [03:02<00:38,  1.59s/it]avg_loss = 2.5825649257433616:  84%|████████▎ | 118/141 [03:02<00:36,  1.59s/it]avg_loss = 2.5803848495002555:  84%|████████▎ | 118/141 [03:04<00:36,  1.59s/it]avg_loss = 2.5803848495002555:  84%|████████▍ | 119/141 [03:04<00:34,  1.59s/it]avg_loss = 2.5778666536013284:  84%|████████▍ | 119/141 [03:05<00:34,  1.59s/it]avg_loss = 2.5778666536013284:  85%|████████▌ | 120/141 [03:05<00:33,  1.59s/it]avg_loss = 2.5782650384035977:  85%|████████▌ | 120/141 [03:07<00:33,  1.59s/it]avg_loss = 2.5782650384035977:  86%|████████▌ | 121/141 [03:07<00:31,  1.59s/it]avg_loss = 2.578554561880768:  86%|████████▌ | 121/141 [03:08<00:31,  1.59s/it] avg_loss = 2.578554561880768:  87%|████████▋ | 122/141 [03:08<00:30,  1.59s/it]avg_loss = 2.57739796677256:  87%|████████▋ | 122/141 [03:10<00:30,  1.59s/it] avg_loss = 2.57739796677256:  87%|████████▋ | 123/141 [03:10<00:28,  1.59s/it]avg_loss = 2.577383416314279:  87%|████████▋ | 123/141 [03:12<00:28,  1.59s/it]avg_loss = 2.577383416314279:  88%|████████▊ | 124/141 [03:12<00:26,  1.59s/it]avg_loss = 2.575737720489502:  88%|████████▊ | 124/141 [03:13<00:26,  1.59s/it]avg_loss = 2.575737720489502:  89%|████████▊ | 125/141 [03:13<00:25,  1.58s/it]avg_loss = 2.575315445188492:  89%|████████▊ | 125/141 [03:15<00:25,  1.58s/it]avg_loss = 2.575315445188492:  89%|████████▉ | 126/141 [03:15<00:23,  1.59s/it]avg_loss = 2.575082243896845:  89%|████████▉ | 126/141 [03:16<00:23,  1.59s/it]avg_loss = 2.575082243896845:  90%|█████████ | 127/141 [03:16<00:22,  1.59s/it]avg_loss = 2.573490731418133:  90%|█████████ | 127/141 [03:18<00:22,  1.59s/it]avg_loss = 2.573490731418133:  91%|█████████ | 128/141 [03:18<00:20,  1.59s/it]avg_loss = 2.5734747657480166:  91%|█████████ | 128/141 [03:20<00:20,  1.59s/it]avg_loss = 2.5734747657480166:  91%|█████████▏| 129/141 [03:20<00:19,  1.59s/it]avg_loss = 2.574751437627352:  91%|█████████▏| 129/141 [03:21<00:19,  1.59s/it] avg_loss = 2.574751437627352:  92%|█████████▏| 130/141 [03:21<00:17,  1.59s/it]avg_loss = 2.5753678420117794:  92%|█████████▏| 130/141 [03:23<00:17,  1.59s/it]avg_loss = 2.5753678420117794:  93%|█████████▎| 131/141 [03:23<00:15,  1.59s/it]avg_loss = 2.575689843206695:  93%|█████████▎| 131/141 [03:24<00:15,  1.59s/it] avg_loss = 2.575689843206695:  94%|█████████▎| 132/141 [03:24<00:14,  1.59s/it]avg_loss = 2.571943659531443:  94%|█████████▎| 132/141 [03:26<00:14,  1.59s/it]avg_loss = 2.571943659531443:  94%|█████████▍| 133/141 [03:26<00:12,  1.59s/it]avg_loss = 2.566001236438751:  94%|█████████▍| 133/141 [03:28<00:12,  1.59s/it]avg_loss = 2.566001236438751:  95%|█████████▌| 134/141 [03:28<00:11,  1.59s/it]avg_loss = 2.568504339677316:  95%|█████████▌| 134/141 [03:29<00:11,  1.59s/it]avg_loss = 2.568504339677316:  96%|█████████▌| 135/141 [03:29<00:09,  1.59s/it]avg_loss = 2.5726335916449043:  96%|█████████▌| 135/141 [03:31<00:09,  1.59s/it]avg_loss = 2.5726335916449043:  96%|█████████▋| 136/141 [03:31<00:07,  1.59s/it]avg_loss = 2.5749798282219545:  96%|█████████▋| 136/141 [03:32<00:07,  1.59s/it]avg_loss = 2.5749798282219545:  97%|█████████▋| 137/141 [03:32<00:06,  1.59s/it]avg_loss = 2.5744727046593376:  97%|█████████▋| 137/141 [03:34<00:06,  1.59s/it]avg_loss = 2.5744727046593376:  98%|█████████▊| 138/141 [03:34<00:04,  1.59s/it]avg_loss = 2.575558923988891:  98%|█████████▊| 138/141 [03:35<00:04,  1.59s/it] avg_loss = 2.575558923988891:  99%|█████████▊| 139/141 [03:35<00:03,  1.59s/it]avg_loss = 2.5770699986389705:  99%|█████████▊| 139/141 [03:37<00:03,  1.59s/it]avg_loss = 2.5770699986389705:  99%|█████████▉| 140/141 [03:37<00:01,  1.59s/it]avg_loss = 2.5789897078317954:  99%|█████████▉| 140/141 [03:39<00:01,  1.59s/it]avg_loss = 2.5789897078317954: 100%|██████████| 141/141 [03:39<00:00,  1.59s/it]avg_loss = 2.5789897078317954: 100%|██████████| 141/141 [03:39<00:00,  1.55s/it]
+I0409 07:58:43.697041 1098064 eval_ppl.py:107] wikitext2 perplexity: 13.183812141418457
+wikitext2 perplexity: 13.184

@@ -41,6 +41,7 @@ def parse_args(argv):
     parser.add_argument("--R", type=int, default=0)
     parser.add_argument("--m", type=int, default=0)
     parser.add_argument("--Q", type=int, default=0)
+    parser.add_argument("--C", type=int, default=0)
     parser.add_argument("--clip_max_norm", default=1.0, type=float)
     parser.add_argument("--save_dir", default="", type=str)
     parser.add_argument("--architecture", default=None, type=str)
@@ -74,10 +75,12 @@ def test(test_dataset, model, criterion):
             mean_bpp_loss += out_loss['bpp_loss'].item()
             
             out_enc = model.compress(data)
-            try:
-                out_dec = model.decompress(out_enc["strings"], out_enc["shape"], data["q_level"])
-            except:
-                out_dec = model.decompress(out_enc["strings"], out_enc["shape"])
+            out_dec = model.decompress(out_enc)
+            
+            # try:
+            #     out_dec = model.decompress(out_enc["strings"], out_enc["shape"], data["q_level"])
+            # except:
+            #     out_dec = model.decompress(out_enc["strings"], out_enc["shape"])
             
             # out_dec = model.decompress(out_enc["strings"], out_enc["shape"])
                 
@@ -236,15 +239,8 @@ def main(opts):
         for i, (data) in enumerate(train_dataloader):
             if total_iter >= opts.iter: break
             
-            with torch.autograd.detect_anomaly():
-                # weight = data['weight_block']
-                # weight = weight.to(device)
-                # tensor_block_idx = data['tensor_block_idx']
-                # tensor_block_idx = tensor_block_idx.to(device)
-                
-                ## 더 최적화하는 방법?
+            with torch.autograd.detect_anomaly():                
                 data = {key: tensor.to(device) for key, tensor in data.items()}
-                
                 optimizer.zero_grad()
                 aux_optimizer.zero_grad()
                 out_net = net(data)
@@ -269,7 +265,7 @@ def main(opts):
             aux_optimizer.zero_grad()
             
             total_iter += 1 * gpu_num
-            if ((total_iter % 1000 == 0) or (total_iter == (1 * gpu_num))) and node_rank == 0:
+            if ((total_iter % 100 == 0) or (total_iter == (1 * gpu_num))) and node_rank == 0:
                 logger.info(
                     f"Train iter. {total_iter}/{opts.iter} ({100. * total_iter / opts.iter}%): "
                     f"\tLoss: {out_loss['loss'].item()}"

@@ -1,4 +1,4 @@
-# import fast_hadamard_transform
+import fast_hadamard_transform
 import torch
 
 from lib import utils
