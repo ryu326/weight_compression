@@ -1,8 +1,9 @@
+export CUDA_VISIBLE_DEVICES=4
 
 CKPT="./ckpt"
 HF="./hf"
 LOG="./log"
-HESS="/home/minkyu4506/weight_compression_dataset/llama3_8b_6144"
+HESS="../Wparam_dataset/quip_hess/llama3_8b_6144"
 
 mkdir -p $CKPT
 mkdir -p $LOG
@@ -19,7 +20,7 @@ do
     python -m quantize_llama.quantize_finetune_llama \
         --save_path $SAVE_PATH \
         --codebook bitshift \
-        --base_model meta-llama/Meta-Llama-3-8B \
+        --base_model ../Wparam_dataset/hf_model/meta-llama--Meta-Llama-3-8B \
         --in_hess_path $HESS \
         --scale_override 0.9 \
         --ft_epochs 0 \
