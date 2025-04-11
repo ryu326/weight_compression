@@ -37,7 +37,7 @@ do
         --hf_output_path $HF_PATH 2>&1  \
         | tee -a $LOG_FILE 
 
-    python -m quantize_llama.finetune_e2e_llama --base_model ../Wparam_dataset/hf_model/meta-llama--Meta-Llama-3-8B \
+    python -m quantize_llama.finetune_e2e_llama --base_model meta-llama/Meta-Llama-3-8B \
         --hf_path $HF_PATH --devset_size 640 --ft_valid_size 128 \
         --ft_epochs 4 --ft_update_freq 4 --ft_bs 2 --ctx_size 4096 \
         --ft_train_lut --hf_output_path ${HF_PATH}_ft2 2>&1 | tee -a $LOG_FILE 

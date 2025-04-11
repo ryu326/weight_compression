@@ -5,6 +5,6 @@ docker run -d -it --name qtip \
   --shm-size=400G \
   jegwangryu/qtip
 
-docker exec qtip bash -c "cd /home/mkkim/Weight_compression/qtip && bash run_3_8b.sh"
+docker exec qtip bash -c "cd (Weight_compression 디렉토리 경로)/qtip && bash run_3_8b.sh"
 
 docker stop qtip
