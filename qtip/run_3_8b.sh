@@ -1,7 +1,7 @@
-export CUDA_VISIBLE_DEVICES=0,1,2,3
+export CUDA_VISIBLE_DEVICES=4
 
-CKPT="../hf_model_comp/qtip/ckpt/noft"
-HF="../hf_model_comp/qtip/hf/noft"
+CKPT="./ckpt"
+HF="./hf"
 LOG="./log"
 HESS="../Wparam_dataset/quip_hess/llama3_8b_6144"
 
@@ -38,12 +38,16 @@ do
         --hf_output_path $HF_PATH 2>&1  \
         | tee -a $LOG_FILE 
 
-    # python -m quantize_llama.finetune_e2e_llama --base_model ../Wparam_dataset/hf_model/meta-llama--Meta-Llama-3-8B \
-    #     --hf_path $HF_PATH --devset_size 640 --ft_valid_size 128 \
-    #     --ft_epochs 4 --ft_update_freq 4 --ft_bs 1 --ctx_size 2048 \
-    #     --ft_train_lut --hf_output_path ${HF_PATH}_ft2 2>&1 | tee -a $LOG_FILE 
+    python -m quantize_llama.finetune_e2e_llama --base_model ../Wparam_dataset/hf_model/meta-llama--Meta-Llama-3-8B \
+        --hf_path $HF_PATH --devset_size 640 --ft_valid_size 128 \
+        --ft_epochs 4 --ft_update_freq 4 --ft_bs 2 --ctx_size 4096 \
+        --ft_train_lut --hf_output_path ${HF_PATH}_ft2 2>&1 | tee -a $LOG_FILE 
 
     python -m eval.eval_ppl \
         --hf_path ${HF_PATH} \
         --seqlen 2048 2>&1 | tee -a ${HF_PATH}_result.txt 2>&1
+
+    python -m eval.eval_ppl \
+        --hf_path ${HF_PATH}_ft2 \
+        --seqlen 2048 2>&1 | tee -a ${HF_PATH}_ft2_result.txt 2>&1
 done

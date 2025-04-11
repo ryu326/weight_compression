@@ -27,7 +27,7 @@ for lmbda in "${lmbda_values[@]}"; do
         echo "#### Running compression lmbda=${lmbda}, ql_search_value=${ql_val}, layer=${layer_name} ####"
 
         ## ========= Change this =========
-        SAVE_NAME=ql_tuned_vo/layer${layer_name}_val${ql_val}/${model_name}/lmbda${lmbda}
+        SAVE_NAME=ql_tuned_vo031/layer${layer_name}_val${ql_val}/${model_name}/lmbda${lmbda}
         ## ========= Change this =========
 
         comp_model=$comp_model_base/lmbda${lmbda}_*/best_loss*.pth.tar

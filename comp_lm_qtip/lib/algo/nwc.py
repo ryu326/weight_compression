@@ -257,8 +257,12 @@ def compress_linear(W, H, comp_model, ql, args, device='cpu'):
         if args.layer_name == 'v':
             ql = torch.full_like(ql, 3)
         if args.layer_name == 'o':
-            ql = torch.max(ql, torch.tensor(args.ql_search_value))    
-    
+            ql = torch.max(ql, torch.tensor(1))    
+        if args.layer_idx == 0:
+            ql = torch.max(ql, torch.tensor(1))
+
+
+
     if args.ql_search:
         ql_search_layer_idx = list(map(int, args.ql_search_layer_idx.split(',')))
         ql_search_layer_name = args.ql_search_layer_name.split(',')

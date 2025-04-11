@@ -3,8 +3,8 @@
 # comp_model_base="../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_4096_RHT.pt"
 # comp_model_base="../NWC/checkpoint/nwc_tr_with_hyp/block_seq_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt"
 # comp_model_base="../NWC/checkpoint/nwc_tr/block_seq_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt"
-# comp_model_base="../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt"
-comp_model_base="../NWC/checkpoint/nwc/block_seq_scaler_meta-llama--Meta-Llama-3-8B__scaled3_RHT_sig1e-06_col_1024.pt"
+comp_model_base="../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt"
+# comp_model_base="../NWC/checkpoint/nwc/block_seq_scaler_meta-llama--Meta-Llama-3-8B__scaled3_RHT_sig1e-06_col_1024.pt"
 # comp_model_base="../NWC/checkpoint/nwc/block_seq_scaler_meta-llama--Llama-2-7b-hf__scaled3_RHT_sig0.0001_col_4096.pt"
 # comp_model_base="../NWC/checkpoint/nwc/block_seq_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt"
 # comp_model_base="../NWC/checkpoint/nwc_ql_cdt/block_seq_ql_random_lstats_scaler_meta-llama--Meta-Llama-3-8B__col_1024_layerwise_stats.pt"
@@ -30,13 +30,13 @@ mkdir -p $CKPT
 mkdir -p $HF
 mkdir -p $LOG
 
-lmbda_values=(30 10 50 100 200 300 1000)
+lmbda_values=(30 50 100 200 300 1000 10000)
 # lmbda_values=(50 100 200 300 1000 10000 30000)
 for lmbda in "${lmbda_values[@]}"; do
     echo "################## Running compression lmbda=${lmbda} ##################"
     
     ## ========= Change this =========
-    SAVE_NAME=ft_comp/scaled_rht_qkvo_train_all_mse/${model_name}/lmbda${lmbda}
+    SAVE_NAME=ft_ql_tuned_ldlq/${model_name}/lmbda${lmbda}
     ## ========= Change this =========
 
     comp_model=$comp_model_base/lmbda${lmbda}_*/best_loss*.pth.tar
@@ -48,9 +48,10 @@ for lmbda in "${lmbda_values[@]}"; do
         --comp_model_path $comp_model \
         --in_hess_path $HESS --devset_size 384 --ft_valid_size 128 \
         --batch_size 8 \
-        --ft_comp_model --ft_comp_lmbda $lmbda --ft_comp_ep 100 --direction row \
-        --incoh_mode had  --rescale_WH_2  --sigma_reg 1e-4 --use_train_scale \
-        --ft_epochs 0 \
+        --ql \
+        --ql_tuned \
+        --ldlq --comp_batch_size 1 \
+        --ft_epochs 5 \
         2>&1 | tee $LOG/$SAVE_NAME.log
 
         # --incoh_mode had  --rescale_WH_2  --sigma_reg 1e-4 --use_train_scale \
@@ -68,7 +69,7 @@ for lmbda in "${lmbda_values[@]}"; do
     log_dir=$(dirname "$log_path")
     mkdir -p "$log_dir"
     echo "Running evaluation for directory: $pretrain_path"
-    export CUDA_VISIBLE_DEVICES=1
+    export CUDA_VISIBLE_DEVICES=2
     python eval_ppl.py \
         --hf_path $pretrain_path \
         --seqlen 2048 \

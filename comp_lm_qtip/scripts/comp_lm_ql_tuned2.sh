@@ -20,20 +20,20 @@ mkdir -p $HF
 mkdir -p $LOG
 
 lmbda_values=(30 50 100)
-ql_search_values=(1)
+ql_search_values=(3)
 
 for lmbda in "${lmbda_values[@]}"; do
     for ql_val in "${ql_search_values[@]}"; do
         echo "#### Running compression lmbda=${lmbda}, ql_search_value=${ql_val}, layer=${layer_name} ####"
 
         ## ========= Change this =========
-        SAVE_NAME=ql_tuned_vo/layer${layer_name}_val${ql_val}/${model_name}/lmbda${lmbda}
+        SAVE_NAME=ql_tuned_vo031/layer${layer_name}_val${ql_val}/${model_name}/lmbda${lmbda}
         ## ========= Change this =========
 
         comp_model=$comp_model_base/lmbda${lmbda}_*/best_loss*.pth.tar
         mkdir -p $(dirname "$LOG/$SAVE_NAME.log")
         
-        CUDA_VISIBLE_DEVICES=1 taskset -c 0-31 \
+        CUDA_VISIBLE_DEVICES=3 taskset -c 0-31 \
         python -m quantize_llama.quantize_finetune_llama --save_path $CKPT/$SAVE_NAME \
             --base_model $lm_model_path \
             --comp_model_path $comp_model \
@@ -56,7 +56,7 @@ for lmbda in "${lmbda_values[@]}"; do
         log_dir=$(dirname "$log_path")
         mkdir -p "$log_dir"
         echo "Running evaluation for directory: $pretrain_path"
-        export CUDA_VISIBLE_DEVICES=1
+        export CUDA_VISIBLE_DEVICES=3
         python eval_ppl.py \
             --hf_path $pretrain_path \
             --seqlen 2048 \
