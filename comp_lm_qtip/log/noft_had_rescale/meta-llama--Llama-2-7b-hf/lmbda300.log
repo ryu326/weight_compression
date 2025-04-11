@@ -1,156 +1,0 @@
-I0321 03:19:36.459382 1603089 config.py:54] PyTorch version 2.6.0 available.
-W0321 03:19:36.740669 1603089 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
-  warn(
-
-W0321 03:19:37.693677 1603089 warnings.py:109] /opt/conda/lib/python3.10/site-packages/compressai/models/video/google.py:353: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
-  @amp.autocast(enabled=False)
-
-Loading checkpoint shards:   0%|          | 0/6 [00:00<?, ?it/s]Loading checkpoint shards:  17%|█▋        | 1/6 [00:00<00:00,  7.18it/s]Loading checkpoint shards:  33%|███▎      | 2/6 [00:00<00:00,  7.76it/s]Loading checkpoint shards:  50%|█████     | 3/6 [00:00<00:00,  8.01it/s]Loading checkpoint shards:  67%|██████▋   | 4/6 [00:00<00:00,  8.08it/s]Loading checkpoint shards:  83%|████████▎ | 5/6 [00:00<00:00,  8.18it/s]Loading checkpoint shards: 100%|██████████| 6/6 [00:00<00:00,  7.84it/s]Loading checkpoint shards: 100%|██████████| 6/6 [00:00<00:00,  7.89it/s]
-I0321 03:19:38.655493 1603089 quantize_finetune_llama.py:144] loaded model
-Traceback (most recent call last):
-  File "/opt/conda/lib/python3.10/runpy.py", line 196, in _run_module_as_main
-    return _run_code(code, main_globals, None,
-  File "/opt/conda/lib/python3.10/runpy.py", line 86, in _run_code
-    exec(code, run_globals)
-  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 264, in <module>
-    main(args)
-  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/quantize_finetune_llama.py", line 148, in main
-    with open(config, 'r', encoding='utf-8') as file:
-FileNotFoundError: [Errno 2] No such file or directory: '../NWC/checkpoint/nwc/block_seq_row_16/lmbda300_*/config.json'
-I0321 03:19:42.454895 1603135 config.py:54] PyTorch version 2.6.0 available.
-W0321 03:19:42.751959 1603135 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
-  warn(
-
-I0321 03:19:42.986811 1603135 hfize_llama.py:27] LlamaConfig {
-  "_attn_implementation_autoset": true,
-  "_name_or_path": "../Wparam_dataset/hf_model/meta-llama--Llama-2-7b-hf",
-  "architectures": [
-    "LlamaForCausalLM"
-  ],
-  "attention_bias": false,
-  "attention_dropout": 0.0,
-  "bos_token_id": 1,
-  "eos_token_id": 2,
-  "head_dim": 128,
-  "hidden_act": "silu",
-  "hidden_size": 4096,
-  "initializer_range": 0.02,
-  "intermediate_size": 11008,
-  "max_position_embeddings": 4096,
-  "mlp_bias": false,
-  "model_type": "llama",
-  "num_attention_heads": 32,
-  "num_hidden_layers": 32,
-  "num_key_value_heads": 32,
-  "pretraining_tp": 1,
-  "quip_params": {},
-  "rms_norm_eps": 1e-05,
-  "rope_scaling": null,
-  "rope_theta": 10000.0,
-  "tie_word_embeddings": false,
-  "torch_dtype": "float32",
-  "transformers_version": "4.47.1",
-  "use_cache": true,
-  "vocab_size": 32000
-}
-
-Loading checkpoint shards:   0%|          | 0/6 [00:00<?, ?it/s]Loading checkpoint shards:  17%|█▋        | 1/6 [00:00<00:00,  8.77it/s]Loading checkpoint shards:  33%|███▎      | 2/6 [00:00<00:00,  9.37it/s]Loading checkpoint shards:  50%|█████     | 3/6 [00:00<00:00,  9.58it/s]Loading checkpoint shards:  67%|██████▋   | 4/6 [00:00<00:00,  9.48it/s]Loading checkpoint shards: 100%|██████████| 6/6 [00:00<00:00,  9.84it/s]Loading checkpoint shards: 100%|██████████| 6/6 [00:00<00:00,  9.66it/s]
-Loading checkpoint shards:   0%|          | 0/6 [00:00<?, ?it/s]Loading checkpoint shards:  17%|█▋        | 1/6 [00:00<00:00,  9.64it/s]Loading checkpoint shards:  50%|█████     | 3/6 [00:00<00:00, 10.05it/s]Loading checkpoint shards:  83%|████████▎ | 5/6 [00:00<00:00, 10.06it/s]Loading checkpoint shards: 100%|██████████| 6/6 [00:00<00:00, 10.11it/s]
-Traceback (most recent call last):
-  File "/opt/conda/lib/python3.10/runpy.py", line 196, in _run_module_as_main
-    return _run_code(code, main_globals, None,
-  File "/opt/conda/lib/python3.10/runpy.py", line 86, in _run_code
-    exec(code, run_globals)
-  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/hfize_llama.py", line 186, in <module>
-    main(args)
-  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/hfize_llama.py", line 77, in main
-    saved_layer = torch.load(f'{args.quantized_path}/{ii}_q.pt',
-  File "/opt/conda/lib/python3.10/site-packages/torch/serialization.py", line 1425, in load
-    with _open_file_like(f, "rb") as opened_file:
-  File "/opt/conda/lib/python3.10/site-packages/torch/serialization.py", line 751, in _open_file_like
-    return _open_file(name_or_buffer, mode)
-  File "/opt/conda/lib/python3.10/site-packages/torch/serialization.py", line 732, in __init__
-    super().__init__(open(name, mode))
-FileNotFoundError: [Errno 2] No such file or directory: './ckpt/noft_had_rescale//meta-llama--Llama-2-7b-hf/lmbda300/0_q.pt'
-I0321 07:31:52.846568 1637081 config.py:54] PyTorch version 2.6.0 available.
-W0321 07:31:53.141074 1637081 warnings.py:109] /opt/conda/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/opt/conda/lib/python3.10/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
-  warn(
-
-I0321 07:31:53.378113 1637081 hfize_llama.py:27] LlamaConfig {
-  "_attn_implementation_autoset": true,
-  "_name_or_path": "../Wparam_dataset/hf_model/meta-llama--Llama-2-7b-hf",
-  "architectures": [
-    "LlamaForCausalLM"
-  ],
-  "attention_bias": false,
-  "attention_dropout": 0.0,
-  "bos_token_id": 1,
-  "eos_token_id": 2,
-  "head_dim": 128,
-  "hidden_act": "silu",
-  "hidden_size": 4096,
-  "initializer_range": 0.02,
-  "intermediate_size": 11008,
-  "max_position_embeddings": 4096,
-  "mlp_bias": false,
-  "model_type": "llama",
-  "num_attention_heads": 32,
-  "num_hidden_layers": 32,
-  "num_key_value_heads": 32,
-  "pretraining_tp": 1,
-  "quip_params": {},
-  "rms_norm_eps": 1e-05,
-  "rope_scaling": null,
-  "rope_theta": 10000.0,
-  "tie_word_embeddings": false,
-  "torch_dtype": "float32",
-  "transformers_version": "4.47.1",
-  "use_cache": true,
-  "vocab_size": 32000
-}
-
-Loading checkpoint shards:   0%|          | 0/6 [00:00<?, ?it/s]Loading checkpoint shards:  17%|█▋        | 1/6 [00:00<00:00,  8.73it/s]Loading checkpoint shards:  50%|█████     | 3/6 [00:00<00:00,  9.81it/s]Loading checkpoint shards:  67%|██████▋   | 4/6 [00:00<00:00,  9.63it/s]Loading checkpoint shards: 100%|██████████| 6/6 [00:00<00:00, 10.07it/s]Loading checkpoint shards: 100%|██████████| 6/6 [00:00<00:00,  9.89it/s]
-Loading checkpoint shards:   0%|          | 0/6 [00:00<?, ?it/s]Loading checkpoint shards:  17%|█▋        | 1/6 [00:00<00:00,  9.54it/s]Loading checkpoint shards:  50%|█████     | 3/6 [00:00<00:00, 10.07it/s]Loading checkpoint shards:  83%|████████▎ | 5/6 [00:00<00:00, 10.21it/s]Loading checkpoint shards: 100%|██████████| 6/6 [00:00<00:00, 10.13it/s]
-Traceback (most recent call last):
-  File "/opt/conda/lib/python3.10/runpy.py", line 196, in _run_module_as_main
-    return _run_code(code, main_globals, None,
-  File "/opt/conda/lib/python3.10/runpy.py", line 86, in _run_code
-    exec(code, run_globals)
-  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/hfize_llama.py", line 186, in <module>
-    main(args)
-  File "/workspace/Weight_compression/comp_lm_qtip/quantize_llama/hfize_llama.py", line 77, in main
-    saved_layer = torch.load(f'{args.quantized_path}/{ii}_q.pt',
-  File "/opt/conda/lib/python3.10/site-packages/torch/serialization.py", line 1425, in load
-    with _open_file_like(f, "rb") as opened_file:
-  File "/opt/conda/lib/python3.10/site-packages/torch/serialization.py", line 751, in _open_file_like
-    return _open_file(name_or_buffer, mode)
-  File "/opt/conda/lib/python3.10/site-packages/torch/serialization.py", line 732, in __init__
-    super().__init__(open(name, mode))
-FileNotFoundError: [Errno 2] No such file or directory: './ckpt/noft_had_rescale/meta-llama--Llama-2-7b-hf/lmbda300/0_q.pt'
-Traceback (most recent call last):
-  File "/opt/conda/lib/python3.10/site-packages/transformers/utils/hub.py", line 403, in cached_file
-    resolved_file = hf_hub_download(
-  File "/opt/conda/lib/python3.10/site-packages/huggingface_hub/utils/_validators.py", line 106, in _inner_fn
-    validate_repo_id(arg_value)
-  File "/opt/conda/lib/python3.10/site-packages/huggingface_hub/utils/_validators.py", line 154, in validate_repo_id
-    raise HFValidationError(
-huggingface_hub.errors.HFValidationError: Repo id must be in the form 'repo_name' or 'namespace/repo_name': './hf/noft_had_rescale/meta-llama--Llama-2-7b-hf/lmbda300'. Use `repo_type` argument if needed.
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "/workspace/Weight_compression/comp_lm_qtip/eval_ppl.py", line 124, in <module>
-    main(args)
-  File "/workspace/Weight_compression/comp_lm_qtip/eval_ppl.py", line 71, in main
-    model, model_str = model_from_hf_path(
-  File "/workspace/Weight_compression/comp_lm_qtip/eval_ppl.py", line 34, in model_from_hf_path
-    bad_config = transformers.AutoConfig.from_pretrained(path)
-  File "/opt/conda/lib/python3.10/site-packages/transformers/models/auto/configuration_auto.py", line 1021, in from_pretrained
-    config_dict, unused_kwargs = PretrainedConfig.get_config_dict(pretrained_model_name_or_path, **kwargs)
-  File "/opt/conda/lib/python3.10/site-packages/transformers/configuration_utils.py", line 590, in get_config_dict
-    config_dict, kwargs = cls._get_config_dict(pretrained_model_name_or_path, **kwargs)
-  File "/opt/conda/lib/python3.10/site-packages/transformers/configuration_utils.py", line 649, in _get_config_dict
-    resolved_config_file = cached_file(
-  File "/opt/conda/lib/python3.10/site-packages/transformers/utils/hub.py", line 469, in cached_file
-    raise EnvironmentError(
-OSError: Incorrect path_or_model_id: './hf/noft_had_rescale/meta-llama--Llama-2-7b-hf/lmbda300'. Please provide either the path to a local folder or the repo_id of a model on the Hub.
