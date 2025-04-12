@@ -20,7 +20,7 @@ do
         # 평가 실행 및 로그 저장
         lm_eval --model hf \
             --model_args pretrained=$pretrain_path,parallelize=True \
-            --tasks arc_easy,arc_challenge,winogrande,piqa \
+            --tasks arc_easy,arc_challenge,winogrande,piqa,boolq \
             --batch_size 1 \
             --output_path "$log_path"
     done

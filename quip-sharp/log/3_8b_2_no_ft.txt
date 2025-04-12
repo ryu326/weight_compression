@@ -1,0 +1,74 @@
+W0412 07:40:13.395337 18104 warnings.py:110] /workspace/Weight_compression/quip-sharp/lib/codebook/__init__.py:6: FutureWarning: `torch.library.impl_abstract` was renamed to `torch.library.register_fake`. Please use that instead; we will remove `torch.library.impl_abstract` in a future version of PyTorch.
+  @torch.library.impl_abstract("quip_lib::decode_matvec_e8p")
+
+W0412 07:40:13.425452 18104 warnings.py:110] /workspace/Weight_compression/quip-sharp/lib/codebook/__init__.py:25: FutureWarning: `torch.library.impl_abstract` was renamed to `torch.library.register_fake`. Please use that instead; we will remove `torch.library.impl_abstract` in a future version of PyTorch.
+  @torch.library.impl_abstract("quip_lib::decompress_packed_e8p")
+
+I0412 07:40:13.778874 18104 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0412 07:40:13.779014 18104 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0412 07:40:13.779060 18104 utils.py:162] NumExpr defaulting to 16 threads.
+I0412 07:40:13.918821 18104 config.py:58] PyTorch version 2.4.0 available.
+W0412 07:40:14.400050 18104 warnings.py:110] /workspace/Weight_compression/quip-sharp/lib/utils/matmul_had.py:92: FutureWarning: `torch.library.impl_abstract` was renamed to `torch.library.register_fake`. Please use that instead; we will remove `torch.library.impl_abstract` in a future version of PyTorch.
+  @torch.library.impl_abstract("quip_lib::hadamard")
+
+W0412 07:40:41.242674 18104 warnings.py:110] /opt/conda/lib/python3.11/site-packages/huggingface_hub/file_download.py:1150: FutureWarning: `resume_download` is deprecated and will be removed in version 1.0.0. Downloads always resume when possible. If you want to force a new download, use `force_download=True`.
+  warnings.warn(
+
+The token has not been saved to the git credentials helper. Pass `add_to_git_credential=True` in this function directly or `--add-to-git-credential` if using via `huggingface-cli` if you want to set the git credential as well.
+Token is valid (permission: fineGrained).
+Your token has been saved to /root/.cache/huggingface/token
+Login successful
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:00,  8.05it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:00<00:00, 10.94it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 11.37it/s]
+Special tokens have been added in the vocabulary, make sure the associated word embeddings are fine-tuned or trained.
+I0412 07:40:45.558029 18104 quantize_finetune_llama.py:159] loaded model
+I0412 07:41:05.907637 18104 quantize_finetune_llama.py:163] loaded dataset and devset
+I0412 07:41:07.262604 18104 quantize_finetune_llama.py:182] layer 0 gpu 0
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+I0412 07:41:19.110825 18104 quantize_finetune_llama.py:182] layer 1 gpu 0
+W0412 07:41:20.816899 19157 warnings.py:110] /workspace/Weight_compression/quip-sharp/lib/codebook/__init__.py:6: FutureWarning: `torch.library.impl_abstract` was renamed to `torch.library.register_fake`. Please use that instead; we will remove `torch.library.impl_abstract` in a future version of PyTorch.
+  @torch.library.impl_abstract("quip_lib::decode_matvec_e8p")
+
+W0412 07:41:20.845626 19157 warnings.py:110] /workspace/Weight_compression/quip-sharp/lib/codebook/__init__.py:25: FutureWarning: `torch.library.impl_abstract` was renamed to `torch.library.register_fake`. Please use that instead; we will remove `torch.library.impl_abstract` in a future version of PyTorch.
+  @torch.library.impl_abstract("quip_lib::decompress_packed_e8p")
+
+I0412 07:41:21.182571 19157 utils.py:146] Note: detected 128 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+I0412 07:41:21.182704 19157 utils.py:149] Note: NumExpr detected 128 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+I0412 07:41:21.182753 19157 utils.py:162] NumExpr defaulting to 16 threads.
+I0412 07:41:21.323243 19157 config.py:58] PyTorch version 2.4.0 available.
+W0412 07:41:21.743707 19157 warnings.py:110] /workspace/Weight_compression/quip-sharp/lib/utils/matmul_had.py:92: FutureWarning: `torch.library.impl_abstract` was renamed to `torch.library.register_fake`. Please use that instead; we will remove `torch.library.impl_abstract` in a future version of PyTorch.
+  @torch.library.impl_abstract("quip_lib::hadamard")
+
+I0412 07:41:47.946589 19157 data_utils.py:205] using 256 training seqs, 128 validation seqs
+W0412 07:41:47.961757 19157 warnings.py:110] /workspace/Weight_compression/quip-sharp/lib/algo/quip.py:490: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  H_data = torch.load(hessian_path, map_location=torch.device('cpu'))
+
+I0412 07:41:49.190454 19157 quip.py:388] mean square of W: 1.0
+I0412 07:41:49.190965 19157 quip.py:389] mean square of Wr: 1.0
+I0412 07:41:49.198971 19157 quip.py:390] difference between Hr and Hr.T: 4.76837158203125e-07
+I0412 07:41:49.199471 19157 quip.py:391] max abs of Hr: 3.1711902618408203
+I0412 07:41:49.208186 19157 quip.py:392] min diag of Lhr: 0.14404690265655518
+I0412 07:42:01.324792 19157 misc.py:19] ./ckpt/3_8b_2bit_no_ft/0_qkv.pt frob  error: 0.24301308393478394
+I0412 07:42:01.324965 19157 misc.py:20] ./ckpt/3_8b_2bit_no_ft/0_qkv.pt proxy error: 0.0003071917162742466
+W0412 07:42:01.453362 19157 warnings.py:110] /workspace/Weight_compression/quip-sharp/lib/algo/finetune.py:107: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  saved_linear = torch.load(save_path,
+
+I0412 07:42:14.938890 19157 finetune.py:25] layer 0_qkv initial loss 0.00019214100029785186
+W0412 07:42:14.939125 19157 warnings.py:110] /workspace/Weight_compression/quip-sharp/lib/algo/finetune.py:26: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=True)
+
+I0412 07:42:16.733039 19157 quip.py:388] mean square of W: 1.0
+I0412 07:42:16.733350 19157 quip.py:389] mean square of Wr: 1.0
+I0412 07:42:16.734237 19157 quip.py:390] difference between Hr and Hr.T: 2.980232238769531e-07
+I0412 07:42:16.734727 19157 quip.py:391] max abs of Hr: 2.663370132446289
+I0412 07:42:16.734852 19157 quip.py:392] min diag of Lhr: 0.18672870099544525
+I0412 07:42:28.377418 19157 misc.py:19] ./ckpt/3_8b_2bit_no_ft/0_o.pt frob  error: 0.21509870886802673
+I0412 07:42:28.377617 19157 misc.py:20] ./ckpt/3_8b_2bit_no_ft/0_o.pt proxy error: 0.005502812564373016
+I0412 07:42:38.722348 19157 finetune.py:25] layer 0_o initial loss 0.0001896614849101752
+I0412 07:42:41.195612 19157 quip.py:388] mean square of W: 1.0
+I0412 07:42:41.197571 19157 quip.py:389] mean square of Wr: 1.000000238418579
+I0412 07:42:41.198464 19157 quip.py:390] difference between Hr and Hr.T: 1.4901161193847656e-07
+I0412 07:42:41.198962 19157 quip.py:391] max abs of Hr: 1.333940029144287
+I0412 07:42:41.199096 19157 quip.py:392] min diag of Lhr: 0.6206536293029785

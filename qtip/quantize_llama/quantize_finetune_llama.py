@@ -17,6 +17,9 @@ from lib.algo import finetune
 from lib.codebook import bitshift
 from operator import attrgetter
 
+from huggingface_hub import login
+login(token = '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')
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--seed', default=0, type=int)
 parser.add_argument('--num_cpu_threads', default=8, type=int)
