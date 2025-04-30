@@ -64,17 +64,23 @@ def main(args):
         print(results['results'][key])
         print()
         print()
-
-    if args.output_path is not None:
-        torch.save(results, args.output_path)
+            
+    def convert(o):
+        if isinstance(o, torch.dtype):
+            return str(o)
+        if isinstance(o, torch.Tensor):
+            return o.tolist()
+        return None 
+    
+    if args.output_path is None:
+        args.output_path = args.hf_path + '_zeroshot_results.json'
         
-    if args.output_path is not None:
-        os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
-        # otherwise cannot save
-        results["config"]["model"] = args.hf_path
-        with open(args.output_path, "w") as f:
-            json.dump(results, f, indent=2)
-
+    os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
+    results["config"]["model"] = args.hf_path
+    if "samples" in results:
+        del results["samples"]
+    with open(args.output_path, "w") as f:
+        json.dump(results, f, indent=2, default=convert)
 
 if __name__ == '__main__':
     torch.set_grad_enabled(False)

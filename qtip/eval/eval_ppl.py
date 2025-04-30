@@ -24,8 +24,8 @@ parser.add_argument('--max_mem_ratio', default=0.7, type=float)
 
 
 def main(args):
-    # datasets = ['wikitext2', 'c4']
-    datasets = ['wikitext2']
+    datasets = ['wikitext2', 'c4']
+    # datasets = ['c4']
     model, model_str = model_from_hf_path(args.hf_path, max_mem_ratio=args.max_mem_ratio)
 
     if args.manifest:
@@ -34,7 +34,7 @@ def main(args):
         for module in model.modules():
             if isinstance(module, QuantizedLinear):
                 module.mode = 'train-fixW'
-
+    result = {}
     for dataset in datasets:
         input_tok = gptq_data_utils.get_test_tokens(dataset,
                                                     seed=args.seed,
@@ -64,7 +64,11 @@ def main(args):
 
         ppl = torch.exp(torch.tensor(avg_loss)).item()
         glog.info(f'{dataset} perplexity: {ppl}')
+        result[dataset] = ppl
 
+        os.makedirs(os.path.dirname(f'{args.hf_path}_ppl_result.json'), exist_ok=True)
+        with open(f'{args.hf_path}_ppl_result.json', 'w') as f:
+            json.dump(result, f, indent=2)
 
 if __name__ == '__main__':
     torch.set_grad_enabled(False)

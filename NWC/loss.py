@@ -79,7 +79,7 @@ class RateDistortionLoss_ql(nn.Module):
         out["recon_loss"] = self.mse(output["x"], output["x_hat"]) / self.std**2
         
         qlevel = data['q_level']
-                
+
         # assert output["likelihoods"].shape == self.coff[qlevel].shape
         # print(output["likelihoods"].shape, self.coff[qlevel].shape)
         
@@ -89,7 +89,9 @@ class RateDistortionLoss_ql(nn.Module):
 
         ## v2
         out["bpp_loss"] = torch.log(output["likelihoods"]).sum() / (-math.log(2) * num_pixels)
-        bpp_loss = torch.log(output["likelihoods"]) * self.coff[qlevel].unsqueeze(-1).unsqueeze(-1)
+        assert output["likelihoods"].dim() == self.coff[qlevel].unsqueeze(-1).dim(), \
+            f"Shape mismatch: likelihoods {output['likelihoods'].shape} vs coff {self.coff[qlevel].unsqueeze(-1).shape}"
+        bpp_loss = torch.log(output["likelihoods"]) * self.coff[qlevel].unsqueeze(-1)
         bpp_loss = bpp_loss.sum() / (-math.log(2) * num_pixels)
         
         ## v1
@@ -114,7 +116,6 @@ class RateDistortionLoss(nn.Module):
         num_pixels = output["x"].numel()
 
         out["recon_loss"] = self.mse(output["x"], output["x_hat"]) / self.std**2
-
         # BPP
         # import ipdb; ipdb.set_trace()
         out["bpp_loss"] = sum(
@@ -170,6 +171,7 @@ def get_loss_fn(args, std=None, device = None):
     elif args.loss == "rdloss":
         return RateDistortionLoss(std, lmbda= args.lmbda)
     elif args.loss == "rdloss_ql":
+        # assert 'clip' in args.dataset_path.lower()
         if args.Q == 4:
             coff = torch.tensor([3.4, 1.2, 0.1, 0.05]).to(device)
         if args.Q == 8:

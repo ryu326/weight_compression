@@ -35,7 +35,8 @@ def main(args):
     print("loading model...")
     print("loaded model!")
     gpu_id = int(os.environ["LOCAL_RANK"])
-    tokenizer = AutoTokenizer.from_pretrained(args.base_model, use_fast=False)
+    # tokenizer = AutoTokenizer.from_pretrained(args.base_model, use_fast=False)
+    tokenizer = AutoTokenizer.from_pretrained(args.base_model)
     tokenizer.pad_token = tokenizer.eos_token
 
     print("loading dataset...")
@@ -68,7 +69,6 @@ def main(args):
 
         position_ids = position_ids.cuda()
         attention_mask = attention_mask.cuda()
-
         transformer_layer_index = 0
         while len(model.model.layers) > 0:
             print(gpu_id, 1)
@@ -85,10 +85,13 @@ def main(args):
                                                     f'{save_pfx}_down', gpu_id)
             for di in range(len(dev_emb)):
                 tmp_input = dev_emb[di].cuda()
+                ##
+                position_embeddings = model.model.rotary_emb(dev_emb[di].cuda(), position_ids)
                 dev_emb[di] = layer(dev_emb[di].cuda(),
                                     position_ids=position_ids,
                                     attention_mask=attention_mask,
                                     use_cache=False,
+                                    position_embeddings=position_embeddings, ##
                                     output_attentions=False)[0].cpu()
                 tmp_input = tmp_input.cpu()
                 del tmp_input

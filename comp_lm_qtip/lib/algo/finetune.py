@@ -129,7 +129,7 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
         comp_model.to(dtype_)
         args.layer_idx = idx
         args.layer_name = name
-        W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+        W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result, optimize_out = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
         W_hat = W_hat.to(dtype_)
         
         # err = torch.trace(
@@ -139,12 +139,10 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
         err = torch.trace((W - W_hat) @ HR @ ((W - W_hat).T))
         trWHW = torch.trace(W @ HR @ W.T)
         proxy_err =  err / trWHW
-
+        bpp_loss = bpp_loss_sum/num_pixels
         print(
-            f'{idx}_{name} proxy err {proxy_err.item()} err {err.item()} tr(WHW.T) {trWHW.item()}'
+            f'{idx}_{name} proxy err {proxy_err.item()} err {err.item()} tr(WHW.T) {trWHW.item()} bpp_loss {bpp_loss_sum/num_pixels}'
         )
-        
-        print(f'bpp_loss {bpp_loss_sum/num_pixels}')
         
         save_path = f'{args.save_path}/{idx}_{name}.pt'
 
@@ -158,35 +156,16 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
                 'err': err.item(),
                 'tr(WHW.T)': trWHW.item(),
                 'mse': torch.mean((W - W_hat) ** 2).item(),
+                'bpp_loss': bpp_loss,
                 'bpp_loss_sum': bpp_loss_sum,
                 'num_pixels': num_pixels,
+                'optimize_out': optimize_out
             }, save_path)
 
-        if args.ft_comp_model and args.layer_name in ['v', 'o', 'k', 'q']:
-            import matplotlib.pyplot as plt
-            import matplotlib
-            matplotlib.use('Agg')  
-            fig, axs = plt.subplots(2, 4, figsize=(12, 8))
-            axs[0, 0].plot(ft_result['step'], ft_result['loss'], label='loss')
-            axs[0, 0].set_title('loss')
-            axs[0, 1].plot(ft_result['step'], ft_result['adaptive_loss'], label='adaptive_loss')
-            axs[0, 1].set_title('adaptive_loss')
-            axs[0, 2].plot(ft_result['step'], ft_result['bpp_loss'], label='bpp_loss')
-            axs[0, 2].set_title('bpp_loss')
-            axs[0, 3].plot(ft_result['step'], ft_result['mse'], label='mse')
-            axs[0, 3].set_title('mse')
-            axs[1, 1].plot(ft_result['epoch'], ft_result['adaptive_loss_per_epoch'], label='adaptive_loss_per_epoch')
-            axs[1, 1].set_title('adaptive_loss_per_epoch')
-            axs[1, 2].plot(ft_result['epoch'], ft_result['bpp_loss_per_epoch'], label='bpp_loss_per_epoch')
-            axs[1, 2].set_title('bpp_loss_per_epoch')       
-            axs[1, 0].plot(ft_result['epoch'], ft_result['loss_per_epoch'], label='loss_per_epoch')
-            axs[1, 0].set_title('loss_per_epoch')      
-            axs[1, 3].plot(ft_result['epoch'], ft_result['mse_per_epoch'], label='mse_per_epoch')
-            axs[1, 3].set_title('mse_per_epoch')     
-                 
-            plt.savefig(f'{args.save_path}/{idx}_{name}_ft_result.png')
-            with open(f'{args.save_path}/{idx}_{name}_ft_result.json', 'w') as f:
-                json.dump(ft_result, f)
+        # if args.ft_comp_model2 and args.layer_name in ['v', 'o', 'k', 'q']:
+        if args.ft_comp_model2 or args.optim_code:
+            utils.plot_ft_comp_result(ft_result, args, idx, name)
+                
 
         comp_linear = copy.deepcopy(orig_linear)
         comp_linear.weight.copy_(W_hat)

@@ -16,6 +16,8 @@ torch.set_grad_enabled(False)
 parser = argparse.ArgumentParser()
 parser.add_argument('--quantized_path', type=str)
 parser.add_argument('--hf_output_path', type=str)
+## ryu
+parser.add_argument('--base_model', type=str)
 
 
 def main(args):
@@ -27,15 +29,25 @@ def main(args):
 
     tokenizer = AutoTokenizer.from_pretrained(model_config._name_or_path)
 
-    model = LlamaForCausalLM.from_pretrained(model_config._name_or_path,
-                                             torch_dtype='auto',
-                                             low_cpu_mem_usage=True,
-                                             config=model_config)
+    # model = LlamaForCausalLM.from_pretrained(model_config._name_or_path,
+    #                                          torch_dtype='auto',
+    #                                          low_cpu_mem_usage=True,
+    #                                          config=model_config)
 
-    orig_model = OrigLlama.from_pretrained(model_config._name_or_path,
-                                           torch_dtype='auto',
-                                           low_cpu_mem_usage=True,
-                                           config=model_config)
+    # orig_model = OrigLlama.from_pretrained(model_config._name_or_path,
+    #                                        torch_dtype='auto',
+    #                                        low_cpu_mem_usage=True,
+    #                                        config=model_config)
+    ## ryu
+    model = LlamaForCausalLM.from_pretrained(args.base_model,
+                                        torch_dtype='auto',
+                                        low_cpu_mem_usage=True,
+                                        config=model_config)
+    
+    orig_model = OrigLlama.from_pretrained(args.base_model,
+                                        torch_dtype='auto',
+                                        low_cpu_mem_usage=True,
+                                        config=model_config)
 
     if model_config.quip_params['skip_list'] is None:
         model_config.quip_params['skip_list'] = []

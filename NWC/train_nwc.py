@@ -49,8 +49,8 @@ def parse_args(argv):
     parser.add_argument("--checkpoint", default=None, type=str)
     parser.add_argument("--lmbda", type=int, default=None)
     parser.add_argument("--dataset_stat_type", type=str, choices=['scaler', 'channel'], default='scaler')
-    # parser.add_argument("--vector", action='store_true')
-    
+    parser.add_argument("--pretrained_path", type=str, default=None)
+    parser.add_argument("--run_name", type=str, default="")
     args = parser.parse_args(argv)
     return args
 
@@ -102,18 +102,19 @@ def test(test_dataset, model, criterion):
     mean_bpp_loss /= len(test_dataset)
     return {'TEST MSE': mean_MSE, 'TEST BPP': avg_bpp, 'TEST loss': mean_loss, 'TEST recon_loss': mean_recon_loss, 'TEST bpp_loss': mean_bpp_loss}
 
-def main(opts):
-    wandb.init(project="NWC_VQVAE", name=opts.architecture)
-    wandb.config.update(opts)
+def main(args):
+    run_name = '_'.join(filter(None, [args.run_name, args.architecture, f"{args.lmbda}"]))
+    wandb.init(project="NWC_train", name=run_name)
+    wandb.config.update(args)
 
-    gpu_num = getattr(opts, "dev.num_gpus")
+    gpu_num = getattr(args, "dev.num_gpus")
 
     node_rank = 0
     device_id = "cuda"
-    logger = opts.logger
+    logger = args.logger
         
 
-    seed = opts.seed
+    seed = args.seed
 
     random.seed(seed)
     np.random.seed(int(seed))
@@ -132,40 +133,39 @@ def main(opts):
 
     csv_file = pd.DataFrame(columns=["iter", "TEST BPP", "TEST MSE"])
     
-    train_dataset, test_dataset, train_std, test_std  = get_datasets(opts)
+    train_dataset, test_dataset, train_std, test_std  = get_datasets(args)
     
     device = device_id
 
     train_dataloader = DataLoader(
         train_dataset,
-        batch_size=opts.batch_size,
-        num_workers=opts.num_workers,
+        batch_size=args.batch_size,
+        num_workers=args.num_workers,
         pin_memory=True,
         shuffle=True,
         drop_last=True,
     )
         
-    ## 함수로 따로 만들기
     scale = train_dataset.std.to(device)
     shift = train_dataset.mean.to(device)
     
-    net = get_model(opts.architecture, opts, scale=scale, shift=shift)        
-    # wandb.config.update(opts, allow_val_change=True)
+    net = get_model(args.architecture, args, scale=scale, shift=shift)        
+    # wandb.config.update(args, allow_val_change=True)
 
     net = net.to(device)
 
     if gpu_num > 1:
         net = nn.DataParallel(net)
 
-    optimizer, aux_optimizer = configure_optimizers(net, opts)
+    optimizer, aux_optimizer = configure_optimizers(net, args)
     
-    criterion = get_loss_fn(opts, std=train_std, device = device)
+    criterion = get_loss_fn(args, std=train_std, device = device)
 
     if node_rank == 0:
         logger.info("Training mode : scratch!")
-        logger.info(f"batch_size : {opts.batch_size}")
+        logger.info(f"batch_size : {args.batch_size}")
         logger.info(f"num of gpus: {gpu_num}")
-        logger.info(opts)
+        logger.info(args)
 
     ########################################
 
@@ -178,11 +178,41 @@ def main(opts):
     best_mse_model_path = ""
     best_bpp_model_path = ""
     best_loss_model_path = ""
-
-    checkpoint = opts.checkpoint
-    if checkpoint != "None":  # load from previous checkpoint
-        print("##### RESUME TRAINING #####")
+    
+    if args.pretrained_path != None:
         if node_rank == 0:
+            logger.info(f"========= From pretrain path =========")
+            logger.info(f"PRETRAINED PATH : {args.pretrained_path}")
+        pt_checkpoint = torch.load(args.pretrained_path)
+        try:
+            try:
+                net.load_state_dict(pt_checkpoint["state_dict"], strict=False)
+            except:
+                new_state_dict = {}
+                for k, v in pt_checkpoint["state_dict"].items():
+                    new_state_dict[k.replace("module.", "")] = v
+                net.load_state_dict(new_state_dict, strict=False)
+        except:
+            try:
+                net.module.load_state_dict(pt_checkpoint["state_dict"],strict=False)
+            except:
+                new_state_dict = {}
+                for k, v in pt_checkpoint["state_dict"].items():
+                    new_state_dict[k.replace("module.", "")] = v
+                net.module.load_state_dict(new_state_dict, strict=False)
+                
+        net.scale = scale
+        net.shift = shift
+        
+        if node_rank == 0:
+            logger.info(f"===== Loaded state dict =====")
+        
+
+    checkpoint = args.checkpoint
+    if checkpoint != "None":  # load from previous checkpoint
+        print()
+        if node_rank == 0:
+            logger.info("===== RESUME TRAINING =====")
             logger.info(f"Loading {checkpoint}")
 
         checkpoint = torch.load(checkpoint)
@@ -221,7 +251,7 @@ def main(opts):
 
         del checkpoint
 
-    save_path = opts.save_path
+    save_path = args.save_path
 
     optimizer.zero_grad()
     aux_optimizer.zero_grad()
@@ -230,14 +260,14 @@ def main(opts):
         net.train()
         device = next(net.parameters()).device
 
-        if total_iter >= opts.iter:
+        if total_iter >= args.iter:
             break
         
         if hasattr(train_dataset, "shuffle_hesseigen"):
             train_dataset.shuffle_hesseigen()
 
         for i, (data) in enumerate(train_dataloader):
-            if total_iter >= opts.iter: break
+            if total_iter >= args.iter: break
             
             with torch.autograd.detect_anomaly():                
                 data = {key: tensor.to(device) for key, tensor in data.items()}
@@ -248,8 +278,8 @@ def main(opts):
                 out_loss = criterion(data= data, output = out_net)
                 out_loss['loss'].backward()
 
-                if opts.clip_max_norm > 0:
-                    torch.nn.utils.clip_grad_norm_(net.parameters(), opts.clip_max_norm)
+                if args.clip_max_norm > 0:
+                    torch.nn.utils.clip_grad_norm_(net.parameters(), args.clip_max_norm)
 
                 optimizer.step()
                 
@@ -267,7 +297,7 @@ def main(opts):
             total_iter += 1 * gpu_num
             if ((total_iter % 100 == 0) or (total_iter == (1 * gpu_num))) and node_rank == 0:
                 logger.info(
-                    f"Train iter. {total_iter}/{opts.iter} ({100. * total_iter / opts.iter}%): "
+                    f"Train iter. {total_iter}/{args.iter} ({100. * total_iter / args.iter}%): "
                     f"\tLoss: {out_loss['loss'].item()}"
                     f"\trecon_loss: {out_loss['recon_loss'].item()}"
                     f"\tbpp_loss: {out_loss['bpp_loss'].item()}"
@@ -276,11 +306,11 @@ def main(opts):
                 wandb.log(out_loss)
 
             # 몇 번마다 성능 측정할까? 만 번마다 해보자 + 맨 첨에도 해보자. 궁금하니까.
-            if (total_iter % 5000 == 0) or (total_iter == (1 * gpu_num)):
+            if (total_iter % ((5000 / (args.batch_size // 1000))) == 0) or (total_iter == (1 * gpu_num)):
                 torch.cuda.empty_cache()
 
                 with torch.no_grad():
-                    net_eval = get_model(opts.architecture, opts, scale=scale, shift=shift)        
+                    net_eval = get_model(args.architecture, args, scale=scale, shift=shift)        
 
                     try:
                         net_eval.load_state_dict(net.module.state_dict())
@@ -426,16 +456,39 @@ def main(opts):
 
 def before_main(argvs):
 
-    opts = parse_args(argvs)
+    args = parse_args(argvs)
     checkpoint = "None"
     save_path = "./"
     
-    folder_name = f"{opts.dataset}_{opts.dataset_stat_type}_{'__'.join(opts.dataset_path.split('/')[-2:])}"
-    folder_name += f"/lmbda{opts.lmbda}_{opts.loss}_size{opts.input_size}_encdim{opts.dim_encoder}_M{opts.M}_Q{opts.Q}_R{opts.R}_m{opts.m}"
-    folder_name += f"_batch_size{opts.batch_size}_total_iter{opts.iter}_lr{opts.learning_rate}_seed{opts.seed}"
+    # folder_name = f"{args.dataset}_{args.dataset_stat_type}_{'__'.join(args.dataset_path.split('/')[-2:])}"
+    # folder_name += f"/{args.run_name}{args.loss}_size{args.input_size}_encdim{args.dim_encoder}_M{args.M}_Q{args.Q}_R{args.R}_m{args.m}"
+    # folder_name += f"_batch_size{args.batch_size}_total_iter{args.iter}_lr{args.learning_rate}_seed{args.seed}/lmbda{args.lmbda}"
 
-    if opts.seed is not None:
-        save_path = os.path.join("./checkpoint", opts.save_dir, opts.architecture, folder_name)
+    folder_name = '_'.join([
+        args.dataset,
+        args.dataset_stat_type,
+        '__'.join(args.dataset_path.split('/')[-2:])
+    ])
+
+    subfolder = '_'.join(filter(None, [
+        args.run_name,
+        args.loss,
+        f"size{args.input_size}",
+        f"encdim{args.dim_encoder}",
+        f"M{args.M}",
+        f"Q{args.Q}",
+        f"R{args.R}",
+        f"m{args.m}",
+        f"batch_size{args.batch_size}",
+        f"total_iter{args.iter}",
+        f"lr{args.learning_rate}",
+        f"seed{args.seed}"
+    ]))
+
+    folder_name = os.path.join(folder_name, subfolder, f"lmbda{args.lmbda}_")
+
+    if args.seed is not None:
+        save_path = os.path.join("./checkpoint", args.save_dir, args.architecture, folder_name)
 
         if os.path.exists(save_path):
             logger = logger_setup(log_file_name="logs", log_file_folder_name=save_path)
@@ -456,23 +509,23 @@ def before_main(argvs):
             logger = logger_setup(log_file_name="logs", log_file_folder_name=save_path)
             logger.info("Create new exp folder!")
 
-        logger.info(f"seed : {opts.seed}")
+        logger.info(f"seed : {args.seed}")
         logger.info(f"exp name : {folder_name}")
 
-    setattr(opts, "checkpoint", checkpoint)
+    setattr(args, "checkpoint", checkpoint)
 
-    setattr(opts, "save_path", save_path)
-    setattr(opts, "dev.num_gpus", torch.cuda.device_count())
+    setattr(args, "save_path", save_path)
+    setattr(args, "dev.num_gpus", torch.cuda.device_count())
 
 
-    # args_dict = {arg.dest: getattr(opts, arg.dest, None) for arg in opts._parser._actions}
-    args_dict = vars(opts)
+    # args_dict = {arg.dest: getattr(args, arg.dest, None) for arg in args._parser._actions}
+    args_dict = vars(args)
     # 사전을 JSON으로 변환하여 저장
     with open(save_path + "/config.json", "w") as f:
         json.dump(args_dict, f, indent=4)
     
-    setattr(opts, "logger", logger)
-    main(opts)
+    setattr(args, "logger", logger)
+    main(args)
         
 if __name__ == "__main__":
 

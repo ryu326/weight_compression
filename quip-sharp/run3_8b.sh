@@ -1,9 +1,10 @@
-# export CUDA_VISIBLE_DEVICES=5
+export CUDA_VISIBLE_DEVICES=0,1,2,3
+
 CKPT="./ckpt"
 HF="./hf"
 LOG="./log"
-HESS="/home/minkyu4506/weight_compression_dataset/llama3_8b_6144"
-# HESS="../Wparam_dataset/quip_hess/llama3_8b_6144"
+# HESS="/home/minkyu4506/weight_compression_dataset/llama3_8b_6144"
+HESS="../Wparam_dataset/quip_hess/llama3_8b_6144"
 
 mkdir -p $CKPT
 mkdir -p $LOG
@@ -25,17 +26,17 @@ do
         CODEBOOK="E8P12RVQ4B"
     fi
 
-    echo "[Stage: Quantize with Finetuning] K=$K" | tee -a $LOG_FILE
-    python -m quantize_llama.quantize_finetune_llama \
-        --save_path $SAVE_PATH \
-        --codebook $CODEBOOK \
-        --scale_override 0.9 \
-        --base_model meta-llama/Meta-Llama-3-8B \
-        --hessian_path $HESS \
-        --devset_size 384 \
-        --ft_valid_size 128 2>&1 | tee $LOG_FILE
+    # echo "[Stage: Quantize with Finetuning] K=$K" | tee $LOG_FILE
+    # python -m quantize_llama.quantize_finetune_llama \
+    #     --save_path $SAVE_PATH \
+    #     --codebook $CODEBOOK \
+    #     --scale_override 0.9 \
+    #     --base_model meta-llama/Meta-Llama-3-8B \
+    #     --hessian_path $HESS \
+    #     --devset_size 384 \
+    #     --ft_valid_size 128 2>&1 | tee -a $LOG_FILE
 
-    echo "[Stage: Convert to HF format] K=$K" | tee -a $LOG_FILE
+    echo "[Stage: Convert to HF format] K=$K" | tee $LOG_FILE
     python -m quantize_llama.hfize_llama \
         --quantized_path $SAVE_PATH \
         --hf_output_path $HF_PATH 2>&1 | tee -a $LOG_FILE
@@ -51,52 +52,51 @@ do
         --ctx_size 4096 \
         --ft_update_freq 2 \
         --ft_train_mode \
-        --ckpt_path $SAVE_PATH 2>&1 | tee -a $LOG_FILE
-
-    echo "[Stage: Re-convert to HF (post-e2e)] K=$K" | tee -a $LOG_FILE
-    python -m quantize_llama.hfize_llama \
-        --quantized_path $SAVE_PATH \
-        --hf_output_path $HF_PATH 2>&1 | tee -a $LOG_FILE
+        --batch_size 4 \
+        --ckpt_path ${SAVE_PATH} 2>&1 | tee -a $LOG_FILE
 
     echo "[Stage: Eval PPL] K=$K" | tee -a $LOG_FILE
     python -m eval.eval_ppl \
-        --hf_path $HF_PATH 2>&1 | tee -a $LOG_FILE
+        --no_use_cuda_graph \
+        --hf_path $HF_PATH | tee -a ${HF_PATH}_ppl_result.txt
 
     echo "[Stage: Eval Zero-shot] K=$K" | tee -a $LOG_FILE
     python -m eval.eval_zeroshot \
         --tasks arc_challenge,arc_easy,boolq,piqa,winogrande \
         --batch_size 4 \
-        --hf_path $HF_PATH 2>&1 | tee -a $LOG_FILE
+        --output_path ${HF_PATH}_zeroshot_result.json \
+        --hf_path $HF_PATH 2>&1 | tee -a ${HF_PATH}_zeroshot_result.txt
 
     #### No-Finetune 버전
-    SAVE_PATH_no_ft="$CKPT/3_8b_${K}bit_no_ft"
-    LOG_FILE_no_ft="$LOG/3_8b_${K}_no_ft.txt"
-    HF_PATH_no_ft="$HF/3_8b_${K}bit_no_ft"
+    # SAVE_PATH_no_ft="$CKPT/3_8b_${K}bit_no_ft"
+    # LOG_FILE_no_ft="$LOG/3_8b_${K}_no_ft.txt"
+    # HF_PATH_no_ft="$HF/3_8b_${K}bit_no_ft"
 
-    echo "[Stage: Quantize (No Finetuning)] K=$K" | tee -a $LOG_FILE_no_ft
-    python -m quantize_llama.quantize_finetune_llama \
-        --save_path $SAVE_PATH_no_ft \
-        --codebook $CODEBOOK \
-        --scale_override 0.9 \
-        --base_model meta-llama/Meta-Llama-3-8B \
-        --hessian_path $HESS \
-        --devset_size 384 \
-        --ft_epochs 0 \
-        --ft_valid_size 128 2>&1 | tee $LOG_FILE_no_ft
+    # echo "[Stage: Quantize (No Finetuning)] K=$K" | tee $LOG_FILE_no_ft
+    # python -m quantize_llama.quantize_finetune_llama \
+    #     --save_path $SAVE_PATH_no_ft \
+    #     --codebook $CODEBOOK \
+    #     --scale_override 0.9 \
+    #     --base_model meta-llama/Meta-Llama-3-8B \
+    #     --hessian_path $HESS \
+    #     --devset_size 384 \
+    #     --ft_epochs 0 \
+    #     --ft_valid_size 128 2>&1 | tee -a $LOG_FILE_no_ft
 
-    echo "[Stage: Convert to HF format (No Finetuning)] K=$K" | tee -a $LOG_FILE_no_ft
-    python -m quantize_llama.hfize_llama \
-        --quantized_path $SAVE_PATH_no_ft \
-        --hf_output_path $HF_PATH_no_ft 2>&1 | tee -a $LOG_FILE_no_ft
+    # echo "[Stage: Convert to HF format (No Finetuning)] K=$K" | tee -a $LOG_FILE_no_ft
+    # python -m quantize_llama.hfize_llama \
+    #     --quantized_path $SAVE_PATH_no_ft \
+    #     --hf_output_path $HF_PATH_no_ft 2>&1 | tee -a $LOG_FILE_no_ft
 
-    echo "[Stage: Eval PPL (No Finetuning)] K=$K" | tee -a $LOG_FILE_no_ft
-    python -m eval.eval_ppl \
-        --hf_path $HF_PATH_no_ft 2>&1 | tee -a $LOG_FILE_no_ft
+    # echo "[Stage: Eval PPL (No Finetuning)] K=$K" | tee -a $LOG_FILE_no_ft
+    # python -m eval.eval_ppl \
+    #     --no_use_cuda_graph \
+    #     --hf_path $HF_PATH_no_ft 2>&1 | tee -a ${HF_PATH_no_ft}_ppl_result.txt
 
-    echo "[Stage: Eval Zero-shot (No Finetuning)] K=$K" | tee -a $LOG_FILE_no_ft
-    python -m eval.eval_zeroshot \
-        --tasks arc_challenge,arc_easy,boolq,piqa,winogrande \
-        --batch_size 4 \
-        --hf_path $HF_PATH_no_ft 2>&1 | tee -a $LOG_FILE_no_ft
+    # echo "[Stage: Eval Zero-shot (No Finetuning)] K=$K" | tee -a $LOG_FILE_no_ft
+    # python -m eval.eval_zeroshot \
+    #     --tasks arc_challenge,arc_easy,boolq,piqa,winogrande \
+    #     --batch_size 4 \
+    #     --hf_path $HF_PATH_no_ft 2>&1 | tee -a ${HF_PATH_no_ft}_zeroshot_result.txt
 
 done

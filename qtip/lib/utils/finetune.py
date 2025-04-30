@@ -47,3 +47,18 @@ def calculate_ce_loss_model(model, dataloader, start_dev, in_q, out_q):
             ct += 1
     model.train()
     return (total_loss / ct).cpu().item()
+
+def calculate_mse_loss_quip(layer, dataloader, device):
+    layer.eval()
+    total_loss = 0
+    ct = 0
+    position_ids = None
+    with torch.no_grad():
+        for source, target in dataloader:
+            if position_ids is None:
+                position_ids = torch.arange(source.shape[1], device=device).unsqueeze(0)
+            total_loss += nn.MSELoss()(layer(source.to(device), position_ids=position_ids)[0],
+                                       target.to(device))
+            ct += 1
+    layer.train()
+    return (total_loss / ct).cpu().item()

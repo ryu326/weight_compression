@@ -1,4 +1,5 @@
 from .data_utils import *
+from .data_utils_clip import *
 from .finetune import *
 from .graph_wrapper import *
 # from .kernel_check import *

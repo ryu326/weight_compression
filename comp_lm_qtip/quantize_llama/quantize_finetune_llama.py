@@ -78,16 +78,22 @@ parser.add_argument('--ql_invH', action='store_true', default=False)
 parser.add_argument('--use_train_scale', action='store_true', default=False)
 parser.add_argument('--layerwise_cdt', action='store_true', default=False)
 parser.add_argument('--ft_comp_model', action='store_true', default=False)
+parser.add_argument('--ft_comp_model2', action='store_true', default=False)
 parser.add_argument('--ft_comp_lmbda', type=int, default=None)
 parser.add_argument('--ft_comp_ep', type=int, default=None)
+parser.add_argument('--ft_comp_steps', type=int, default=None)
 parser.add_argument("--ft_comp_learning_rate", default=1e-4, type=float)
 parser.add_argument("--ft_comp_aux_learning_rate", default=1e-3,)
+parser.add_argument("--ft_train_dec", action='store_true', default=False)
 parser.add_argument("--ql_search", action='store_true', default=False)
 parser.add_argument("--ql_search_layer_name", type=str, default=None)
 # parser.add_argument("--ql_search_layer_idx", type=str, default='0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31')
 parser.add_argument("--ql_search_layer_idx", type=str, default='')
 parser.add_argument("--ql_search_value", type=int, default=None)
 parser.add_argument("--ql_tuned", action='store_true', default=False)
+parser.add_argument('--layerwise_scale', action='store_true', default=False)
+parser.add_argument('--channelwise_scale', action='store_true', default=False)
+parser.add_argument('--optim_code', action='store_true', default=False)
 
 def check_exist(idx, args):
     suffix = ['q', 'k', 'v', 'o', 'up', 'down', 'layernorm']
@@ -173,8 +179,8 @@ def main(args):
         config.Q = 4
     comp_model = get_model(config.architecture, config, scale=scale, shift=shift)      
     ckpt = torch.load(args.comp_model_path, weights_only=False)
-    
-    if args.use_train_scale or args.layerwise_cdt:
+    import ipdb;ipdb.set_trace()
+    if args.use_train_scale or args.layerwise_cdt or args.layerwise_scale:
         try:
             scale = ckpt["state_dict"]["scale"]
             shift = ckpt["state_dict"]["shift"]
@@ -249,6 +255,7 @@ def main(args):
                         output_attentions=False)[0].cpu()
         else:
             orig_emb_cache[cur_device + 1] = orig_emb_cache[cur_device]
+            # orig_emb_cache[cur_device + 1] = None
         model.model.layers[i].cpu()
         position_ids = position_ids.cpu()
         attention_mask = attention_mask.cpu()

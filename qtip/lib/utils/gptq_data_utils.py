@@ -18,15 +18,16 @@ def get_wikitext2(nsamples, seed, seqlen, model):
 
     from transformers import AutoTokenizer
     # tokenizer = AutoTokenizer.from_pretrained(model, use_fast=False)
-    ## 
-    if '13b' in model:
-        tokenizer = AutoTokenizer.from_pretrained('../Wparam_dataset/hf_model/meta-llama--Llama-2-13b-hf', use_fast=False)
-    elif '7b' in model:
-        tokenizer = AutoTokenizer.from_pretrained('../Wparam_dataset/hf_model/meta-llama--Llama-2-7b-hf', use_fast=False)
-    elif '8b' in model.lower():
-        tokenizer = AutoTokenizer.from_pretrained('../Wparam_dataset/hf_model/meta-llama--Meta-Llama-3-8B', use_fast=False)
-    else:
-        raise Exception
+    tokenizer = AutoTokenizer.from_pretrained(model)
+    # ## 
+    # if '13b' in model:
+    #     tokenizer = AutoTokenizer.from_pretrained('../Wparam_dataset/hf_model/meta-llama--Llama-2-13b-hf', use_fast=False)
+    # elif '7b' in model:
+    #     tokenizer = AutoTokenizer.from_pretrained('../Wparam_dataset/hf_model/meta-llama--Llama-2-7b-hf', use_fast=False)
+    # elif '8b' in model.lower():
+    #     tokenizer = AutoTokenizer.from_pretrained('../Wparam_dataset/hf_model/meta-llama--Meta-Llama-3-8B', use_fast=False)
+    # else:
+    #     raise Exception
     trainenc = tokenizer("\n\n".join(traindata['text']), return_tensors='pt')
     testenc = tokenizer("\n\n".join(testdata['text']), return_tensors='pt')
 
@@ -86,7 +87,8 @@ def get_c4(nsamples, seed, seqlen, model):
         data_files={'validation': 'en/c4-validation.00000-of-00008.json.gz'},
         split='validation')
     from transformers import AutoTokenizer
-    tokenizer = AutoTokenizer.from_pretrained(model, use_fast=False)
+    # tokenizer = AutoTokenizer.from_pretrained(model, use_fast=False)
+    tokenizer = AutoTokenizer.from_pretrained(model)
 
     import random
     random.seed(seed)
@@ -95,7 +97,7 @@ def get_c4(nsamples, seed, seqlen, model):
         while True:
             i = random.randint(0, len(traindata) - 1)
             trainenc = tokenizer(traindata[i]['text'], return_tensors='pt')
-            if trainenc.input_ids.shape[1] >= seqlen:
+            if trainenc.input_ids.shape[1] >= seqlen + 1:
                 break
         i = random.randint(0, trainenc.input_ids.shape[1] - seqlen - 1)
         j = i + seqlen
@@ -111,7 +113,7 @@ def get_c4(nsamples, seed, seqlen, model):
         while True:
             i = random.randint(0, len(valdata) - 1)
             tmp = tokenizer(valdata[i]['text'], return_tensors='pt')
-            if tmp.input_ids.shape[1] >= seqlen:
+            if tmp.input_ids.shape[1] >= seqlen + 1 :
                 break
         i = random.randint(0, tmp.input_ids.shape[1] - seqlen - 1)
         j = i + seqlen

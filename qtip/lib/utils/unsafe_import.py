@@ -10,6 +10,7 @@ import transformers
 from model.llama import LlamaForCausalLM
 
 
+
 def model_from_hf_path(path, max_mem_ratio=0.7, device_map=None):
 
     # AutoConfig fails to read name_or_path correctly
@@ -45,5 +46,26 @@ def model_from_hf_path(path, max_mem_ratio=0.7, device_map=None):
                                       low_cpu_mem_usage=True,
                                       attn_implementation='sdpa',
                                       device_map=device_map)
+
+    return model, model_str
+
+def model_from_hf_path_clip(path, max_mem_ratio=0.7, device_map=None):
+
+    bad_config = transformers.AutoConfig.from_pretrained(path)
+    is_quantized = hasattr(bad_config, 'quip_params')
+    model_type = bad_config.model_type
+    if is_quantized:
+        model_str = transformers.CLIPConfig.from_pretrained(
+            path)._name_or_path
+        model_cls = CLIPModel
+    else:
+        model_cls = transformers.AutoModel
+        model_str = path
+
+    model = model_cls.from_pretrained(path,
+                                      torch_dtype='auto',
+                                      low_cpu_mem_usage=True,
+                                      attn_implementation='sdpa',
+                                      device_map='cuda')
 
     return model, model_str

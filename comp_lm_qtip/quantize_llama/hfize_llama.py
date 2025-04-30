@@ -167,12 +167,16 @@ def main(args):
     tokenizer.save_pretrained(args.hf_output_path)
     del model
     
-    with open(f'{args.hf_output_path}_result.json', 'w') as f:
-        json.dump(comp_result, f, indent=4)
+    
+    file_path = f'{args.hf_output_path}_result.json'
+    if os.path.exists(file_path):
+        file_path = f'{args.hf_output_path}_result2.json'
+    with open(file_path, 'w') as f:
+        json.dump(comp_result, f, indent=2)
+        
+    # model, _ = model_from_hf_path(args.hf_output_path, device_map='cuda')
 
-    model, _ = model_from_hf_path(args.hf_output_path, device_map='cuda')
-
-    glog.info('successfully loaded hfized model')
+    # glog.info('successfully loaded hfized model')
     # glog.info('generating some text...')
 
     # start = time.time()

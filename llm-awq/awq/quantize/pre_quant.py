@@ -48,7 +48,7 @@ def move_embed(model, device):
     if isinstance(model, LlamaForCausalLM):
         model.model.embed_tokens = model.model.embed_tokens.to(device)
         ## add the following line to move rotary_emb to GPU as well
-        model.model.rotary_emb = model.model.rotary_emb.to(device)
+        # model.model.rotary_emb = model.model.rotary_emb.to(device)
     elif isinstance(model, LlavaLlamaForCausalLM):
         model.model.embed_tokens = model.model.embed_tokens.to(device)
         model.model.vision_tower.vision_tower.vision_model.embeddings.to(device)
