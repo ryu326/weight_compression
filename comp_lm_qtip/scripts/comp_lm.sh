@@ -39,7 +39,7 @@ export CUDA_VISIBLE_DEVICES=0,1,2,3
 export WANDB_SILENT=true
 
 # lmbda_values=(50 100 200 300 1000 10000 30000 100000)
-lmbda_values=(50 100 1000 10000)
+lmbda_values=(100 1000 10000)
 for lmbda in "${lmbda_values[@]}"; do
     echo "################## Running compression lmbda=${lmbda} ##################"
     
