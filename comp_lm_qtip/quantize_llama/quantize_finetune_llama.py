@@ -179,7 +179,6 @@ def main(args):
         config.Q = 4
     comp_model = get_model(config.architecture, config, scale=scale, shift=shift)      
     ckpt = torch.load(args.comp_model_path, weights_only=False)
-    import ipdb;ipdb.set_trace()
     if args.use_train_scale or args.layerwise_cdt or args.layerwise_scale:
         try:
             scale = ckpt["state_dict"]["scale"]

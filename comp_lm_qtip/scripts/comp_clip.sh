@@ -1,7 +1,8 @@
 model_name="openai--clip-vit-large-patch14"
 HESS="../Wparam_dataset/quip_hess/clip-vit-large-patch14_512"
 # comp_model_base="../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt"
-comp_model_base="/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_openai--clip-vit-large-patch14__vision_text_col_256.pt"
+# comp_model_base="/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_openai--clip-vit-large-patch14__vision_text_col_256.pt"
+comp_model_base="/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_openai--clip-vit-large-patch14__vision_text_col_256.pt/clip_llama8b_col1024_pretrained_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size4096_total_iter100000_lr0.0001_seed100"
 lm_model_path="../Wparam_dataset/hf_model/$model_name"
 
 CKPT="../hf_model_comp/comp_qtip/ckpt"
@@ -12,14 +13,14 @@ mkdir -p $CKPT
 mkdir -p $HF
 mkdir -p $LOG
 
-lmbda_values=(30 50 100 300)
+lmbda_values=(1000 10000 100000)
 gpu_ids=(0 1 2 3)
 i=0
 PYTHON_BIN=$(which python)
 
 for lmbda in "${lmbda_values[@]}"; do
     gpu_id=${gpu_ids[$((i % 4))]}
-    SAVE_NAME=clip_ql_clip_trained/${model_name}/lmbda${lmbda}
+    SAVE_NAME=clip_ql_llama_clip_ft/${model_name}/lmbda${lmbda}
     comp_model=$comp_model_base/lmbda${lmbda}_*/best_loss*.pth.tar
     LOG_FILE=$LOG/$SAVE_NAME.log
     mkdir -p $(dirname "$LOG_FILE")
