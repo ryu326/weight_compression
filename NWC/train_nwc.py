@@ -51,6 +51,7 @@ def parse_args(argv):
     parser.add_argument("--dataset_stat_type", type=str, choices=['scaler', 'channel'], default='scaler')
     parser.add_argument("--pretrained_path", type=str, default=None)
     parser.add_argument("--run_name", type=str, default="")
+    parser.add_argument("--no_layernorm", action='store_true', default=False)
     args = parser.parse_args(argv)
     return args
 
@@ -104,7 +105,7 @@ def test(test_dataset, model, criterion):
 
 def main(args):
     run_name = '_'.join(filter(None, [args.run_name, args.architecture, f"{args.lmbda}"]))
-    wandb.init(project="NWC_train", name=run_name)
+    wandb.init(project="NWC_train", name=run_name, mode = 'disabled')
     wandb.config.update(args)
 
     gpu_num = getattr(args, "dev.num_gpus")
@@ -184,25 +185,36 @@ def main(args):
             logger.info(f"========= From pretrain path =========")
             logger.info(f"PRETRAINED PATH : {args.pretrained_path}")
         pt_checkpoint = torch.load(args.pretrained_path)
-        try:
-            try:
-                net.load_state_dict(pt_checkpoint["state_dict"], strict=False)
-            except:
-                new_state_dict = {}
-                for k, v in pt_checkpoint["state_dict"].items():
-                    new_state_dict[k.replace("module.", "")] = v
-                net.load_state_dict(new_state_dict, strict=False)
-        except:
-            try:
-                net.module.load_state_dict(pt_checkpoint["state_dict"],strict=False)
-            except:
-                new_state_dict = {}
-                for k, v in pt_checkpoint["state_dict"].items():
-                    new_state_dict[k.replace("module.", "")] = v
-                net.module.load_state_dict(new_state_dict, strict=False)
-                
+        
+        if 'scale' in pt_checkpoint["state_dict"]:
+            del pt_checkpoint["state_dict"]['scale']
+        if 'shift' in pt_checkpoint["state_dict"]:
+            del pt_checkpoint["state_dict"]['shift']
+        print('shift: ', shift, ' scale:', scale)
+
+        net.load_state_dict(pt_checkpoint["state_dict"], strict = False)
         net.scale = scale
         net.shift = shift
+        
+        # try:
+        #     try:
+        #         net.load_state_dict(pt_checkpoint["state_dict"], strict=False)
+        #     except:
+        #         new_state_dict = {}
+        #         for k, v in pt_checkpoint["state_dict"].items():
+        #             new_state_dict[k.replace("module.", "")] = v
+        #         net.load_state_dict(new_state_dict, strict=False)
+        # except:
+        #     try:
+        #         net.module.load_state_dict(pt_checkpoint["state_dict"],strict=False)
+        #     except:
+        #         new_state_dict = {}
+        #         for k, v in pt_checkpoint["state_dict"].items():
+        #             new_state_dict[k.replace("module.", "")] = v
+        #         net.module.load_state_dict(new_state_dict, strict=False)
+                
+        # net.scale = scale
+        # net.shift = shift
         
         if node_rank == 0:
             logger.info(f"===== Loaded state dict =====")

@@ -89,9 +89,10 @@ class RateDistortionLoss_ql(nn.Module):
 
         ## v2
         out["bpp_loss"] = torch.log(output["likelihoods"]).sum() / (-math.log(2) * num_pixels)
-        assert output["likelihoods"].dim() == self.coff[qlevel].unsqueeze(-1).dim(), \
-            f"Shape mismatch: likelihoods {output['likelihoods'].shape} vs coff {self.coff[qlevel].unsqueeze(-1).shape}"
-        bpp_loss = torch.log(output["likelihoods"]) * self.coff[qlevel].unsqueeze(-1)
+        coff = self.coff[qlevel].reshape(output["likelihoods"].shape[0], 1, 1)
+        assert output["likelihoods"].dim() == coff.dim(), \
+            f"Shape mismatch: likelihoods {output['likelihoods'].shape} vs coff {coff.shape}"
+        bpp_loss = torch.log(output["likelihoods"]) * coff
         bpp_loss = bpp_loss.sum() / (-math.log(2) * num_pixels)
         
         ## v1

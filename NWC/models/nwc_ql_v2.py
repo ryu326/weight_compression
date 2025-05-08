@@ -33,14 +33,20 @@ def ste_round(x: torch.Tensor) -> torch.Tensor:
     return torch.round(x) - x.detach() + x
 
 class Linear_ResBlock(nn.Module):
-    def __init__(self, in_ch):
+    def __init__(self, in_ch, norm = True):
         super().__init__()
 
-        self.lin_1 = nn.Sequential(
-            nn.Linear(in_ch, in_ch),
-            nn.LayerNorm(in_ch),
-            nn.ReLU(),
-        )
+        if norm == True:
+            self.lin_1 = nn.Sequential(
+                nn.Linear(in_ch, in_ch),
+                nn.LayerNorm(in_ch),
+                nn.ReLU(),
+            )
+        else:
+            self.lin_1 = nn.Sequential(
+                nn.Linear(in_ch, in_ch),
+                nn.ReLU(),
+            )
 
     def forward(self, x):
         identity = x
@@ -48,11 +54,6 @@ class Linear_ResBlock(nn.Module):
         out = identity + res
 
         return out
-    
-    def reset_parameters(self):
-        for layer in self.lin_1:
-            if hasattr(layer, 'reset_parameters'):
-                layer.reset_parameters()
 
 # class ResidualStack(nn.Module):
 #     """
@@ -76,11 +77,11 @@ class Linear_ResBlock(nn.Module):
 
 
 class Encoder(nn.Module):
-    def __init__(self, in_dim, n_res_layers, dim_encoder, dim_encoder_out):
+    def __init__(self, in_dim, n_res_layers, dim_encoder, dim_encoder_out, norm = True):
         super(Encoder, self).__init__()
         
         self.weight_in = nn.Linear(in_dim, dim_encoder)
-        self.weight_stack = nn.ModuleList([Linear_ResBlock(dim_encoder)] * n_res_layers)
+        self.weight_stack = nn.ModuleList([Linear_ResBlock(dim_encoder, norm)] * n_res_layers)
         self.out = nn.Linear(dim_encoder, dim_encoder_out)
 
     def forward(self, x, q_embedding):
@@ -104,7 +105,7 @@ def get_scale_table(min=SCALES_MIN, max=SCALES_MAX, levels=SCALES_LEVELS):
     """Returns table of logarithmically scales."""
     return torch.exp(torch.linspace(math.log(min), math.log(max), levels))
 
-class NWC_ql(CompressionModel):
+class NWC_ql_no_norm(CompressionModel):
     """Simple VAE model with arbitrary latent codec.
 
     .. code-block:: none
@@ -123,18 +124,15 @@ class NWC_ql(CompressionModel):
         ## quality level 개수
         self.Q = Q
         self.M = M
-        self.n_resblock = n_resblock
-        
-        # self.scale = scale
-        # self.shift = shift    
+        self.n_resblock = n_resblock  
         
         self.input_size = input_size
         self.dim_encoder = dim_encoder
         
         self.quality_embedding = nn.Embedding(Q, dim_encoder)
         
-        self.g_a = Encoder(input_size, n_resblock, dim_encoder, M)
-        self.g_s = Encoder(M, n_resblock, dim_encoder, input_size)
+        self.g_a = Encoder(input_size, n_resblock, dim_encoder, M, norm=False)
+        self.g_s = Encoder(M, n_resblock, dim_encoder, input_size, norm=False)
         
         # self.entropy_bottleneck = EntropyBottleneck(self.dim_encoder_out)
         self.entropy_bottleneck = EntropyBottleneck(M)
@@ -142,14 +140,16 @@ class NWC_ql(CompressionModel):
     # def __getitem__(self, key: str) -> LatentCodec:
     #     return self.latent_codec[key]
 
-    def forward(self, data):
-        x = data['weight_block']
-        q_level = data['q_level']
+    def forward(self, data):        
+        x = data['weight_block'] ## (B, dim)
+        q_level = data['q_level'] ## (B,)
+        
+        x = x.view(x.size(0), -1, self.input_size) ## (B, -1, input_size)
+        q_level = q_level.view(x.size(0), 1, 1) ## (B, 1, 1)
         
         q_embed = self.quality_embedding(q_level)
+        assert q_embed.dim() == 3
         x_shift = (x - self.shift) / self.scale
-        # if 'pe' in data:
-        #     x_shift = x_shift + data['pe']
         y = self.g_a(x_shift, q_embed)
         
         perm = list(range(y.dim()))
@@ -178,17 +178,15 @@ class NWC_ql(CompressionModel):
         }
 
     def compress(self, data):
-        x = data['weight_block']
-        x_shift = (x - self.shift) / self.scale
-        # if 'pe' in data:
-        #     x_shift = x_shift + data['pe']
+        x = data['weight_block'] ## (B, dim)
+        q_level = data['q_level'] ## (B,)
         
-        q_level = data['q_level']
+        x = x.view(x.size(0), -1, self.input_size) ## (B, -1, input_size)
+        q_level = q_level.view(x.size(0), 1, 1) ## (B, 1, 1)
         
         q_embed = self.quality_embedding(q_level)
-        # q_embed = self.quality_embedding(q_level).unsqueeze(1)
-        
-        y = self.g_a(x_shift, q_embed)      
+        x_shift = (x - self.shift) / self.scale
+        y = self.g_a(x_shift, q_embed)   
 
         perm = list(range(y.dim()))
         perm[-1], perm[1] = perm[1], perm[-1]
@@ -228,16 +226,7 @@ class NWC_ql(CompressionModel):
         }
     
 
-class NWC_ql_learnable_scale(CompressionModel):
-    """Simple VAE model with arbitrary latent codec.
-
-    .. code-block:: none
-
-               ┌───┐  y  ┌────┐ y_hat ┌───┐
-        x ──►──┤g_a├──►──┤ lc ├───►───┤g_s├──►── x_hat
-               └───┘     └────┘       └───┘
-    """
-    
+class NWC_ql_learnable_scale(CompressionModel):    
     def __init__(self, input_size, dim_encoder, n_resblock, Q, M, scale, shift):
         super().__init__()
             
@@ -265,13 +254,16 @@ class NWC_ql_learnable_scale(CompressionModel):
         x = data['weight_block'] ## (B, dim)
         sig = data['sig'] ## (B,)
         q_level = data['q_level'] ## (B,)
+        N = x.size(0)
         
-        x = x.view(x.size(0), -1, self.input_size) ## (B, -1, input_size)
-        sig = sig.view(sig.size(0), 1, 1) ## (B, -1, 1)
+        x_norm = x.view(N, -1, self.input_size) ## (B, -1, input_size)
+        sig = sig.view(N, 1, 1) ## (B, 1, 1)
+        q_level = q_level.view(N, 1) ## (B, 1, 1)
 
         q_embed = self.quality_embedding(q_level)
-        x_norm = x / sig
-        sig_exp = sig.expand(-1, x.size(1), -1)  # (B, T, 1)
+        assert q_embed.dim() == 3
+        x_norm = x_norm / sig
+        sig_exp = sig.expand(-1, x_norm.size(1), -1)  # (B, T, 1)
         x_norm = torch.cat([x_norm, sig_exp], dim=-1) ## (B, -1, input_size)
 
         y = self.g_a(x_norm, q_embed)
@@ -293,7 +285,7 @@ class NWC_ql_learnable_scale(CompressionModel):
         scale = x_hat[:, :, -1:]
         x_hat = x_hat[:,:,:-1]
 
-        x_hat = (x_hat*scale).contiguous().view(x_hat.size(0), -1) ## (B, dim)
+        x_hat = (x_hat*scale).contiguous().view(N, -1) ## (B, dim)
         
         return {
             "x": x,
@@ -309,9 +301,11 @@ class NWC_ql_learnable_scale(CompressionModel):
         x = data['weight_block'] ## (B, dim)
         sig = data['sig'] ## (B,)
         q_level = data['q_level'] ## (B,)
-        
-        x = x.view(x.size(0), -1, self.input_size) ## (B, -1, input_size)
-        sig = sig.view(sig.size(0), 1, 1) ## (B, -1, 1)
+        N = x.size(0)
+
+        x = x.view(N, -1, self.input_size) ## (B, -1, input_size)
+        sig = sig.view(N, 1, 1) ## (B, 1, 1)
+        q_level = q_level.view(N, 1) ## (B, 1, 1)
 
         q_embed = self.quality_embedding(q_level)
         x_norm = x / sig
@@ -345,6 +339,7 @@ class NWC_ql_learnable_scale(CompressionModel):
         perm[-1], perm[1] = perm[1], perm[-1]
         y_hat = y_hat.permute(*perm).contiguous()
         
+        q_level = q_level.view(q_level.numel(), 1)
         q_embed = self.quality_embedding(q_level)
         # x_hat = self.g_s(y_hat, q_embed)
 
@@ -371,9 +366,6 @@ class NWC_ql_ste(CompressionModel):
         self.M = M
         self.n_resblock = n_resblock
         
-        # self.scale = scale
-        # self.shift = shift    
-        
         self.input_size = input_size
         self.dim_encoder = dim_encoder
         
@@ -382,20 +374,20 @@ class NWC_ql_ste(CompressionModel):
         self.g_a = Encoder(input_size, n_resblock, dim_encoder, M)
         self.g_s = Encoder(M, n_resblock, dim_encoder, input_size)
         
-        # self.entropy_bottleneck = EntropyBottleneck(self.dim_encoder_out)
         self.entropy_bottleneck = EntropyBottleneck(M)
 
     # def __getitem__(self, key: str) -> LatentCodec:
     #     return self.latent_codec[key]
 
     def forward(self, data):
-        x = data['weight_block']
-        q_level = data['q_level']
+        x = data['weight_block'] ## (B, dim)
+        q_level = data['q_level'] ## (B,)
+        
+        x = x.view(N, -1, self.input_size) ## (B, -1, input_size)
+        q_level = q_level.view(N, 1, 1) ## (B, 1, 1)
         
         q_embed = self.quality_embedding(q_level)
         x_shift = (x - self.shift) / self.scale
-        # if 'pe' in data:
-        #     x_shift = x_shift + data['pe']
         y = self.g_a(x_shift, q_embed)
         
         perm = list(range(y.dim()))
@@ -434,15 +426,15 @@ class NWC_ql_ste(CompressionModel):
         }
 
     def compress(self, data):
-        x = data['weight_block']
-        x_shift = (x - self.shift) / self.scale
-        # if 'pe' in data:
-        #     x_shift = x_shift + data['pe']
+        x = data['weight_block'] ## (B, dim)
+        q_level = data['q_level'] ## (B,)
         
-        q_level = data['q_level']
+        x = x.view(x.size(0), -1, self.input_size) ## (B, -1, input_size)
+        q_level = q_level.view(x.size(0), 1, 1) ## (B, 1, 1)
         
         q_embed = self.quality_embedding(q_level)
-        # q_embed = self.quality_embedding(q_level).unsqueeze(1)
+        x_shift = (x - self.shift) / self.scale
+        y = self.g_a(x_shift, q_embed)
         
         y = self.g_a(x_shift, q_embed)      
 
@@ -519,8 +511,12 @@ class NWC_ql_without_encoder(CompressionModel):
     #     return self.latent_codec[key]
 
     def forward(self, data):
-        x = data['weight_block']
-        q_level = data['q_level']
+        x = data['weight_block'] ## (B, dim)
+        q_level = data['q_level'] ## (B,)
+        
+        x = x.view(x.size(0), -1, self.input_size) ## (B, -1, input_size)
+        q_level = q_level.view(x.size(0), 1, 1) ## (B, 1, 1)
+        
         q_embed = self.quality_embedding(q_level)
         
         y = x
@@ -546,8 +542,11 @@ class NWC_ql_without_encoder(CompressionModel):
         }
 
     def compress(self, data):
-        x = data['weight_block']
-        q_level = data['q_level']
+        x = data['weight_block'] ## (B, dim)
+        q_level = data['q_level'] ## (B,)
+        
+        x = x.view(x.size(0), -1, self.input_size) ## (B, -1, input_size)
+        q_level = q_level.view(x.size(0), 1, 1) ## (B, 1, 1)
         
         q_embed = self.quality_embedding(q_level)
 

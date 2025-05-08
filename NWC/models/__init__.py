@@ -6,6 +6,8 @@ from .vqvae_idx_mag import VQVAE_IDX_MAG
 from .nwc import SimpleVAECompressionModel, MeanScaleHyperprior, SimpleVAECompressionModel_with_Transformer
 from .nwc_ql import NWC_ql, NWC_ql_ste
 from .nwc_ql_cdt import NWC_ql_conditional
+from .nwc_ql_v2 import NWC_ql_learnable_scale
+
 # from .nwc_ql_cdt import NWC_conditional, NWC_conditional2
 # from .nwc_ql_cdt_ln import NWC_conditional_ln
 # from .nwc_hess import SimpleVAECompressionModel_hess
@@ -33,6 +35,17 @@ def get_model(model_class, opts, scale, shift):
         )
     elif model_class == "nwc_ql":
         model = NWC_ql(
+            input_size=opts.input_size,
+            dim_encoder=opts.dim_encoder,
+            n_resblock=opts.n_resblock,
+            Q = opts.Q,
+            M = opts.M,
+            scale=scale,
+            shift=shift,
+            norm = (not opts.no_layernorm)
+        )
+    elif model_class == "nwc_ql2":
+        model = NWC_ql_learnable_scale(
             input_size=opts.input_size,
             dim_encoder=opts.dim_encoder,
             n_resblock=opts.n_resblock,

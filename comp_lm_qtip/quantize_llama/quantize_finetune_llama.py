@@ -184,6 +184,8 @@ def main(args):
             scale = ckpt["state_dict"]["scale"]
             shift = ckpt["state_dict"]["shift"]
             print('Use train scale and shift')
+            print('shift: ', shift, ' scale:', scale)
+
         except:
             scale, shift  = torch.zeros(1), torch.zeros(1)
     else:
@@ -192,12 +194,11 @@ def main(args):
         if 'shift' in ckpt["state_dict"]:
             del ckpt["state_dict"]['shift']
         shift, scale = utils.get_model_weight_stats(model, args, config.input_size)
-    print(shift, scale)
+    print('shift: ', shift, ' scale:', scale)
 
     comp_model.load_state_dict(ckpt["state_dict"], strict = False)
     comp_model.scale = scale
     comp_model.shift = shift
-    print(comp_model.scale, comp_model.shift)
     
     q_level = None
     if args.ql_path is not None:

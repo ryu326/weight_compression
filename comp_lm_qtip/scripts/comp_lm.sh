@@ -8,8 +8,12 @@
 # comp_model_base="../NWC/checkpoint/nwc/block_seq_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt"
 # comp_model_base="../NWC/checkpoint/nwc_ql_cdt/block_seq_ql_random_lstats_scaler_meta-llama--Meta-Llama-3-8B__col_1024_layerwise_stats.pt"
 # comp_model_base="../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M32"
-comp_model_base="../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16"
+# comp_model_base="../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16"
 # comp_model_base="../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Llama-2-7b-hf__col_1024.pt/llama8b_c1024_7b_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter20000_lr0.0001_seed100"
+# comp_model_base="../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__shuffled_col_1024.pt/rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
+# comp_model_base="../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Llama-2-7b-hf__shuffled_col_1024.pt/8b_shuffle_7b_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter20000_lr0.0001_seed100"
+# comp_model_base="../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Llama-2-7b-hf__col_1024.pt/8b_shuffle_7b_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter20000_lr0.0001_seed100"
+comp_model_base="../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Llama-2-7b-hf__droplast_col_1024.pt/8b_7b_droplast_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter20000_lr0.0001_seed100"
 
 model_name="meta-llama--Llama-2-7b-hf"
 HESS="../Wparam_dataset/quip_hess/Hessians-Llama-2-7b-6144"
@@ -39,14 +43,14 @@ export CUDA_VISIBLE_DEVICES=0,1,2,3
 export WANDB_SILENT=true
 
 # lmbda_values=(50 100 200 300 1000 10000 30000 100000)
-lmbda_values=(100 1000 10000)
+lmbda_values=(50 100 1000 10000)
 for lmbda in "${lmbda_values[@]}"; do
     echo "################## Running compression lmbda=${lmbda} ##################"
     
     ## ========= Change this =========
     # SAVE_NAME=ft_ql_tuned_ldlq/${model_name}/lmbda${lmbda}
     # SAVE_NAME=${model_name}/ft_comp_tr_dec_laywise_norm/lmbda${lmbda}
-    SAVE_NAME=${model_name}/ql_8b/lmbda${lmbda}
+    SAVE_NAME=${model_name}/ql_8b_7b_droplast/lmbda${lmbda}
     # SAVE_NAME=${model_name}/layerwise_norm/lmbda${lmbda}
     ## ========= Change this =========
 
