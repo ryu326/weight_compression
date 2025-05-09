@@ -13,7 +13,8 @@
 # comp_model_base="../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__shuffled_col_1024.pt/rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
 # comp_model_base="../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Llama-2-7b-hf__shuffled_col_1024.pt/8b_shuffle_7b_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter20000_lr0.0001_seed100"
 # comp_model_base="../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Llama-2-7b-hf__col_1024.pt/8b_shuffle_7b_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter20000_lr0.0001_seed100"
-comp_model_base="../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Llama-2-7b-hf__droplast_col_1024.pt/8b_7b_droplast_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter20000_lr0.0001_seed100"
+# comp_model_base="../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Llama-2-7b-hf__droplast_col_1024.pt/8b_7b_droplast_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter20000_lr0.0001_seed100"
+comp_model_base="/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_gaussian__llama8b_col_1024.pt/rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
 
 model_name="meta-llama--Llama-2-7b-hf"
 HESS="../Wparam_dataset/quip_hess/Hessians-Llama-2-7b-6144"
@@ -44,13 +45,15 @@ export WANDB_SILENT=true
 
 # lmbda_values=(50 100 200 300 1000 10000 30000 100000)
 lmbda_values=(50 100 1000 10000)
+# lmbda_values=(300 100000)
 for lmbda in "${lmbda_values[@]}"; do
     echo "################## Running compression lmbda=${lmbda} ##################"
     
     ## ========= Change this =========
     # SAVE_NAME=ft_ql_tuned_ldlq/${model_name}/lmbda${lmbda}
     # SAVE_NAME=${model_name}/ft_comp_tr_dec_laywise_norm/lmbda${lmbda}
-    SAVE_NAME=${model_name}/ql_8b_7b_droplast/lmbda${lmbda}
+    # SAVE_NAME=${model_name}/8b_use_codes_test3/lmbda${lmbda}
+    SAVE_NAME=${model_name}/gaussian/lmbda${lmbda}
     # SAVE_NAME=${model_name}/layerwise_norm/lmbda${lmbda}
     ## ========= Change this =========
 
@@ -89,12 +92,15 @@ for lmbda in "${lmbda_values[@]}"; do
         --hf_path $pretrain_path \
         --seqlen 2048 \
         --no_use_cuda_graph 2>&1 | tee -a $LOG/$SAVE_NAME.log
-
+        # --datasets wikitext2 \
 
     echo "################## Running benchmark evaluation lmbda=${lmbda} ##################"
     pretrain_path=$HF/$SAVE_NAME
     python -m eval.eval_zeroshot_hf --tasks arc_challenge,arc_easy,boolq,piqa,winogrande \
         --batch_size 8  --hf_path $pretrain_path \
+
+    rm -r $pretrain_path
+done
 
     # output_path=$(echo "$pretrain_path" | sed 's|model_reconstructed|model_eval|')_harness_results
     # lm_eval --model hf \
@@ -104,6 +110,3 @@ for lmbda in "${lmbda_values[@]}"; do
     #     --output_path $output_path \
     #     --trust_remote_code \
     #     2>&1 | tee -a $LOG/$SAVE_NAME.log
-
-    rm -r $pretrain_path
-done

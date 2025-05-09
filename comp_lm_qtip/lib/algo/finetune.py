@@ -129,19 +129,18 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
         comp_model.to(dtype_)
         args.layer_idx = idx
         args.layer_name = name
-        W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result, optimize_out = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
-        W_hat = W_hat.to(dtype_)
-        
-        # err = torch.trace(
-        #     (W - W_hat) @ HR @ ((W - W_hat).T) / torch.trace(W @ HR @ W.T)
-        # )
+        # W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result, optimize_out = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+        out, SU, SV, scaleWH, ft_result, optimize_out = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+        W_hat = out['W_hat'].to(dtype_)
+        bpp_loss = out['bpp_loss']
+        bpp = out['bpp']
         
         err = torch.trace((W - W_hat) @ HR @ ((W - W_hat).T))
         trWHW = torch.trace(W @ HR @ W.T)
         proxy_err =  err / trWHW
-        bpp_loss = bpp_loss_sum/num_pixels
+
         print(
-            f'{idx}_{name} proxy err {proxy_err.item()} err {err.item()} tr(WHW.T) {trWHW.item()} bpp_loss {bpp_loss_sum/num_pixels}'
+            f'{idx}_{name} proxy err {proxy_err.item():.4f} err {err.item():.4f} tr(WHW.T) {trWHW.item():.4f} bpp_loss {bpp_loss:.4f} bpp {bpp:.4f}'
         )
         
         save_path = f'{args.save_path}/{idx}_{name}.pt'
@@ -149,6 +148,7 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
         torch.save(
             {
                 'W_hat': W_hat,
+                'codes': out['codes'],
                 'SU': SU,
                 'SV': SV,
                 'scaleWH':scaleWH,
@@ -157,15 +157,17 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
                 'tr(WHW.T)': trWHW.item(),
                 'mse': torch.mean((W - W_hat) ** 2).item(),
                 'bpp_loss': bpp_loss,
-                'bpp_loss_sum': bpp_loss_sum,
-                'num_pixels': num_pixels,
-                'optimize_out': optimize_out
+                'bpp_loss_sum': out['bpp_loss_sum'],
+                'bpp': bpp,
+                'bpp_sum': out['bpp_sum'],
+                'num_pixels': out['num_pixels'],
+                'optimize_out': optimize_out,
+                'direction': args.direction,
             }, save_path)
 
         # if args.ft_comp_model2 and args.layer_name in ['v', 'o', 'k', 'q']:
         if args.ft_comp_model2 or args.optim_code:
             utils.plot_ft_comp_result(ft_result, args, idx, name)
-                
 
         comp_linear = copy.deepcopy(orig_linear)
         comp_linear.weight.copy_(W_hat)

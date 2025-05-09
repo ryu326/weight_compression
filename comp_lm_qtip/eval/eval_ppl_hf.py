@@ -46,11 +46,12 @@ parser.add_argument('--hf_path', default='hfized/quantized_hada_70b', type=str)
 parser.add_argument('--seqlen', default=4096, type=int)
 parser.add_argument('--no_use_cuda_graph', action='store_true')
 parser.add_argument('--no_use_flash_attn', action='store_true')
+parser.add_argument('--datasets', type=str, default='wikitext2,c4')
 
 
 def main(args):
-    datasets = ['wikitext2', 'c4']
-    # datasets = ['wikitext2']
+    # datasets = ['wikitext2', 'c4']
+    datasets = (args.datasets).split(',')
     model, model_str = model_from_hf_path(
         args.hf_path,
         use_cuda_graph=not args.no_use_cuda_graph,

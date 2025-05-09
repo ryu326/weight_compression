@@ -94,6 +94,7 @@ parser.add_argument("--ql_tuned", action='store_true', default=False)
 parser.add_argument('--layerwise_scale', action='store_true', default=False)
 parser.add_argument('--channelwise_scale', action='store_true', default=False)
 parser.add_argument('--optim_code', action='store_true', default=False)
+parser.add_argument('--use_codes', action='store_true', default=False)
 
 def check_exist(idx, args):
     suffix = ['q', 'k', 'v', 'o', 'up', 'down', 'layernorm']
@@ -177,6 +178,9 @@ def main(args):
     shift, scale = None, None
     if config.architecture == 'nwc_ql' and not hasattr(config, "Q"):
         config.Q = 4
+    if not hasattr(config, "no_layernorm"):
+        config.no_layernorm = False
+        
     comp_model = get_model(config.architecture, config, scale=scale, shift=shift)      
     ckpt = torch.load(args.comp_model_path, weights_only=False)
     if args.use_train_scale or args.layerwise_cdt or args.layerwise_scale:
@@ -199,6 +203,8 @@ def main(args):
     comp_model.load_state_dict(ckpt["state_dict"], strict = False)
     comp_model.scale = scale
     comp_model.shift = shift
+    comp_model.eval()
+    comp_model.update()
     
     q_level = None
     if args.ql_path is not None:

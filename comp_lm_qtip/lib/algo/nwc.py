@@ -133,10 +133,18 @@ def compress_linear(W, H, comp_model, Qlevel, args, device='cpu'):
     if args.channelwise_scale:
         out['W_hat'] = out['W_hat'] * channel_std
     
+    out['W_hat'] =  out['W_hat'].cpu()
+    # # out ;
+    # {'W_hat': W_hat,
+    # 'bpp_loss_sum': bpp_loss_sum,
+    # 'num_pixels': num_pixels,
+    # 'bpp_sum': bpp_sum,
+    # 'codes': codes}
+    
     utils.clean()
-    return out['W_hat'].cpu(), out['bpp_loss_sum'], out['num_pixels'], SU, SV, scaleWH, ft_result, optimize_out
+    return out, SU, SV, scaleWH, ft_result, optimize_out
 
-def model_input(w, model, **kwargs):
+def model_input(w, model, args, **kwargs):
     ori_shape = w.shape
     w = w.reshape(ori_shape[0], -1, model.input_size)
         
@@ -151,20 +159,33 @@ def model_input(w, model, **kwargs):
     if lstats is not None:
         data['l_cdt'] = lstats.unsqueeze(0).repeat(ori_shape[0], 1)
         
-    out = model(data)
-    
-    w_hat = out['x_hat'].reshape(ori_shape)
-
     num_pixels = w.numel()
-    if isinstance(out["likelihoods"], dict):
-        bpp_loss = sum(
-            (torch.log(likelihoods).sum() / -math.log(2))
-            for likelihoods in out["likelihoods"].values()
-        ).item()
-    else :
-        bpp_loss = (torch.log(out["likelihoods"]).sum() / -math.log(2)).item()
+    bpp_loss = 0
+    nbits = 0
+    out_enc = None
+    out = None
+    
+    if args.use_codes:
+        out_enc = model.compress(data)
+        out_dec = model.decompress(out_enc)
+        w_hat = out_dec['x_hat'].reshape(ori_shape)
+        
+        for s in out_enc["strings"]:
+            nbits += len(s[0]) * 8.0
 
-    return w_hat, num_pixels, bpp_loss, out
+    else:
+        out = model(data)
+        w_hat = out['x_hat'].reshape(ori_shape)
+        
+        if isinstance(out["likelihoods"], dict):
+            bpp_loss = sum(
+                (torch.log(likelihoods).sum() / -math.log(2))
+                for likelihoods in out["likelihoods"].values()
+            ).item()
+        else :
+            bpp_loss = (torch.log(out["likelihoods"]).sum() / -math.log(2)).item()
+    
+    return w_hat, num_pixels, bpp_loss, out, out_enc, nbits
     
 def pseudo_compress_tensor(W, model, args, **kwargs):
     if args.direction == 'col':
@@ -173,18 +194,21 @@ def pseudo_compress_tensor(W, model, args, **kwargs):
 
     num_pixels = 0
     bpp_loss_sum = 0
-    bpp = 0
+    bpp_sum = 0
     
     qlevel = kwargs.get('qlevel', None)
     qlevel = qlevel.reshape(W.shape[0], ) if qlevel is not None else None
 
     bs = args.comp_batch_size
+    codes = []
     for start_idx in range(0, W.shape[0], bs):
         end_idx = min(start_idx + bs, W.shape[0])
         batch = W[start_idx:end_idx]
         ql = qlevel[start_idx:end_idx] if qlevel is not None else None
 
-        x_hat, n_pixels, bpp_loss_, out = model_input(batch, model, ql = ql)
+        x_hat, n_pixels, bpp_loss_, out, out_enc, nbits = model_input(batch, model, args, ql = ql)
+        codes.append(out_enc)
+        bpp_sum += nbits
         
         W_hat[start_idx:end_idx] = x_hat
         num_pixels += n_pixels
@@ -195,8 +219,11 @@ def pseudo_compress_tensor(W, model, args, **kwargs):
     
     return {'W_hat': W_hat,
             'bpp_loss_sum': bpp_loss_sum,
+            'bpp_loss': bpp_loss_sum / num_pixels,
             'num_pixels': num_pixels,
-            'bpp': bpp}
+            'bpp_sum': bpp_sum,
+            'bpp': bpp_sum / num_pixels,
+            'codes': codes}
 
 # def pseudo_compress_tensor(W, model, args, **kwargs):
 def encode_latent(W, model, args, **kwargs):
@@ -246,20 +273,23 @@ def pseudo_compress_tensor_ldlq(Wr, H, model, args, **kwargs):
     hatWr = torch.zeros_like(Wr, dtype=Wr.dtype, device=Wr.device)
 
     num_pixels = 0
-    bpp_loss = 0
-    bpp = 0
+    bpp_loss_sum = 0
+    bpp_sum = 0
+    codes = []
     qlevel = kwargs.get('qlevel', None)
     for k in reversed(range(n)):
         WXWX = Wr[:, k:k+1] + (Wr[:, k+1:] - hatWr[:, k+1:]) @ L[k+1:, k:k+1]
     
         ql = None if qlevel is None else qlevel[k]
                 
-        x_hat, n_pixels, bpp_loss_, out = model_input(WXWX.reshape(1, -1), model, ql = ql)
+        x_hat, n_pixels, bpp_loss_, out, out_enc, nbits = model_input(WXWX.reshape(1, -1), model, args, ql = ql)
         
         q = x_hat.flatten()
         hatWr[:, k] = q
         num_pixels += n_pixels
-        bpp_loss += bpp_loss_
+        bpp_loss_sum += bpp_loss_
+        codes.append(out_enc)
+        bpp_sum += nbits
 
     for ie in range(args.quip_tune_iters):
         raise Exception
@@ -281,10 +311,12 @@ def pseudo_compress_tensor_ldlq(Wr, H, model, args, **kwargs):
                 bpp_loss += bpp_loss_
 
     return {'W_hat': hatWr,
-            'bpp_loss_sum': bpp_loss,
+            'bpp_loss_sum': bpp_loss_sum,
+            'bpp_loss': bpp_loss_sum / num_pixels,
             'num_pixels': num_pixels,
-            'bpp': bpp}
-
+            'bpp_sum': bpp_sum,
+            'bpp': bpp_sum / num_pixels,
+            'codes': codes}
 
 def block_LDL(H, b, check_nan=True):
     n = H.shape[0]
@@ -570,9 +602,10 @@ def fine_tune_comp_model_v3(W, HR, comp_model, args, **kwargs):
             for w_batch, code_batch in loader:
                 optimizer.zero_grad()
                 aux_optimizer.zero_grad()                                      
-                x_hat, n_pixels, bpp_loss_, out = model_input(
+                x_hat, n_pixels, bpp_loss_, out, out_enc, bpp = model_input(
                     code_batch,
                     comp_model,
+                    args
                 )
 
                 num_pixels += n_pixels

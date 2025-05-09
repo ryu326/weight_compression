@@ -18,6 +18,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--quantized_path', type=str)
 parser.add_argument('--hf_output_path', type=str)
 parser.add_argument('--skip_list', type=str)
+parser.add_argument('--use_codes', action='store_true')
+
 
 
 def main(args):
@@ -49,6 +51,7 @@ def main(args):
     
     comp_result = {}
     comp_result['bpp_loss'] = 0
+    comp_result['bpp'] = 0
     comp_result['ppl'] = 0
     comp_result['num_pixels'] = 0
     
@@ -85,9 +88,10 @@ def main(args):
             saved_layer = torch.load(f'{args.quantized_path}/{ii}_q.pt',
                                      map_location=cpu, weights_only=False)
             layer.self_attn.q_proj.weight.copy_(saved_layer['W_hat'].to(layer.self_attn.q_proj.weight.dtype))
-            comp_result[f'{ii}_q.pt'] = {k:v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor)}
+            comp_result[f'{ii}_q.pt'] = {k:v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor) and k != 'codes'}
             comp_result['bpp_loss'] += saved_layer['bpp_loss_sum']
             comp_result['num_pixels'] += saved_layer['num_pixels']
+            comp_result['bpp'] += saved_layer['bpp_sum']
         else:
             print('### skip ####')
             layer.self_attn.q_proj = orig_model.model.layers[ii].self_attn.q_proj
@@ -96,9 +100,10 @@ def main(args):
             saved_layer = torch.load(f'{args.quantized_path}/{ii}_k.pt',
                                      map_location=cpu, weights_only=False)
             layer.self_attn.k_proj.weight.copy_(saved_layer['W_hat'].to(layer.self_attn.k_proj.weight.dtype))            
-            comp_result[f'{ii}_k.pt'] = {k:v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor)}
+            comp_result[f'{ii}_k.pt'] = {k:v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor) and k != 'codes'}
             comp_result['bpp_loss'] += saved_layer['bpp_loss_sum']
             comp_result['num_pixels'] += saved_layer['num_pixels']
+            comp_result['bpp'] += saved_layer['bpp_sum']
         else:
             print('### skip ####')
             layer.self_attn.k_proj = orig_model.model.layers[ii].self_attn.k_proj
@@ -107,9 +112,10 @@ def main(args):
             saved_layer = torch.load(f'{args.quantized_path}/{ii}_v.pt',
                                      map_location=cpu, weights_only=False)
             layer.self_attn.v_proj.weight.copy_(saved_layer['W_hat'].to(layer.self_attn.v_proj.weight.dtype))            
-            comp_result[f'{ii}_v.pt'] = {k:v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor)}
+            comp_result[f'{ii}_v.pt'] = {k:v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor) and k != 'codes'}
             comp_result['bpp_loss'] += saved_layer['bpp_loss_sum']
             comp_result['num_pixels'] += saved_layer['num_pixels']
+            comp_result['bpp'] += saved_layer['bpp_sum']
         else:
             print('### skip ####')
             layer.self_attn.v_proj = orig_model.model.layers[ii].self_attn.v_proj
@@ -118,9 +124,10 @@ def main(args):
             saved_layer = torch.load(f'{args.quantized_path}/{ii}_o.pt',
                                      map_location=cpu, weights_only=False)
             layer.self_attn.o_proj.weight.copy_(saved_layer['W_hat'].to(layer.self_attn.o_proj.weight.dtype))            
-            comp_result[f'{ii}_o.pt'] = {k:v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor)}
+            comp_result[f'{ii}_o.pt'] = {k:v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor) and k != 'codes'}
             comp_result['bpp_loss'] += saved_layer['bpp_loss_sum']
             comp_result['num_pixels'] += saved_layer['num_pixels']
+            comp_result['bpp'] += saved_layer['bpp_sum']
         else:
             print('### skip ####')
             layer.self_attn.o_proj = orig_model.model.layers[ii].self_attn.o_proj
@@ -129,9 +136,10 @@ def main(args):
             saved_layer = torch.load(f'{args.quantized_path}/{ii}_up.pt',
                                      map_location=cpu, weights_only=False)
             layer.mlp.up_proj.weight.copy_(saved_layer['W_hat'].to(layer.mlp.up_proj.weight.dtype))            
-            comp_result[f'{ii}_up.pt'] = {k:v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor)}
+            comp_result[f'{ii}_up.pt'] = {k:v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor) and k != 'codes'}
             comp_result['bpp_loss'] += saved_layer['bpp_loss_sum']
             comp_result['num_pixels'] += saved_layer['num_pixels']
+            comp_result['bpp'] += saved_layer['bpp_sum']
         else:
             print('### skip ####')
             layer.mlp.up_proj = orig_model.model.layers[ii].mlp.up_proj
@@ -140,9 +148,10 @@ def main(args):
             saved_layer = torch.load(f'{args.quantized_path}/{ii}_gate.pt',
                                      map_location=cpu, weights_only=False)
             layer.mlp.gate_proj.weight.copy_(saved_layer['W_hat'].to(layer.mlp.gate_proj.weight.dtype))            
-            comp_result[f'{ii}_gate.pt'] = {k:v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor)}
+            comp_result[f'{ii}_gate.pt'] = {k:v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor) and k != 'codes'}
             comp_result['bpp_loss'] += saved_layer['bpp_loss_sum']
             comp_result['num_pixels'] += saved_layer['num_pixels']
+            comp_result['bpp'] += saved_layer['bpp_sum']
         else:
             print('### skip ####')
             layer.mlp.gate_proj = orig_model.model.layers[ii].mlp.gate_proj
@@ -151,9 +160,10 @@ def main(args):
             saved_layer = torch.load(f'{args.quantized_path}/{ii}_down.pt',
                                      map_location=cpu, weights_only=False)
             layer.mlp.down_proj.weight.copy_(saved_layer['W_hat'].to(layer.mlp.down_proj.weight.dtype))            
-            comp_result[f'{ii}_down.pt'] = {k:v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor)}
+            comp_result[f'{ii}_down.pt'] = {k:v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor) and k != 'codes'}
             comp_result['bpp_loss'] += saved_layer['bpp_loss_sum']
             comp_result['num_pixels'] += saved_layer['num_pixels']
+            comp_result['bpp'] += saved_layer['bpp_sum']
         else:
             print('### skip ####')
             layer.mlp.down_proj = orig_model.model.layers[ii].mlp.down_proj
@@ -161,6 +171,7 @@ def main(args):
         glog.info(f'loaded layer {ii}')
         
     comp_result['bpp_loss'] = comp_result['bpp_loss'] / comp_result['num_pixels']
+    comp_result['bpp'] = comp_result['bpp'] / comp_result['num_pixels']
 
     glog.info(f'saving model...')
     model.save_pretrained(args.hf_output_path, safe_serialization=True)

@@ -77,14 +77,6 @@ def test(test_dataset, model, criterion):
             
             out_enc = model.compress(data)
             out_dec = model.decompress(out_enc)
-            
-            # try:
-            #     out_dec = model.decompress(out_enc["strings"], out_enc["shape"], data["q_level"])
-            # except:
-            #     out_dec = model.decompress(out_enc["strings"], out_enc["shape"])
-            
-            # out_dec = model.decompress(out_enc["strings"], out_enc["shape"])
-                
 
             num_pixels = data['weight_block'].numel()
             
