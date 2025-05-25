@@ -131,18 +131,42 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
         args.layer_name = name
         # W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result, optimize_out = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
         out, SU, SV, scaleWH, ft_result, optimize_out = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+        
+        glog.info(f'------------------------------------')
+        trWHW = torch.trace(W @ HR @ W.T)
+        if args.code_optim:
+            W_hat_init = out['W_hat_init'].to(dtype_)
+            bpp_loss_init = out['bpp_loss_init']
+            bpp_init = out['bpp_init']        
+            err_init = torch.trace((W - W_hat_init) @ HR @ ((W - W_hat_init).T))
+            proxy_err_init =  err_init / trWHW
+            glog.info(
+                f'{idx}_{name} init proxy err {proxy_err_init.item():.5f} err {err_init.item():.3f} tr(WHW.T) {trWHW.item():.1f} bpp_loss {bpp_loss_init:.4f} bpp {bpp_init:.4f}'
+            )
+        if args.code_optim_test:
+            W_hat_round = out['W_hat_round'].to(dtype_).cpu()
+            err_round = torch.trace((W - W_hat_round) @ HR @ ((W - W_hat_round).T))
+            proxy_err_round =  err_round / trWHW
+            glog.info(
+                f'{idx}_{name} rund proxy err {proxy_err_round.item():.5f} err {err_round.item():.3f} tr(WHW.T) {trWHW.item():.1f} bpp_loss {out["bpp_loss_round"]:.4f}'
+            )
+            W_hat_sga = out['W_hat_sga'].to(dtype_).cpu()
+            err_sga = torch.trace((W - W_hat_sga) @ HR @ ((W - W_hat_sga).T))
+            proxy_err_sga =  err_sga / trWHW
+            glog.info(
+                f'{idx}_{name} sga_ proxy err {proxy_err_sga.item():.5f} err {err_sga.item():.3f} tr(WHW.T) {trWHW.item():.1f} bpp_loss {out["bpp_loss_sga"]:.4f}'
+            )
+
         W_hat = out['W_hat'].to(dtype_)
         bpp_loss = out['bpp_loss']
-        bpp = out['bpp']
-        
+        bpp = out['bpp']        
         err = torch.trace((W - W_hat) @ HR @ ((W - W_hat).T))
-        trWHW = torch.trace(W @ HR @ W.T)
         proxy_err =  err / trWHW
-
-        print(
-            f'{idx}_{name} proxy err {proxy_err.item():.4f} err {err.item():.4f} tr(WHW.T) {trWHW.item():.4f} bpp_loss {bpp_loss:.4f} bpp {bpp:.4f}'
+        glog.info(
+            f'{idx}_{name} optm proxy err {proxy_err.item():.5f} err {err.item():.3f} tr(WHW.T) {trWHW.item():.1f} bpp_loss {bpp_loss:.4f} bpp {bpp:.4f}'
         )
-        
+        glog.info(f'------------------------------------')
+
         save_path = f'{args.save_path}/{idx}_{name}.pt'
 
         torch.save(
@@ -153,12 +177,29 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
                 'SV': SV,
                 'scaleWH':scaleWH,
                 'proxy_err': proxy_err.item(),
+                'proxy_err_init': proxy_err_init.item() if args.code_optim else None,
+                'proxy_err_round': proxy_err_round.item() if args.code_optim_test else None,
+                'proxy_err_sga': proxy_err_sga.item() if args.code_optim_test else None,
                 'err': err.item(),
+                'err_init': err_init.item() if args.code_optim else None,
+                'err_round': err_round.item() if args.code_optim_test else None,
+                'err_sga': err_sga.item() if args.code_optim_test else None,
                 'tr(WHW.T)': trWHW.item(),
                 'mse': torch.mean((W - W_hat) ** 2).item(),
+                'mse_init': torch.mean((W - W_hat_init) ** 2).item() if args.code_optim else None,
                 'bpp_loss': bpp_loss,
+                'W_hat_init': W_hat_init if args.code_optim else None,
+                'W_hat_round': W_hat_round if args.code_optim_test else None,
+                'W_hat_sga': W_hat_sga if args.code_optim_test else None,
+                'bpp_loss_init': bpp_loss_init if args.code_optim else None,
+                'bpp_loss_round': out['bpp_loss_round'] if args.code_optim_test else None,
+                'bpp_loss_sga': out['bpp_loss_sga'] if args.code_optim_test else None,
                 'bpp_loss_sum': out['bpp_loss_sum'],
+                'bpp_loss_sum_init': out['bpp_loss_sum_init'] if args.code_optim else None,
+                'bpp_loss_sum_round': out['bpp_loss_sum_round'] if args.code_optim_test else None,
+                'bpp_loss_sum_sga': out['bpp_loss_sum_sga'] if args.code_optim_test else None,
                 'bpp': bpp,
+                'bpp_init': bpp_init if args.code_optim else None,
                 'bpp_sum': out['bpp_sum'],
                 'num_pixels': out['num_pixels'],
                 'optimize_out': optimize_out,
@@ -166,7 +207,7 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
             }, save_path)
 
         # if args.ft_comp_model2 and args.layer_name in ['v', 'o', 'k', 'q']:
-        if args.ft_comp_model2 or args.optim_code:
+        if args.ft_comp_model2 or args.code_optim:
             utils.plot_ft_comp_result(ft_result, args, idx, name)
 
         comp_linear = copy.deepcopy(orig_linear)

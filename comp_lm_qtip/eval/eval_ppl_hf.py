@@ -47,6 +47,8 @@ parser.add_argument('--seqlen', default=4096, type=int)
 parser.add_argument('--no_use_cuda_graph', action='store_true')
 parser.add_argument('--no_use_flash_attn', action='store_true')
 parser.add_argument('--datasets', type=str, default='wikitext2,c4')
+parser.add_argument("--output_path", default=None, type=str)
+
 
 
 def main(args):
@@ -107,7 +109,15 @@ def main(args):
         if not isinstance(comp_result['ppl'], dict):
             comp_result['ppl'] = {}
         comp_result['ppl'][dataset] = ppl
-        with open(f'{args.hf_path}_result.json', 'w') as f:
+        
+        output_path = args.hf_path      
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        with open(f'{output_path}_result.json', 'w') as f:
+            json.dump(comp_result, f, indent=4)
+        
+        output_path = args.output_path
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        with open(f'{output_path}_result.json', 'w') as f:
             json.dump(comp_result, f, indent=4)
 
 if __name__ == '__main__':

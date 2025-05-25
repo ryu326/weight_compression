@@ -62,7 +62,7 @@ parser.add_argument("--gptq", action='store_true', default = False)
 parser.add_argument("--ldlq", action='store_true', default = False)
 parser.add_argument("--comp_model_path", type=str)
 parser.add_argument("--direction", type=str, default='col')
-parser.add_argument("--comp_batch_size", type=int, default=2048)
+parser.add_argument("--comp_batch_size", type=int, default=-1)
 parser.add_argument('--quip_tune_iters', default=0, type=int)
 parser.add_argument('--rescale_WH', action='store_true')
 parser.add_argument('--rescale_WH_2', action='store_true')
@@ -84,6 +84,7 @@ parser.add_argument('--ft_comp_ep', type=int, default=None)
 parser.add_argument('--ft_comp_steps', type=int, default=None)
 parser.add_argument("--ft_comp_learning_rate", default=1e-4, type=float)
 parser.add_argument("--ft_comp_aux_learning_rate", default=1e-3,)
+parser.add_argument("--ft_train", action='store_true', default=False)
 parser.add_argument("--ft_train_dec", action='store_true', default=False)
 parser.add_argument("--ql_search", action='store_true', default=False)
 parser.add_argument("--ql_search_layer_name", type=str, default=None)
@@ -93,7 +94,15 @@ parser.add_argument("--ql_search_value", type=int, default=None)
 parser.add_argument("--ql_tuned", action='store_true', default=False)
 parser.add_argument('--layerwise_scale', action='store_true', default=False)
 parser.add_argument('--channelwise_scale', action='store_true', default=False)
-parser.add_argument('--optim_code', action='store_true', default=False)
+parser.add_argument('--row_normalize', action='store_true', default=False)
+parser.add_argument('--col_normalize', action='store_true', default=False)
+parser.add_argument('--code_optim', action='store_true', default=False)
+parser.add_argument('--code_optim_it', type=int, default=False)
+parser.add_argument('--code_optim_lr', type=float, default=5e-3)
+parser.add_argument('--code_optim_lmbda', type=int, default=None)
+parser.add_argument('--code_optim_test', action='store_true', default=False)
+parser.add_argument('--loss', type=str, default='rdloss_ql')
+parser.add_argument('--Q', type=int, default=4)
 parser.add_argument('--use_codes', action='store_true', default=False)
 
 def check_exist(idx, args):
@@ -180,16 +189,18 @@ def main(args):
         config.Q = 4
     if not hasattr(config, "no_layernorm"):
         config.no_layernorm = False
-        
-    comp_model = get_model(config.architecture, config, scale=scale, shift=shift)      
+    
+    if args.code_optim:
+        config.architecture = 'nwc_ql_sga'
+    comp_model = get_model(config.architecture, config, scale=scale, shift=shift)
+    comp_model.config = config
     ckpt = torch.load(args.comp_model_path, weights_only=False)
-    if args.use_train_scale or args.layerwise_cdt or args.layerwise_scale:
+    if args.use_train_scale or args.layerwise_cdt or args.layerwise_scale or args.row_normalize or args.col_normalize:
         try:
             scale = ckpt["state_dict"]["scale"]
             shift = ckpt["state_dict"]["shift"]
             print('Use train scale and shift')
             print('shift: ', shift, ' scale:', scale)
-
         except:
             scale, shift  = torch.zeros(1), torch.zeros(1)
     else:

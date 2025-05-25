@@ -60,6 +60,46 @@ class VQVAE_loss(nn.Module):
                 'recon_loss': recon_loss,
                 'embedding_loss': embedding_loss}
 
+# class RateDistortionLoss_ql(nn.Module):
+#     """Custom rate distortion loss with a Lagrangian parameter."""
+
+#     def __init__(self, std, coff, lmbda=1e-2):
+#         super().__init__()
+#         self.mse = nn.MSELoss()
+#         self.lmbda = lmbda
+#         self.std = std
+#         self.coff = coff
+
+#     def forward(self, data, output):
+#         out = {}
+#         # shape = output["x"].size()
+#         num_pixels = output["x"].numel()
+
+#         out["recon_loss"] = self.mse(output["x"], output["x_hat"]) / self.std**2
+        
+#         qlevel = data['q_level']
+
+#         # assert output["likelihoods"].shape == self.coff[qlevel].shape
+#         # print(output["likelihoods"].shape, self.coff[qlevel].shape)
+        
+#         ## v1
+#         # out["bpp_loss"] = torch.log(output["likelihoods"]) * self.coff[qlevel].unsqueeze(-1)
+#         # out["bpp_loss"] = out["bpp_loss"].sum() / (-math.log(2) * num_pixels)
+
+#         ## v2
+#         out["bpp_loss"] = torch.log(output["likelihoods"]).sum() / (-math.log(2) * num_pixels)
+#         coff = self.coff[qlevel].reshape(output["likelihoods"].shape[0], 1, 1)
+#         assert output["likelihoods"].dim() == coff.dim(), \
+#             f"Shape mismatch: likelihoods {output['likelihoods'].shape} vs coff {coff.shape}"
+#         bpp_loss = torch.log(output["likelihoods"]) * coff
+#         bpp_loss = bpp_loss.sum() / (-math.log(2) * num_pixels)
+        
+#         ## v1
+#         # out["loss"] = self.lmbda * out["recon_loss"] + out["bpp_loss"]
+#         ## v2
+#         out["loss"] = self.lmbda * out["recon_loss"] + bpp_loss
+#         return out
+ 
 class RateDistortionLoss_ql(nn.Module):
     """Custom rate distortion loss with a Lagrangian parameter."""
 
@@ -72,35 +112,57 @@ class RateDistortionLoss_ql(nn.Module):
 
     def forward(self, data, output):
         out = {}
-
-        # shape = output["x"].size()
-        num_pixels = output["x"].numel()
-
-        out["recon_loss"] = self.mse(output["x"], output["x_hat"]) / self.std**2
-        
+        w = data['weight_block'].reshape(output["x_hat"].shape)
+        num_pixels = w.numel() 
         qlevel = data['q_level']
 
-        # assert output["likelihoods"].shape == self.coff[qlevel].shape
-        # print(output["likelihoods"].shape, self.coff[qlevel].shape)
-        
-        ## v1
-        # out["bpp_loss"] = torch.log(output["likelihoods"]) * self.coff[qlevel].unsqueeze(-1)
-        # out["bpp_loss"] = out["bpp_loss"].sum() / (-math.log(2) * num_pixels)
-
-        ## v2
-        out["bpp_loss"] = torch.log(output["likelihoods"]).sum() / (-math.log(2) * num_pixels)
         coff = self.coff[qlevel].reshape(output["likelihoods"].shape[0], 1, 1)
-        assert output["likelihoods"].dim() == coff.dim(), \
-            f"Shape mismatch: likelihoods {output['likelihoods'].shape} vs coff {coff.shape}"
+        
+        out["recon_loss"] = self.mse(w, output["x_hat"]) / self.std**2
+
+        out["bpp_loss"] = torch.log(output["likelihoods"]).sum() / (-math.log(2) * num_pixels)
         bpp_loss = torch.log(output["likelihoods"]) * coff
         bpp_loss = bpp_loss.sum() / (-math.log(2) * num_pixels)
         
-        ## v1
-        # out["loss"] = self.lmbda * out["recon_loss"] + out["bpp_loss"]
-        ## v2
         out["loss"] = self.lmbda * out["recon_loss"] + bpp_loss
         return out
  
+class RateDistortionLoss_ql_code_opt(nn.Module):
+    """Custom rate distortion loss with a Lagrangian parameter."""
+
+    def __init__(self, std, coff, lmbda=1e-2):
+        super().__init__()
+        self.mse = nn.MSELoss(reduction='none')
+        self.lmbda = lmbda
+        self.std = std
+        self.coff = coff
+
+    def forward(self, data, output, **kwargs):
+        out = {}
+        w = data['weight_block'].reshape(output["x_hat"].shape)
+        num_pixels = w.numel() 
+        qlevel = data['q_level']
+        rnorm = kwargs.get('rnorm', None) # (1, m)
+        cnorm = kwargs.get('cnorm', None) # (n, 1)
+
+        coff = self.coff[qlevel].reshape(output["likelihoods"].shape[0], 1, 1)
+        
+        if rnorm is not None:
+            out["recon_loss"] = self.mse(w, output["x_hat"]).reshape(w.shape[0], -1)
+            out["recon_loss"] = (out["recon_loss"] / rnorm**2).sum()
+        elif cnorm is not None:
+            out["recon_loss"] = self.mse(w, output["x_hat"]).reshape(w.shape[0], -1)
+            out["recon_loss"] = (out["recon_loss"] / cnorm**2).sum()
+        else:
+            out["recon_loss"] = self.mse(w, output["x_hat"]).sum() / self.std**2
+
+        out["bpp_loss"] = torch.log(output["likelihoods"]).sum() / (-math.log(2) * num_pixels)
+        bpp_loss = torch.log(output["likelihoods"]) * coff
+        bpp_loss = bpp_loss.sum() / (-math.log(2) * num_pixels)
+        
+        out["loss"] = self.lmbda * out["recon_loss"] + bpp_loss
+        return out
+
 class RateDistortionLoss(nn.Module):
     """Custom rate distortion loss with a Lagrangian parameter."""
 
@@ -163,6 +225,8 @@ class ProxyHessLoss(nn.Module):
 
  
 def get_loss_fn(args, std=None, device = None):
+    if hasattr(args, 'code_optim_lr'):
+        args.lmbda = args.code_optim_lmbda
     if args.loss == "nmse":
         return VQVAE_loss(NormalizedMSELoss(std))
     elif args.loss == "enmse":

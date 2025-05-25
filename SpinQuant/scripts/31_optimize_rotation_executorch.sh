@@ -8,12 +8,12 @@
 # nnodes determines the number of GPU nodes to utilize (usually 1 for an 8 GPU node)
 # nproc_per_node indicates the number of GPUs per node to employ.
 export CUDA_VISIBLE_DEVICES=0,1,2
-for b in 6 7 8 9; do
+for b in 5 6 7; do
     torchrun --nnodes=1 --nproc_per_node=3 optimize_rotation.py \
-    --input_model ../Wparam_dataset/hf_model/meta-llama--Meta-Llama-3-8B  \
-    --output_rotation_path "./output_rotation/8B_w${b}a16" \
-    --output_dir "./output/8B_w${b}a16" \
-    --logging_dir "./logs/8B_w${b}a16" \
+    --input_model ../Wparam_dataset/hf_model/meta-llama--Llama-2-7b-hf  \
+    --output_rotation_path "../hf_model_comp/spinquant/output_rotation/7B_w${b}a16" \
+    --output_dir "../hf_model_comp/spinquant/output/7B_w${b}a16" \
+    --logging_dir "./logs/7B_w${b}a16" \
     --model_max_length 2048 \
     --fp16 False \
     --bf16 True \
@@ -32,7 +32,7 @@ for b in 6 7 8 9; do
     --v_bits 16 \
     --w_clip \
     --a_asym \
-    2>&1 | tee ./logs/8B_w${b}a16.log
+    2>&1 | tee ./logs/7B_w${b}a16.log
 done
 
     # --w_groupsize 256 \

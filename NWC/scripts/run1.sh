@@ -1,11 +1,9 @@
 lmbda=100
 CUDA_VISIBLE_DEVICES=1 taskset -c 8-15 python -u train_nwc.py \
     --architecture nwc_ql \
-    --dataset_path ../Wparam_dataset/block_pt/meta-llama--Llama-2-7b-hf/droplast_col_1024.pt \
-    --pretrained_path ./checkpoint/nwc_ql/block_seq_ql_random_scaler_gaussian__llama8b_col_1024.pt/rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100/lmbda${lmbda}_*/best_loss_model_*.pth.tar \
-    --run_name gaussian_7b_droplast \
+    --dataset_path ../Wparam_dataset/block_pt/llama8b+7b/droplast_modelwise_norm2_col_1024.pt \
     --dataset block_seq_ql_random \
-    --iter 20000 \
+    --iter 200000 \
     --input_size 16 \
     --M 16 \
     --dim_encoder 512 \

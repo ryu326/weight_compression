@@ -1,17 +1,19 @@
-export CUDA_VISIBLE_DEVICES=0
+export CUDA_VISIBLE_DEVICES=2,3
 
 bit=(4)
 for b in "${bit[@]}"; do
 
     # pretrain_path=../hf_model_comp/RTN/meta-llama--Meta-Llama-3-8B_W${b}g128
     # pretrain_path=../hf_model_comp/awq/meta-llama--Meta-Llama-3-8B/w${b}-g128-fake-quantized
-    pretrain_path=/workspace/Weight_compression/Wparam_dataset/hf_model/meta-llama--Meta-Llama-3-8B
+    # pretrain_path=/workspace/Weight_compression/Wparam_dataset/hf_model/meta-llama--Meta-Llama-3-8B
+    pretrain_path=/workspace/Weight_compression/Wparam_dataset/hf_model/meta-llama--Llama-2-7b-hf
 
     echo "################## Running PPL evaluation bit=${b} ##################"
     echo "Running evaluation for directory: $pretrain_path"
     python -m eval.eval_ppl_hf \
         --hf_path $pretrain_path \
         --seqlen 2048 \
+        --dataset c4 \
         --no_use_cuda_graph
 
     # echo "################## Running benchmark evaluation bit=${b} ##################"
@@ -24,7 +26,7 @@ for b in "${bit[@]}"; do
     #     --trust_remote_code \
     #     --seed $b
 
-    # python -m eval.eval_zeroshot_hf --tasks arc_challenge,arc_easy,boolq,piqa,winogrande \
-    #     --batch_size 4  --hf_path $pretrain_path \
+    python -m eval.eval_zeroshot_hf --tasks arc_challenge,arc_easy,boolq,piqa,winogrande \
+        --batch_size 4  --hf_path $pretrain_path \
 
 done

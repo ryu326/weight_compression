@@ -19,6 +19,7 @@ parser.add_argument('--quantized_path', type=str)
 parser.add_argument('--hf_output_path', type=str)
 parser.add_argument('--skip_list', type=str)
 parser.add_argument('--use_codes', action='store_true')
+parser.add_argument('--W_key', type=str, default='')
 
 
 
@@ -87,9 +88,10 @@ def main(args):
         if f'{ii}_q' not in skip_list:
             saved_layer = torch.load(f'{args.quantized_path}/{ii}_q.pt',
                                      map_location=cpu, weights_only=False)
-            layer.self_attn.q_proj.weight.copy_(saved_layer['W_hat'].to(layer.self_attn.q_proj.weight.dtype))
+            W_hat = saved_layer['W_hat' + args.W_key]
+            layer.self_attn.q_proj.weight.copy_(W_hat.to(layer.self_attn.q_proj.weight.dtype))
             comp_result[f'{ii}_q.pt'] = {k:v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor) and k != 'codes'}
-            comp_result['bpp_loss'] += saved_layer['bpp_loss_sum']
+            comp_result['bpp_loss'] += saved_layer['bpp_loss_sum' + args.W_key]
             comp_result['num_pixels'] += saved_layer['num_pixels']
             comp_result['bpp'] += saved_layer['bpp_sum']
         else:
@@ -99,9 +101,10 @@ def main(args):
         if f'{ii}_k' not in skip_list:
             saved_layer = torch.load(f'{args.quantized_path}/{ii}_k.pt',
                                      map_location=cpu, weights_only=False)
-            layer.self_attn.k_proj.weight.copy_(saved_layer['W_hat'].to(layer.self_attn.k_proj.weight.dtype))            
+            W_hat = saved_layer['W_hat' + args.W_key]
+            layer.self_attn.k_proj.weight.copy_(W_hat.to(layer.self_attn.k_proj.weight.dtype))            
             comp_result[f'{ii}_k.pt'] = {k:v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor) and k != 'codes'}
-            comp_result['bpp_loss'] += saved_layer['bpp_loss_sum']
+            comp_result['bpp_loss'] += saved_layer['bpp_loss_sum' + args.W_key]
             comp_result['num_pixels'] += saved_layer['num_pixels']
             comp_result['bpp'] += saved_layer['bpp_sum']
         else:
@@ -111,9 +114,10 @@ def main(args):
         if f'{ii}_v' not in skip_list:
             saved_layer = torch.load(f'{args.quantized_path}/{ii}_v.pt',
                                      map_location=cpu, weights_only=False)
-            layer.self_attn.v_proj.weight.copy_(saved_layer['W_hat'].to(layer.self_attn.v_proj.weight.dtype))            
+            W_hat = saved_layer['W_hat' + args.W_key]
+            layer.self_attn.v_proj.weight.copy_(W_hat.to(layer.self_attn.v_proj.weight.dtype))            
             comp_result[f'{ii}_v.pt'] = {k:v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor) and k != 'codes'}
-            comp_result['bpp_loss'] += saved_layer['bpp_loss_sum']
+            comp_result['bpp_loss'] += saved_layer['bpp_loss_sum' + args.W_key]
             comp_result['num_pixels'] += saved_layer['num_pixels']
             comp_result['bpp'] += saved_layer['bpp_sum']
         else:
@@ -123,9 +127,10 @@ def main(args):
         if f'{ii}_o' not in skip_list:
             saved_layer = torch.load(f'{args.quantized_path}/{ii}_o.pt',
                                      map_location=cpu, weights_only=False)
-            layer.self_attn.o_proj.weight.copy_(saved_layer['W_hat'].to(layer.self_attn.o_proj.weight.dtype))            
+            W_hat = saved_layer['W_hat' + args.W_key]
+            layer.self_attn.o_proj.weight.copy_(W_hat.to(layer.self_attn.o_proj.weight.dtype))            
             comp_result[f'{ii}_o.pt'] = {k:v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor) and k != 'codes'}
-            comp_result['bpp_loss'] += saved_layer['bpp_loss_sum']
+            comp_result['bpp_loss'] += saved_layer['bpp_loss_sum' + args.W_key]
             comp_result['num_pixels'] += saved_layer['num_pixels']
             comp_result['bpp'] += saved_layer['bpp_sum']
         else:
@@ -135,9 +140,10 @@ def main(args):
         if f'{ii}_up' not in skip_list:
             saved_layer = torch.load(f'{args.quantized_path}/{ii}_up.pt',
                                      map_location=cpu, weights_only=False)
-            layer.mlp.up_proj.weight.copy_(saved_layer['W_hat'].to(layer.mlp.up_proj.weight.dtype))            
+            W_hat = saved_layer['W_hat' + args.W_key]
+            layer.mlp.up_proj.weight.copy_(W_hat.to(layer.mlp.up_proj.weight.dtype))            
             comp_result[f'{ii}_up.pt'] = {k:v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor) and k != 'codes'}
-            comp_result['bpp_loss'] += saved_layer['bpp_loss_sum']
+            comp_result['bpp_loss'] += saved_layer['bpp_loss_sum' + args.W_key]
             comp_result['num_pixels'] += saved_layer['num_pixels']
             comp_result['bpp'] += saved_layer['bpp_sum']
         else:
@@ -147,9 +153,10 @@ def main(args):
         if f'{ii}_gate' not in skip_list:
             saved_layer = torch.load(f'{args.quantized_path}/{ii}_gate.pt',
                                      map_location=cpu, weights_only=False)
-            layer.mlp.gate_proj.weight.copy_(saved_layer['W_hat'].to(layer.mlp.gate_proj.weight.dtype))            
+            W_hat = saved_layer['W_hat' + args.W_key]
+            layer.mlp.gate_proj.weight.copy_(W_hat.to(layer.mlp.gate_proj.weight.dtype))            
             comp_result[f'{ii}_gate.pt'] = {k:v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor) and k != 'codes'}
-            comp_result['bpp_loss'] += saved_layer['bpp_loss_sum']
+            comp_result['bpp_loss'] += saved_layer['bpp_loss_sum' + args.W_key]
             comp_result['num_pixels'] += saved_layer['num_pixels']
             comp_result['bpp'] += saved_layer['bpp_sum']
         else:
@@ -159,9 +166,10 @@ def main(args):
         if f'{ii}_down' not in skip_list:
             saved_layer = torch.load(f'{args.quantized_path}/{ii}_down.pt',
                                      map_location=cpu, weights_only=False)
-            layer.mlp.down_proj.weight.copy_(saved_layer['W_hat'].to(layer.mlp.down_proj.weight.dtype))            
+            W_hat = saved_layer['W_hat' + args.W_key]
+            layer.mlp.down_proj.weight.copy_(W_hat.to(layer.mlp.down_proj.weight.dtype))            
             comp_result[f'{ii}_down.pt'] = {k:v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor) and k != 'codes'}
-            comp_result['bpp_loss'] += saved_layer['bpp_loss_sum']
+            comp_result['bpp_loss'] += saved_layer['bpp_loss_sum' + args.W_key]
             comp_result['num_pixels'] += saved_layer['num_pixels']
             comp_result['bpp'] += saved_layer['bpp_sum']
         else:

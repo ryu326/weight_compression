@@ -97,7 +97,8 @@ def test(test_dataset, model, criterion):
 
 def main(args):
     run_name = '_'.join(filter(None, [args.run_name, args.architecture, f"{args.lmbda}"]))
-    wandb.init(project="NWC_train", name=run_name, mode = 'disabled')
+    # wandb.init(project="NWC_train", name=run_name, mode = 'disabled')
+    wandb.init(project="NWC_train", name=run_name)
     wandb.config.update(args)
 
     gpu_num = getattr(args, "dev.num_gpus")
