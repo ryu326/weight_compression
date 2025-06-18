@@ -12,7 +12,7 @@ from torch import Tensor
 
 from compressai.entropy_models import EntropyBottleneck, GaussianConditional
 from compressai.models import CompressionModel
-from .sga import EntropyBottleneckNoQuant, Quantizator_SGA
+from .sga import EntropyBottleneckNoQuant, Quantizator_SGA, EntropyBottleneckNoQuantVbr
 
 __all__ = [
     "CompressionModel",
@@ -298,3 +298,167 @@ class NWC_ql_SGA(CompressionModel):
         return {
             "y": y
         }
+        
+class NWC_ql_SGA_Vbr(CompressionModel):
+    def __init__(self, input_size, dim_encoder, n_resblock, Q, M, scale, shift, norm=True):
+        super().__init__()
+            
+        self.register_buffer('scale', scale)    
+        self.register_buffer('shift', shift)
+        
+        ## quality level 개수
+        self.Q = Q
+        self.M = M
+        self.n_resblock = n_resblock
+        
+        self.input_size = input_size
+        self.dim_encoder = dim_encoder
+        
+        self.quality_embedding = nn.Embedding(Q, dim_encoder)
+        
+        self.g_a = Encoder(input_size, n_resblock, dim_encoder, M, norm)
+        self.g_s = Encoder(M, n_resblock, dim_encoder, input_size, norm)
+        
+        self.entropy_bottleneck = EntropyBottleneckNoQuantVbr(M)
+        self.sga = Quantizator_SGA()
+        
+    def quantize(self, inputs, mode, means=None, it=None, tot_it=None, qs = None):
+        # outputs = torch.round(outputs / qs) * qs
+        if means is not None:
+            inputs = inputs - means
+            
+        qs = 1.0 if qs is None else qs
+        # import ipdb; ipdb.set_trace()
+        # import glog
+        # if isinstance(qs, torch.Tensor):
+        #     glog.info(f"inputs: {inputs.shape}")
+        #     glog.info(f"qs: {qs.shape, qs.mean()}")
+        
+        if mode == "noise":
+            half = float(0.5)
+            noise = torch.empty_like(inputs).uniform_(-half, half)
+            outputs = inputs + noise * qs
+        elif mode == "round":
+            outputs = torch.round(inputs / qs) * qs
+        elif mode == "sga":
+            outputs = self.sga(inputs / qs, it, "training", tot_it) * qs
+        else:
+            assert(0)
+            
+        if means is not None:
+            outputs = outputs + means
+        return outputs
+
+    def forward(self, data, mode='init', y_in=None, it=None, tot_it=None, qs = None):
+        q_level = data['q_level']
+        q_embed = self.quality_embedding(q_level)  
+        # if mode == 'init':
+        if y_in is None:
+            x = data['weight_block'] # (B, L, D)
+            x_shift = (x - self.shift) / self.scale
+            y = self.g_a(x_shift, q_embed) # (B, L, M)
+        else:
+            y = y_in
+            
+        ## qs (B, )
+        if qs is not None:
+            # qs = qs.unsqueeze(1).unsqueeze(1)# (B, 1, 1)
+            # print(qs.shape)
+            qs = qs.reshape(y.shape[0], 1, 1) # (B, L, M)
+            qs = qs.expand(y.shape) # (B, L, M)
+    
+        ## 여기서부터 이미지와 같은 형식
+        perm = list(range(y.dim()))
+        perm[-1], perm[1] = perm[1], perm[-1]
+        y_tmp = y.permute(*perm).contiguous()   # (B, M, L)
+        qs = qs.permute(*perm).contiguous() if qs is not None else None # (B, M, L)
+        
+        ## get median 빼기 전에 (M, 1, -1)로 봐꿔야함
+        perm_ = np.arange(len(y.shape)) 
+        perm_[0], perm_[1] = perm_[1], perm_[0]
+        inv_perm = np.arange(len(y.shape))[np.argsort(perm_)]
+        y_tmp = y_tmp.permute(*perm_).contiguous() # (M, B, L)
+        qs = qs.permute(*perm_).contiguous() if qs is not None else None  # (M, B, L)
+        shape = y_tmp.size()
+        y_tmp = y_tmp.reshape(y_tmp.size(0), 1, -1) # (M, 1, -1)
+        qs = qs.reshape(y_tmp.size(0), 1, -1) if qs is not None else None # (M, 1, -1)
+        # means = self.entropy_bottleneck._get_medians()
+        means = None
+        if mode == "round":
+            y_hat = self.quantize(y_tmp, mode = "round", means=means, qs = qs)
+        elif mode == "init" or mode == "noise":
+            y_hat = self.quantize(y_tmp, mode ="noise", means=means, qs = qs)
+        elif mode =="sga":
+            y_hat = self.quantize(y_tmp, mode = "sga", means=means, it=it, tot_it=tot_it, qs = qs)
+        elif mode == 'ste':            
+            y_tmp = y_tmp - means
+            y_hat = torch.round(y_tmp / qs) * qs - y_tmp.detach() + y_tmp
+            y_hat = y_hat + means
+        else:
+            assert(0)
+
+        y_hat = y_hat.reshape(shape)
+        y_hat = y_hat.permute(*inv_perm).contiguous()  # (B, M, L)
+        
+        y_likelihoods = self.entropy_bottleneck(y_hat, qs = qs) # (B, M, L) 로 bottleneck 통과
+        
+        ## 다시 원래대로 바꾸기
+        y_hat = y_hat.permute(*perm).contiguous()  # (B, L, M)
+        
+        x_hat = self.g_s(y_hat, q_embed)
+        x_hat = self.scale * x_hat + self.shift
+        
+        return {
+            "x_hat": x_hat, # (B, L, D)
+            "likelihoods": y_likelihoods,
+            "embedding_loss": None,
+            "y": y.detach().clone(), # (B, L, M)
+            "y_hat": y_hat # (B, L, M)
+        }
+
+    def compress(self, data):
+        x = data['weight_block']
+        x_shift = (x - self.shift) / self.scale
+        
+        q_level = data['q_level']
+        
+        q_embed = self.quality_embedding(q_level)
+        
+        y = self.g_a(x_shift, q_embed)      
+
+        perm = list(range(y.dim()))
+        perm[-1], perm[1] = perm[1], perm[-1]
+        y = y.permute(*perm).contiguous()
+
+        shape = y.size()[2:]
+        y_strings = self.entropy_bottleneck.compress(y)
+        
+        y_hat = self.entropy_bottleneck.decompress(y_strings, shape)
+        # import ipdb; ipdb.set_trace()
+        return {"strings": [y_strings], "shape": shape, "y_hat": y_hat, "q_level": q_level}
+
+    # def decompress(self, strings: List[List[bytes]], shape, q_level, **kwargs):
+    # def decompress(self, strings, shape, q_level, **kwargs):
+    def decompress(self, enc_data, **kwargs):
+        strings = enc_data["strings"]
+        shape = enc_data["shape"]
+        q_level = enc_data["q_level"]
+        
+        y_hat = self.entropy_bottleneck.decompress(strings[0], shape, **kwargs)
+        
+        perm = list(range(y_hat.dim()))
+        perm[-1], perm[1] = perm[1], perm[-1]
+        y_hat = y_hat.permute(*perm).contiguous()
+        
+        q_embed = self.quality_embedding(q_level)
+        # q_embed = self.quality_embedding(q_level).unsqueeze(1)
+        
+        # x_hat = self.g_s(y_hat).clamp_(0, 1)
+        x_hat = self.g_s(y_hat, q_embed)
+        
+        x_hat = self.scale * x_hat + self.shift
+        
+        return {
+            "x_hat": x_hat,
+        }
+    

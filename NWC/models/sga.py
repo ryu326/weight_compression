@@ -2,7 +2,7 @@ import torch
 import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
-from compressai.entropy_models import EntropyBottleneck
+from compressai.entropy_models import EntropyBottleneck, EntropyBottleneckVbr
 import wandb
 class Quantizator_SGA(nn.Module):
     """
@@ -103,6 +103,32 @@ class EntropyBottleneckNoQuant(EntropyBottleneck):
         x_quant = x_quant.reshape(x_quant.size(0), 1, -1)
         # likelihood = self._likelihood(x_quant)
         likelihood, _, _ = self._likelihood(x_quant)
+        if self.use_likelihood_bound:
+            likelihood = self.likelihood_lower_bound(likelihood)
+        # Convert back to input tensor shape
+        likelihood = likelihood.reshape(shape)
+        likelihood = likelihood.permute(*inv_perm).contiguous()
+        return likelihood
+
+class EntropyBottleneckNoQuantVbr(EntropyBottleneckVbr):
+    def __init__(self, channels):
+        super().__init__(channels)
+        self.sga = Quantizator_SGA()
+
+    def forward(self, x_quant, qs):
+        perm = np.arange(len(x_quant.shape))
+        perm[0], perm[1] = perm[1], perm[0]
+        # Compute inverse permutation
+        inv_perm = np.arange(len(x_quant.shape))[np.argsort(perm)]
+        x_quant = x_quant.permute(*perm).contiguous()
+        shape = x_quant.size()
+        x_quant = x_quant.reshape(x_quant.size(0), 1, -1)
+        
+        if qs is None:  
+            likelihood, _, _ = self._likelihood(x_quant)
+        else:
+            likelihood, _, _ = self._likelihood_variable(x_quant, qs = qs)
+        
         if self.use_likelihood_bound:
             likelihood = self.likelihood_lower_bound(likelihood)
         # Convert back to input tensor shape

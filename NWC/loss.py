@@ -127,6 +127,39 @@ class RateDistortionLoss_ql(nn.Module):
         out["loss"] = self.lmbda * out["recon_loss"] + bpp_loss
         return out
  
+class RateDistortionLoss_ql_hyper(nn.Module):
+    """Custom rate distortion loss with a Lagrangian parameter."""
+
+    def __init__(self, std, coff, lmbda=1e-2):
+        super().__init__()
+        self.mse = nn.MSELoss()
+        self.lmbda = lmbda
+        self.std = std
+        self.coff = coff
+
+    def forward(self, data, output):
+        out = {}
+        w = data['weight_block'].reshape(output["x_hat"].shape)
+        num_pixels = w.numel() 
+        qlevel = data['q_level']
+
+        coff = self.coff[qlevel].reshape(w.shape[0], 1, 1)
+        
+        out["recon_loss"] = self.mse(w, output["x_hat"]) / self.std**2
+
+        out["bpp_loss"] = sum(
+            (torch.log(likelihoods).sum() / (-math.log(2) * num_pixels))
+            for likelihoods in output["likelihoods"].values()
+        )
+        bpp_loss = 0
+        for likelihoods in output["likelihoods"].values():
+            bl = torch.log(likelihoods) * coff
+            bl = bl.sum() / (-math.log(2) * num_pixels)
+            bpp_loss += bl
+        
+        out["loss"] = self.lmbda * out["recon_loss"] + bpp_loss
+        return out
+
 class RateDistortionLoss_ql_code_opt(nn.Module):
     """Custom rate distortion loss with a Lagrangian parameter."""
 
@@ -224,6 +257,90 @@ class ProxyHessLoss(nn.Module):
         return out
 
  
+class RateDistortionLoss_qmap(nn.Module):
+    """Custom rate distortion loss with a Lagrangian parameter."""
+
+    def __init__(self, std, ld_min = 50, ld_max = 10000):
+        super().__init__()
+        self.mse = nn.MSELoss(reduction ='none')
+        self.std = std
+        self.min = ld_min 
+        self.max = ld_max
+
+    def lambda_from_q_tensor(self, q, lambda_min, lambda_max):
+        """
+        q: torch.Tensor, values in [0, 1]
+        lambda_min, lambda_max: float, desired range for lambda
+        returns: torch.Tensor of lambda values
+        """
+        log_min = torch.log(torch.tensor(lambda_min))
+        log_max = torch.log(torch.tensor(lambda_max))
+        log_lambda = log_min + (log_max - log_min) * q  # linear in log space
+        return torch.exp(log_lambda)
+    
+    def forward(self, data, output):
+        out = {}
+        w = data['weight_block']
+        
+        w = w.reshape(w.shape[0], -1) ## (B, -1)
+        w_hat = output['x_hat'].reshape(w.shape[0], -1) ## (B, -1)
+        
+        num_pixels = w.numel() 
+        qmap = data['qmap']  ## (B, 1)
+        
+        lmbda = self.lambda_from_q_tensor(qmap, self.min, self.max) 
+        
+        recon_loss = self.mse(w, w_hat) / self.std**2  ## (B, -1)
+        out["recon_loss"] = self.mse(w, w_hat).mean() / self.std**2 ## only for logging
+
+        out["bpp_loss"] = torch.log(output["likelihoods"]).sum() / (-math.log(2) * num_pixels)
+
+        out["loss"] = (lmbda * recon_loss).mean() + out["bpp_loss"]
+        return out 
+    
+class RateDistortionLoss_qmap_v2(nn.Module):
+    """Custom rate distortion loss with a Lagrangian parameter."""
+
+    def __init__(self, std, lmbda, ld_min = 3.4, ld_max = 0.05):
+        super().__init__()
+        self.mse = nn.MSELoss()
+        self.std = std
+        self.min = ld_min 
+        self.max = ld_max
+        self.lmbda = lmbda
+
+    def lambda_from_q_tensor(self, q, lambda_min, lambda_max):
+        """
+        q: torch.Tensor, values in [0, 1]
+        lambda_min, lambda_max: float, desired range for lambda
+        returns: torch.Tensor of lambda values
+        """
+        log_min = torch.log(torch.tensor(lambda_min))
+        log_max = torch.log(torch.tensor(lambda_max))
+        log_lambda = log_min + (log_max - log_min) * q  # linear in log space
+        return torch.exp(log_lambda)
+    
+    def forward(self, data, output):
+        out = {}
+        w = data['weight_block']
+        
+        w = w.reshape(w.shape[0], -1) ## (B, -1)
+        w_hat = output['x_hat'].reshape(w.shape[0], -1) ## (B, -1)
+        
+        num_pixels = w.numel() 
+        qmap = data['qmap']  ## (B, 1)
+        
+        lmbda_r = self.lambda_from_q_tensor(qmap, self.min, self.max) 
+        
+        out["recon_loss"] = self.mse(w, w_hat) / self.std**2  ## (B, -1)
+
+        out["bpp_loss"] = torch.log(output["likelihoods"]).sum() / (-math.log(2) * num_pixels)
+        bpp_loss = torch.log(output["likelihoods"]) * lmbda_r.reshape(output["likelihoods"].shape[0], 1, 1)
+        bpp_loss = bpp_loss.sum() / (-math.log(2) * num_pixels)
+
+        out["loss"] = self.lmbda * out["recon_loss"] + bpp_loss
+        return out 
+
 def get_loss_fn(args, std=None, device = None):
     if hasattr(args, 'code_optim_lr'):
         args.lmbda = args.code_optim_lmbda
@@ -237,12 +354,25 @@ def get_loss_fn(args, std=None, device = None):
         return RateDistortionLoss(std, lmbda= args.lmbda)
     elif args.loss == "rdloss_ql":
         # assert 'clip' in args.dataset_path.lower()
+        if args.Q == 2:
+            coff = torch.tensor([3.4, 0.05]).to(device)
         if args.Q == 4:
             coff = torch.tensor([3.4, 1.2, 0.1, 0.05]).to(device)
         if args.Q == 8:
             coff = torch.tensor([4.000, 1.707, 0.724, 0.307, 0.130, 0.055, 0.024, 0.010]).to(device)
         if args.Q == 16:
             coff = torch.tensor([4.000, 2.301, 1.324, 0.761, 0.438, 0.252, 0.145, 0.083, 0.048, 0.028, 0.016, 0.009, 0.005, 0.003, 0.0017, 0.001]).to(device)
+        if args.use_hyper:
+            return RateDistortionLoss_ql_hyper(std, coff, lmbda = args.lmbda)
         return RateDistortionLoss_ql(std, coff, lmbda = args.lmbda)
+    elif args.loss == "rdloss_ql_code_opt":
+        if args.Q == 4:
+            coff = torch.tensor([3.4, 1.2, 0.1, 0.05]).to(device)
+        return RateDistortionLoss_ql_code_opt(std, coff, lmbda = args.lmbda)
     elif args.loss == "proxy_hess":
         return ProxyHessLoss(std, lmbda = args.lmbda)
+    elif args.loss == "rdloss_qmap":
+        return RateDistortionLoss_qmap(std, args.lmbda_min, args.lmbda_max)
+    elif args.loss == "rdloss_qmap2":
+        return RateDistortionLoss_qmap_v2(std, lmbda = args.lmbda)
+        

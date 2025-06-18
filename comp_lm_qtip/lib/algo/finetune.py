@@ -227,8 +227,13 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
                 finetune_decoder_layer(mixed_layer, f'{idx}_{name}', device,
                                     train_dl, valid_dl, orig_dtype, args) 
         
+        # nan_mask = torch.isnan(W_hat)
+        # print(nan_mask.nonzero())  # NaN 위치의 인덱스 출력
+        assert torch.isnan(W_hat).any() == False  # 출력: True
         assert torch.equal(W_hat, attrgetter(linear_attr)(mixed_layer).weight)
-        
+        # w_now = attrgetter(linear_attr)(mixed_layer).weight
+        # assert torch.allclose(W_hat, w_now, atol=1e-6), f"Mismatch: max diff = {(W_hat - w_now).abs().max()}"
+
         del HR, W, W_hat
         utils.clean()
 

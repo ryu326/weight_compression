@@ -21,6 +21,7 @@ parser.add_argument('--hf_path', default='hfized/quantized_hada_70b', type=str)
 parser.add_argument('--seqlen', default=4096, type=int)
 parser.add_argument('--manifest', action='store_true')
 parser.add_argument('--max_mem_ratio', default=0.7, type=float)
+parser.add_argument("--output_path", default=None, type=str)
 
 
 def main(args):
@@ -66,8 +67,9 @@ def main(args):
         glog.info(f'{dataset} perplexity: {ppl}')
         result[dataset] = ppl
 
-        os.makedirs(os.path.dirname(f'{args.hf_path}_ppl_result.json'), exist_ok=True)
-        with open(f'{args.hf_path}_ppl_result.json', 'w') as f:
+
+        os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
+        with open(f'{args.output_path}_ppl_result.json', 'w') as f:
             json.dump(result, f, indent=2)
 
 if __name__ == '__main__':

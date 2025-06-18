@@ -202,6 +202,8 @@ def comp_W(W, H, model, args, **kwargs):
         L, D = block_LDL(H, bs)
         # L, D = block_LDL(H, 128)
         assert n % bs == 0
+    
+    q_size = torch.ones(W.shape[1],) if args.qs_optim else None
 
         
     if args.direction == 'row':
@@ -220,7 +222,8 @@ def comp_W(W, H, model, args, **kwargs):
         ql = qlevel[s:e] if qlevel is not None else None
         r_norm = row_norm[s:e, :] if row_norm is not None else None
         c_norm = col_norm[:, s:e] if col_norm is not None else None
-
+        qs = q_size[s:e] if q_size is not None else None
+        
         x_hat, n_pixels, bpp_loss_, out, out_enc, nbits = model_foward(w.clone().T, model, args, ql = ql.clone())
 
         if args.code_optim:
@@ -229,8 +232,8 @@ def comp_W(W, H, model, args, **kwargs):
             num_pixels_init += n_pixels
             bpp_loss_sum_init += bpp_loss_
 
-            best_y, w_hat_sga, bpp_loss_sga, n_pixels_sga = code_optimize(w.clone().T, model, out, args, ql = ql.clone(), std = std, mode = 'sga', batch_idx = i, rnorm = r_norm.T, cnorm = c_norm.T)
-            x_hat, n_pixels, bpp_loss_, out, out_enc, nbits = model_foward(None, model, args, ql = ql.clone(), y_in = best_y, mode='round', shape = w.T.shape)
+            best_y, w_hat_sga, bpp_loss_sga, n_pixels_sga, best_rnorm, best_cnorm, best_qs = code_optimize(w.clone().T, model, out, args, ql = ql.clone(), std = std, mode = 'sga', batch_idx = i, rnorm = r_norm.T, cnorm = c_norm.T, qs = qs)
+            x_hat, n_pixels, bpp_loss_, out, out_enc, nbits = model_foward(None, model, args, ql = ql.clone(), y_in = best_y, mode='round', shape = w.T.shape, qs = best_qs)
             # x_hat_test, n_pixels_test, bpp_loss_test, out_test, out_enc_test, nbits_test = model_foward(None, model, args, ql = ql.clone(), y_in = best_y, mode='round', shape = w.T.shape)
 
         codes.append(out_enc)
@@ -238,6 +241,9 @@ def comp_W(W, H, model, args, **kwargs):
         W_hat[:, s:e] = x_hat.T
         num_pixels += n_pixels
         bpp_loss_sum += bpp_loss_
+        col_norm[:, s:e] = best_cnorm
+        row_norm[s:e, :] = best_rnorm
+        q_size[s:e] = best_qs
 
         if args.code_optim_test:
             W_hat_sga[:, s:e] = w_hat_sga.T
@@ -337,6 +343,7 @@ def code_optimize(w, comp_model, init_out, args, **kwargs):
     batch_idx = kwargs.get('batch_idx', -1)
     ori_shape = w.shape
     w = w.reshape(w.shape[0], -1, comp_model.input_size)
+    qs = kwargs.get('qs', None)
     
     rnorm = kwargs.get('rnorm', None) # (1, m) 
     cnorm = kwargs.get('cnorm', None) # (n, 1)
@@ -361,6 +368,9 @@ def code_optimize(w, comp_model, init_out, args, **kwargs):
     if cnorm is not None:
         cnorm = nn.Parameter(cnorm, requires_grad=True)
         tune_params.append(cnorm)
+    if qs is not None:
+        qs = nn.Parameter(qs, requires_grad=True)
+        tune_params.append(qs)
     optimizer = optim.Adam(tune_params, lr=args.code_optim_lr)
 
     # comp_model.train()
@@ -374,7 +384,7 @@ def code_optimize(w, comp_model, init_out, args, **kwargs):
     best_rnorm = rnorm.detach().clone() if rnorm is not None else None
     best_cnorm = cnorm.detach().clone() if cnorm is not None else None
     best_w_hat = init_out['x_hat'].detach().clone()
-
+    best_qs = qs.detach().clone() if qs is not None else None
     with torch.enable_grad():
         for it in range(args.code_optim_it):
             optimizer.zero_grad()
@@ -394,7 +404,7 @@ def code_optimize(w, comp_model, init_out, args, **kwargs):
                 best_w_hat = out['x_hat'].detach().clone()
                 best_rnorm = rnorm.detach().clone() if rnorm is not None else None
                 best_cnorm = cnorm.detach().clone() if cnorm is not None else None
-
+                best_qs = qs.detach().clone() if qs is not None else None
             wandb.log({
                 "loss": loss['loss'].item(),
                 "bpp_loss": loss['bpp_loss'].item(),
@@ -406,6 +416,7 @@ def code_optimize(w, comp_model, init_out, args, **kwargs):
                 "init_loss": init_loss['loss'].item(),
                 "init_bpp_loss": init_loss['bpp_loss'].item(),
                 "init_recon_loss": init_loss['recon_loss'].item(),
+                "best_qs_mean": best_qs.mean().item(),
             })
             
     glog.info(f'y == best_y :: {torch.equal(y, best_y)}')
@@ -421,7 +432,7 @@ def code_optimize(w, comp_model, init_out, args, **kwargs):
         bpp_loss = (torch.log(out["likelihoods"]).sum() / -math.log(2)).item()
     num_pixels = ori_shape[0] * ori_shape[1]
 
-    return best_y, best_w_hat.reshape(ori_shape), bpp_loss, num_pixels, best_rnorm, best_cnorm
+    return best_y, best_w_hat.reshape(ori_shape), bpp_loss, num_pixels, best_rnorm, best_cnorm, best_qs
     # return y, out['x_hat'].reshape(ori_shape)
 
 

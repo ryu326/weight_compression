@@ -48,10 +48,14 @@ def parse_args(argv):
     parser.add_argument("--loss", default="rdloss", type=str)
     parser.add_argument("--checkpoint", default=None, type=str)
     parser.add_argument("--lmbda", type=int, default=None)
+    parser.add_argument("--lmbda_min", type=int, default=None)
+    parser.add_argument("--lmbda_max", type=int, default=None)
     parser.add_argument("--dataset_stat_type", type=str, choices=['scaler', 'channel'], default='scaler')
     parser.add_argument("--pretrained_path", type=str, default=None)
     parser.add_argument("--run_name", type=str, default="")
     parser.add_argument("--no_layernorm", action='store_true', default=False)
+    parser.add_argument("--use_pe", action='store_true', default=False)
+    parser.add_argument("--use_hyper", action='store_true', default=False)
     args = parser.parse_args(argv)
     return args
 
@@ -490,7 +494,10 @@ def before_main(argvs):
         f"seed{args.seed}"
     ]))
 
-    folder_name = os.path.join(folder_name, subfolder, f"lmbda{args.lmbda}_")
+    if args.lmbda is not None:
+        folder_name = os.path.join(folder_name, subfolder, f"lmbda{args.lmbda}_")
+    else:
+        folder_name = os.path.join(folder_name, subfolder, f"ld_min{args.lmbda_min}_max{args.lmbda_max}_")
 
     if args.seed is not None:
         save_path = os.path.join("./checkpoint", args.save_dir, args.architecture, folder_name)

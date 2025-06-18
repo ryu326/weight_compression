@@ -1,19 +1,147 @@
 lmbda=50
+min=10
+max=10000
 CUDA_VISIBLE_DEVICES=0 taskset -c 0-7 python -u train_nwc.py \
-    --architecture nwc_ql \
-    --dataset_path ../Wparam_dataset/block_pt/llama8b+7b/droplast_modelwise_norm2_col_1024.pt \
-    --dataset block_seq_ql_random \
+    --architecture nwc_qmap2 \
+    --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
+    --dataset block_seq_qmap \
     --iter 200000 \
     --input_size 16 \
-    --M 16 \
+    --M 17 \
     --dim_encoder 512 \
     --batch_size 2048 \
-    --loss rdloss_ql --Q 4 \
+    --loss rdloss_qmap2 \
     --lmbda $lmbda
-
     
     
 ###############
+    # --architecture nwc_ql \
+    # --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/scaleH_sig0.0001_rnormed_row_1024.pt \
+    # --dataset block_seq_ql_random \
+    # --iter 200000 \
+    # --input_size 128 \
+    # --M 128 \
+    # --dim_encoder 1024 \
+    # --batch_size 2048 \
+    # --loss rdloss_ql --Q 4 \
+    # --lmbda $lmbda
+
+    # --architecture nwc_ql \
+    # --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/rnormed_col_1024.pt \
+    # --dataset block_seq_ql_random \
+    # --iter 200000 \
+    # --input_size 128 \
+    # --M 64 \
+    # --dim_encoder 512 \
+    # --batch_size 2048 \
+    # --loss rdloss_ql --Q 4 \
+    # --lmbda $lmbda
+
+    # --architecture nwc_ql \
+    # --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/scaleH_sig0.0001_rnormed_row_1024.pt \
+    # --dataset block_seq_ql_random \
+    # --iter 200000 \
+    # --input_size 16 \
+    # --M 16 \
+    # --dim_encoder 512 \
+    # --batch_size 2048 \
+    # --loss rdloss_ql --Q 4 \
+    # --lmbda $lmbda
+
+    # --architecture nwc_qmap \
+    # --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
+    # --dataset block_seq_qmap \
+    # --iter 200000 \
+    # --input_size 16 \
+    # --M 17 \
+    # --dim_encoder 512 \
+    # --batch_size 2048 \
+    # --loss rdloss_qmap2 \
+    # --lmbda $lmbda
+
+    # --architecture nwc_ql_ste \
+    # --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
+    # --dataset block_seq_ql_random \
+    # --iter 200000 \
+    # --input_size 16 \
+    # --M 16 \
+    # --Q 4 \
+    # --dim_encoder 512 \
+    # --batch_size 2048 \
+    # --loss rdloss_ql \
+    # --lmbda $lmbda
+
+    # --architecture nwc_qmap \
+    # --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
+    # --dataset block_seq_qmap \
+    # --iter 200000 \
+    # --input_size 16 \
+    # --M 17 \
+    # --dim_encoder 512 \
+    # --batch_size 2048 \
+    # --loss rdloss_qmap \
+    # --lmbda_min $min \
+    # --lmbda_max $max
+
+    # --architecture nwc_ql2 \
+    # --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
+    # --dataset block_vec_ql_random \
+    # --run_name learnable_scale_no_norm \
+    # --iter 200000 \
+    # --input_size 16 \
+    # --M 16 \
+    # --dim_encoder 512 \
+    # --batch_size 2048 \
+    # --loss rdloss_ql --Q 4 \
+    # --lmbda $lmbda
+
+    # --architecture nwc_ql \
+    # --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
+    # --dataset block_seq_ql_random \
+    # --run_name use_hyper \
+    # --use_hyper \
+    # --iter 200000 \
+    # --input_size 16 \
+    # --M 16 \
+    # --dim_encoder 512 \
+    # --batch_size 2048 \
+    # --loss rdloss_ql --Q 4 \
+    # --lmbda $lmbda
+
+    # --architecture nwc_qmap \
+    # --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
+    # --dataset block_seq_qmap \
+    # --iter 200000 \
+    # --input_size 16 \
+    # --M 17 \
+    # --dim_encoder 512 \
+    # --batch_size 2048 \
+    # --loss rdloss_qmap \
+    # --lmbda_min $min \
+    # --lmbda_max $max
+
+    # --architecture nwc_ql_pe \
+    # --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_idx_ltype_stats.pt \
+    # --dataset block_seq_ql_random_pos \
+    # --iter 200000 \
+    # --input_size 16 \
+    # --M 16 \
+    # --dim_encoder 512 \
+    # --batch_size 2048 \
+    # --loss rdloss_ql --Q 4 \
+    # --lmbda $lmbda
+
+    # --architecture nwc_ql \
+    # --dataset_path ../Wparam_dataset/block_pt/llama8b+7b/droplast_modelwise_norm2_col_1024.pt \
+    # --dataset block_seq_ql_random \
+    # --iter 200000 \
+    # --input_size 16 \
+    # --M 16 \
+    # --dim_encoder 512 \
+    # --batch_size 2048 \
+    # --loss rdloss_ql --Q 4 \
+    # --lmbda $lmbda
+
     # --architecture nwc_ql \
     # --dataset_path ../Wparam_dataset/block_pt/llama_8b_7b/droplast_col_1024.pt \
     # --dataset block_seq_ql_random \

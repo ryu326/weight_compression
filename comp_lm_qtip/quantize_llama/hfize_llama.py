@@ -187,10 +187,11 @@ def main(args):
     del model
     
     
-    file_path = f'{args.hf_output_path}_result.json'
+    file_path = f'{args.hf_output_path}_result'
     if os.path.exists(file_path):
-        file_path = f'{args.hf_output_path}_result2.json'
-    with open(file_path, 'w') as f:
+        # file_path = f'{args.hf_output_path}_result2.json'
+        os.rename(file_path + '.json', file_path + '_.json')
+    with open(file_path + '.json', 'w') as f:
         json.dump(comp_result, f, indent=2)
         
     # model, _ = model_from_hf_path(args.hf_output_path, device_map='cuda')

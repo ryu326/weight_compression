@@ -91,8 +91,9 @@ parser.add_argument("--ql_search_layer_name", type=str, default=None)
 # parser.add_argument("--ql_search_layer_idx", type=str, default='0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31')
 parser.add_argument("--ql_search_layer_idx", type=str, default='')
 parser.add_argument("--ql_search_value", type=int, default=None)
+parser.add_argument("--ql_search_r", type=float, default=None)
 parser.add_argument("--ql_tuned", action='store_true', default=False)
-parser.add_argument('--layerwise_scale', action='store_true', default=False)
+parser.add_argument('--layer_normalize', action='store_true', default=False)
 parser.add_argument('--channelwise_scale', action='store_true', default=False)
 parser.add_argument('--row_normalize', action='store_true', default=False)
 parser.add_argument('--col_normalize', action='store_true', default=False)
@@ -101,9 +102,21 @@ parser.add_argument('--code_optim_it', type=int, default=False)
 parser.add_argument('--code_optim_lr', type=float, default=5e-3)
 parser.add_argument('--code_optim_lmbda', type=int, default=None)
 parser.add_argument('--code_optim_test', action='store_true', default=False)
+parser.add_argument('--code_optim_model', type=str, default='nwc_ql_sga')
+parser.add_argument('--optim_qs', action='store_true', default=False)
+parser.add_argument('--optim_norm', action='store_true', default=False)
 parser.add_argument('--loss', type=str, default='rdloss_ql')
 parser.add_argument('--Q', type=int, default=4)
 parser.add_argument('--use_codes', action='store_true', default=False)
+parser.add_argument('--qmap_uniform', type=float, default=None)
+parser.add_argument('--qmap_hessian', action='store_true', default=False)
+parser.add_argument('--qmap_hessian_ql', action='store_true', default=False)
+parser.add_argument('--qmap_alpha', type=float, default=False)
+parser.add_argument('--qmap_optim_iter', type=int, default=5)
+parser.add_argument('--qmap_optim', action='store_true', default=False)
+parser.add_argument('--scaleH', action='store_true', default=False)
+parser.add_argument('--scale_std', type=float, default=None)
+parser.add_argument('--rnorm_optim', action='store_true', default=False)
 
 def check_exist(idx, args):
     suffix = ['q', 'k', 'v', 'o', 'up', 'down', 'layernorm']
@@ -191,16 +204,20 @@ def main(args):
         config.no_layernorm = False
     
     if args.code_optim:
-        config.architecture = 'nwc_ql_sga'
+        config.architecture = args.code_optim_model
     comp_model = get_model(config.architecture, config, scale=scale, shift=shift)
     comp_model.config = config
     ckpt = torch.load(args.comp_model_path, weights_only=False)
-    if args.use_train_scale or args.layerwise_cdt or args.layerwise_scale or args.row_normalize or args.col_normalize:
+    if args.use_train_scale or args.layerwise_cdt or args.layer_normalize or args.row_normalize or args.col_normalize or args.scaleH:
         try:
             scale = ckpt["state_dict"]["scale"]
             shift = ckpt["state_dict"]["shift"]
             print('Use train scale and shift')
             print('shift: ', shift, ' scale:', scale)
+            if args.scale_std is not None:
+                print(f"Scale scale *{args.scale_std}")
+                scale = args.scale_std * scale
+                print('shift: ', shift, ' scale:', scale)
         except:
             scale, shift  = torch.zeros(1), torch.zeros(1)
     else:

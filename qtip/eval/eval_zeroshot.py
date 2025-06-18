@@ -74,6 +74,8 @@ def main(args):
     
     if args.output_path is None:
         args.output_path = args.hf_path + '_zeroshot_results.json'
+    else:
+        args.output_path = args.output_path + '_zeroshot_results.json'
         
     os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
     results["config"]["model"] = args.hf_path

@@ -31,23 +31,23 @@ class Weight_Vector_Dataset(Dataset):
     def __getitem__(self, idx):
         img = self.dataset[idx]
 
-        if self.split == 'val':
-            prob = random.random()
-            if prob < 0.001:         # 0.1%
-                q_level = torch.tensor(3, dtype=torch.long)
-            elif prob < 0.011:        # 0.1% + 1% = 1.1%
-                q_level = torch.tensor(2, dtype=torch.long)
-            elif prob < 0.111:        # 0.1% + 1% + 10% = 11.1%
-                q_level = torch.tensor(1, dtype=torch.long)
-            else:
-                q_level = torch.tensor(0, dtype=torch.long)
-        else:
-            q_level = random.choice(self.random_values)
+        # if self.split == 'val':
+        #     prob = random.random()
+        #     if prob < 0.001:         # 0.1%
+        #         q_level = torch.tensor(3, dtype=torch.long)
+        #     elif prob < 0.011:        # 0.1% + 1% = 1.1%
+        #         q_level = torch.tensor(2, dtype=torch.long)
+        #     elif prob < 0.111:        # 0.1% + 1% + 10% = 11.1%
+        #         q_level = torch.tensor(1, dtype=torch.long)
+        #     else:
+        #         q_level = torch.tensor(0, dtype=torch.long)
+        # else:
+        #     q_level = random.choice(self.random_values)
+        q_level = random.choice(self.random_values)
 
         return {
             'weight_block': img,
             'q_level': q_level,
-            'sig': img.std(),
         }
 
 

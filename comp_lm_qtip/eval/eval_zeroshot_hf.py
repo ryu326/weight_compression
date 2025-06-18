@@ -64,7 +64,17 @@ def main(args):
             if isinstance(module, QuantizedLinear):
                 module.mode = 'train-fixW'
 
-    tokenizer = AutoTokenizer.from_pretrained(model_str)
+    try:
+        tokenizer = AutoTokenizer.from_pretrained(model_str)
+    except Exception as e:
+        print(f"Error loading Tokenizer: {e}")
+        if '8b' in model_str.lower():
+            model_str_tmp = "../Wparam_dataset/hf_model/meta-llama--Meta-Llama-3-8B"
+        elif '7b' in  model_str.lower():
+            model_str_tmp = "../Wparam_dataset/hf_model/meta-llama--Llama-2-7b-hf"
+        elif '13b' in model_str.lower():
+            model_str_tmp = "../Wparam_dataset/hf_model/meta-llama--Llama-2-13b-hf"
+        tokenizer = AutoTokenizer.from_pretrained(model_str_tmp)
 
     glog.info('loaded model!')
     tokenizer.pad_token = tokenizer.eos_token

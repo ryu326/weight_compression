@@ -1,7 +1,7 @@
 export CUDA_VISIBLE_DEVICES=0,1,2,3
-for b in 5 6 7 8 9; do
-    torchrun --nnodes=1 --nproc_per_node=4 ptq_eval_ppl_zeroshot.py \
-    --input_model ../Wparam_dataset/hf_model/meta-llama--Meta-Llama-3-8B \
+for b in 4; do
+    torchrun --nnodes=1 --nproc_per_node=4 --master_port=29502 ptq_eval_ppl_zeroshot.py \
+    --input_model ../Wparam_dataset/hf_model/meta-llama--Llama-2-13b-hf \
     --do_train False \
     --do_eval True \
     --per_device_eval_batch_size 1 \
@@ -14,11 +14,15 @@ for b in 5 6 7 8 9; do
     --w_clip \
     --a_asym \
     --rotate \
-    --optimized_rotation_path ./output_rotation/8B_w${b}a16/R.bin \
-    --load_qmodel_path ./output_qmodel/8B_w${b}a16.pth \
-    2>&1 | tee ./logs/eval_zeroshot_8B_w${b}a16.log
+    --optimized_rotation_path /workspace/Weight_compression/hf_model_comp/spinquant/output_rotation/13B_W4A16KV16_lr_1.5_seed_0/R.bin \
+    --save_qmodel_path ../hf_model_comp/spinquant/output_qmodel/13B_w${b}a16.pth \
+    2>&1 | tee ./logs/eval_zeroshot_13B_w${b}a16.log
 done
 
-    # --save_qmodel_path ./output_qmodel/8B_w${b}a16.pth \
+    # --load_qmodel_path ../hf_model_comp/spinquant/output_qmodel/7B_w${b}a16.pth \
+    # --save_qmodel_path ../hf_model_comp/spinquant/output_qmodel/13B_w${b}a16.pth \
+    # --save_qmodel_path ./output_qmodel/7B_w${b}a16.pth \
     # --export_to_et \
     # --w_groupsize 32 \
+    # --input_model ../Wparam_dataset/hf_model/meta-llama--Llama-2-13B-hf \
+# meta-llama--Meta-Llama-3-13B

@@ -1,11 +1,11 @@
-export CUDA_VISIBLE_DEVICES=0,1,2,3
+export CUDA_VISIBLE_DEVICES=0
 
 CKPT="../hf_model_comp/qtip/ckpt"
 HF="../hf_model_comp/qtip/hf"
 LOG="./log"
 
-HESS="../Wparam_dataset/quip_hess/llama3_8b_6144"
-base_model="../Wparam_dataset/hf_model/meta-llama--Meta-Llama-3-8B"
+# HESS="../Wparam_dataset/quip_hess/llama3_8b_6144"
+# base_model="../Wparam_dataset/hf_model/meta-llama--Meta-Llama-3-8B"
 
 # HESS="../Wparam_dataset/quip_hess/meta-llama--Llama-3.2-3B-256"
 # base_model="../Wparam_dataset/hf_model/meta-llama--Llama-3.2-3B"
