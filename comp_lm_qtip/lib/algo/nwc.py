@@ -33,18 +33,34 @@ def compress_linear(W, H, comp_model, Qlevel, args, device='cpu'):
     SU, SV, scaleWH = None, None, None
     if args.incoh_mode != 'none':
         Lhr, H, W, SU, SV, scaleWH = quip.incoherence_preprocess(H, W, args)
-    if args.scaleH:
+    if args.scaleH: ## scaleh2 --scaleh 랑 --row_normalize 하는게 scaleh2
         assert args.row_normalize == True
         diagH = torch.diag(H)
         diagH = torch.clamp(diagH, min=1e-8)
         scaleH = diagH.sqrt()
         W = W * scaleH[None, :]
         H = H / scaleH[None, :]
+        H = H / scaleH[:, None]
         # row_norm = W.norm(p=2, dim=1, keepdim=True)
         # row_std = W.std(dim=1, keepdim=True)
         # comp_model.scale = torch.tensor(1).to(device)
         # comp_model.shift = torch.tensor(0).to(device)
-        
+    if args.scaleHinv:
+        assert args.row_normalize == True
+        Lhr = torch.linalg.cholesky(H)
+        H_inv = torch.cholesky_inverse(Lhr)
+        diagH_inv = torch.diag(H_inv)
+        scaleH = 1/diagH_inv
+        scaleH = torch.clamp(scaleH, min=1e-8)
+        scaleH = scaleH.sqrt()
+        W = W * scaleH[None, :]
+        H = H / scaleH[None, :]
+        H = H / scaleH[:, None]
+        # row_norm = W.norm(p=2, dim=1, keepdim=True)
+        # row_std = W.std(dim=1, keepdim=True)
+        # comp_model.scale = torch.tensor(1).to(device)
+        # comp_model.shift = torch.tensor(0).to(device)
+    
     if args.layer_normalize:
         comp_model.scale = W.std().to(device)
         comp_model.shift = W.mean().to(device)
@@ -127,11 +143,13 @@ def compress_linear(W, H, comp_model, Qlevel, args, device='cpu'):
             Qlevel = torch.max(Qlevel, torch.tensor(1))
 
     if args.ql_search:
-        ql_search_layer_idx = list(map(int, args.ql_search_layer_idx.split(',')))
-        ql_search_layer_name = args.ql_search_layer_name.split(',')
-        assert args.ql
-        if args.layer_name in ql_search_layer_name and args.layer_idx in ql_search_layer_idx:
-            Qlevel = torch.full_like(Qlevel, args.ql_search_value)    
+        # ql_search_layer_idx = list(map(int, args.ql_search_layer_idx.split(',')))
+        # ql_search_layer_name = args.ql_search_layer_name.split(',')
+        # assert args.ql
+        # if args.layer_name in ql_search_layer_name and args.layer_idx in ql_search_layer_idx:
+        #     Qlevel = torch.full_like(Qlevel, args.ql_search_value)    
+        Qlevel = torch.full((W.shape[1],), args.ql_search_value, dtype=torch.int32)    
+
 
     Qlevel = Qlevel.to(device) if Qlevel is not None else None
     
@@ -161,20 +179,26 @@ def compress_linear(W, H, comp_model, Qlevel, args, device='cpu'):
             start += count            
         Qmap =  Qmap.reshape(1, W.shape[1]).expand(W.shape[0]//comp_model.input_size, W.shape[1]).to(device= device, dtype=torch.float)
         
-    if args.qmap_optim:
-        with torch.enable_grad():
-            Qmap = optimize_qmap.optimize_qmap(W, H, comp_model, args, Qmap = Qmap).to(device) ## (m//16, n)
-    if args.rnorm_optim:
-        with torch.enable_grad():
-            row_std = optimize_qmap.optimize_rnorm(W, H, comp_model, args, row_norm = row_std, qlevel = Qlevel).to(device) ## (m//16, n)
-            W = W / row_std
+    # if args.qmap_optim:
+    #     with torch.enable_grad():
+    #         Qmap = optimize_qmap.optimize_qmap(W, H, comp_model, args, Qmap = Qmap).to(device) ## (m//16, n)
+    # if args.rnorm_optim:
+    #     with torch.enable_grad():
+    #         row_std = optimize_qmap.optimize_rnorm(W, H, comp_model, args, row_norm = row_std, qlevel = Qlevel).to(device) ## (m//16, n)
+    #         W = W / row_std
+            
+    if args.qmap_optim or args.rnorm_optim or args.cnorm_optim:
+        Qmap, row_std, col_std = optimize_qmap.optimize_qmap_rnorm(W, H, comp_model, args, qlevel = Qlevel, row_norm=row_std, col_norm=col_std, qmap = Qmap)
+        Qmap = Qmap.to(device) if Qmap is not None else None
+        row_std = row_std.to(device) if row_std is not None else None
+        col_std = col_std.to(device) if col_std is not None else None   
 
     ft_result = None
     optimize_out = None
 
     res = comp_W(W, H, comp_model, args, qlevel = Qlevel, row_norm=row_std, col_norm=col_std, qmap = Qmap)
-    col_std = res['col_norm'] 
-    row_std = res['row_norm']
+    # col_std = res['col_norm'] 
+    # row_std = res['row_norm']
     
     if args.incoh_mode != 'none':
         res['W_hat'] = quip.incoherence_process(res['W_hat'], SU, SV, scaleWH, args)
@@ -182,7 +206,7 @@ def compress_linear(W, H, comp_model, Qlevel, args, device='cpu'):
         res['W_hat_sga'] = quip.incoherence_process(res['W_hat_sga'], SU, SV, scaleWH, args) if res['W_hat_sga'] is not None else None
         res['W_hat_round'] = quip.incoherence_process(res['W_hat_round'], SU, SV, scaleWH, args) if res['W_hat_round'] is not None else None
     
-    if args.scaleH:
+    if args.scaleH or args.scaleHinv:
         res['W_hat'] = res['W_hat'] / scaleH[None, :]
     
     if args.col_normalize:
@@ -209,7 +233,6 @@ def compress_linear(W, H, comp_model, Qlevel, args, device='cpu'):
     for key in ['W_hat', 'W_hat_init', 'W_hat_sga', 'W_hat_round']:
         if res.get(key) is not None:
             res[key] = res[key].cpu()
-
 
     utils.clean()
     return res, SU, SV, scaleWH, ft_result, optimize_out
@@ -251,21 +274,12 @@ def comp_W(W, H, model, args, **kwargs):
         
     if args.ldlq:
         bs = 128 if args.comp_batch_size == -1 else args.comp_batch_size
-        assert args.direction == 'col'
+        # assert args.direction == 'col'
         L, D = block_LDL(H, bs)
         # L, D = block_LDL(H, 128)
         assert n % bs == 0
     
     q_size = torch.ones(W.shape[1],).to(W.device) if args.optim_qs else None
-        
-    # if args.direction == 'row':
-    #     assert args.ql == False
-    #     W = W.T
-    #     W_hat = W_hat.T
-    #     (m, n) = W.shape
-    #     qmap = qmap.T if qmap is not None else None
-    #     row_norm = row_norm.T if row_norm is not None else None
-    #     col_norm = col_norm.T if col_norm is not None else None
 
     for i,e in enumerate(range(n, 0, -bs)):
         s = max(0, e - bs)
@@ -278,6 +292,7 @@ def comp_W(W, H, model, args, **kwargs):
         r_norm = row_norm[:, :] if row_norm is not None else None
         c_norm = col_norm[:, s:e] if col_norm is not None else None
         qs = q_size[s:e] if q_size is not None else None
+        # qm = qmap[:, s:e].to(w.device) if qmap is not None else None
         qm = qmap[:, s:e] if qmap is not None else None
         
         # x_hat, n_pixels, bpp_loss_, out, out_enc, nbits = model_foward(w.clone().T, model, args, ql = ql.clone(), qmap = qmap)
@@ -315,13 +330,6 @@ def comp_W(W, H, model, args, **kwargs):
             num_pixels_round += n_pixels
             bpp_loss_sum_round += bpp_loss_.item()
     
-    # if args.direction == 'row':
-    #     W_hat = W_hat.T
-    #     if args.code_optim:
-    #         W_hat_init = W_hat_init.T
-    #     if args.code_optim_test:
-    #         W_hat_sga = W_hat_sga.T
-    #         W_hat_round = W_hat_round.T
     
     if args.code_optim_test:
         assert num_pixels_round == num_pixels_sga
@@ -440,24 +448,27 @@ def model_foward_one_batch(w, model, args, **kwargs):
     blks = model.input_size
     assert (m if args.direction == 'col' else n) % blks == 0
     
-    w = w / rnorm if args.row_normalize else w
-    w = w / cnorm if args.col_normalize else w
+    w = w / rnorm if rnorm is not None else w
+    w = w / cnorm if cnorm is not None else w
     
     if ql is not None:
         ql = ql.reshape(1, n).expand(m//blks, n)
     else:
         ql = torch.full((m//blks, n), args.ql_search_value, dtype=torch.int32, device=w.device)
+        # pass
     
     transpose = args.direction == 'col'
 
     w = w.T if (w is not None and transpose) else w
-    ql = ql.T if transpose else ql
+    ql = ql.T if (ql is not None and transpose) else ql
     qm = qm.T if (qm is not None and transpose) else qm
 
     data = {}
     w = w.reshape(1, -1, blks)
     data['weight_block'] = w
-    data['q_level'] = ql.reshape(1, w.shape[1])
+    
+    if ql is not None:
+        data['q_level'] = ql.reshape(1, w.shape[1])
     
     if qm is not None:
         data['qmap'] = qm.reshape(1, w.shape[1])
@@ -470,7 +481,7 @@ def model_foward_one_batch(w, model, args, **kwargs):
         data['ltype'] = torch.full((1, 1), ltype, dtype=torch.long).to(w.device)
         
     num_pixels = m*n
-    bpp_loss = 0
+    bpp_loss_sum = torch.tensor(0)
     nbits = 0
     out_enc = None
     out = None
@@ -509,9 +520,9 @@ def model_foward_one_batch(w, model, args, **kwargs):
     else:
         w_hat = w_hat.reshape(m, n)
 
-    if args.col_normalize:
+    if cnorm is not None:
         w_hat = w_hat * cnorm
-    if args.row_normalize:
+    if rnorm is not None:
         w_hat = w_hat * rnorm
     
     if args.use_codes:

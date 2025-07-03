@@ -28,7 +28,7 @@ from lib.utils.unsafe_import import model_from_hf_path
 parser = argparse.ArgumentParser()
 parser.add_argument('--seed', default=0, type=int)
 parser.add_argument('--num_cpu_threads', default=8, type=int)
-parser.add_argument('--start_dev', default=2, type=int)
+parser.add_argument('--batch_size', default=16, type=int)
 parser.add_argument('--devset_size', default=64, type=int)
 parser.add_argument('--ctx_size', default=4096, type=int)
 parser.add_argument('--sample_proc', default=1, type=int)
@@ -62,27 +62,14 @@ def main(args):
     devset = utils.sample_rp1t(tokenizer, args.devset_size, args.ctx_size,
                                args.sample_proc)
 
-    ## ryu
-    from accelerate import infer_auto_device_map
-    from transformers import AutoConfig
-        
-    with init_empty_weights():        
-        config = AutoConfig.from_pretrained(args.base_model)
-        orig_model = AutoModelForCausalLM.from_config(config)
-        device_map = infer_auto_device_map(
-            orig_model,
-            max_memory={0: "48GiB", 1: "48GiB"},  # GPU 0과 1만 사용
-            # no_split_module_classes=["LlamaDecoderLayer"],  # 분할을 막고 싶은 모듈
-        )        
+    with init_empty_weights():
         orig_model = AutoModelForCausalLM.from_pretrained(
             args.base_model,
             torch_dtype='auto',
-            # device_map='sequential',
-            device_map=device_map,
+            device_map='sequential',
             low_cpu_mem_usage=True)
 
-    # start_dev = max(orig_model.hf_device_map.values()) + 1
-    start_dev = args.start_dev
+    start_dev = max(orig_model.hf_device_map.values()) + 1
     end_dev = torch.cuda.device_count()
     fake_dev_map = {
         'model.embed_tokens': start_dev,
@@ -94,18 +81,7 @@ def main(args):
         (len(orig_model.model.layers) + 4) / (end_dev - start_dev))
     for i in range(len(orig_model.model.layers)):
         fake_dev_map[f'model.layers.{i}'] = (i + 2) // per_dev + start_dev
-        
-    # fake_dev_map = {
-    #     'model.embed_tokens': 0,   # 예시: embedding 모듈을 GPU 0에 할당하는 대신 다른 GPU로 옮길 수도 있음
-    #     'model.rotary_emb': 1,
-    #     'model.norm': 2,
-    #     'lm_head': 3,
-    # }
-    # num_layers = len(orig_model.model.layers)
-    # for i in range(num_layers):
-    #     fake_dev_map[f'model.layers.{i}'] = i % torch.cuda.device_count()
 
-    # import ipdb; ipdb.set_trace()
     orig_dtype = orig_model.model.embed_tokens.weight.dtype
     print(orig_dtype)
     print(fake_dev_map)

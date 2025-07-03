@@ -25,7 +25,7 @@ parser.add_argument("--output_path", default=None, type=str)
 
 
 def main(args):
-    datasets = ['wikitext2', 'c4']
+    datasets = ['wikitext2', 'c4', 'ptb']
     # datasets = ['c4']
     model, model_str = model_from_hf_path(args.hf_path, max_mem_ratio=args.max_mem_ratio)
 
@@ -66,7 +66,6 @@ def main(args):
         ppl = torch.exp(torch.tensor(avg_loss)).item()
         glog.info(f'{dataset} perplexity: {ppl}')
         result[dataset] = ppl
-
 
         os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
         with open(f'{args.output_path}_ppl_result.json', 'w') as f:

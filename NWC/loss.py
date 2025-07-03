@@ -213,12 +213,11 @@ class RateDistortionLoss(nn.Module):
 
         out["recon_loss"] = self.mse(output["x"], output["x_hat"]) / self.std**2
         # BPP
-        # import ipdb; ipdb.set_trace()
-        out["bpp_loss"] = sum(
-            (torch.log(likelihoods).sum() / (-math.log(2) * num_pixels))
-            for likelihoods in output["likelihoods"].values()
-        )
-        # out["bpp_loss"] = torch.log(output["likelihoods"]).sum() / (-math.log(2) * num_pixels)
+        # out["bpp_loss"] = sum(
+        #     (torch.log(likelihoods).sum() / (-math.log(2) * num_pixels))
+        #     for likelihoods in output["likelihoods"].values()
+        # )
+        out["bpp_loss"] = torch.log(output["likelihoods"]).sum() / (-math.log(2) * num_pixels)
 
         # 전체 loss
         out["loss"] = self.lmbda * out["recon_loss"] + out["bpp_loss"]

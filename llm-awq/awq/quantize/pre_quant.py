@@ -10,6 +10,7 @@ from tinychat.models import LlavaLlamaForCausalLM
 from transformers.models.bloom.modeling_bloom import BloomForCausalLM
 from transformers.models.llama.modeling_llama import LlamaForCausalLM
 from transformers.models.opt.modeling_opt import OPTForCausalLM
+from transformers.models.qwen2.modeling_qwen2 import Qwen2ForCausalLM
 
 from .auto_clip import apply_clip, auto_clip_block
 from .auto_scale import apply_scale, auto_scale_block
@@ -22,7 +23,7 @@ def get_named_linears(module):
 
 
 def get_blocks(model):
-    if model.__class__.__name__ == "LlamaForCausalLM":
+    if model.__class__.__name__ == "LlamaForCausalLM" or 'qwen2' in str(model.__class__).lower():
         layers = model.model.layers
     elif model.__class__.__name__ == "LlavaLlamaForCausalLM":
         # layers = [model.model.layers, model.model.vision_tower.vision_tower.vision_model.encoder.layers]
@@ -45,7 +46,7 @@ def get_blocks(model):
 
 
 def move_embed(model, device):
-    if isinstance(model, LlamaForCausalLM):
+    if isinstance(model, LlamaForCausalLM) or isinstance(model, Qwen2ForCausalLM):
         model.model.embed_tokens = model.model.embed_tokens.to(device)
         ## add the following line to move rotary_emb to GPU as well
         # model.model.rotary_emb = model.model.rotary_emb.to(device)

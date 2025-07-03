@@ -145,8 +145,7 @@ class SimpleVAECompressionModel(CompressionModel):
         x = data['weight_block']
         assert not 'q_level' in data.keys()
         x_shift = (x - self.shift) / self.scale
-        # if 'pe' in data:
-        #     x_shift = data['pe2']*x_shift + data['pe']
+
         y = self.g_a(x_shift)
         
         perm = list(range(y.dim()))
@@ -200,7 +199,6 @@ class SimpleVAECompressionModel(CompressionModel):
         y_strings = self.entropy_bottleneck.compress(y)
         
         y_hat = self.entropy_bottleneck.decompress(y_strings, shape)
-        # import ipdb; ipdb.set_trace()
         return {"strings": [y_strings], "shape": shape, "y_hat": y_hat}
 
     # def decompress(self, strings: List[List[bytes]], shape, **kwargs):

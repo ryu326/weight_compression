@@ -17,6 +17,9 @@ from lib import utils
 
 # from . import ldlq
 from . import nwc
+from . import handcraft
+from . import handcraft2
+from . import nic
 
 @contextmanager
 def use_tf32():
@@ -126,11 +129,21 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
         # HR = utils.regularize_H(HR, args.sigma_reg)
         HR = utils.regularize_H2(HR, n_h, args.sigma_reg)
         
-        comp_model.to(dtype_)
+        # comp_model.to(dtype_) ## TODO: check if this is needed
         args.layer_idx = idx
         args.layer_name = name
-        # W_hat, bpp_loss_sum, num_pixels, SU, SV, scaleWH, ft_result, optimize_out = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
-        out, SU, SV, scaleWH, ft_result, optimize_out = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+
+        if args.handcraft_mode is not None:
+            glog.info(f'Using handcraft compression method {args.handcraft_mode}')
+            if args.scaleH:
+                out, SU, SV, scaleWH, ft_result, optimize_out = handcraft2.compress_linear_H(W.clone(), HR, args, 'cpu')
+            else :
+                out, SU, SV, scaleWH, ft_result, optimize_out = handcraft.compress_linear(W.clone(), args, 'cpu')
+        elif args.nic_model is not None:
+            out, SU, SV, scaleWH, ft_result, optimize_out = nic.compress_linear(W.clone(), comp_model, args, device = device)
+        else:
+            glog.info(f'Using NWC compression method')
+            out, SU, SV, scaleWH, ft_result, optimize_out = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
         
         glog.info(f'------------------------------------')
         trWHW = torch.trace(W @ HR @ W.T)

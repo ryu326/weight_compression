@@ -1,28 +1,31 @@
-export CUDA_VISIBLE_DEVICES=0,1,2,3
+export CUDA_VISIBLE_DEVICES=3
 
-bit=(2 3 4 5 6 7 8)
-bit=(2)
+bit=(8)
+# bit=(2)
 for b in "${bit[@]}"; do
+
+    pretrain_path=/workspace/Weight_compression/hf_model_comp/awq/lmsys--vicuna-7b-v1.5/w${b}bit-g128-fake-quantized
+    output_path=/workspace/Weight_compression/hf_model_comp_results/awq/lmsys--vicuna-7b-v1.5/w${b}bit-g128-fake-quantized
 
     # pretrain_path=../hf_model_comp/RTN/meta-llama--Meta-Llama-3-8B_W${b}g128
     # pretrain_path=../hf_model_comp/awq/meta-llama--Meta-Llama-3-8B/w${b}-g128-fake-quantized
     # pretrain_path=/workspace/Weight_compression/Wparam_dataset/hf_model/meta-llama--Meta-Llama-3-8B
-    pretrain_path=/workspace/Weight_compression/Wparam_dataset/hf_model/meta-llama--Llama-2-13b-hf
-    output_path=/workspace/Weight_compression/Wparam_dataset/hf_model/meta-llama--Llama-2-13b-hf
+    # pretrain_path=/workspace/Weight_compression/Wparam_dataset/hf_model/meta-llama--Llama-2-13b-hf
+    # output_path=/workspace/Weight_compression/Wparam_dataset/hf_model/meta-llama--Llama-2-13b-hf
     # pretrain_path=/workspace/Weight_compression/hf_model_comp/awq/meta-llama--Llama-2-13b-hf/w${b}-g128-fake-quantized
     # output_path=/workspace/Weight_compression/hf_model_comp_results/awq/meta-llama--Llama-2-13b-hf/w${b}-g128-fake-quantized
     # mkdir -p "/workspace/Weight_compression/hf_model_comp_results/awq/meta-llama--Llama-2-13b-hf"
 
-    # echo "################## Running PPL evaluation lmbda=${lmbda} ##################"
-    # echo "Running evaluation for directory: $pretrain_path"
-    # python -m eval.eval_ppl_hf \
-    #     --hf_path $pretrain_path \
-    #     --seqlen 2048 \
-    #     --output_path $output_path \
-    #     --no_use_cuda_graph 2>&1 | tee -a $LOG/$SAVE_NAME.log
+    echo "################## Running PPL evaluation ##################"
+    echo "Running evaluation for directory: $pretrain_path"
+    python -m eval.eval_ppl_hf \
+        --hf_path $pretrain_path \
+        --seqlen 2048 \
+        --output_path $output_path \
+        --no_use_cuda_graph 2>&1 | tee -a $LOG/$SAVE_NAME.log
         # --datasets c4 \
 
-    echo "################## Running benchmark evaluation lmbda=${lmbda} ##################"
+    echo "################## Running benchmark evaluation ##################"
     python -m eval.eval_zeroshot_hf \
         --tasks arc_challenge,arc_easy,boolq,piqa,winogrande \
         --batch_size 4  \

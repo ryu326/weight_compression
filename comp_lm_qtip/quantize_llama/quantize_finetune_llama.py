@@ -60,7 +60,7 @@ parser.add_argument("--ql_path", type=str, default = None)
 parser.add_argument("--hesseigen", type=str, default = None)
 parser.add_argument("--gptq", action='store_true', default = False)
 parser.add_argument("--ldlq", action='store_true', default = False)
-parser.add_argument("--comp_model_path", type=str)
+parser.add_argument("--comp_model_path", type=str, default=None)
 parser.add_argument("--direction", type=str, default='col')
 parser.add_argument("--comp_batch_size", type=int, default=-1)
 parser.add_argument('--quip_tune_iters', default=0, type=int)
@@ -104,7 +104,6 @@ parser.add_argument('--code_optim_lmbda', type=int, default=None)
 parser.add_argument('--code_optim_test', action='store_true', default=False)
 parser.add_argument('--code_optim_model', type=str, default='nwc_ql_sga')
 parser.add_argument('--optim_qs', action='store_true', default=False)
-parser.add_argument('--optim_norm', action='store_true', default=False)
 parser.add_argument('--loss', type=str, default='rdloss_ql')
 parser.add_argument('--Q', type=int, default=4)
 parser.add_argument('--use_codes', action='store_true', default=False)
@@ -114,9 +113,22 @@ parser.add_argument('--qmap_hessian_ql', action='store_true', default=False)
 parser.add_argument('--qmap_alpha', type=float, default=False)
 parser.add_argument('--qmap_optim_iter', type=int, default=5)
 parser.add_argument('--qmap_optim', action='store_true', default=False)
-parser.add_argument('--scaleH', action='store_true', default=False)
-parser.add_argument('--scale_std', type=float, default=None)
+# parser.add_argument('--optim_norm', action='store_true', default=False)
+parser.add_argument('--cnorm_optim', action='store_true', default=False)
 parser.add_argument('--rnorm_optim', action='store_true', default=False)
+parser.add_argument('--scaleH', action='store_true', default=False)
+parser.add_argument('--scaleHinv', action='store_true', default=False)
+parser.add_argument('--scale_std', type=float, default=None)
+parser.add_argument('--ste', action='store_true', default=False)
+parser.add_argument("--handcraft_mode", type=str, choices=["all", "bpg", "jp2k", "jp", "webp"], default=None)
+parser.add_argument("--quant_method", type=str, choices=['per_tensor', 'per_channel', 'group'], default=None)
+parser.add_argument("--group_sz", type=int, default=-1)
+parser.add_argument("--jp_quality", type=int, default=-1)
+parser.add_argument("--bpg_quality", type=int, default=-1)
+parser.add_argument("--webp_quality", type=int, default=-1)
+parser.add_argument("--nic_model", type=str, choices=["tcm", "ftic"], default=None)
+parser.add_argument("--nic_checkpoint", type=str, default=None)
+
 
 def check_exist(idx, args):
     suffix = ['q', 'k', 'v', 'o', 'up', 'down', 'layernorm']
@@ -191,49 +203,82 @@ def main(args):
     tokenizer.pad_token = tokenizer.eos_token
     glog.info('loaded model')
 
-    ## load comp model
-    config = os.path.join(os.path.dirname(args.comp_model_path), 'config.json')
-    with open(config, 'r', encoding='utf-8') as file:
-        config = json.load(file)
-    config = Config(**config)
-    
-    shift, scale = None, None
-    if config.architecture == 'nwc_ql' and not hasattr(config, "Q"):
-        config.Q = 4
-    if not hasattr(config, "no_layernorm"):
-        config.no_layernorm = False
-    
-    if args.code_optim:
-        config.architecture = args.code_optim_model
-    comp_model = get_model(config.architecture, config, scale=scale, shift=shift)
-    comp_model.config = config
-    ckpt = torch.load(args.comp_model_path, weights_only=False)
-    if args.use_train_scale or args.layerwise_cdt or args.layer_normalize or args.row_normalize or args.col_normalize or args.scaleH:
-        try:
-            scale = ckpt["state_dict"]["scale"]
-            shift = ckpt["state_dict"]["shift"]
-            print('Use train scale and shift')
-            print('shift: ', shift, ' scale:', scale)
-            if args.scale_std is not None:
-                print(f"Scale scale *{args.scale_std}")
-                scale = args.scale_std * scale
+    #################### load comp model ####################
+    if args.comp_model_path is not None:
+        config = os.path.join(os.path.dirname(args.comp_model_path), 'config.json')
+        with open(config, 'r', encoding='utf-8') as file:
+            config = json.load(file)
+        config = Config(**config)
+        
+        shift, scale = None, None
+        if config.architecture == 'nwc_ql' and not hasattr(config, "Q"):
+            config.Q = 4
+        if not hasattr(config, "no_layernorm"):
+            config.no_layernorm = False
+        
+        if args.code_optim:
+            config.architecture = args.code_optim_model
+        comp_model = get_model(config.architecture, config, scale=scale, shift=shift)
+        comp_model.config = config
+        ckpt = torch.load(args.comp_model_path, weights_only=False)
+        if args.use_train_scale or args.layerwise_cdt or args.layer_normalize or args.row_normalize or args.col_normalize or args.scaleH:
+            try:
+                scale = ckpt["state_dict"]["scale"]
+                shift = ckpt["state_dict"]["shift"]
+                print('Use train scale and shift')
                 print('shift: ', shift, ' scale:', scale)
-        except:
-            scale, shift  = torch.zeros(1), torch.zeros(1)
-    else:
-        if 'scale' in ckpt["state_dict"]:
-            del ckpt["state_dict"]['scale']
-        if 'shift' in ckpt["state_dict"]:
-            del ckpt["state_dict"]['shift']
-        shift, scale = utils.get_model_weight_stats(model, args, config.input_size)
-    print('shift: ', shift, ' scale:', scale)
+                if args.scale_std is not None:
+                    print(f"Scale scale *{args.scale_std}")
+                    scale = args.scale_std * scale
+                    print('shift: ', shift, ' scale:', scale)
+            except:
+                scale, shift  = torch.zeros(1), torch.zeros(1)
+        else:
+            if 'scale' in ckpt["state_dict"]:
+                del ckpt["state_dict"]['scale']
+            if 'shift' in ckpt["state_dict"]:
+                del ckpt["state_dict"]['shift']
+            shift, scale = utils.get_model_weight_stats(model, args, config.input_size)
+        print('shift: ', shift, ' scale:', scale)
 
-    comp_model.load_state_dict(ckpt["state_dict"], strict = False)
-    comp_model.scale = scale
-    comp_model.shift = shift
-    comp_model.eval()
-    comp_model.update()
-    
+        comp_model.load_state_dict(ckpt["state_dict"], strict = False)
+        comp_model.scale = scale
+        comp_model.shift = shift
+        comp_model.eval()
+        comp_model.update()
+        if args.ste:
+            comp_model.mode = 'ste'
+    elif args.nic_model is not None:
+        if args.nic_model == 'tcm':
+            from nic_models.TCM.models import TCM
+            comp_model = TCM(config=[2,2,2,2,2,2], head_dim=[8, 16, 32, 32, 16, 8], drop_path_rate=0.0, N=64, M=320)
+            
+            dictory = {}
+            print("Loading TCM", args.nic_checkpoint)
+            checkpoint = torch.load(args.nic_checkpoint)
+            for k, v in checkpoint["state_dict"].items():
+                dictory[k.replace("module.", "")] = v
+            comp_model.load_state_dict(dictory)
+            
+        elif args.nic_model == 'ftic':
+            from nic_models.FTIC.models import FrequencyAwareTransFormer
+            comp_model = FrequencyAwareTransFormer()
+            
+            dictory = {}
+            print("Loading FTIC", args.nic_checkpoint)
+            checkpoint = torch.load(args.nic_checkpoint)
+            for k, v in checkpoint.items():
+                dictory[k.replace("module.", "")] = v
+            comp_model.load_state_dict(dictory,strict=True)
+        
+        else:
+            raise NotImplementedError(f'Not implemented nic model {args.nic_model}')
+        comp_model.eval()
+        comp_model.update()
+    elif args.handcraft_mode is not None:
+        comp_model = None
+    #################### load comp model ####################
+
     q_level = None
     if args.ql_path is not None:
         assert args.direction == 'col'
@@ -320,6 +365,7 @@ def main(args):
 if __name__ == '__main__':
     torch.set_grad_enabled(False)
     mp.set_start_method('spawn')
+    # mp.set_start_method('fork', force=True)
     mp.set_sharing_strategy('file_system')
     args = parser.parse_args()
     torch.manual_seed(args.seed)

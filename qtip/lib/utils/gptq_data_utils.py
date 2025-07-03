@@ -52,12 +52,12 @@ def get_ptb(nsamples, seed, seqlen, model):
                            split='validation')
 
     from transformers import AutoTokenizer
-    # tokenizer = AutoTokenizer.from_pretrained(model, use_fast=False)
+    tokenizer = AutoTokenizer.from_pretrained(model, use_fast=False)
     ## 
-    if '13b' in model:
-        tokenizer = AutoTokenizer.from_pretrained('/home/jgryu/Weight_compression/Wparam_dataset/hf_model/meta-llama--Llama-2-13b-hf', use_fast=False)
-    else:
-        tokenizer = AutoTokenizer.from_pretrained('/home/jgryu/Weight_compression/Wparam_dataset/hf_model/meta-llama--Llama-2-7b-hf', use_fast=False)
+    # if '13b' in model:
+    #     tokenizer = AutoTokenizer.from_pretrained('/home/jgryu/Weight_compression/Wparam_dataset/hf_model/meta-llama--Llama-2-13b-hf', use_fast=False)
+    # else:
+    #     tokenizer = AutoTokenizer.from_pretrained('/home/jgryu/Weight_compression/Wparam_dataset/hf_model/meta-llama--Llama-2-7b-hf', use_fast=False)
         
     trainenc = tokenizer("\n\n".join(traindata['sentence']),
                          return_tensors='pt')
@@ -218,5 +218,9 @@ def get_test_tokens(name, seed=0, seqlen=2048, model=''):
         return get_c4(train_samples, seed, seqlen, model)[1].input_ids
     elif name == 'c4_new':
         return get_c4_new(train_samples, seed, seqlen, model)[1].input_ids
+    elif name == 'ptb':
+        return get_ptb(train_samples, seed, seqlen, model)[1].input_ids
+    elif name == 'ptb_new':
+        return get_ptb_new(train_samples, seed, seqlen, model)[1].input_ids
     else:
         raise Exception

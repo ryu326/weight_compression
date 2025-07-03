@@ -37,7 +37,7 @@ def get_wikitext2(nsamples, seed, seqlen, model):
 
 def get_ptb(nsamples, seed, seqlen, model):
     from datasets import load_dataset
-    traindata = load_dataset('ptb_text_only', 'penn_treebank', split='train')
+    traindata = load_dataset('ptb_text_only', 'penn_treebank', split='train', trust_remote_code=True)
     valdata = load_dataset('ptb_text_only',
                            'penn_treebank',
                            split='validation')
@@ -206,5 +206,9 @@ def get_test_tokens(name, seed=0, seqlen=2048, model=''):
         return get_c4(train_samples, seed, seqlen, model)[1].input_ids
     elif name == 'c4_new':
         return get_c4_new(train_samples, seed, seqlen, model)[1].input_ids
+    elif name == 'ptb':
+        return get_ptb(train_samples, seed, seqlen, model)[1].input_ids
+    elif name == 'ptb_new':
+        return get_ptb_new(train_samples, seed, seqlen, model)[1].input_ids
     else:
         raise Exception

@@ -8,7 +8,8 @@ from .nwc_ql import NWC_ql
 from .nwc_ql_cdt import NWC_ql_conditional
 from .nwc_ql_v2 import NWC_ql_learnable_scale
 from .nwc_ql_sga import NWC_ql_SGA, NWC_ql_SGA_Vbr
-from .nwc_qmap import NWC_qmap, NWC_qmap2
+from .nwc_qmap import NWC_qmap, NWC_qmap2, NWC_qmap3
+from .nwc_scale_cond import NWC_scale_cond
 # from .nwc_ql_cdt import NWC_conditional, NWC_conditional2
 # from .nwc_ql_cdt_ln import NWC_conditional_ln
 # from .nwc_hess import SimpleVAECompressionModel_hess
@@ -172,6 +173,27 @@ def get_model(model_class, opts, scale, shift):
             M = opts.M,
             scale=scale,
             shift=shift,
+        )
+    elif model_class == "nwc_qmap3":
+        model = NWC_qmap2(
+            input_size=opts.input_size,
+            dim_encoder=opts.dim_encoder,
+            n_resblock=opts.n_resblock,
+            M = opts.M,
+            scale=scale,
+            shift=shift,
+        )
+    elif model_class == "nwc_scale_cond":
+        model = NWC_scale_cond(
+            input_size=opts.input_size,
+            dim_encoder=opts.dim_encoder,
+            n_resblock=opts.n_resblock,
+            M = opts.M,
+            scale=scale,
+            shift=shift,
+            norm = (not opts.no_layernorm),
+            use_hyper = opts.use_hyper,
+            # pe = opts.use_pe,
         )
     else:
         raise

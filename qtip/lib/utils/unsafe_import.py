@@ -8,6 +8,7 @@ import torch
 import transformers
 
 from model.llama import LlamaForCausalLM
+from transformers import Qwen2ForCausalLM
 
 
 
@@ -18,12 +19,17 @@ def model_from_hf_path(path, max_mem_ratio=0.7, device_map=None):
     is_quantized = hasattr(bad_config, 'quip_params')
     model_type = bad_config.model_type
     if is_quantized:
-        if model_type == 'llama':
-            model_str = transformers.LlamaConfig.from_pretrained(
+        if 'qwen' in path.lower():
+            model_str = transformers.Qwen2Config.from_pretrained(
                 path)._name_or_path
-            model_cls = LlamaForCausalLM
+            model_cls = Qwen2ForCausalLM
         else:
-            raise Exception
+            if model_type == 'llama':
+                model_str = transformers.LlamaConfig.from_pretrained(
+                    path)._name_or_path
+                model_cls = LlamaForCausalLM
+            else:
+                raise Exception
     else:
         model_cls = transformers.AutoModelForCausalLM
         model_str = path

@@ -46,7 +46,7 @@ parser.add_argument('--hf_path', default='hfized/quantized_hada_70b', type=str)
 parser.add_argument('--seqlen', default=4096, type=int)
 parser.add_argument('--no_use_cuda_graph', action='store_true')
 parser.add_argument('--no_use_flash_attn', action='store_true')
-parser.add_argument('--datasets', type=str, default='wikitext2,c4')
+parser.add_argument('--datasets', type=str, default='wikitext2,c4,ptb')
 parser.add_argument("--output_path", default=None, type=str)
 
 
