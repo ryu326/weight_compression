@@ -9,14 +9,14 @@
 model_names=(
     "meta-llama--Llama-2-7b-hf"
     "meta-llama--Meta-Llama-3-8B"
-    "meta-llama--Llama-2-13b-hf"
+    # "meta-llama--Llama-2-13b-hf"
 )
 
 # 각 모델에 해당하는 Hessian 경로 배열
 hess_paths=(
     "../Wparam_dataset/quip_hess/Hessians-Llama-2-7b-6144"
     "../Wparam_dataset/quip_hess/llama3_8b_6144"
-    "../Wparam_dataset/quip_hess/Hessians-Llama-2-13b-6144"
+    # "../Wparam_dataset/quip_hess/Hessians-Llama-2-13b-6144"
 )
 
 ##########################################################################
@@ -78,7 +78,7 @@ for i in "${!model_names[@]}"; do
                     quant_args="--quant_method ${qm}"
                 fi
                 
-                SAVE_NAME=${model_name}/webp/${exp_name}
+                SAVE_NAME=${model_name}/webp_scaleh/${exp_name}
                 
                 echo "################## Running compression | ${exp_name} ##################"
                 mkdir -p $(dirname "$LOG/$SAVE_NAME.log")
@@ -91,6 +91,7 @@ for i in "${!model_names[@]}"; do
                     --handcraft_mode webp \
                     --webp_quality ${qlv} \
                     ${quant_args} \
+                    --scaleH \
                     2>&1 | tee $LOG/$SAVE_NAME.log
 
                 echo "################## Running hfize | ${exp_name} ##################"
@@ -98,21 +99,21 @@ for i in "${!model_names[@]}"; do
                         --hf_output_path $HF/$SAVE_NAME 2>&1 | tee -a $LOG/$SAVE_NAME.log
                 pretrain_path=$HF/$SAVE_NAME
 
-                # echo "################## Running PPL evaluation | ${exp_name} ##################"
-                # echo "Running evaluation for directory: $pretrain_path"
-                # python -m eval.eval_ppl_hf \
-                #     --hf_path $pretrain_path \
-                #     --seqlen 2048 \
-                #     --output_path $RES/$SAVE_NAME \
-                #     --dataset wikitext2,c4 \
-                #     --no_use_cuda_graph 2>&1 | tee -a $LOG/$SAVE_NAME.log
-
-                echo "################## Running benchmark evaluation | ${exp_name} ##################"
-                python -m eval.eval_zeroshot_hf \
-                    --tasks arc_challenge,arc_easy,boolq,piqa,winogrande \
-                    --batch_size 1  \
+                echo "################## Running PPL evaluation | ${exp_name} ##################"
+                echo "Running evaluation for directory: $pretrain_path"
+                python -m eval.eval_ppl_hf \
                     --hf_path $pretrain_path \
-                    --output_path $RES/$SAVE_NAME
+                    --seqlen 2048 \
+                    --output_path $RES/$SAVE_NAME \
+                    --dataset wikitext2,c4 \
+                    --no_use_cuda_graph 2>&1 | tee -a $LOG/$SAVE_NAME.log
+
+                # echo "################## Running benchmark evaluation | ${exp_name} ##################"
+                # python -m eval.eval_zeroshot_hf \
+                #     --tasks arc_challenge,arc_easy,boolq,piqa,winogrande \
+                #     --batch_size 1  \
+                #     --hf_path $pretrain_path \
+                #     --output_path $RES/$SAVE_NAME
 
                 if [ "$pretrain_path" != "$HF" ]; then
                     echo "Cleaning up temporary files for $SAVE_NAME"

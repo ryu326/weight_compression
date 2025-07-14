@@ -56,6 +56,7 @@ def parse_args(argv):
     parser.add_argument("--no_layernorm", action='store_true', default=False)
     parser.add_argument("--use_pe", action='store_true', default=False)
     parser.add_argument("--use_hyper", action='store_true', default=False)
+    parser.add_argument("--uniform_scale_max", type=float, default=None)
     args = parser.parse_args(argv)
     return args
 
@@ -472,7 +473,10 @@ def before_main(argvs):
     # folder_name = f"{args.dataset}_{args.dataset_stat_type}_{'__'.join(args.dataset_path.split('/')[-2:])}"
     # folder_name += f"/{args.run_name}{args.loss}_size{args.input_size}_encdim{args.dim_encoder}_M{args.M}_Q{args.Q}_R{args.R}_m{args.m}"
     # folder_name += f"_batch_size{args.batch_size}_total_iter{args.iter}_lr{args.learning_rate}_seed{args.seed}/lmbda{args.lmbda}"
-
+    
+    if args.uniform_scale_max is not None:
+        args.dataset += f'{args.uniform_scale_max}'
+    
     folder_name = '_'.join([
         args.dataset,
         args.dataset_stat_type,

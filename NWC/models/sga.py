@@ -3,7 +3,7 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 from compressai.entropy_models import EntropyBottleneck, EntropyBottleneckVbr
-import wandb
+# import wandb
 class Quantizator_SGA(nn.Module):
     """
     https://github.com/mandt-lab/improving-inference-for-neural-image-compression/blob/c9b5c1354a38e0bb505fc34c6c8f27170f62a75b/sga.py#L110

@@ -17,9 +17,9 @@ import numpy as np
 import scipy.ndimage
 from PIL import Image
 import torch
-from .jpeg import jp_compress, jp_decompress
-from .bpg import compress_tensor_with_bpg
-from .webp import compress_tensor_with_webp
+from ..jpeg import jp_compress, jp_decompress
+from ..bpg import compress_tensor_with_bpg
+from ..webp import compress_tensor_with_webp
 
 def compress_linear_H(W, H, args, device='cpu'):
 
@@ -32,7 +32,7 @@ def compress_linear_H(W, H, args, device='cpu'):
         diagH = torch.clamp(diagH, min=1e-8)
         scaleH = diagH.sqrt()
         W = W * scaleH[None, :]
-        W = W.T
+        # W = W.T
     
     W_uint8, scale, zero_point = quantize_to_uint8(
         W, quant_type=args.quant_method, group_size=args.group_sz
@@ -53,7 +53,7 @@ def compress_linear_H(W, H, args, device='cpu'):
     bpp_sum = bits +  scale.numel() * 16 + zero_point.numel() * 16
     
     if args.scaleH:
-        W = W.T
+        # W = W.T
         W = W / scaleH[None, :]
         bpp_sum += scaleH.numel() * 16    
     

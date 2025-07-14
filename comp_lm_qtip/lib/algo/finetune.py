@@ -14,11 +14,12 @@ from transformers import AutoModelForCausalLM
 
 from lib import utils
 # from lib.linear import QuantizedLinear
+from lib.linear import CompLinear
+
 
 # from . import ldlq
 from . import nwc
 from . import handcraft
-from . import handcraft2
 from . import nic
 
 @contextmanager
@@ -135,14 +136,12 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
 
         if args.handcraft_mode is not None:
             glog.info(f'Using handcraft compression method {args.handcraft_mode}')
-            if args.scaleH:
-                out, SU, SV, scaleWH, ft_result, optimize_out = handcraft2.compress_linear_H(W.clone(), HR, args, 'cpu')
-            else :
-                out, SU, SV, scaleWH, ft_result, optimize_out = handcraft.compress_linear(W.clone(), args, 'cpu')
+            out, SU, SV, scaleWH, ft_result, optimize_out = handcraft.compress_linear(W.clone(), HR, args, 'cpu')
         elif args.nic_model is not None:
             out, SU, SV, scaleWH, ft_result, optimize_out = nic.compress_linear(W.clone(), comp_model, args, device = device)
         else:
             glog.info(f'Using NWC compression method')
+            W, HR = W.to(device), HR.to(device) ## W_hat, HR 다 device에 있다고 가정
             out, SU, SV, scaleWH, ft_result, optimize_out = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
         
         glog.info(f'------------------------------------')
@@ -175,12 +174,14 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
         bpp = out['bpp']        
         err = torch.trace((W - W_hat) @ HR @ ((W - W_hat).T))
         proxy_err =  err / trWHW
+        mse =  torch.mean((W - W_hat) ** 2).item()        
         glog.info(
-            f'{idx}_{name} optm proxy err {proxy_err.item():.5f} err {err.item():.3f} tr(WHW.T) {trWHW.item():.1f} bpp_loss {bpp_loss:.4f} bpp {bpp:.4f}'
+            f'{idx}_{name} optm proxy err {proxy_err.item():.5f} err {err.item():.3f} tr(WHW.T) {trWHW.item():.1f} bpp_loss {bpp_loss:.4f} bpp {bpp:.4f} mse {mse:.4g}'
         )
         glog.info(f'------------------------------------')
 
         save_path = f'{args.save_path}/{idx}_{name}.pt'
+        W_hat = W_hat.cpu()
 
         torch.save(
             {
@@ -198,7 +199,7 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
                 'err_round': err_round.item() if args.code_optim_test else None,
                 'err_sga': err_sga.item() if args.code_optim_test else None,
                 'tr(WHW.T)': trWHW.item(),
-                'mse': torch.mean((W - W_hat) ** 2).item(),
+                'mse': mse,
                 'mse_init': torch.mean((W - W_hat_init) ** 2).item() if args.code_optim else None,
                 'bpp_loss': bpp_loss,
                 'W_hat_init': W_hat_init if args.code_optim else None,
@@ -217,15 +218,28 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
                 'num_pixels': out['num_pixels'],
                 'optimize_out': optimize_out,
                 'direction': args.direction,
+                'row_norm' : out['row_norm']                                             
             }, save_path)
 
         # if args.ft_comp_model2 and args.layer_name in ['v', 'o', 'k', 'q']:
         if args.ft_comp_model2 or args.code_optim:
             utils.plot_ft_comp_result(ft_result, args, idx, name)
-
-        comp_linear = copy.deepcopy(orig_linear)
-        comp_linear.weight.copy_(W_hat)
-        comp_linear.weight.requires_grad = False
+        
+        if args.row_normalize == False:
+            comp_linear = copy.deepcopy(orig_linear)
+            comp_linear.weight.copy_(W_hat)
+            comp_linear.weight.requires_grad = False
+        elif args.row_normalize == True:
+            rnorm = out['row_norm'].float().cpu()
+            comp_linear = CompLinear(orig_linear.in_features,
+                                    orig_linear.out_features,
+                                    orig_linear.bias,
+                                    orig_linear.weight.device,
+                                    orig_linear.weight.dtype,
+                                    )
+            comp_linear.weight.copy_(W_hat/rnorm)
+            comp_linear.weight.requires_grad = False
+            comp_linear.row_norm = nn.Parameter(rnorm, requires_grad=True)
         
         assert not torch.equal(orig_linear.weight.data, comp_linear.weight.data)
         del orig_linear
@@ -238,12 +252,14 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
         if args.ft_epochs > 0:
             with torch.enable_grad():
                 finetune_decoder_layer(mixed_layer, f'{idx}_{name}', device,
-                                    train_dl, valid_dl, orig_dtype, args) 
-        
+                                    train_dl, valid_dl, orig_dtype, args)
+            if out['row_norm'] is not None:
+                assert not torch.allclose(out['row_norm'], attrgetter('.'.join(split_attr[:-1]))(mixed_layer), split_attr[-1].row_norm.data)
+            
         # nan_mask = torch.isnan(W_hat)
         # print(nan_mask.nonzero())  # NaN 위치의 인덱스 출력
         assert torch.isnan(W_hat).any() == False  # 출력: True
-        assert torch.equal(W_hat, attrgetter(linear_attr)(mixed_layer).weight)
+        # assert torch.equal(W_hat, attrgetter(linear_attr)(mixed_layer).weight)
         # w_now = attrgetter(linear_attr)(mixed_layer).weight
         # assert torch.allclose(W_hat, w_now, atol=1e-6), f"Mismatch: max diff = {(W_hat - w_now).abs().max()}"
 

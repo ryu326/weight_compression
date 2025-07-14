@@ -215,16 +215,16 @@ def get_test_tokens(name, seed=0, seqlen=2048, model=''):
 
 model_ids = [
     "../Wparam_dataset/hf_model/meta-llama--Llama-2-7b-hf",
-    "../Wparam_dataset/hf_model/meta-llama--Meta-Llama-3-8B",
-    "../Wparam_dataset/hf_model/meta-llama--Llama-2-13b-hf",
+    # "../Wparam_dataset/hf_model/meta-llama--Meta-Llama-3-8B",
+    # "../Wparam_dataset/hf_model/meta-llama--Llama-2-13b-hf",
 ]
 bits_list = [
-    [8],
-    [2,3],
-    [3,4,8],
+    [2,4],
+    # [2,3],
+    # [2,3],
 ]
 for model_id, bits in zip(model_ids, bits_list):
-    datasets = ['wikitext2']
+    datasets = ['wikitext2', 'c4']
     seqlen = 2048
     seed = 0
 
@@ -237,16 +237,15 @@ for model_id, bits in zip(model_ids, bits_list):
             # tokenizer = AutoTokenizer.from_pretrained(model_id)
             # gptq_config = GPTQConfig(bits=bit, dataset="c4", tokenizer=tokenizer)
             # quantized_model = AutoModelForCausalLM.from_pretrained(model_id, device_map="cuda", quantization_config=gptq_config)
-            
             if "2-7b" in model_id.lower():
-                hf_path = f"./hf/meta-llama--Llama-2-7b-hf/{bit}bit"
+                hf_path = f"/workspace/Weight_compression/hf_model_comp/gptq/meta-llama--Llama-2-7b-hf0/{bit}bit"
             elif "2-13b" in model_id.lower():
-                hf_path = f"./hf/meta-llama--Llama-2-13b-hf/{bit}bit"
+                hf_path = f"/workspace/Weight_compression/hf_model_comp/gptq/meta-llama--Llama-2-13b-hf/{bit}bit"
             elif "3-8b" in model_id.lower():
-                hf_path = f"./hf/meta-llama--Meta-Llama-3-8B/{bit}bit"
+                hf_path = f"/workspace/Weight_compression/hf_model_comp/gptq/meta-llama--Meta-Llama-3-8B/{bit}bit"
             
-            quantized_model = AutoModelForCausalLM.from_pretrained(hf_path, device_map="cpu")
-            quantized_model.to('cuda')
+            quantized_model = AutoModelForCausalLM.from_pretrained(hf_path, device_map="auto")
+            # quantized_model.to('cuda')
             
             for dataset in datasets:
                 input_tok = get_test_tokens(dataset,seed=seed, seqlen=seqlen, model=model_id)
@@ -276,14 +275,35 @@ for model_id, bits in zip(model_ids, bits_list):
                 glog.info(f'{dataset} perplexity: {ppl}')
                 print(f'{dataset} perplexity: {ppl:.3f}')
                 
+                # try:
+                #     with open(f'{hf_path}_result.json', 'r') as f:
+                #         comp_result= json.load(f)
+                # except:
+                #     comp_result = {}
+                # comp_result['ppl'] = {dataset: ppl}
+                # with open(f'./{hf_path}_result.json', 'w') as f:
+                #     json.dump(comp_result, f, indent=4)
+                
                 try:
                     with open(f'{hf_path}_result.json', 'r') as f:
                         comp_result= json.load(f)
                 except:
                     comp_result = {}
-                comp_result['ppl'] = {dataset: ppl}
-                with open(f'./{hf_path}_result.json', 'w') as f:
+                    comp_result['ppl'] = {}
+                if not isinstance(comp_result['ppl'], dict):
+                    comp_result['ppl'] = {}
+                comp_result['ppl'][dataset] = ppl
+                
+                output_path = hf_path      
+                os.makedirs(os.path.dirname(output_path), exist_ok=True)
+                with open(f'{output_path}_result.json', 'w') as f:
                     json.dump(comp_result, f, indent=4)
+                
+                output_path = hf_path.replace('hf_model_comp/', 'hf_model_comp_result/')
+                os.makedirs(os.path.dirname(output_path), exist_ok=True)
+                with open(f'{output_path}_result.json', 'w') as f:
+                    json.dump(comp_result, f, indent=4)
+                
                     
         except Exception as e:
             glog.error(f"Error: {e}")

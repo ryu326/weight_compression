@@ -1,8 +1,8 @@
-export CUDA_VISIBLE_DEVICES=0,1,2,3
-torchrun --nproc_per_node=4 -m quantize_llama.input_hessian_llama \
-    --batch_size 8 --devset_size 256 \
-    --base_model /workspace/Weight_compression/Wparam_dataset/hf_model/Qwen--Qwen2.5-7B \
-    --save_path ../Wparam_dataset/quip_hess/Qwen--Qwen2.5-7B 
+# export CUDA_VISIBLE_DEVICES=0,1,2,3
+# torchrun --nproc_per_node=4 -m quantize_llama.input_hessian_llama \
+#     --batch_size 8 --devset_size 256 \
+#     --base_model /workspace/Weight_compression/Wparam_dataset/hf_model/Qwen--Qwen2.5-7B \
+#     --save_path ../Wparam_dataset/quip_hess/Qwen--Qwen2.5-7B 
 
 export CUDA_VISIBLE_DEVICES=0,1,2,3
 
@@ -24,6 +24,9 @@ do
     SAVE_PATH="$CKPT/$NAME"
     LOG_FILE="${LOG}/${NAME}.log"
     HF_PATH="$HF/$NAME"
+
+    mkdir -p $SAVE_PATH
+    mkdir -p $(dirname "$LOG_FILE")
 
     echo "[Stage: Quantize with Finetuning] K=$K" | tee -a $LOG_FILE
     python -m quantize_llama.quantize_finetune_llama \
@@ -64,52 +67,52 @@ do
 done
 
 
-for K in 2 3 4
-do
-    NAME="vicuna_7b_v1.5/${K}bit"
-    SAVE_PATH="$CKPT/$NAME"
-    LOG_FILE="${LOG}/${NAME}.log"
-    HF_PATH="$HF/$NAME"
+# for K in 2 3 4
+# do
+#     NAME="vicuna_7b_v1.5/${K}bit"
+#     SAVE_PATH="$CKPT/$NAME"
+#     LOG_FILE="${LOG}/${NAME}.log"
+#     HF_PATH="$HF/$NAME"
 
-    mkdir -p $SAVE_PATH
-    mkdir -p $(dirname "$LOG_FILE")
+#     mkdir -p $SAVE_PATH
+#     mkdir -p $(dirname "$LOG_FILE")
 
-    echo "[Stage: Quantize with Finetuning] K=$K" | tee -a $LOG_FILE
-    python -m quantize_llama.quantize_finetune_llama \
-        --save_path $SAVE_PATH \
-        --codebook bitshift \
-        --base_model $base_model \
-        --in_hess_path $HESS \
-        --scale_override 0.9 \
-        --ft_epochs 5 \
-        --td_x 16 \
-        --td_y 16 \
-        --L 16 \
-        --K $K \
-        --V 2 \
-        --decode_mode quantlut_sym \
-        --tlut_bits 9 2>&1 \
-        | tee -a $LOG_FILE 
+#     echo "[Stage: Quantize with Finetuning] K=$K" | tee -a $LOG_FILE
+#     python -m quantize_llama.quantize_finetune_llama \
+#         --save_path $SAVE_PATH \
+#         --codebook bitshift \
+#         --base_model $base_model \
+#         --in_hess_path $HESS \
+#         --scale_override 0.9 \
+#         --ft_epochs 5 \
+#         --td_x 16 \
+#         --td_y 16 \
+#         --L 16 \
+#         --K $K \
+#         --V 2 \
+#         --decode_mode quantlut_sym \
+#         --tlut_bits 9 2>&1 \
+#         | tee -a $LOG_FILE 
 
-    echo "[Stage: Convert to HF format] K=$K" | tee -a $LOG_FILE
-    python -m quantize_llama.hfize_llama \
-        --quantized_path $SAVE_PATH \
-        --hf_output_path $HF_PATH \
-        --base_model $base_model 2>&1 \
-        | tee -a $LOG_FILE 
+#     echo "[Stage: Convert to HF format] K=$K" | tee -a $LOG_FILE
+#     python -m quantize_llama.hfize_llama \
+#         --quantized_path $SAVE_PATH \
+#         --hf_output_path $HF_PATH \
+#         --base_model $base_model 2>&1 \
+#         | tee -a $LOG_FILE 
 
-    echo "[Stage: Eval PPL] K=$K" | tee -a $LOG_FILE
-    python -m eval.eval_ppl \
-        --hf_path ${HF_PATH} \
-        --output_path ${RES}/${NAME} \
-        --seqlen 2048  2>&1 | tee -a $LOG_FILE
+#     echo "[Stage: Eval PPL] K=$K" | tee -a $LOG_FILE
+#     python -m eval.eval_ppl \
+#         --hf_path ${HF_PATH} \
+#         --output_path ${RES}/${NAME} \
+#         --seqlen 2048  2>&1 | tee -a $LOG_FILE
 
-    echo "[Stage: Eval Zero-shot] K=$K" | tee -a $LOG_FILE
-    python -m eval.eval_zeroshot --tasks arc_challenge,arc_easy,boolq,piqa,winogrande \
-        --batch_size 8  --hf_path ${HF_PATH} \
-        --output_path ${RES}/${NAME} \
-        2>&1 | tee -a $LOG_FILE
-done
+#     echo "[Stage: Eval Zero-shot] K=$K" | tee -a $LOG_FILE
+#     python -m eval.eval_zeroshot --tasks arc_challenge,arc_easy,boolq,piqa,winogrande \
+#         --batch_size 8  --hf_path ${HF_PATH} \
+#         --output_path ${RES}/${NAME} \
+#         2>&1 | tee -a $LOG_FILE
+# done
 
 
 # for K in 2 3 4

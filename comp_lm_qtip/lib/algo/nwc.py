@@ -41,10 +41,6 @@ def compress_linear(W, H, comp_model, Qlevel, args, device='cpu'):
         W = W * scaleH[None, :]
         H = H / scaleH[None, :]
         H = H / scaleH[:, None]
-        # row_norm = W.norm(p=2, dim=1, keepdim=True)
-        # row_std = W.std(dim=1, keepdim=True)
-        # comp_model.scale = torch.tensor(1).to(device)
-        # comp_model.shift = torch.tensor(0).to(device)
     if args.scaleHinv:
         assert args.row_normalize == True
         Lhr = torch.linalg.cholesky(H)
@@ -56,11 +52,6 @@ def compress_linear(W, H, comp_model, Qlevel, args, device='cpu'):
         W = W * scaleH[None, :]
         H = H / scaleH[None, :]
         H = H / scaleH[:, None]
-        # row_norm = W.norm(p=2, dim=1, keepdim=True)
-        # row_std = W.std(dim=1, keepdim=True)
-        # comp_model.scale = torch.tensor(1).to(device)
-        # comp_model.shift = torch.tensor(0).to(device)
-    
     if args.layer_normalize:
         comp_model.scale = W.std().to(device)
         comp_model.shift = W.mean().to(device)
@@ -69,12 +60,20 @@ def compress_linear(W, H, comp_model, Qlevel, args, device='cpu'):
     if args.row_normalize:
         comp_model.scale = torch.tensor(1).to(device)
         comp_model.shift = torch.tensor(0).to(device)
-        row_std = W.std(dim=1, keepdim=True).to(torch.float16) # (B, m, 1)
+        # row_std = W.std(dim=1, keepdim=True).to(torch.float16) # (B, m, 1)
+        row_std = W.std(dim=1, keepdim=True) # (B, m, 1)
     if args.col_normalize:
         comp_model.scale = torch.tensor(1).to(device)
         comp_model.shift = torch.tensor(0).to(device)
         col_std = W.std(dim=0, keepdim=True).to(torch.float16)  # (B, 1, n)
-        
+    if args.scale_cond:
+        assert args.row_normalize
+        col_std = (W/row_std).std(dim=0, keepdim=True)  # (B, 1, n)
+        if comp_model.config.uniform_scale_max is not None:
+            comp_model.config.uniform_scale_max = 1 ## for test
+            glog.info(f'== clamp col_std {comp_model.config.uniform_scale_max} ==')
+            col_std = torch.clamp(col_std, max = comp_model.config.uniform_scale_max)        
+            
     if args.scale_std is not None:
         print(f"Scale scale *{args.scale_std}")
         comp_model.scale = args.scale_std * comp_model.scale
@@ -230,9 +229,9 @@ def compress_linear(W, H, comp_model, Qlevel, args, device='cpu'):
             if res.get(key) is not None:
                 res[key] += W.shape[1] * math.ceil(math.log2(args.Q))
     
-    for key in ['W_hat', 'W_hat_init', 'W_hat_sga', 'W_hat_round']:
-        if res.get(key) is not None:
-            res[key] = res[key].cpu()
+    # for key in ['W_hat', 'W_hat_init', 'W_hat_sga', 'W_hat_round']:
+    #     if res.get(key) is not None:
+    #         res[key] = res[key].cpu()
 
     utils.clean()
     return res, SU, SV, scaleWH, ft_result, optimize_out
@@ -357,84 +356,6 @@ def comp_W(W, H, model, args, **kwargs):
             'row_norm': row_norm
             }   
 
-# def model_foward(w, model, args, **kwargs):
-#     y_in = kwargs.get('y_in', None)
-#     mode = kwargs.get('mode', 'init')
-#     ori_shape = w.shape if w is not None else kwargs.get('shape', None)
-#     w = w.reshape(w.shape[0], -1, model.input_size) if w is not None else None
-#     data = {}
-#     data['weight_block'] = w
-#     qs = kwargs.get('qs', None)
-#     qm = kwargs.get('qm', None)
-#     ql = kwargs.get('ql', None)
-#     # glog.info(f'{w == None} {mode} {ori_shape} {ql.shape}')
-
-#     if ql is not None:
-#         data['q_level'] = ql.reshape(ori_shape[0], 1)
-#     else:
-#         data['q_level'] = torch.full((ori_shape[0], 1), args.ql_search_value, dtype=torch.int32, device=w.device)
-    
-#     if qm is not None:
-#         # data['qmap'] = qm.reshape(ori_shape[0], 1)
-#         data['qmap'] = qm.reshape(ori_shape[0], ori_shape[1]//16)
-        
-#     lstats = kwargs.get('lstats', None)
-#     if lstats is not None:
-#         data['l_cdt'] = lstats.unsqueeze(0).repeat(ori_shape[0], 1)
-        
-#     if hasattr(model, 'pe') and model.pe:
-#         # wtype_mapping = {'q': 0, 
-#         #          'k': 1, 
-#         #          'v': 2, 
-#         #          'o': 3, 
-#         #          'gate': 4, 
-#         #          'up': 5, 
-#         #          'down': 6}
-#         wtype_mapping = {'q': 5, 
-#             'k': 5, 
-#             'v': 5, 
-#             'o': 5, 
-#             'gate': 5, 
-#             'up': 5, 
-#             'down': 5}
-#         depth = args.layer_idx
-#         ltype = wtype_mapping[args.layer_name]
-#         data['depth'] = torch.full((ori_shape[0], 1), depth, dtype=torch.long).to(w.device)
-#         data['ltype'] = torch.full((ori_shape[0], 1), ltype, dtype=torch.long).to(w.device)
-        
-                
-#     num_pixels = ori_shape[0] * ori_shape[1]
-#     bpp_loss = 0
-#     nbits = 0
-#     out_enc = None
-#     out = None
-    
-#     if args.use_codes:
-#         out_enc = model.compress(data)
-#         out_dec = model.decompress(out_enc)
-#         w_hat = out_dec['x_hat'].reshape(ori_shape)
-#         for s in out_enc["strings"]:
-#             nbits += len(s[0]) * 8.0
-
-#     else:
-#         if hasattr(model, 'sga'):
-#         # if True:
-#             out = model(data, mode = mode, y_in = y_in, qs = qs)
-#         else:
-#             out = model(data)
-#         w_hat = out['x_hat'].reshape(ori_shape)
-        
-#         if isinstance(out["likelihoods"], dict):
-#             bpp_loss = sum(
-#                 (torch.log(likelihoods).sum() / -math.log(2))
-#                 for likelihoods in out["likelihoods"].values()
-#             ).item()
-#         else :
-#             bpp_loss = (torch.log(out["likelihoods"]).sum() / -math.log(2)).item()
-    
-#     return w_hat, num_pixels, bpp_loss, out, out_enc, nbits
-
-
 def model_foward_one_batch(w, model, args, **kwargs):
     y_in = kwargs.get('y_in', None)
     mode = kwargs.get('mode', 'init')
@@ -449,13 +370,12 @@ def model_foward_one_batch(w, model, args, **kwargs):
     assert (m if args.direction == 'col' else n) % blks == 0
     
     w = w / rnorm if rnorm is not None else w
-    w = w / cnorm if cnorm is not None else w
+    w = w / cnorm if cnorm is not None and not args.scale_cond else w
     
     if ql is not None:
         ql = ql.reshape(1, n).expand(m//blks, n)
-    else:
+    elif args.ql_search_value is not None:
         ql = torch.full((m//blks, n), args.ql_search_value, dtype=torch.int32, device=w.device)
-        # pass
     
     transpose = args.direction == 'col'
 
@@ -469,16 +389,19 @@ def model_foward_one_batch(w, model, args, **kwargs):
     
     if ql is not None:
         data['q_level'] = ql.reshape(1, w.shape[1])
-    
     if qm is not None:
         data['qmap'] = qm.reshape(1, w.shape[1])
-    
     if hasattr(model, 'pe') and model.pe:
         wtype_mapping = {'q': 0, 'k': 1, 'v': 2, 'o': 3, 'gate': 4, 'up': 5, 'down': 6}
         depth = args.layer_idx
         ltype = wtype_mapping[args.layer_name]
         data['depth'] = torch.full((1, 1), depth, dtype=torch.long).to(w.device)
         data['ltype'] = torch.full((1, 1), ltype, dtype=torch.long).to(w.device)
+    if args.scale_cond:
+        scale_cond = cnorm.repeat(m, 1)
+        assert scale_cond.shape == (m, n)
+        scale_cond = scale_cond.reshape(1, -1, blks)
+        data['scale_cond'] = scale_cond
         
     num_pixels = m*n
     bpp_loss_sum = torch.tensor(0)
@@ -498,14 +421,6 @@ def model_foward_one_batch(w, model, args, **kwargs):
         else:
             out = model(data)
         w_hat = out['x_hat']
-        
-        # if isinstance(out["likelihoods"], dict):
-        #     bpp_loss = sum(
-        #         (torch.log(likelihoods).sum() / -math.log(2))
-        #         for likelihoods in out["likelihoods"].values()
-        #     ).item()
-        # else :
-        #     bpp_loss = (torch.log(out["likelihoods"]).sum() / -math.log(2)).item()
             
         if isinstance(out["likelihoods"], dict):
             bpp_loss_sum = sum(
@@ -520,7 +435,7 @@ def model_foward_one_batch(w, model, args, **kwargs):
     else:
         w_hat = w_hat.reshape(m, n)
 
-    if cnorm is not None:
+    if cnorm is not None and not args.scale_cond:
         w_hat = w_hat * cnorm
     if rnorm is not None:
         w_hat = w_hat * rnorm
@@ -640,69 +555,6 @@ def code_optimize(w, comp_model, init_out, args, **kwargs):
     # return y, out['x_hat'].reshape(ori_shape)
 
 
-# def encode_latent(W, model, args, **kwargs):
-#     if args.direction == 'col':
-#         W = W.T
-
-#     latent = torch.zeros_like(W)
-
-#     qlevel = kwargs.get('qlevel', None)
-#     qlevel = qlevel.reshape(W.shape[0], ) if qlevel is not None else None
-    
-#     bs = args.comp_batch_size
-#     for start_idx in range(0, W.shape[0], bs):
-#         end_idx = min(start_idx + bs, W.shape[0])
-#         batch = W[start_idx:end_idx]
-        
-#         ql = qlevel[start_idx:end_idx] if qlevel is not None else None
-
-#         ori_shape = batch.shape
-#         batch = batch.reshape(ori_shape[0], -1, model.input_size)
-        
-#         data = {}
-#         data['weight_block'] = batch
-#         if ql is not None:
-#             data['q_level'] = ql.reshape(ori_shape[0], 1)
-#         out = model.forward_encoder(data)
-#         latent[start_idx:end_idx] = out['y'].reshape(ori_shape)
-
-#     if args.direction == 'col':
-#         latent = latent.T
-    
-#     return latent
-
-# def comp_W(W, model, args, **kwargs):
-# def encode_latent(W, model, args, **kwargs):
-#     if args.direction == 'col':
-#         W = W.T
-
-#     latent = torch.zeros_like(W)
-
-#     qlevel = kwargs.get('qlevel', None)
-#     qlevel = qlevel.reshape(W.shape[0], ) if qlevel is not None else None
-    
-#     bs = args.comp_batch_size
-#     for start_idx in range(0, W.shape[0], bs):
-#         end_idx = min(start_idx + bs, W.shape[0])
-#         batch = W[start_idx:end_idx]
-        
-#         ql = qlevel[start_idx:end_idx] if qlevel is not None else None
-
-#         ori_shape = batch.shape
-#         batch = batch.reshape(ori_shape[0], -1, model.input_size)
-        
-#         data = {}
-#         data['weight_block'] = batch
-#         if ql is not None:
-#             data['q_level'] = ql.reshape(ori_shape[0], 1)
-#         out = model.forward_encoder(data)
-#         latent[start_idx:end_idx] = out['y'].reshape(ori_shape)
-
-#     if args.direction == 'col':
-#         latent = latent.T
-    
-#     return latent
-
 def block_LDL(H, b, check_nan=True):
     n = H.shape[0]
     assert (n % b == 0)
@@ -754,345 +606,3 @@ def describe_distribution(x):
         "skewness": skewness.item(),
         "kurtosis": kurtosis.item()
     }
-
-
-
-
-#     # if args.gptq:
-#     #     out = comp_W_gptq(W, comp_model, args.direction, args.comp_batch_size, ql, H, device, args)     
-# def comp_W_gptq(W, model, direction, bs, q_level, H, device, args):
-    
-#     assert direction == 'col'
-#     if q_level is not None:
-#         q_level = q_level.reshape(-1, )
-    
-#     W = W.to(device)
-#     Losses = torch.zeros_like(W, device=W.device)
-#     Q = torch.zeros_like(W, device=W.device)
-#     assert torch.isfinite(H).all()
-    
-#     H = torch.linalg.cholesky(H)
-#     H = torch.cholesky_inverse(H)
-#     H = torch.linalg.cholesky(H, upper=True)
-#     Hinv = H
-#     assert torch.isfinite(H).all()
-    
-#     rows = W.shape[0]
-#     columns = W.shape[1]
-    
-#     num_pixels = 0
-#     bpp_loss = 0
-#     bpp = 0
-
-#     for i1 in range(0, columns, bs):
-#         i2 = min(i1 + bs, columns)
-#         count = i2 - i1
-        
-#         ql = None
-#         if q_level is not None:
-#             ql = q_level[i1:i2]
-
-#         W1 = W[:, i1:i2].clone()
-#         Q1 = torch.zeros_like(W1, device=W1.device)
-#         Err1 = torch.zeros_like(W1, device=W1.device)
-#         Losses1 = torch.zeros_like(W1, device=W1.device)
-#         Hinv1 = Hinv[i1:i2, i1:i2]
-
-#         for i in range(count):
-#             w = W1[:, i]
-#             d = Hinv1[i, i]
-            
-#             assert w.size(-1) == rows
-#             if args.bundle:
-#                 w_reshape = w.reshape(1, -1, model.input_size)  # (row, col) --> (row, -1, inputsize)
-#             else :
-#                 w_reshape = w.reshape(-1, model.input_size)
-
-#             ql_ = None if ql is None else ql[i]
-#             x_hat, n_pixels, bpp_loss_ = model_foward(w_reshape, model, ql)
-            
-#             q = x_hat.flatten()
-#             num_pixels += n_pixels
-#             bpp_loss += bpp_loss_
-
-#             Q1[:, i] = q
-#             Losses1[:, i] = (w - q)**2 / d**2
-
-#             err1 = (w - q) / d
-#             assert torch.isfinite(err1).all()
-#             W1[:, i:] -= err1.unsqueeze(1).matmul(Hinv1[i, i:].unsqueeze(0))
-#             Err1[:, i] = err1
-
-#         Q[:, i1:i2] = Q1
-#         Losses[:, i1:i2] = Losses1 / 2
-
-#         W[:, i2:] -= Err1.matmul(Hinv[i1:i2, i2:])
-
-#     return {'W_hat': Q.cpu(),
-#             'bpp_loss_sum': bpp_loss,
-#             'num_pixels': num_pixels,
-#             'bpp': bpp}
-
-
-# def hessian_proxy_loss(W, W_hat, H):
-#     diff = W_hat - W
-#     H = H.float()
-#     trace_H = H.trace()
-#     if trace_H > 0:
-#         H = H / trace_H * H.shape[0] / W.numel()
-#     loss = torch.trace(diff @ H @ diff.T)     # scalar
-#     return loss
-
-# class RateDistortionLoss(nn.Module):
-#     def __init__(self, std, Hr, lmbda):
-#         super().__init__()
-#         self.mse = nn.MSELoss()
-#         self.lmbda = lmbda
-#         self.std = std
-
-#         # def clip_outliers_quantile_global(tensor, lower_q=0.03, upper_q=0.97):
-#         #     lower = torch.quantile(tensor, lower_q)
-#         #     upper = torch.quantile(tensor, upper_q)
-#         #     return torch.clip(tensor, min=lower.item(), max=upper.item())
-        
-#         # self.Hr = clip_outliers_quantile_global(Hr)
-#         self.Hr = Hr
-
-#     def forward(self, ori_w, output):        
-#         out = {}
-#         num_pixels = output["x"].numel()
-#         w_hat = output["x_hat"].reshape(ori_w.shape)
-#         # H = self.Hr[start_idx:end_idx][start_idx:end_idx]
-        
-#         out["mse_loss"] = self.mse(ori_w,  w_hat) / self.std**2
-#         out["adaptive_loss"] = hessian_proxy_loss(ori_w, w_hat, self.Hr) / self.std**2
-
-#         if isinstance(output["likelihoods"], dict):
-#             out["bpp_loss"] = sum(
-#                 (torch.log(likelihoods).sum() / (-math.log(2) * num_pixels))
-#                 for likelihoods in output["likelihoods"].values()
-#             )
-#         else :
-#             out["bpp_loss"] = (torch.log(output["likelihoods"]).sum() / (-math.log(2) * num_pixels))
-
-
-#         # out["loss"] = self.lmbda * out["adaptive_loss"] + out["bpp_loss"]
-#         out["loss"] = self.lmbda * out["mse_loss"] + out["bpp_loss"]
-#         # out["loss"] = self.lmbda * (out["mse_loss"]+ out["adaptive_loss"]) /2 + out["bpp_loss"]
-        
-#         return out
-
-# def configure_optimizers(net, args, other_parms):
-#     """Separate parameters for the main optimizer and the auxiliary optimizer.
-#     Return two optimizers"""
-
-#     parameters = {n for n, p in net.named_parameters() if ".quantiles" not in n and p.requires_grad}
-#     aux_parameters = {n for n, p in net.named_parameters() if ".quantiles" in n and p.requires_grad}
-
-#     # print(aux_parameters)  # {'module.entropy_bottleneck_z.quantiles'}
-
-#     params_dict = dict(net.named_parameters())
-
-#     optimizer = optim.Adam(
-#         list((params_dict[n] for n in sorted(parameters))) + other_parms,
-#         lr=args.ft_comp_learning_rate,
-#     )
-#     aux_optimizer = optim.Adam(
-#         (params_dict[n] for n in sorted(aux_parameters)),
-#         lr=args.ft_comp_aux_learning_rate,
-#     )
-#     return optimizer, aux_optimizer
-
-# def fine_tune_comp_model_v3(W, HR, comp_model, args, **kwargs):
-    
-#     ft_result = defaultdict(list)
-#     ft_result['best_loss_epoch'] = []
-
-#     qlevel = kwargs.get('qlevel', None)
-#     # start test
-#     mse_fn = nn.MSELoss()
-#     out = comp_W(W, comp_model, args, qlevel = qlevel)    
-    
-#     W_hat = out['W_hat']
-#     base_err = torch.trace((W - W_hat) @ HR @ ((W - W_hat).T)).item()
-#     trWHW = torch.trace(W @ HR @ W.T).item()
-#     base_proxy_err =  base_err / trWHW
-#     base_bpp_loss = out['bpp_loss_sum']/out['num_pixels']
-#     base_mse = mse_fn(W, W_hat).item()
-#     # print(f'Before LayerFT {args.layer_idx}_{args.layer_name} | proxy err {base_proxy_err.item()} err {base_err.item()} tr(WHW.T) {trWHW.item()}')    
-#     # print(f"bpp_loss :{base_bpp_loss:.3f}")
-#     del out
-    
-#     ft_result['base_proxy_err'] = base_proxy_err
-#     ft_result['base_err'] = base_err
-#     ft_result['trWHW'] = trWHW
-#     ft_result['base_bpp_loss'] = base_bpp_loss
-#     ft_result['base_mse'] = base_mse
-#     # print(ft_result['base_bpp_loss'])
-#     # print(type(ft_result['base_bpp_loss']))
-    
-#     new_comp_model = NWC_without_encoder(comp_model.input_size,
-#                                             comp_model.dim_encoder,
-#                                             comp_model.n_resblock,
-#                                             comp_model.input_size,
-#                                             comp_model.scale,
-#                                             comp_model.shift
-#                                             )
-#     new_comp_model.load_state_dict(comp_model.state_dict())
-#     new_comp_model.to(W.device)
-#     latent  = encode_latent(W, new_comp_model, args, qlevel = qlevel)
-#     code_latent = nn.Parameter(latent, requires_grad=True)
-#     # code_latent = nn.Parameter(torch.zeros(W.shape, device=device), requires_grad=True)
-    
-#     # args.direction = 'row'
-#     assert args.direction == 'row'
-#     comp_model = new_comp_model
-#     comp_model.train()
-    
-#     for param in comp_model.parameters():
-#         param.requires_grad = True
-#     for param in comp_model.g_s.parameters():
-#         param.requires_grad = args.ft_train_dec    
-
-#     loss_fn = RateDistortionLoss(std=comp_model.scale.mean(), Hr=HR, lmbda=args.ft_comp_lmbda)
-
-#     bs = 4096*1024 // W.shape[1]
-#     step = 0
-#     optimizer, aux_optimizer = configure_optimizers(comp_model, args, [code_latent])
-    
-#     best_loss = float("inf")
-#     best_state_dict = copy.deepcopy(comp_model.state_dict())
-#     best_code = code_latent.detach().clone()
-#     best_loss_epoch = 0
-    
-#     dataset = TensorDataset(W, code_latent)
-#     loader = DataLoader(dataset, batch_size=bs, shuffle=False, drop_last=False)
-    
-#     total_samples = W.shape[0]
-    
-#     wandb.init(project="NWC_layerwise_ft3", name=f"{args.layer_idx}_{args.layer_name}_trdec{args.ft_train_dec}", config=vars(args))
-#     with torch.enable_grad():
-#         # with tqdm(range(args.ft_comp_ep), desc=f"{args.layer_idx}_{args.layer_name}_{W.shape}_bs{bs}") as pbar:\
-#             # for epoch in pbar: 
-#         for epoch in range(10000):
-#             if step >= args.ft_comp_steps:
-#                 break     
-           
-#             num_pixels = 0
-#             bpp_loss_total = 0
-#             adaptive_loss_total = 0
-#             loss_total = 0
-#             mse_total = 0
-#             W_hat = torch.zeros_like(W)
-
-#             start_idx = 0
-#             for w_batch, code_batch in loader:
-#                 optimizer.zero_grad()
-#                 aux_optimizer.zero_grad()                                      
-#                 x_hat, n_pixels, bpp_loss_, out, out_enc, bpp = model_foward(
-#                     code_batch,
-#                     comp_model,
-#                     args
-#                 )
-
-#                 num_pixels += n_pixels
-#                 bpp_loss_total += bpp_loss_
-            
-#                 loss = loss_fn(w_batch, out)
-#                 loss['loss'].backward()
-                
-#                 optimizer.step()
-#                 try:
-#                     aux_loss = comp_model.aux_loss()
-#                 except:
-#                     aux_loss = comp_model.module.aux_loss()
-                    
-#                 aux_loss.backward()
-#                 aux_optimizer.step()                
-                
-#                 ft_result['loss'].append(loss['loss'].item())
-#                 ft_result['adaptive_loss'].append(loss['adaptive_loss'].item())
-#                 ft_result['bpp_loss'].append(loss['bpp_loss'].item())
-#                 ft_result['mse_loss'].append(loss['mse_loss'].item())
-#                 ft_result['step'].append(step)
-                
-#                 batch_size = w_batch.shape[0]                        
-#                 mse_total += loss['mse_loss'].item() * batch_size  # ← 배치 크기 반영
-#                 adaptive_loss_total += loss['adaptive_loss'].item() * batch_size  # ← 배치 크기 반영
-#                 loss_total += loss['loss'].item() * batch_size  
-                
-#                 step += 1
-#                 end_idx = min(start_idx + bs, W.shape[0])
-#                 W_hat[start_idx:end_idx] = x_hat.detach()
-#                 start_idx += batch_size
-
-#             bpp_loss_epoch = bpp_loss_total / num_pixels
-#             adaptive_loss_per_epoch = adaptive_loss_total / total_samples
-#             mse_loss_per_epoch = mse_total / total_samples
-#             loss_per_epoch = loss_total / total_samples
-
-#             if loss_per_epoch < best_loss:
-#                 best_loss = loss_per_epoch
-#                 best_state_dict = copy.deepcopy(comp_model.state_dict())
-#                 best_code = code_latent.detach().clone()
-#                 best_loss_epoch = epoch
-
-#             # pbar.set_postfix(
-#             #     epoch=epoch,
-#             #     loss=f"{loss_per_epoch:.4f}",
-#             #     adaptive=f"{adaptive_loss_per_epoch:.4f}",
-#             #     bpp=f"{bpp_loss_epoch:.4f}",
-#             #     mse=f"{mse_loss_per_epoch:.4f}",
-#             # )
-#             # print(f"epoch {epoch}")
-#             print(f"{args.layer_idx}_{args.layer_name}_{W.shape}_bs{bs} | step {step} / {args.ft_comp_steps}")
-#             # print(f"loss {loss_per_epoch:.4f}")
-#             # print(f"adaptive_loss {adaptive_loss_per_epoch:.4f}")
-#             # print(f"bpp_loss {bpp_loss_epoch:.4f}")
-#             # print(f"mse_loss {mse_loss_per_epoch:.4f}")
-
-#             with torch.no_grad():
-#                 err = torch.trace((W - W_hat) @ HR @ ((W - W_hat).T)).item()
-#                 # trWHW = torch.trace(W @ HR @ W.T)
-#                 proxy_err =  err / trWHW
-#                 mse = mse_fn(W, W_hat).item()
-
-#             ft_result['epoch'].append(epoch)
-#             ft_result['loss_per_epoch'].append(loss_per_epoch)
-#             ft_result['adaptive_loss_per_epoch'].append(adaptive_loss_per_epoch)
-#             ft_result['bpp_loss_per_epoch'].append(bpp_loss_epoch)
-#             ft_result['mse_loss_per_epoch'].append(mse_loss_per_epoch)
-#             ft_result['best_loss_epoch'].append(best_loss_epoch)
-
-#             ft_result['proxy_err'].append(proxy_err)
-#             ft_result['err'].append(err)
-#             ft_result['mse'].append(mse)
-            
-#             wandb.log({
-#                 "epoch": epoch,
-#                 "loss": loss_per_epoch,
-#                 "best_loss": best_loss,
-#                 "adaptive_loss": adaptive_loss_per_epoch,
-#                 "bpp_loss": bpp_loss_epoch,
-#                 "mse_loss": mse_loss_per_epoch,
-#                 "proxy_err": proxy_err,
-#                 "err":err,
-#                 "mse":mse,
-#                 "trWHW":trWHW,
-#                 "base_proxy_err": base_proxy_err,
-#                 "base_err":base_err,
-#                 "base_bpp_loss":base_bpp_loss,
-#                 "base_mse":base_mse,
-#             })
-
-#     wandb.finish()
-    
-#     comp_model.load_state_dict(best_state_dict)
-#     print('best_code_latent: ', best_code.mean().item(), best_code.max().item(),best_code.min().item())
-
-#     comp_model.eval()
-#     comp_model.update()
-
-#     out = comp_W(best_code, comp_model, args)
-
-#     return out, ft_result

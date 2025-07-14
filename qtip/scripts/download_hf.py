@@ -14,3 +14,6 @@ if __name__ == "__main__":
                       local_dir=args.folder_path,
                       local_dir_use_symlinks=False,
                       token=args.read_token)
+
+
+# python scripts/download_hf.py --folder_path /workspace/Weight_compression/Wparam_dataset/quip_hess/llama2_70b_relaxml --repo_id relaxml/Hessians-Llama-2-70b-6144 --read_token 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

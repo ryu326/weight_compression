@@ -111,6 +111,8 @@ def quantize_finetune_decoder_layer(mixed_layer, quant_order, idx, cb, args,
         cb = cb.to(device).to(orig_dtype)
         orig_linear = attrgetter(linear_attr)(mixed_layer)
         W = orig_linear.weight.to(dtype_)
+        use_bias = (orig_linear.bias != None) ## ryu
+        bias = orig_linear.bias ## ryu
         del orig_linear
         (m, n) = W.shape
         SU = (torch.randn(n, device=device).sign() + 1e-5).sign().to(dtype_)
@@ -255,7 +257,8 @@ def quantize_finetune_decoder_layer(mixed_layer, quant_order, idx, cb, args,
                 'rcp':
                 rcp_int,
                 'tp_rank':
-                args.tp_rank
+                args.tp_rank,
+                'bias':bias ## ryu
             }, save_path)
 
         del HRr, Wr, hatWr, LRr, Qidxs
@@ -273,14 +276,17 @@ def quantize_finetune_decoder_layer(mixed_layer, quant_order, idx, cb, args,
             args.decode_mode,
             mode='train-recons' if args.ft_train_lut else 'train-fixW',
             dtype=orig_dtype,
-            grad_ckpt=args.ft_grad_ckpt)
+            grad_ckpt=args.ft_grad_ckpt,
+            bias = use_bias
+            )
         q_linear.trellis.copy_(packed)
         q_linear.SU.copy_(SU)
         q_linear.SV.copy_(SV)
         q_linear.rcp.copy_(rcp_int)
         q_linear.tp_rank.copy_(args.tp_rank)
+        if use_bias: ## ryu
+            q_linear.bias.copy_(bias)
         q_linear = q_linear.to(device).float()
-
         del packed, SU, SV
         utils.clean()
         

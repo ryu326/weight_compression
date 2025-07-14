@@ -15,8 +15,11 @@ RES="../hf_model_comp_results/qtip"
 # ft 7b
 ############################################
 
-HESS="../Wparam_dataset/quip_hess/Hessians-Llama-2-7b-6144"
-base_model="../Wparam_dataset/hf_model/meta-llama--Llama-2-7b-hf"
+# HESS="../Wparam_dataset/quip_hess/Hessians-Llama-2-7b-6144"
+# base_model="../Wparam_dataset/hf_model/meta-llama--Llama-2-7b-hf"
+
+HESS="../Wparam_dataset/quip_hess/llama3_8b_6144"
+base_model="../Wparam_dataset/hf_model/meta-llama--Meta-Llama-3-8B"
 
 mkdir -p $CKPT
 mkdir -p $LOG

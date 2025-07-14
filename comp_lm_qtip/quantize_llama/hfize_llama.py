@@ -180,12 +180,16 @@ def main(args):
         
     comp_result['bpp_loss'] = comp_result['bpp_loss'] / comp_result['num_pixels']
     comp_result['bpp'] = comp_result['bpp'] / comp_result['num_pixels']
+    
+    if type(comp_result['bpp_loss']) == torch.Tensor:
+        comp_result['bpp_loss'] = comp_result['bpp_loss'].item()
+    if type(comp_result['bpp']) == torch.Tensor:
+        comp_result['bpp'] = comp_result['bpp'].item()
 
     glog.info(f'saving model...')
     model.save_pretrained(args.hf_output_path, safe_serialization=True)
     tokenizer.save_pretrained(args.hf_output_path)
-    del model
-    
+    del model   
     
     file_path = f'{args.hf_output_path}_result'
     if os.path.exists(file_path):

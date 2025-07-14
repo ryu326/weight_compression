@@ -21,12 +21,18 @@ from .jpeg import jp_compress, jp_decompress
 from .bpg import compress_tensor_with_bpg
 from .webp import compress_tensor_with_webp
 
-def compress_linear(W, args, device='cpu'):
+def compress_linear(W, H, args, device='cpu'):
 
     save_path = f'{args.save_path}/{args.layer_idx}_{args.layer_name}'
     
     num_pixels = W.numel()
     
+    if args.scaleH:
+        diagH = torch.diag(H)
+        diagH = torch.clamp(diagH, min=1e-8)
+        scaleH = diagH.sqrt()
+        W = W * scaleH[None, :]
+        # W = W.T
     
     W_uint8, scale, zero_point = quantize_to_uint8(
         W, quant_type=args.quant_method, group_size=args.group_sz
@@ -44,8 +50,12 @@ def compress_linear(W, args, device='cpu'):
     What = dequantize_from_uint8(
         What_uint8, scale, zero_point, quant_type=args.quant_method, group_size=args.group_sz
     )
-    
     bpp_sum = bits +  scale.numel() * 16 + zero_point.numel() * 16
+    
+    if args.scaleH:
+        # W = W.T
+        What = What / scaleH[None, :]
+        bpp_sum += scaleH.numel() * 16    
     
     out = {
         'W_hat': What,

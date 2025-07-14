@@ -25,8 +25,8 @@ parser.add_argument("--output_path", default=None, type=str)
 
 
 def main(args):
-    datasets = ['wikitext2', 'c4', 'ptb']
-    # datasets = ['c4']
+    # datasets = ['wikitext2', 'c4', 'ptb']
+    datasets = ['wikitext2','c4']
     model, model_str = model_from_hf_path(args.hf_path, max_mem_ratio=args.max_mem_ratio)
 
     if args.manifest:
@@ -49,7 +49,7 @@ def main(args):
         acc_loss = 0.0
         progress = tqdm(range(nsamples))
         for ii in progress:
-            input = input_tok[ii, :].cuda().view(1, -1)
+            input = input_tok[ii, :].to(model.device).view(1, -1)
             output = model(input,
                            use_cache=False,
                            output_hidden_states=False,

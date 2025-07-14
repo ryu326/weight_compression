@@ -17,7 +17,7 @@ sys.path.append('/workspace/Weight_compression')
 # from NWC.models.nwc_ql import NWC_ql_without_encoder
 # from NWC.models.nwc import NWC_without_encoder
 from NWC.models.cnn_dec import NWCC_dec_only
-import wandb
+# import wandb
 from NWC.loss import *
 from NWC.models import get_model
 

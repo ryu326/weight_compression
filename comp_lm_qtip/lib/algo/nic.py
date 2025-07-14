@@ -1,66 +1,94 @@
 import torch
 from math import ceil
 import torch.nn.functional as F
+import math
+from neuralcompression.metrics import (
+    MultiscaleStructuralSimilarity,
+    calc_psnr,
+    pickle_size_of,
+    update_patch_fid,
+)
 
-# def compress_linear(W, comp_model, args, patch_size=512, device='cpu'):
-#     """
-#     Compress a 2D weight matrix W using a NIC model by splitting into patches.
-#     Returns reconstructed weights and bits-per-pixel metrics.
-#     """
-#     # Normalize to uint8
-#     comp_model = comp_model.to(device)
-#     W = W.to(device)
-#     quant, scale, zp = normalize_to_uint8(W, quant_type=args.quant_method, group_size=args.group_sz)
+def compress_linear(W, comp_model, args, patch_size=512, device='cpu'):
+    """
+    Compress a 2D weight matrix W using a NIC model by splitting into patches.
+    Returns reconstructed weights and bits-per-pixel metrics.
+    """
+    comp_model = comp_model.to(device)
+    if args.nic_model == 'illm':
+        comp_model.eval()
+        comp_model.update()
+        comp_model.update_tensor_devices("compress")
 
-#     h, w = quant.shape
-#     num_patches_h = ceil(h / patch_size)
-#     num_patches_w = ceil(w / patch_size)
+    W = W.to(device)
+    quant, scale, zp = normalize(W, quant_type=args.quant_method, group_size=args.group_sz)
 
-#     # Prepare output and bit counter
-#     recon = torch.zeros_like(quant, dtype=torch.float32, device=device)
-#     total_bits = 0
+    h, w = quant.shape
+    num_patches_h = ceil(h / patch_size)
+    num_patches_w = ceil(w / patch_size)
 
-#     for i in range(num_patches_h):
-#         for j in range(num_patches_w):
-#             # Extract patch slice
-#             h_start = i * patch_size
-#             w_start = j * patch_size
-#             h_end = min(h_start + patch_size, h)
-#             w_end = min(w_start + patch_size, w)
-#             patch = quant[h_start:h_end, w_start:w_end]
+    # Prepare output and bit counter
+    recon = torch.zeros_like(quant, dtype=torch.float32, device=device)
+    total_bits = 0
 
-#             p = patch.unsqueeze(0).unsqueeze(0).float()  # [1,1,h_p,w_p]
-#             p_pad, padding = pad(p, patch_size)
-#             p3 = p_pad.repeat(1, 3, 1, 1)  # [1,3,patch_size,patch_size]
+    for i in range(num_patches_h):
+        for j in range(num_patches_w):
+            # Extract patch slice
+            h_start = i * patch_size
+            w_start = j * patch_size
+            h_end = min(h_start + patch_size, h)
+            w_end = min(w_start + patch_size, w)
+            patch = quant[h_start:h_end, w_start:w_end]
 
-#             # Compress and decompress
-#             out_enc = comp_model.compress(p3)
-#             out_dec = comp_model.decompress(out_enc["strings"], out_enc["shape"])
+            p = patch.unsqueeze(0).unsqueeze(0).float()  # [1,1,h_p,w_p]
+            p_pad, padding = pad(p, patch_size)
+            p3 = p_pad.repeat(1, 3, 1, 1)  # [1,3,patch_size,patch_size]
+
+            if args.nic_model == 'tcm':
+                out_enc = comp_model.compress(p3)
+                out_dec = comp_model.decompress(out_enc["strings"], out_enc["shape"])
+                
+                rec1 = out_dec["x_hat"][:, 0:1, :, :]
+
+                total_bits += sum(len(s[0]) for s in out_enc["strings"]) * 8.0
             
-#             rec1 = out_dec["x_hat"][:, 0:1, :, :]
-#             rec_crop = crop(rec1, padding)  # [1,1,h_p,w_p]
+            elif args.nic_model == 'ftic':
+                out = comp_model(p3)
+                rec1 = out["x_hat"][:, 0:1, :, :]
+                total_bits += sum(
+                    (torch.log(likelihoods).sum() / (-math.log(2)))
+                    for likelihoods in out["likelihoods"].values()
+                ).item()
+            elif args.nic_model == 'illm':
+                with torch.no_grad():
+                    compressed = comp_model.compress(p3, force_cpu=False)
+                    decompressed = comp_model.decompress(compressed, force_cpu=False).clamp(0.0, 1.0)
+                    rec1 = decompressed[:, 0:1, :, :]
+                    
+                    num_bytes = pickle_size_of(compressed)
+                    total_bits += num_bytes * 8
 
-#             total_bits += sum(len(s[0]) for s in out_enc["strings"]) * 8.0
-#             recon[h_start:h_end, w_start:w_end] = rec_crop.squeeze(0).squeeze(0)
+            rec_crop = crop(rec1, padding)  # [1,1,h_p,w_p]        
+            recon[h_start:h_end, w_start:w_end] = rec_crop.squeeze(0).squeeze(0)
 
-#     # Denormalize
-#     W_hat = denormalize_from_uint8(recon, scale, zp, quant_type=args.quant_method, group_size=args.group_sz).cpu()
+    # Denormalize
+    W_hat = denormalize(recon, scale, zp, quant_type=args.quant_method, group_size=args.group_sz).cpu()
 
-#     num_pixels = W.numel()
-#     bpp_sum = total_bits +  scale.numel() * 16 + zp.numel() * 16
-#     bpp = bpp_sum / num_pixels
+    num_pixels = W.numel()
+    bpp_sum = total_bits +  scale.numel() * 16 + zp.numel() * 16
+    bpp = bpp_sum / num_pixels
     
-#     out = {
-#         'W_hat': W_hat,
-#         'bpp_loss': 0,
-#         'bpp': bpp,
-#         'bpp_loss_sum': 0,
-#         'bpp_sum': bpp_sum,
-#         'num_pixels': num_pixels,
-#         'codes': None,
-#     }
+    out = {
+        'W_hat': W_hat,
+        'bpp_loss': 0,
+        'bpp': bpp,
+        'bpp_loss_sum': 0,
+        'bpp_sum': bpp_sum,
+        'num_pixels': num_pixels,
+        'codes': None,
+    }
     
-#     return out, None, None, None, None, None
+    return out, None, None, None, None, None
 
 
 # 기존 compress_linear 함수에 업스케일링/다운스케일링 로직 추가
@@ -150,99 +178,222 @@ import torch.nn.functional as F
     
 #     return out, None, None, None, None, None
 
-def compress_linear(W, comp_model, args, patch_size=512, device='cpu'):
-    """
-    Compress a 2D weight matrix W using a NIC model.
-    Each patch is normalized to match ImageNet statistics before compression.
-    """
-    comp_model = comp_model.to(device)
-    W = W.to(device)
+# def compress_linear(W, comp_model, args, patch_size=512, device='cpu'):
+#     """
+#     Compress a 2D weight matrix W using a NIC model.
+#     Each patch is normalized to match ImageNet statistics before compression.
+#     """
+#     comp_model = comp_model.to(device)
+#     W = W.to(device)
 
-    # ImageNet statistics for normalization (mean and std for R, G, B channels)
-    # These will be the target statistics for each patch before compression.
-    imagenet_mean = torch.tensor([0.485, 0.456, 0.406], device=device).view(1, 3, 1, 1)
-    imagenet_std = torch.tensor([0.229, 0.224, 0.225], device=device).view(1, 3, 1, 1)
+#     # ImageNet statistics for normalization (mean and std for R, G, B channels)
+#     # These will be the target statistics for each patch before compression.
+#     imagenet_mean = torch.tensor([0.485, 0.456, 0.406], device=device).view(1, 3, 1, 1)
+#     imagenet_std = torch.tensor([0.229, 0.224, 0.225], device=device).view(1, 3, 1, 1)
 
-    h, w = W.shape
-    num_patches_h = ceil(h / patch_size)
-    num_patches_w = ceil(w / patch_size)
+#     h, w = W.shape
+#     num_patches_h = ceil(h / patch_size)
+#     num_patches_w = ceil(w / patch_size)
 
-    # Prepare output and bit counter
-    recon = torch.zeros_like(W, dtype=torch.float32, device=device)
-    total_bits = 0
+#     # Prepare output and bit counter
+#     recon = torch.zeros_like(W, dtype=torch.float32, device=device)
+#     total_bits = 0
 
-    for i in range(num_patches_h):
-        for j in range(num_patches_w):
-            # Extract patch slice
-            h_start = i * patch_size
-            w_start = j * patch_size
-            h_end = min(h_start + patch_size, h)
-            w_end = min(w_start + patch_size, w)
-            patch = W[h_start:h_end, w_start:w_end]
+#     for i in range(num_patches_h):
+#         for j in range(num_patches_w):
+#             # Extract patch slice
+#             h_start = i * patch_size
+#             w_start = j * patch_size
+#             h_end = min(h_start + patch_size, h)
+#             w_end = min(w_start + patch_size, w)
+#             patch = W[h_start:h_end, w_start:w_end]
 
-            # --- Per-Patch Normalization ---
-            patch_mu = patch.mean()
-            patch_std = patch.std()
+#             # --- Per-Patch Normalization ---
+#             patch_mu = patch.mean()
+#             patch_std = patch.std()
 
-            # Add bits for storing patch_mu and patch_std as 16-bit floats
-            total_bits += 2 * 16
+#             # Add bits for storing patch_mu and patch_std as 16-bit floats
+#             total_bits += 2 * 16
 
-            # Normalize patch to have zero mean and unit variance
-            # Add a small epsilon to std to prevent division by zero
-            if patch_std > 1e-8:
-                normalized_patch = (patch - patch_mu) / patch_std
-            else:
-                normalized_patch = patch - patch_mu # If std is zero, just center it
+#             # Normalize patch to have zero mean and unit variance
+#             # Add a small epsilon to std to prevent division by zero
+#             if patch_std > 1e-8:
+#                 normalized_patch = (patch - patch_mu) / patch_std
+#             else:
+#                 normalized_patch = patch - patch_mu # If std is zero, just center it
 
-            # Prepare the patch for the compression model (pad and repeat channels)
-            p = normalized_patch.unsqueeze(0).unsqueeze(0)  # [1, 1, h_p, w_p]
-            p_pad, padding = pad(p, patch_size)
-            p3 = p_pad.repeat(1, 3, 1, 1)  # [1, 3, patch_size, patch_size]
+#             # Prepare the patch for the compression model (pad and repeat channels)
+#             p = normalized_patch.unsqueeze(0).unsqueeze(0)  # [1, 1, h_p, w_p]
+#             p_pad, padding = pad(p, patch_size)
+#             p3 = p_pad.repeat(1, 3, 1, 1)  # [1, 3, patch_size, patch_size]
 
-            # Scale to ImageNet statistics
-            p3_imagenet = p3 * imagenet_std + imagenet_mean
+#             # Scale to ImageNet statistics
+#             p3_imagenet = p3 * imagenet_std + imagenet_mean
 
-            # --- Compression and Decompression ---
-            out_enc = comp_model.compress(p3_imagenet)
-            out_dec = comp_model.decompress(out_enc["strings"], out_enc["shape"])
+#             # --- Compression and Decompression ---
+#             out_enc = comp_model.compress(p3_imagenet)
+#             out_dec = comp_model.decompress(out_enc["strings"], out_enc["shape"])
             
-            # Add compressed bits
-            total_bits += sum(len(s[0]) for s in out_enc["strings"]) * 8.0
+#             # Add compressed bits
+#             total_bits += sum(len(s[0]) for s in out_enc["strings"]) * 8.0
 
-            # --- Per-Patch Denormalization ---
-            rec_hat_imagenet = out_dec["x_hat"] # [1, 3, patch_size, patch_size]
+#             # --- Per-Patch Denormalization ---
+#             rec_hat_imagenet = out_dec["x_hat"] # [1, 3, patch_size, patch_size]
 
-            # Reverse ImageNet normalization
-            rec_hat_normalized = (rec_hat_imagenet - imagenet_mean) / imagenet_std
+#             # Reverse ImageNet normalization
+#             rec_hat_normalized = (rec_hat_imagenet - imagenet_mean) / imagenet_std
             
-            # Average the 3 channels to get a single-channel image
-            rec_hat_single_channel = rec_hat_normalized.mean(dim=1, keepdim=True)
+#             # Average the 3 channels to get a single-channel image
+#             rec_hat_single_channel = rec_hat_normalized.mean(dim=1, keepdim=True)
             
-            # Crop to original patch size
-            rec_crop = crop(rec_hat_single_channel, padding)  # [1, 1, h_p, w_p]
+#             # Crop to original patch size
+#             rec_crop = crop(rec_hat_single_channel, padding)  # [1, 1, h_p, w_p]
 
-            # Reverse the initial normalization (denormalize)
-            if patch_std > 1e-8:
-                rec_final_patch = rec_crop * patch_std + patch_mu
-            else:
-                rec_final_patch = rec_crop + patch_mu
+#             # Reverse the initial normalization (denormalize)
+#             if patch_std > 1e-8:
+#                 rec_final_patch = rec_crop * patch_std + patch_mu
+#             else:
+#                 rec_final_patch = rec_crop + patch_mu
 
-            recon[h_start:h_end, w_start:w_end] = rec_final_patch.squeeze(0).squeeze(0)
+#             recon[h_start:h_end, w_start:w_end] = rec_final_patch.squeeze(0).squeeze(0)
 
-    W_hat = recon.cpu()
-    num_pixels = W.numel()
-    bpp = total_bits / num_pixels
+#     W_hat = recon.cpu()
+#     num_pixels = W.numel()
+#     bpp = total_bits / num_pixels
     
-    out = {
-        'W_hat': W_hat,
-        'bpp': bpp,
-        'bpp_sum': total_bits,
-        'num_pixels': num_pixels,
-        'bpp_loss': 0, # Placeholder, can be filled if needed
-        'bpp_loss_sum': 0, # Placeholder
-        'codes': None, # Placeholder
-    }
-    return out, None, None, None, None, None
+#     out = {
+#         'W_hat': W_hat,
+#         'bpp': bpp,
+#         'bpp_sum': total_bits,
+#         'num_pixels': num_pixels,
+#         'bpp_loss': 0, # Placeholder, can be filled if needed
+#         'bpp_loss_sum': 0, # Placeholder
+#         'codes': None, # Placeholder
+#     }
+#     return out, None, None, None, None, None
+
+# def compress_linear(W, comp_model, args, device='cpu'):
+#     """
+#     Compress a 2D weight matrix W using a NIC model with decoupled normalization.
+#     1. First, normalizes W in blocks of 'norm_patch_size' and stores the factors.
+#     2. Then, compresses the normalized W in blocks of 'patch_size'.
+#     """
+#     comp_model = comp_model.to(device)
+#     W = W.to(device)
+#     h, w = W.shape
+
+#     # --- 1. Pre-computation: Block-wise Normalization ---
+
+#     # Calculate grid dimensions for normalization patches
+#     patch_size = args.nic_patch_size
+#     norm_patch_size = args.nic_norm_patch_size
+    
+#     num_norm_patches_h = ceil(h / norm_patch_size)
+#     num_norm_patches_w = ceil(w / norm_patch_size)
+
+#     # Tensors to store the normalized version of W and the normalization factors
+#     W_normalized = torch.zeros_like(W)
+#     mus = torch.zeros(num_norm_patches_h, num_norm_patches_w, device=device)
+#     stds = torch.zeros(num_norm_patches_h, num_norm_patches_w, device=device)
+
+#     for i in range(num_norm_patches_h):
+#         for j in range(num_norm_patches_w):
+#             h_start = i * norm_patch_size
+#             w_start = j * norm_patch_size
+#             h_end = min(h_start + norm_patch_size, h)
+#             w_end = min(w_start + norm_patch_size, w)
+            
+#             patch = W[h_start:h_end, w_start:w_end]
+            
+#             mu = patch.mean()
+#             std = patch.std()
+
+#             # Store factors
+#             mus[i, j] = mu
+#             stds[i, j] = std
+
+#             # Normalize and store in the new tensor
+#             if std > 1e-8:
+#                 W_normalized[h_start:h_end, w_start:w_end] = (patch - mu) / std
+#             else:
+#                 W_normalized[h_start:h_end, w_start:w_end] = patch - mu
+
+#     # Calculate bits required to store all normalization factors (as FP16)
+#     total_bits = (mus.numel() + stds.numel()) * 16.0
+
+#     # --- 2. Main Loop: Compression and Decompression ---
+
+#     # ImageNet statistics for scaling before compression
+#     imagenet_mean = torch.tensor([0.485, 0.456, 0.406], device=device).view(1, 3, 1, 1)
+#     imagenet_std = torch.tensor([0.229, 0.224, 0.225], device=device).view(1, 3, 1, 1)
+
+#     # Calculate grid dimensions for compression patches
+#     num_comp_patches_h = ceil(h / patch_size)
+#     num_comp_patches_w = ceil(w / patch_size)
+    
+#     recon = torch.zeros_like(W, dtype=torch.float32, device=device)
+
+#     for i in range(num_comp_patches_h):
+#         for j in range(num_comp_patches_w):
+#             h_start = i * patch_size
+#             w_start = j * patch_size
+#             h_end = min(h_start + patch_size, h)
+#             w_end = min(w_start + patch_size, w)
+
+#             # Extract patch from the pre-normalized matrix
+#             normalized_patch = W_normalized[h_start:h_end, w_start:w_end]
+            
+#             # Prepare for compression model
+#             p = normalized_patch.unsqueeze(0).unsqueeze(0)
+#             p_pad, padding = pad(p, patch_size)
+#             p3 = p_pad.repeat(1, 3, 1, 1)
+#             p3_imagenet = p3 * imagenet_std + imagenet_mean
+
+#             # Compress, decompress, and count bits
+#             out_enc = comp_model.compress(p3_imagenet)
+#             out_dec = comp_model.decompress(out_enc["strings"], out_enc["shape"])
+#             total_bits += sum(len(s[0]) for s in out_enc["strings"]) * 8.0
+
+#             # Reverse ImageNet scaling
+#             rec_hat_imagenet = out_dec["x_hat"]
+#             rec_hat_normalized = (rec_hat_imagenet - imagenet_mean) / imagenet_std
+#             rec_hat_single_channel = rec_hat_normalized.mean(dim=1, keepdim=True)
+#             rec_crop = crop(rec_hat_single_channel, padding)
+
+#             # --- Denormalization using stored factors ---
+#             # Find which normalization blocks this compression patch overlaps with
+#             i_norm_start = h_start // norm_patch_size
+#             j_norm_start = w_start // norm_patch_size
+#             i_norm_end = (h_end - 1) // norm_patch_size
+#             j_norm_end = (w_end - 1) // norm_patch_size
+            
+#             # Get the average mu and std over the patch's area
+#             relevant_mus = mus[i_norm_start:i_norm_end+1, j_norm_start:j_norm_end+1]
+#             relevant_stds = stds[i_norm_start:i_norm_end+1, j_norm_start:j_norm_end+1]
+            
+#             avg_mu = relevant_mus.mean()
+#             avg_std = relevant_stds.mean()
+
+#             # Denormalize the entire reconstructed patch with the average factors
+#             if avg_std > 1e-8:
+#                 rec_final_patch = rec_crop * avg_std + avg_mu
+#             else:
+#                 rec_final_patch = rec_crop + avg_mu
+
+#             recon[h_start:h_end, w_start:w_end] = rec_final_patch.squeeze(0).squeeze(0)
+
+#     W_hat = recon.cpu()
+#     num_pixels = W.numel()
+#     bpp = total_bits / num_pixels
+    
+#     out = {
+#         'W_hat': W_hat,
+#         'bpp': bpp,
+#         'bpp_sum': total_bits,
+#         'num_pixels': num_pixels,
+#         'bpp_loss': 0, 'bpp_loss_sum': 0, 'codes': None
+#     }
+#     return out, None, None, None, None, None
 
 def pad(x, p):
     h, w = x.size(2), x.size(3)
@@ -267,10 +418,9 @@ def crop(x, padding):
     )
 
 
-def normalize_to_uint8(weight: torch.Tensor, quant_type: str = 'per_tensor', group_size: int = -1):
+def normalize(weight: torch.Tensor, quant_type: str = 'per_tensor', group_size: int = -1):
     device = weight.device
-    num_bits = 8
-    qmin, qmax = 0, 1.0
+    qmin, qmax = 0, 1
 
     if quant_type == 'per_tensor':
         real_max, real_min = weight.max(), weight.min()
@@ -283,7 +433,7 @@ def normalize_to_uint8(weight: torch.Tensor, quant_type: str = 'per_tensor', gro
         zero_point = zero_point.to(torch.float16)
         
         quant = weight / scale + zero_point
-        quant = torch.clamp(quant, qmin, qmax).to(torch.uint8)
+        quant = torch.clamp(quant, qmin, qmax)
         
         return quant, scale, zero_point
 
@@ -298,7 +448,7 @@ def normalize_to_uint8(weight: torch.Tensor, quant_type: str = 'per_tensor', gro
         zero_point = zero_point.to(torch.float16)
 
         quant = weight / scale + zero_point
-        quant = torch.clamp(quant, qmin, qmax).to(torch.uint8)
+        quant = torch.clamp(quant, qmin, qmax)
         
         return quant, scale, zero_point
 
@@ -307,7 +457,7 @@ def normalize_to_uint8(weight: torch.Tensor, quant_type: str = 'per_tensor', gro
             raise ValueError("Group quantization requires a 2D weight tensor and a positive group_size.")
         
         out_dim, in_dim = weight.shape
-        quant = torch.empty_like(weight, dtype=torch.uint8, device=device)
+        quant = torch.empty_like(weight, device=device)
         scales, zero_points = [], []
 
         for i in range(0, in_dim, group_size):
@@ -322,7 +472,7 @@ def normalize_to_uint8(weight: torch.Tensor, quant_type: str = 'per_tensor', gro
             z = z.to(torch.float16)
             
             q_slice = group_slice / s + z
-            quant[:, i:i + group_size] = torch.clamp(q_slice, qmin, qmax).to(torch.uint8)
+            quant[:, i:i + group_size] = torch.clamp(q_slice, qmin, qmax)
             
             scales.append(s)
             zero_points.append(z)
@@ -332,7 +482,7 @@ def normalize_to_uint8(weight: torch.Tensor, quant_type: str = 'per_tensor', gro
     else:
         raise ValueError(f"Unsupported quant_type: {quant_type}")
 
-def denormalize_from_uint8(
+def denormalize(
     quant_tensor: torch.Tensor, 
     scale: torch.Tensor, 
     zero_point: torch.Tensor,

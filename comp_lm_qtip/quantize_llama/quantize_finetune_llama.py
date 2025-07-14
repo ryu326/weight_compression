@@ -126,9 +126,12 @@ parser.add_argument("--group_sz", type=int, default=-1)
 parser.add_argument("--jp_quality", type=int, default=-1)
 parser.add_argument("--bpg_quality", type=int, default=-1)
 parser.add_argument("--webp_quality", type=int, default=-1)
-parser.add_argument("--nic_model", type=str, choices=["tcm", "ftic"], default=None)
+parser.add_argument("--nic_model", type=str, choices=["tcm", "ftic", "illm"], default=None)
 parser.add_argument("--nic_checkpoint", type=str, default=None)
-
+parser.add_argument("--nic_patch_size", type=int, default=-1)
+parser.add_argument("--nic_norm_patch_size", type=int, default=-1)
+parser.add_argument("--illm_quality", type=int, default=-1)
+parser.add_argument('--scale_cond', action='store_true', default=False)
 
 def check_exist(idx, args):
     suffix = ['q', 'k', 'v', 'o', 'up', 'down', 'layernorm']
@@ -270,7 +273,12 @@ def main(args):
             for k, v in checkpoint.items():
                 dictory[k.replace("module.", "")] = v
             comp_model.load_state_dict(dictory,strict=True)
-        
+        elif args.nic_model == 'illm':
+            comp_model = torch.hub.load("facebookresearch/NeuralCompression", f"msillm_quality_{args.illm_quality}", trust_repo=True)
+            comp_model = comp_model.to('cpu')
+            comp_model.eval()
+            comp_model.update()
+            comp_model.update_tensor_devices("compress")
         else:
             raise NotImplementedError(f'Not implemented nic model {args.nic_model}')
         comp_model.eval()
