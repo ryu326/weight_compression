@@ -70,9 +70,14 @@ def compress_linear(W, H, comp_model, Qlevel, args, device='cpu'):
         assert args.row_normalize
         col_std = (W/row_std).std(dim=0, keepdim=True)  # (B, 1, n)
         if comp_model.config.uniform_scale_max is not None:
-            comp_model.config.uniform_scale_max = 1 ## for test
+            # comp_model.config.uniform_scale_max = 1 ## for test
             glog.info(f'== clamp col_std {comp_model.config.uniform_scale_max} ==')
-            col_std = torch.clamp(col_std, max = comp_model.config.uniform_scale_max)        
+            glog.info(f'{col_std.mean()} {col_std.min()} {col_std.max()}')
+            col_std = torch.clamp(col_std, max = comp_model.config.uniform_scale_max)
+        if args.scale_cond_test is not None:
+            col_std = torch.full_like(col_std, args.scale_cond_test)
+            glog.info(f'{col_std.mean()} {col_std.min()} {col_std.max()}')
+            
             
     if args.scale_std is not None:
         print(f"Scale scale *{args.scale_std}")
