@@ -13,8 +13,8 @@ comp_model_bases=(
     # "../NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt/rdloss_size16_encdim512_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
 )
 quantize_flags=(
-    "--direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 128 --ft_epochs 5"
-    # "--direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 128 --ft_epochs 5 --ft_rnorm"
+    # "--direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 128 --ft_epochs 5"
+    "--direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 128 --ft_epochs 5 --ft_rnorm"
     # "--direction row --scaleHinv --row_normalize --ldlq --comp_batch_size 128"
     # "--direction row --scaleH --row_normalize --ldlq --comp_batch_size 128"
     # "--direction row --scaleH --row_normalize --ldlq --comp_batch_size 128 --scale_cond --scale_cond_test 0.01" 
@@ -22,8 +22,8 @@ quantize_flags=(
     # "--direction row --scaleH --row_normalize --comp_batch_size 2048 --scale_cond" 
 )
 experiment_names=(
-    "ql_ldlq128_rnorm_ft"
-    # "ql_ldlq128_rnorm_ft_ft"
+    # "ql_ldlq128_rnorm_ft"
+    "ql_ldlq128_rnorm_ft_ft"
     # "scaleHinv_std_ldlq128/size128_encdim1024_M256"
     # "scaleH_std_ldlq128/size128_encdim1024_M256"
     # "scaleH_std_ldlq128/size128_encdim2048_M256"
@@ -37,15 +37,15 @@ experiment_names=(
 ##                           MODEL CONFIGURATION                        ##
 ##########################################################################
 model_names=(
-    # "meta-llama--Meta-Llama-3-8B"
-    # "meta-llama--Llama-2-7b-hf"
-    # "meta-llama--Llama-2-13b-hf"
-    "meta-llama--Llama-2-70b-hf_"
+    "meta-llama--Meta-Llama-3-8B"
+    "meta-llama--Llama-2-7b-hf"
+    "meta-llama--Llama-2-13b-hf"
+    # "meta-llama--Llama-2-70b-hf_"
 )
 hess_paths=(
-    # "../Wparam_dataset/quip_hess/llama3_8b_6144"
-    # "../Wparam_dataset/quip_hess/Hessians-Llama-2-7b-6144"
-    # "../Wparam_dataset/quip_hess/Hessians-Llama-2-13b-6144"
+    "../Wparam_dataset/quip_hess/llama3_8b_6144"
+    "../Wparam_dataset/quip_hess/Hessians-Llama-2-7b-6144"
+    "../Wparam_dataset/quip_hess/Hessians-Llama-2-13b-6144"
     "../Wparam_dataset/quip_hess/llama2_70b_relaxml_git/Hessians-Llama-2-70b-6144"
 )
 ############################################
@@ -60,13 +60,12 @@ mkdir -p $CKPT
 mkdir -p $HF
 mkdir -p $LOG
 mkdir -p $RES
-export CUDA_VISIBLE_DEVICES=0,1,2,3,6,7
+export CUDA_VISIBLE_DEVICES=4,5
 export WANDB_SILENT=true
 
 # 모든 실험에 공통으로 적용될 Lambda 값
-# lmbda_values=(50 100 300 1000)
+lmbda_values=(30 50 100 300 1000)
 # lmbda_values=(30 50 100 300)
-lmbda_values=(50)
 ##########################################################################
 ##                        MAIN EXECUTION LOOP                           ##
 ##########################################################################
@@ -103,13 +102,13 @@ for i in "${!experiment_names[@]}"; do
             comp_model=$comp_model_base/lmbda${lmbda}_*/best_loss*.pth.tar
             mkdir -p $(dirname "$LOG/$SAVE_NAME.log")
             
-            # taskset -c 0-31 \
-            # python -m quantize_llama.quantize_finetune_llama --save_path $CKPT/$SAVE_NAME \
-            #     --base_model $lm_model_path \
-            #     --comp_model_path $comp_model \
-            #     --in_hess_path $HESS --devset_size 384 --ft_valid_size 128 --batch_size 8 \
-            #     ${current_quantize_flags} \
-            #     2>&1 | tee $LOG/$SAVE_NAME.log
+            taskset -c 0-31 \
+            python -m quantize_llama.quantize_finetune_llama --save_path $CKPT/$SAVE_NAME \
+                --base_model $lm_model_path \
+                --comp_model_path $comp_model \
+                --in_hess_path $HESS --devset_size 384 --ft_valid_size 128 --batch_size 8 \
+                ${current_quantize_flags} \
+                2>&1 | tee $LOG/$SAVE_NAME.log
 
             echo "################## Running hfize | lmbda=${lmbda} | Exp: ${exp_name} | Model: ${model_name} ##################"
             python -m quantize_llama.hfize_llama --quantized_path $CKPT/${SAVE_NAME} \
@@ -119,29 +118,28 @@ for i in "${!experiment_names[@]}"; do
             # python -m quantize_llama.hfize_llama_rnorm --quantized_path $CKPT/${SAVE_NAME} \
             #         --hf_output_path $HF/${SAVE_NAME} 2>&1 | tee -a $LOG/$SAVE_NAME.log
 
-            # echo "################## Running PPL evaluation | lmbda=${lmbda} | Exp: ${exp_name} | Model: ${model_name} ##################"
-            # echo "Running evaluation for directory: $HF/$SAVE_NAME"
-            # python -m eval.eval_ppl_hf \
-            #     --hf_path $HF/$SAVE_NAME \
-            #     --seqlen 4096 \
-            #     --output_path $RES/$SAVE_NAME \
-            #     --no_use_cuda_graph 2>&1 | tee -a $LOG/$SAVE_NAME.log
+            echo "################## Running PPL evaluation | lmbda=${lmbda} | Exp: ${exp_name} | Model: ${model_name} ##################"
+            echo "Running evaluation for directory: $HF/$SAVE_NAME"
+            python -m eval.eval_ppl_hf \
+                --hf_path $HF/$SAVE_NAME \
+                --seqlen 2048 \
+                --output_path $RES/$SAVE_NAME \
+                --no_use_cuda_graph 2>&1 | tee -a $LOG/$SAVE_NAME.log
 
             echo "################## Running benchmark evaluation | lmbda=${lmbda} | Exp: ${exp_name} | Model: ${model_name} ##################"
             python -m eval.eval_zeroshot_hf \
-                --tasks arc_challenge,arc_easy,piqa,winogrande,hellaswag \
-                --batch_size 1  \
+                --tasks arc_challenge,arc_easy,boolq,piqa,winogrande \
+                --batch_size 8  \
                 --hf_path $HF/$SAVE_NAME \
                 --output_path $RES/$SAVE_NAME
 
-                # --tasks arc_challenge,arc_easy,boolq,piqa,winogrande \
+                # --tasks arc_challenge,arc_easy,piqa,winogrande,hellaswag \
 
-
-            # if [ "$HF/$SAVE_NAME" != "$HF" ]; then
-            #     echo "Cleaning up temporary files for $SAVE_NAME"
-            #     rm -rf "$HF/$SAVE_NAME"
-            #     # rm -rf "$CKPT/$SAVE_NAME"
-            # fi
+            if [ "$HF/$SAVE_NAME" != "$HF" ]; then
+                echo "Cleaning up temporary files for $SAVE_NAME"
+                rm -rf "$HF/$SAVE_NAME"
+                rm -rf "$CKPT/$SAVE_NAME"
+            fi
         done
     done
 done

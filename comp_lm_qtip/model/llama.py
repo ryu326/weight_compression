@@ -279,7 +279,7 @@ def apply_rotary_pos_emb(q, k, cos, sin, position_ids=None, unsqueeze_dim=1):
 
 class LlamaMLP(nn.Module):
 
-    def __init__(self, config):
+    def __init__(self, config, layer_idx):
         super().__init__()
         self.config = config
         self.hidden_size = config.hidden_size
@@ -682,7 +682,7 @@ class LlamaDecoderLayer(nn.Module):
 
         self.self_attn = LLAMA_ATTENTION_CLASSES[config._attn_implementation](config=config, layer_idx=layer_idx)
 
-        self.mlp = LlamaMLP(config)
+        self.mlp = LlamaMLP(config, layer_idx=layer_idx)
         self.input_layernorm = LlamaRMSNorm(config.hidden_size, eps=config.rms_norm_eps)
         self.post_attention_layernorm = LlamaRMSNorm(config.hidden_size, eps=config.rms_norm_eps)
 

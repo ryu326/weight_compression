@@ -87,7 +87,7 @@ class CompLinear(Module):
             bound = 1 / math.sqrt(fan_in) if fan_in > 0 else 0
             init.uniform_(self.bias, -bound, bound)
         if hasattr(self, 'row_norm') and self.row_norm is not None:
-            init.ones_(self.row_norm)
+            init.uniform_(self.row_norm)
             
     def forward(self, input: Tensor) -> Tensor:
         W = self.weight * self.row_norm

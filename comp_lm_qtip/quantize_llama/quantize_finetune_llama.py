@@ -47,7 +47,7 @@ parser.add_argument('--lowmem_ldlq', action='store_true')
 parser.add_argument('--ft_lr', default=3e-6, type=float)
 parser.add_argument('--ft_bs', default=4, type=int)
 parser.add_argument('--ft_update_freq', default=1, type=int)
-parser.add_argument('--ft_epochs', default=5, type=int)
+parser.add_argument('--ft_epochs', default=0, type=int)
 parser.add_argument('--ft_valid_freq', default=1, type=int)
 parser.add_argument('--ft_valid_size', default=128, type=float)
 parser.add_argument('--ft_early_stop', default=5, type=int)
@@ -116,6 +116,7 @@ parser.add_argument('--qmap_optim', action='store_true', default=False)
 # parser.add_argument('--optim_norm', action='store_true', default=False)
 parser.add_argument('--cnorm_optim', action='store_true', default=False)
 parser.add_argument('--rnorm_optim', action='store_true', default=False)
+parser.add_argument('--ft_rnorm', action='store_true', default=False)
 parser.add_argument('--scaleH', action='store_true', default=False)
 parser.add_argument('--scaleHinv', action='store_true', default=False)
 parser.add_argument('--scale_std', type=float, default=None)
@@ -195,8 +196,10 @@ def main(args):
 
     # save configs
     all_config = {'quant_args': args, 'model_config': model.config}
-    quip_params = {}
-    all_config['model_config'].update({'quip_params': quip_params})
+    comp_params = {'ft_rnorm': args.ft_rnorm,
+                   'row_normalize' : args.row_normalize,
+                   'col_normalize': args.col_normalize}
+    all_config['model_config'].update({'comp_params': comp_params})
     torch.save(all_config, os.path.join(args.save_path, 'config.pt'))
 
     all_config = {'quant_args': vars(args), 'model_config': model.config.to_dict()}

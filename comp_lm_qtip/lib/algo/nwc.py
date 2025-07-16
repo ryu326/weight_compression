@@ -227,7 +227,8 @@ def compress_linear(W, H, comp_model, Qlevel, args, device='cpu'):
         #         res[key] = res[key] * row_std
         for key in ['bpp_loss_sum', 'bpp_loss_sum_init', 'bpp_loss_sum_sga', 'bpp_loss_sum_round', 'bpp_sum']:
             if res.get(key) is not None:
-                res[key] += row_std.numel() * 16
+                # res[key] += row_std.numel() * 16
+                res[key] += row_std.numel() * 32
                 
     if args.ql or args.ql_invH:
         for key in ['bpp_loss_sum', 'bpp_loss_sum_init', 'bpp_loss_sum_sga', 'bpp_loss_sum_round', 'bpp_sum']:

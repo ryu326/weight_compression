@@ -181,7 +181,13 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
         glog.info(f'------------------------------------')
 
         save_path = f'{args.save_path}/{idx}_{name}.pt'
-        W_hat = W_hat.cpu()
+        
+        if args.ft_rnorm == True:
+            rnorm = out['row_norm'].to(dtype_)
+            W_hat = W_hat / rnorm
+            rnorm = rnorm.cpu()
+            
+        W_hat = W_hat.cpu()       
 
         torch.save(
             {
@@ -218,28 +224,27 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
                 'num_pixels': out['num_pixels'],
                 'optimize_out': optimize_out,
                 'direction': args.direction,
-                'row_norm' : out['row_norm']                                             
+                'row_norm' : rnorm                                     
             }, save_path)
 
         # if args.ft_comp_model2 and args.layer_name in ['v', 'o', 'k', 'q']:
         if args.ft_comp_model2 or args.code_optim:
             utils.plot_ft_comp_result(ft_result, args, idx, name)
-        
-        if args.row_normalize == False:
-            comp_linear = copy.deepcopy(orig_linear)
-            comp_linear.weight.copy_(W_hat)
-            comp_linear.weight.requires_grad = False
-        elif args.row_normalize == True:
-            rnorm = out['row_norm'].float().cpu()
+
+        if args.ft_rnorm == True:
             comp_linear = CompLinear(orig_linear.in_features,
                                     orig_linear.out_features,
                                     orig_linear.bias,
                                     orig_linear.weight.device,
                                     orig_linear.weight.dtype,
                                     )
-            comp_linear.weight.copy_(W_hat/rnorm)
+            comp_linear.weight.copy_(W_hat)
             comp_linear.weight.requires_grad = False
             comp_linear.row_norm = nn.Parameter(rnorm, requires_grad=True)
+        else:
+            comp_linear = copy.deepcopy(orig_linear)
+            comp_linear.weight.copy_(W_hat)
+            comp_linear.weight.requires_grad = False
         
         assert not torch.equal(orig_linear.weight.data, comp_linear.weight.data)
         del orig_linear
@@ -253,18 +258,26 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
             with torch.enable_grad():
                 finetune_decoder_layer(mixed_layer, f'{idx}_{name}', device,
                                     train_dl, valid_dl, orig_dtype, args)
-            if out['row_norm'] is not None:
-                assert not torch.allclose(out['row_norm'], attrgetter('.'.join(split_attr[:-1]))(mixed_layer), split_attr[-1].row_norm.data)
+            # if args.ft_rnorm:
+            #     assert not torch.allclose(out['row_norm'], attrgetter(linear_attr)(mixed_layer).row_norm)
             
-        # nan_mask = torch.isnan(W_hat)
-        # print(nan_mask.nonzero())  # NaN 위치의 인덱스 출력
-        assert torch.isnan(W_hat).any() == False  # 출력: True
-        # assert torch.equal(W_hat, attrgetter(linear_attr)(mixed_layer).weight)
-        # w_now = attrgetter(linear_attr)(mixed_layer).weight
-        # assert torch.allclose(W_hat, w_now, atol=1e-6), f"Mismatch: max diff = {(W_hat - w_now).abs().max()}"
+        assert torch.isnan(W_hat).any() == False
+        if not args.ft_rnorm:
+            assert torch.equal(W_hat, attrgetter(linear_attr)(mixed_layer).weight)
 
         del HR, W, W_hat
         utils.clean()
+
+    if args.ft_epochs > 0 and args.ft_rnorm:
+        for quant_i, (linear_attr, name, in_hess_name, out_hess_name,
+                    rcp) in enumerate(quant_order):
+            quant_linear = attrgetter(linear_attr)(mixed_layer)
+            save_path = f'{args.save_path}/{idx}_{name}.pt'
+            data = torch.load(save_path)
+            # data['row_norm'] = quant_linear.row_norm.data.to(orig_dtype).cpu()
+            data['row_norm'] = quant_linear.row_norm.data.to(dtype_).cpu()
+            torch.save(data, save_path)
+
 
     mixed_layer = mixed_layer.to(orig_dtype).cpu()
     utils.clean()
