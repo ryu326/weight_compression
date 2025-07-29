@@ -34,7 +34,7 @@ def compress_linear(W, H, comp_model, Qlevel, args, device='cpu'):
     if args.incoh_mode != 'none':
         Lhr, H, W, SU, SV, scaleWH = quip.incoherence_preprocess(H, W, args)
     if args.scaleH: ## scaleh2 --scaleh 랑 --row_normalize 하는게 scaleh2
-        assert args.row_normalize == True
+        # assert args.row_normalize == True
         diagH = torch.diag(H)
         diagH = torch.clamp(diagH, min=1e-8)
         scaleH = diagH.sqrt()
@@ -66,18 +66,21 @@ def compress_linear(W, H, comp_model, Qlevel, args, device='cpu'):
         comp_model.scale = torch.tensor(1).to(device)
         comp_model.shift = torch.tensor(0).to(device)
         col_std = W.std(dim=0, keepdim=True).to(torch.float16)  # (B, 1, n)
-    if args.scale_cond:
-        assert args.row_normalize
-        col_std = (W/row_std).std(dim=0, keepdim=True)  # (B, 1, n)
-        if comp_model.config.uniform_scale_max is not None:
-            # comp_model.config.uniform_scale_max = 1 ## for test
-            glog.info(f'== clamp col_std {comp_model.config.uniform_scale_max} ==')
-            glog.info(f'{col_std.mean()} {col_std.min()} {col_std.max()}')
-            col_std = torch.clamp(col_std, max = comp_model.config.uniform_scale_max)
-        if args.scale_cond_test is not None:
-            col_std = torch.full_like(col_std, args.scale_cond_test)
-            glog.info(f'{col_std.mean()} {col_std.min()} {col_std.max()}')
-            
+    # if args.scale_cond:
+    #     assert args.row_normalize
+    #     col_std = (W/row_std).std(dim=0, keepdim=True)  # (B, 1, n)
+    #     if comp_model.config.uniform_scale_max is not None:
+    #         # comp_model.config.uniform_scale_max = 1 ## for test
+    #         glog.info(f'== clamp col_std {comp_model.config.uniform_scale_max} ==')
+    #         glog.info(f'{col_std.mean()} {col_std.min()} {col_std.max()}')
+    #         col_std = torch.clamp(col_std, max = comp_model.config.uniform_scale_max)
+    #     if args.scale_cond_test is not None:
+    #         col_std = torch.full_like(col_std, args.scale_cond_test)
+    #         glog.info(f'{col_std.mean()} {col_std.min()} {col_std.max()}')
+    if args.scale_cond_c_r:
+        col_std = W.std(dim=0, keepdim=True)
+        row_std = (W/col_std).std(dim=1, keepdim=True)
+        col_std = None
             
     if args.scale_std is not None:
         print(f"Scale scale *{args.scale_std}")
@@ -375,9 +378,20 @@ def model_foward_one_batch(w, model, args, **kwargs):
     blks = model.input_size
     assert (m if args.direction == 'col' else n) % blks == 0
     
-    w = w / rnorm if rnorm is not None else w
-    w = w / cnorm if cnorm is not None and not args.scale_cond else w
+    w = w / rnorm if rnorm is not None and not args.scale_cond_r_c else w 
+    w = w / cnorm if cnorm is not None else w
+    scale_cond = w.std(dim=0, keepdim=True).repeat(m, 1) if args.scale_cond else None
+
+    if args.scale_cond_r_c:
+        scale_cond = (w/rnorm).std(dim=0, keepdim=True)
+        scale_cond = rnorm @ scale_cond
+        assert scale_cond.shape == (m, n)
     
+    if args.scale_cond_c_r: ## 미완성 col 다음 row하게 코드 짜자
+        scale_cond = w.std(dim=0, keepdim=True)
+        scale_cond = rnorm @ scale_cond
+        assert scale_cond.shape == (m, n)
+
     if ql is not None:
         ql = ql.reshape(1, n).expand(m//blks, n)
     elif args.ql_search_value is not None:
@@ -388,7 +402,8 @@ def model_foward_one_batch(w, model, args, **kwargs):
     w = w.T if (w is not None and transpose) else w
     ql = ql.T if (ql is not None and transpose) else ql
     qm = qm.T if (qm is not None and transpose) else qm
-
+    scale_cond = scale_cond.T if scale_cond is not None and transpose else scale_cond
+    
     data = {}
     w = w.reshape(1, -1, blks)
     data['weight_block'] = w
@@ -403,11 +418,12 @@ def model_foward_one_batch(w, model, args, **kwargs):
         ltype = wtype_mapping[args.layer_name]
         data['depth'] = torch.full((1, 1), depth, dtype=torch.long).to(w.device)
         data['ltype'] = torch.full((1, 1), ltype, dtype=torch.long).to(w.device)
-    if args.scale_cond:
-        scale_cond = cnorm.repeat(m, 1)
-        assert scale_cond.shape == (m, n)
-        scale_cond = scale_cond.reshape(1, -1, blks)
-        data['scale_cond'] = scale_cond
+    if args.scale_cond or args.scale_cond_r_c or args.scale_cond_c_r:
+        data['scale_cond'] = scale_cond.reshape(1, -1, blks)
+        # scale_cond = cnorm.repeat(m, 1)
+        # assert scale_cond.shape == (m, n)
+        # scale_cond = scale_cond.reshape(1, -1, blks)
+        # data['scale_cond'] = scale_cond
         
     num_pixels = m*n
     bpp_loss_sum = torch.tensor(0)
@@ -441,9 +457,9 @@ def model_foward_one_batch(w, model, args, **kwargs):
     else:
         w_hat = w_hat.reshape(m, n)
 
-    if cnorm is not None and not args.scale_cond:
+    if cnorm is not None:
         w_hat = w_hat * cnorm
-    if rnorm is not None:
+    if rnorm is not None and not args.scale_cond_r_c:
         w_hat = w_hat * rnorm
     
     if args.use_codes:

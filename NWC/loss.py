@@ -223,6 +223,27 @@ class RateDistortionLoss(nn.Module):
         out["loss"] = self.lmbda * out["recon_loss"] + out["bpp_loss"]
         return out
 
+class RateDistortionLoss_hyper(nn.Module):
+    """Custom rate distortion loss with a Lagrangian parameter."""
+
+    def __init__(self, std, lmbda=1e-2):
+        super().__init__()
+        self.mse = nn.MSELoss()
+        self.lmbda = lmbda
+        self.std = std
+
+    def forward(self, data, output):
+        out = {}
+        num_pixels = output["x"].numel()
+
+        out["recon_loss"] = self.mse(output["x"], output["x_hat"]) / self.std**2
+        out["bpp_loss"] = sum(
+            (torch.log(likelihoods).sum() / (-math.log(2) * num_pixels))
+            for likelihoods in output["likelihoods"].values()
+        )
+        out["loss"] = self.lmbda * out["recon_loss"] + out["bpp_loss"]
+        return out
+
 class ProxyHessLoss(nn.Module):
     """Custom rate distortion loss with a Lagrangian parameter."""
 
@@ -350,7 +371,10 @@ def get_loss_fn(args, std=None, device = None):
     elif args.loss == "smse":
         return VQVAE_loss(CalibMagScaledMSELoss(std))
     elif args.loss == "rdloss":
-        return RateDistortionLoss(std, lmbda= args.lmbda)
+        if args.use_hyper:
+            return RateDistortionLoss_hyper(std, lmbda= args.lmbda)
+        else :
+            return RateDistortionLoss(std, lmbda= args.lmbda)
     elif args.loss == "rdloss_ql":
         # assert 'clip' in args.dataset_path.lower()
         if args.Q == 2:

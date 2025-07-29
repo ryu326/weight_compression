@@ -182,8 +182,9 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
 
         save_path = f'{args.save_path}/{idx}_{name}.pt'
         
+        rnorm = out['row_norm']
         if args.ft_rnorm == True:
-            rnorm = out['row_norm'].to(dtype_)
+            rnorm = rnorm.to(dtype_)
             W_hat = W_hat / rnorm
             rnorm = rnorm.cpu()
             
@@ -239,8 +240,9 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
                                     orig_linear.weight.dtype,
                                     )
             comp_linear.weight.copy_(W_hat)
-            comp_linear.weight.requires_grad = False
+            # comp_linear.weight.requires_grad = False
             comp_linear.row_norm = nn.Parameter(rnorm, requires_grad=True)
+            comp_linear.scale_cond = nn.Parameter(rnorm, requires_grad=True)
         else:
             comp_linear = copy.deepcopy(orig_linear)
             comp_linear.weight.copy_(W_hat)

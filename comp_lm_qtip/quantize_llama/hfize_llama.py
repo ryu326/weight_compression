@@ -95,7 +95,8 @@ def main(args):
                 saved_layer = torch.load(file_path, map_location=cpu, weights_only=False)
                 
                 W_hat = saved_layer['W_hat' + args.W_key]
-                if model_config.get('comp_params', {}).get('ft_rnorm'):
+                # if model_config.get('comp_params', {}).get('ft_rnorm'):
+                if hasattr(model_config, 'comp_params') and model_config.comp_params.get('ft_rnorm'):
                     rnorm = saved_layer['row_norm']
                     W_hat = W_hat * rnorm  
                 

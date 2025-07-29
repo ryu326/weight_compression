@@ -133,6 +133,8 @@ parser.add_argument("--nic_patch_size", type=int, default=-1)
 parser.add_argument("--nic_norm_patch_size", type=int, default=-1)
 parser.add_argument("--illm_quality", type=int, default=-1)
 parser.add_argument('--scale_cond', action='store_true', default=False)
+parser.add_argument('--scale_cond_r_c', action='store_true', default=False)
+parser.add_argument('--scale_cond_c_r', action='store_true', default=False)
 parser.add_argument('--scale_cond_test', type=float, default=None)
 
 def check_exist(idx, args):

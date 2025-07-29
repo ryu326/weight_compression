@@ -7,7 +7,7 @@ from torch import Tensor
 import numpy as np
 import torch
 import torch.nn as nn
-
+import time
 from torch import Tensor
 
 from compressai.entropy_models import EntropyBottleneck, GaussianConditional, GaussianMixtureConditional
@@ -410,6 +410,59 @@ class NWC_ql(CompressionModel):
         x_hat = self.g_s(y_hat, q_embed)
         
         return x_hat
+
+    def fast_decompress(self, enc_data: dict) -> tuple[dict, dict]:
+            """
+            압축된 데이터로부터 원본을 복원하고, 각 단계별 소요 시간을 측정합니다.
+            
+            Args:
+                enc_data (dict): 'strings', 'shape', 'q_level' 키를 포함하는 딕셔너리
+
+            Returns:
+                tuple[dict, dict]: 복원된 데이터 딕셔너리와 시간 측정 결과 딕셔너리
+            """
+            timings = {}
+            total_start_time = time.perf_counter()
+
+            # 1. 입력 데이터 파싱
+            parse_start = time.perf_counter()
+            strings = enc_data["strings"]
+            shape = enc_data["shape"]
+            q_level = enc_data["q_level"]
+            timings['parse_input_ms'] = (time.perf_counter() - parse_start) * 1000
+
+            # 2. 엔트로피 디코딩 (EntropyBottleneck.decompress)
+            # 가장 시간이 많이 소요될 수 있는 부분 1
+            entropy_decompress_start = time.perf_counter()
+            y_hat = self.entropy_bottleneck.decompress(strings[0], shape)
+            timings['entropy_decompress_ms'] = (time.perf_counter() - entropy_decompress_start) * 1000
+
+            # 3. 텐서 차원 재배열 (Permute)
+            permute_start = time.perf_counter()
+            perm = list(range(y_hat.dim()))
+            perm[-1], perm[1] = perm[1], perm[-1] # [0, 2, 1] for (B, L, C) -> (B, C, L)
+            y_hat = y_hat.permute(*perm).contiguous()
+            timings['permute_ms'] = (time.perf_counter() - permute_start) * 1000
+            
+            # 4. 품질 임베딩 생성
+            embedding_start = time.perf_counter()
+            q_embed = self.quality_embedding(q_level)
+            timings['quality_embedding_ms'] = (time.perf_counter() - embedding_start) * 1000
+
+            # 5. Synthesis (Decoder) 네트워크 통과
+            # 가장 시간이 많이 소요될 수 있는 부분 2
+            synthesis_start = time.perf_counter()
+            x_hat = self.g_s(y_hat, q_embed)
+            timings['synthesis_g_s_ms'] = (time.perf_counter() - synthesis_start) * 1000
+            
+            # 6. 역정규화 (Rescale & Shift)
+            rescale_start = time.perf_counter()
+            x_hat = self.scale * x_hat + self.shift
+            timings['rescale_shift_ms'] = (time.perf_counter() - rescale_start) * 1000
+
+            timings['total_decompress_ms'] = (time.perf_counter() - total_start_time) * 1000
+            
+            return {"x_hat": x_hat}, timings
 
     # def forward_without_encoder(self, data):
     #     x = data['weight_block']
