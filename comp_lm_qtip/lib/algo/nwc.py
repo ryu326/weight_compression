@@ -66,9 +66,9 @@ def compress_linear(W, H, comp_model, Qlevel, args, device='cpu'):
         comp_model.scale = torch.tensor(1).to(device)
         comp_model.shift = torch.tensor(0).to(device)
         col_std = W.std(dim=0, keepdim=True).to(torch.float16)  # (B, 1, n)
-    if args.scale_cond0:
-        assert args.row_normalize
-        scale_cond = scaleH
+    # if args.scale_cond0:
+    #     assert args.row_normalize
+        # scale_cond = scaleH
         # col_std = (W/row_std).std(dim=0, keepdim=True)  # (B, 1, n)
         # if comp_model.config.uniform_scale_max is not None:
         #     # comp_model.config.uniform_scale_max = 1 ## for test
