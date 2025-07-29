@@ -14,7 +14,7 @@ from transformers import AutoModelForCausalLM
 
 from lib import utils
 # from lib.linear import QuantizedLinear
-from lib.linear import CompLinear
+from lib.linear import CompLinear, CompLinear2
 
 
 # from . import ldlq
@@ -240,9 +240,21 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
                                     orig_linear.weight.dtype,
                                     )
             comp_linear.weight.copy_(W_hat)
-            # comp_linear.weight.requires_grad = False
+            comp_linear.weight.requires_grad = False
             comp_linear.row_norm = nn.Parameter(rnorm, requires_grad=True)
-            comp_linear.scale_cond = nn.Parameter(rnorm, requires_grad=True)
+        if args.ft_scale_cond:
+            comp_linear = CompLinear2(orig_linear.in_features,
+                                    orig_linear.out_features,
+                                    orig_linear.bias,
+                                    orig_linear.weight.device,
+                                    orig_linear.weight.dtype,
+                                    )
+            comp_linear.weight.copy_(W)
+            assert comp_linear.weight.requires_grad
+            comp_linear.row_norm = nn.Parameter(rnorm, requires_grad=True)
+            comp_linear.scale_cond = nn.Parameter(out['scaleH'], requires_grad=True)
+            comp_linear.model = comp_model
+            comp_linear.args = args
         else:
             comp_linear = copy.deepcopy(orig_linear)
             comp_linear.weight.copy_(W_hat)

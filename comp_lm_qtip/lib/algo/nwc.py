@@ -66,17 +66,18 @@ def compress_linear(W, H, comp_model, Qlevel, args, device='cpu'):
         comp_model.scale = torch.tensor(1).to(device)
         comp_model.shift = torch.tensor(0).to(device)
         col_std = W.std(dim=0, keepdim=True).to(torch.float16)  # (B, 1, n)
-    # if args.scale_cond:
-    #     assert args.row_normalize
-    #     col_std = (W/row_std).std(dim=0, keepdim=True)  # (B, 1, n)
-    #     if comp_model.config.uniform_scale_max is not None:
-    #         # comp_model.config.uniform_scale_max = 1 ## for test
-    #         glog.info(f'== clamp col_std {comp_model.config.uniform_scale_max} ==')
-    #         glog.info(f'{col_std.mean()} {col_std.min()} {col_std.max()}')
-    #         col_std = torch.clamp(col_std, max = comp_model.config.uniform_scale_max)
-    #     if args.scale_cond_test is not None:
-    #         col_std = torch.full_like(col_std, args.scale_cond_test)
-    #         glog.info(f'{col_std.mean()} {col_std.min()} {col_std.max()}')
+    if args.scale_cond0:
+        assert args.row_normalize
+        scale_cond = scaleH
+        # col_std = (W/row_std).std(dim=0, keepdim=True)  # (B, 1, n)
+        # if comp_model.config.uniform_scale_max is not None:
+        #     # comp_model.config.uniform_scale_max = 1 ## for test
+        #     glog.info(f'== clamp col_std {comp_model.config.uniform_scale_max} ==')
+        #     glog.info(f'{col_std.mean()} {col_std.min()} {col_std.max()}')
+        #     col_std = torch.clamp(col_std, max = comp_model.config.uniform_scale_max)
+        # if args.scale_cond_test is not None:
+        #     col_std = torch.full_like(col_std, args.scale_cond_test)
+        #     glog.info(f'{col_std.mean()} {col_std.min()} {col_std.max()}')
     if args.scale_cond_c_r:
         col_std = W.std(dim=0, keepdim=True)
         row_std = (W/col_std).std(dim=1, keepdim=True)
@@ -215,6 +216,7 @@ def compress_linear(W, H, comp_model, Qlevel, args, device='cpu'):
     
     if args.scaleH or args.scaleHinv:
         res['W_hat'] = res['W_hat'] / scaleH[None, :]
+        res['scaleH'] = scaleH
     
     if args.col_normalize:
         # for key in ['W_hat', 'W_hat_init', 'W_hat_sga', 'W_hat_round']:
