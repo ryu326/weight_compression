@@ -1,17 +1,16 @@
-lmbda=1000
-min=5
-max=10000
-CUDA_VISIBLE_DEVICES=3 taskset -c 48-63 python -u train_nwc.py \
-    --architecture nwc_scale_cond \
-    --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt \
-    --dataset block_seq_scale_cond \
-    --run_name use_hyper \
-    --use_hyper \
-    --iter 200000 \
-    --input_size 128 \
-    --M 256 \
-    --n_resblock 4 \
-    --dim_encoder 1024 \
-    --batch_size 2048 \
-    --loss rdloss \
-    --lmbda $lmbda
+lmbdas=(300 10000)
+for lmbda in "${lmbdas[@]}"; do
+    echo "=== Running with λ=${lmbda} ==="
+    CUDA_VISIBLE_DEVICES=3 taskset -c 48-63 python -u train_nwc.py \
+        --architecture nwc_scale_cond \
+        --dataset_path "/workspace/Weight_compression/Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/row_1024_whiten_scale_cond(col_std).pt" \
+        --dataset block_seq_scale_cond \
+        --iter 200000 \
+        --input_size 128 \
+        --M 256 \
+        --n_resblock 4 \
+        --dim_encoder 1024 \
+        --batch_size 2048 \
+        --loss rdloss \
+        --lmbda $lmbda
+done

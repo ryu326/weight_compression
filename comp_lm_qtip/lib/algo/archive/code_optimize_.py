@@ -103,7 +103,7 @@ def configure_optimizers(net, args, other_parms):
     return optimizer, aux_optimizer, code_optimizer
 
 def code_optimize(W, HR, comp_model, args, **kwargs):
-    from lib.algo.nwc import pseudo_compress_tensor, encode_latent, model_input
+    from Weight_compression.comp_lm_qtip.lib.algo.archive.nwc import pseudo_compress_tensor, encode_latent, model_input
     
     ft_result = defaultdict(list)
     ft_result['best_loss_epoch'] = []

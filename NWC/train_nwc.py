@@ -20,6 +20,14 @@ from torch.utils.data import DataLoader
 from utils.optimizers import *
 from utils.util import *
 
+import argparse
+import math
+import torch.distributed as dist
+from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.utils.data import DistributedSampler
+
+
+
 def parse_args(argv):
     parser = argparse.ArgumentParser(description="Example training script.")
     parser.add_argument("--iter", default=2000000, type=int)
@@ -57,10 +65,31 @@ def parse_args(argv):
     parser.add_argument("--use_pe", action='store_true', default=False)
     parser.add_argument("--use_hyper", action='store_true', default=False)
     parser.add_argument("--uniform_scale_max", type=float, default=None)
+    parser.add_argument("--dist_backend", type=str, default="nccl")
+    parser.add_argument("--pre_normalize", action='store_true', default=False)
+    parser.add_argument("--normalize", action='store_true', default=False)
+    parser.add_argument("--learnable_s", action='store_true', default=False)
+    
     args = parser.parse_args(argv)
     return args
 
-def test(test_dataset, model, criterion):
+def setup_distributed(backend="nccl"):
+    """환경변수 (torchrun) 기준으로 DDP 초기화. 반환: (is_dist, rank, local_rank, world_size)"""
+    if "RANK" in os.environ and "WORLD_SIZE" in os.environ:
+        rank = int(os.environ["RANK"])
+        local_rank = int(os.environ.get("LOCAL_RANK", 0))
+        world_size = int(os.environ["WORLD_SIZE"])
+        dist.init_process_group(backend=backend, rank=rank, world_size=world_size)
+        torch.cuda.set_device(local_rank)
+        return True, rank, local_rank, world_size
+    else:
+        return False, 0, 0, 1
+
+def cleanup_distributed():
+    if dist.is_available() and dist.is_initialized():
+        dist.destroy_process_group()
+
+def test(test_dataset, model, criterion, args):
     mean_MSE = 0
     avg_bpp = 0
     mean_loss = 0
@@ -80,16 +109,22 @@ def test(test_dataset, model, criterion):
             mean_recon_loss += out_loss['recon_loss'].item()
             mean_bpp_loss += out_loss['bpp_loss'].item()
             
-            out_enc = model.compress(data)
-            out_dec = model.decompress(out_enc)
-
             num_pixels = data['weight_block'].numel()
             
-            bpp = 0
-            for s in out_enc["strings"]:
-                bpp += len(s[0]) * 8.0 / num_pixels
+            if 'ltc' in args.architecture.lower():
+                out_dec  = model.forward_eval(data)
+                bpp = torch.log(out_dec["likelihoods"]).sum().item() / (-math.log(2) * num_pixels)
+            else :
+                out_enc = model.compress(data)
+                out_dec = model.decompress(out_enc)
+                bpp = 0
+                for s in out_enc["strings"]:
+                    bpp += len(s[0]) * 8.0 / num_pixels
 
             x_hat = out_dec["x_hat"].clone().detach()
+            # if 'scale_cond' in out_dec.keys() and args.pre_normalize:
+            #     x_hat = x_hat * out_dec["scale_cond"]
+
             mean_MSE += mse_func(data['weight_block'], x_hat).item()
             avg_bpp += bpp
 
@@ -264,7 +299,8 @@ def main(args):
     save_path = args.save_path
 
     optimizer.zero_grad()
-    aux_optimizer.zero_grad()
+    if aux_optimizer is not None:
+        aux_optimizer.zero_grad()
 
     while 1:
         net.train()
@@ -282,7 +318,8 @@ def main(args):
             with torch.autograd.detect_anomaly():                
                 data = {key: tensor.to(device) for key, tensor in data.items()}
                 optimizer.zero_grad()
-                aux_optimizer.zero_grad()
+                if aux_optimizer is not None:
+                    aux_optimizer.zero_grad()
                 out_net = net(data)
 
                 out_loss = criterion(data= data, output = out_net)
@@ -297,12 +334,14 @@ def main(args):
                     aux_loss = net.aux_loss()
                 except:
                     aux_loss = net.module.aux_loss()
-                    
-                aux_loss.backward()
-                aux_optimizer.step()
+                
+                if aux_optimizer is not None:
+                    aux_loss.backward()
+                    aux_optimizer.step()
                 
             optimizer.zero_grad()
-            aux_optimizer.zero_grad()
+            if aux_optimizer is not None:
+                aux_optimizer.zero_grad()
             
             total_iter += 1 * gpu_num
             if ((total_iter % 100 == 0) or (total_iter == (1 * gpu_num))) and node_rank == 0:
@@ -316,7 +355,9 @@ def main(args):
                 wandb.log(out_loss)
 
             # 몇 번마다 성능 측정할까? 만 번마다 해보자 + 맨 첨에도 해보자. 궁금하니까.
-            if (total_iter % ((5000 / (args.batch_size // 1000))) == 0) or (total_iter == (1 * gpu_num)):
+            trigger = (total_iter % max(1, int(5000 / max(1, (args.batch_size // 1000))))) == 0
+            if trigger or (total_iter == (1 * gpu_num)):
+            # if (total_iter % ((5000 / (args.batch_size // 1000))) == 0) or (total_iter == (1 * gpu_num)):
                 torch.cuda.empty_cache()
 
                 with torch.no_grad():
@@ -332,12 +373,12 @@ def main(args):
                     net_eval.update()
                     
                     if node_rank == 0:
-                        test_result = test(test_dataset, net_eval, criterion)
+                        test_result = test(test_dataset, net_eval, criterion, args)
                         test_result['TEST MSE'] = test_result['TEST MSE'] / train_std**2
                         logger.info(test_result)
                         wandb.log(test_result)
                     else:
-                        _ = test(test_dataset, net_eval, criterion)
+                        _ = test(test_dataset, net_eval, criterion, args)
 
                 torch.cuda.empty_cache()
                 # 모델 저장
@@ -360,7 +401,7 @@ def main(args):
                             {
                                 "state_dict": state_dict,
                                 "optimizer": optimizer.state_dict(),
-                                "aux_optimizer": aux_optimizer.state_dict(),
+                                "aux_optimizer": aux_optimizer.state_dict() if aux_optimizer is not None else None,
                                 "criterion": criterion.state_dict(),
                                 "best_mse": best_mse,
                                 "best_bpp": best_bpp,
@@ -387,7 +428,7 @@ def main(args):
                             {
                                 "state_dict": state_dict,
                                 "optimizer": optimizer.state_dict(),
-                                "aux_optimizer": aux_optimizer.state_dict(),
+                                "aux_optimizer": aux_optimizer.state_dict() if aux_optimizer is not None else None,
                                 "criterion": criterion.state_dict(),
                                 "best_mse": best_mse,
                                 "best_bpp": best_bpp,
@@ -414,7 +455,7 @@ def main(args):
                             {
                                 "state_dict": state_dict,
                                 "optimizer": optimizer.state_dict(),
-                                "aux_optimizer": aux_optimizer.state_dict(),
+                                "aux_optimizer": aux_optimizer.state_dict() if aux_optimizer is not None else None,
                                 "criterion": criterion.state_dict(),
                                 "best_mse": best_mse,
                                 "best_bpp": best_bpp,
@@ -440,7 +481,7 @@ def main(args):
                         {
                             "state_dict": state_dict,
                             "optimizer": optimizer.state_dict(),
-                            "aux_optimizer": aux_optimizer.state_dict(),
+                            "aux_optimizer": aux_optimizer.state_dict() if aux_optimizer is not None else None,
                             "criterion": criterion.state_dict(),
                             "best_mse": best_mse,
                             "best_bpp": best_bpp,

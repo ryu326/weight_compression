@@ -25,6 +25,7 @@ def main(args):
     assert os.path.exists(args.quantized_path)
     saved_config = torch.load(os.path.join(args.quantized_path, 'config.pt'), weights_only=False)
     model_config = saved_config['model_config']
+    comp_config = saved_config['quant_args']
     glog.info(model_config)
 
     tokenizer = AutoTokenizer.from_pretrained(model_config._name_or_path)
@@ -40,6 +41,7 @@ def main(args):
                                            config=model_config)
 
     skip_list = args.skip_list.split(',') if args.skip_list else []
+    glog.info(f'skipping {skip_list}')
     
     comp_result = {
         'bpp_loss': 0,
@@ -95,22 +97,25 @@ def main(args):
                 saved_layer = torch.load(file_path, map_location=cpu, weights_only=False)
                 
                 W_hat = saved_layer['W_hat' + args.W_key]
-                # if model_config.get('comp_params', {}).get('ft_rnorm'):
-                if hasattr(model_config, 'comp_params') and model_config.comp_params.get('ft_rnorm'):
-                    rnorm = saved_layer['row_norm']
-                    W_hat = W_hat * rnorm  
+                if W_hat == None:
+                    W_hat = utils.de_standardize_Wr(saved_layer['hatWr'], saved_layer['metadata'], comp_config)
+                
+                # # if model_config.get('comp_params', {}).get('ft_rnorm'):
+                # if hasattr(model_config, 'comp_params') and model_config.comp_params.get('ft_rnorm'):
+                #     rnorm = saved_layer['row_norm']
+                #     W_hat = W_hat * rnorm  
                 
                 # getattr을 사용해 동적으로 모듈과 가중치에 접근
                 submodule = getattr(layer, submodule_name)
                 proj_layer = getattr(submodule, proj_name)
                 proj_layer.weight.copy_(W_hat.to(proj_layer.weight.dtype))
 
-                comp_result[f'{skip_key}.pt'] = {k: v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor) and k != 'codes'}
+                comp_result[f'{skip_key}.pt'] = {k: v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor) and k != 'codes' and k != 'metadata'}
                 comp_result['bpp_loss'] += saved_layer['bpp_loss_sum' + args.W_key]
                 comp_result['num_pixels'] += saved_layer['num_pixels']
                 comp_result['bpp'] += saved_layer['bpp_sum']
             else:
-                print(f'### skipping {skip_key} ###')
+                glog.info(f'### skipping {skip_key} ###')
                 # getattr과 setattr을 사용해 원본 모델의 레이어로 교체
                 orig_submodule = getattr(orig_layer, submodule_name)
                 submodule_to_update = getattr(layer, submodule_name)

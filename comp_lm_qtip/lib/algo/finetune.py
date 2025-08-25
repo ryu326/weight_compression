@@ -14,13 +14,15 @@ from transformers import AutoModelForCausalLM
 
 from lib import utils
 # from lib.linear import QuantizedLinear
-from lib.linear import CompLinear, CompLinear2
+from lib.linear import CompLinear, CompLinear2, CompLinear3
 
 
 # from . import ldlq
-from . import nwc
+# from . import nwc
+from . import nwc_refactory as nwc
 from . import handcraft
 from . import nic
+import copy
 
 @contextmanager
 def use_tf32():
@@ -50,6 +52,11 @@ def finetune_decoder_layer(layer, name, device, train_dl, valid_dl, orig_dtype,
         scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
         worse_ct = 0
 
+        # --------- 사전 설정 ----------
+        k, tau = 5, 0.5                 # SoftAdapt 창 길이·민감도
+        loss_hist = {'mse': [], 'bpp': []}
+        initial_w = utils.get_initial_weights(layer, train_dl, device)
+        
         for epoch in range(args.ft_epochs):
             for bidx, (source, targets) in enumerate(train_dl):
                 targets = targets.to(device, non_blocking=True)
@@ -59,6 +66,30 @@ def finetune_decoder_layer(layer, name, device, train_dl, valid_dl, orig_dtype,
                     output = layer(source.to(device),
                                    position_ids=position_ids)[0]
                     loss = nn.MSELoss()(output, targets)
+                    
+                    if args.ft_bpp_loss:
+                        mse_loss = loss
+                        bpp_loss = sum(m.bpp_loss for m in layer.modules()
+                           if isinstance(m, CompLinear2))
+
+                        loss_hist['mse'].append(mse_loss.detach())
+                        loss_hist['bpp'].append(bpp_loss.detach())
+                        if len(loss_hist['mse']) > k:
+                            loss_hist['mse'].pop(0)
+                            loss_hist['bpp'].pop(0)
+                        if len(loss_hist['mse']) == k:
+                            mse_ma  = torch.stack(loss_hist['mse']).mean()
+                            bpp_ma  = torch.stack(loss_hist['bpp']).mean()
+                            r_mse   = (loss - mse_ma) / mse_ma
+                            r_bpp   = (bpp_loss - bpp_ma) / bpp_ma
+                            w = torch.softmax(torch.stack([r_mse, r_bpp]) / tau, dim=0)
+                        else:
+                            w = initial_w
+                        loss = w[0] * mse_loss + w[1] * bpp_loss   
+                        # glog.info(
+                        #     f'layer {name} @ epoch {epoch} bidx {bidx} loss {loss.item():.2f} mse {mse_loss.item():.4g} bpp {bpp_loss.item():.2f} w {w}'
+                        # )                          
+                                            
                 scaler.scale(loss).backward()
                 if bidx % args.ft_update_freq == args.ft_update_freq - 1 or bidx == len(
                         train_dl) - 1:
@@ -67,22 +98,28 @@ def finetune_decoder_layer(layer, name, device, train_dl, valid_dl, orig_dtype,
                     optim.zero_grad()
 
             if epoch % args.ft_valid_freq == (args.ft_valid_freq - 1):
-                test_loss = utils.calculate_mse_loss(layer, valid_dl, device)
-                if test_loss < best_loss:
+                if args.ft_bpp_loss:
+                    avg_mse, avg_bpp = utils.calculate_test_loss(layer, valid_dl, device)
                     glog.info(
-                        f'layer {name} @ epoch {epoch} new loss {test_loss} old loss {best_loss} BETTER'
-                    )
-                    best_loss = test_loss
-                    best_sd = {k: v.cpu() for k, v in layer.state_dict().items()}
-                    utils.clean()
-                    worse_ct = 0
+                        f'layer {name} @ epoch {epoch} mse {avg_mse:.4g} bpp {avg_bpp:.2f} w '
+                    )   
                 else:
-                    glog.info(
-                        f'layer {name} @ epoch {epoch} new loss {test_loss} old loss {best_loss} WORSE'
-                    )
-                    worse_ct += 1
-                    if worse_ct >= args.ft_early_stop:
-                        break
+                    test_loss = utils.calculate_mse_loss(layer, valid_dl, device)
+                    if test_loss < best_loss:
+                        glog.info(
+                            f'layer {name} @ epoch {epoch} new loss {test_loss} old loss {best_loss} BETTER'
+                        )
+                        best_loss = test_loss
+                        best_sd = {k: v.cpu() for k, v in layer.state_dict().items()}
+                        utils.clean()
+                        worse_ct = 0
+                    else:
+                        glog.info(
+                            f'layer {name} @ epoch {epoch} new loss {test_loss} old loss {best_loss} WORSE'
+                        )
+                        worse_ct += 1
+                        if worse_ct >= args.ft_early_stop:
+                            break
 
     del optim, train_dl, valid_dl
 
@@ -117,6 +154,7 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
         orig_linear = attrgetter(linear_attr)(mixed_layer)
         W = orig_linear.weight.to(dtype_)
         in_hess_path = f'{args.in_hess_path}/{idx}_{in_hess_name}.pt'
+        args.in_hess_name = in_hess_name
         
         H_data = torch.load(in_hess_path, map_location=torch.device('cpu'))
         HR = utils.flat_to_sym(H_data['flatH'], H_data['n'])
@@ -126,7 +164,6 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
             HR += mu[None, :] * mu[:, None]
             del mu
         del H_data
-
         # HR = utils.regularize_H(HR, args.sigma_reg)
         HR = utils.regularize_H2(HR, n_h, args.sigma_reg)
         
@@ -140,36 +177,16 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
         elif args.nic_model is not None:
             out, SU, SV, scaleWH, ft_result, optimize_out = nic.compress_linear(W.clone(), comp_model, args, device = device)
         else:
-            glog.info(f'Using NWC compression method')
+            # glog.info(f'Using NWC compression method')
             W, HR = W.to(device), HR.to(device) ## W_hat, HR 다 device에 있다고 가정
-            out, SU, SV, scaleWH, ft_result, optimize_out = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
-        
+            out = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+
         glog.info(f'------------------------------------')
         trWHW = torch.trace(W @ HR @ W.T)
-        if args.code_optim:
-            W_hat_init = out['W_hat_init'].to(dtype_)
-            bpp_loss_init = out['bpp_loss_init']
-            bpp_init = out['bpp_init']        
-            err_init = torch.trace((W - W_hat_init) @ HR @ ((W - W_hat_init).T))
-            proxy_err_init =  err_init / trWHW
-            glog.info(
-                f'{idx}_{name} init proxy err {proxy_err_init.item():.5f} err {err_init.item():.3f} tr(WHW.T) {trWHW.item():.1f} bpp_loss {bpp_loss_init:.4f} bpp {bpp_init:.4f}'
-            )
-        if args.code_optim_test:
-            W_hat_round = out['W_hat_round'].to(dtype_).cpu()
-            err_round = torch.trace((W - W_hat_round) @ HR @ ((W - W_hat_round).T))
-            proxy_err_round =  err_round / trWHW
-            glog.info(
-                f'{idx}_{name} rund proxy err {proxy_err_round.item():.5f} err {err_round.item():.3f} tr(WHW.T) {trWHW.item():.1f} bpp_loss {out["bpp_loss_round"]:.4f}'
-            )
-            W_hat_sga = out['W_hat_sga'].to(dtype_).cpu()
-            err_sga = torch.trace((W - W_hat_sga) @ HR @ ((W - W_hat_sga).T))
-            proxy_err_sga =  err_sga / trWHW
-            glog.info(
-                f'{idx}_{name} sga_ proxy err {proxy_err_sga.item():.5f} err {err_sga.item():.3f} tr(WHW.T) {trWHW.item():.1f} bpp_loss {out["bpp_loss_sga"]:.4f}'
-            )
-
-        W_hat = out['W_hat'].to(dtype_)
+        hatWr = out['hatWr'].to(dtype_)
+        W_hat = utils.de_standardize_Wr(hatWr, out['metadata'], args)
+        assert torch.isnan(W_hat).any() == False
+        
         bpp_loss = out['bpp_loss']
         bpp = out['bpp']        
         err = torch.trace((W - W_hat) @ HR @ ((W - W_hat).T))
@@ -180,87 +197,90 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
         )
         glog.info(f'------------------------------------')
 
-        save_path = f'{args.save_path}/{idx}_{name}.pt'
-        
-        rnorm = out['row_norm']
-        if args.ft_rnorm == True:
-            rnorm = rnorm.to(dtype_)
-            W_hat = W_hat / rnorm
-            rnorm = rnorm.cpu()
-            
-        W_hat = W_hat.cpu()       
-
-        torch.save(
-            {
-                'W_hat': W_hat,
-                'codes': out['codes'],
-                'SU': SU,
-                'SV': SV,
-                'scaleWH':scaleWH,
-                'proxy_err': proxy_err.item(),
-                'proxy_err_init': proxy_err_init.item() if args.code_optim else None,
-                'proxy_err_round': proxy_err_round.item() if args.code_optim_test else None,
-                'proxy_err_sga': proxy_err_sga.item() if args.code_optim_test else None,
-                'err': err.item(),
-                'err_init': err_init.item() if args.code_optim else None,
-                'err_round': err_round.item() if args.code_optim_test else None,
-                'err_sga': err_sga.item() if args.code_optim_test else None,
-                'tr(WHW.T)': trWHW.item(),
-                'mse': mse,
-                'mse_init': torch.mean((W - W_hat_init) ** 2).item() if args.code_optim else None,
-                'bpp_loss': bpp_loss,
-                'W_hat_init': W_hat_init if args.code_optim else None,
-                'W_hat_round': W_hat_round if args.code_optim_test else None,
-                'W_hat_sga': W_hat_sga if args.code_optim_test else None,
-                'bpp_loss_init': bpp_loss_init if args.code_optim else None,
-                'bpp_loss_round': out['bpp_loss_round'] if args.code_optim_test else None,
-                'bpp_loss_sga': out['bpp_loss_sga'] if args.code_optim_test else None,
-                'bpp_loss_sum': out['bpp_loss_sum'],
-                'bpp_loss_sum_init': out['bpp_loss_sum_init'] if args.code_optim else None,
-                'bpp_loss_sum_round': out['bpp_loss_sum_round'] if args.code_optim_test else None,
-                'bpp_loss_sum_sga': out['bpp_loss_sum_sga'] if args.code_optim_test else None,
-                'bpp': bpp,
-                'bpp_init': bpp_init if args.code_optim else None,
-                'bpp_sum': out['bpp_sum'],
-                'num_pixels': out['num_pixels'],
-                'optimize_out': optimize_out,
-                'direction': args.direction,
-                'row_norm' : rnorm                                     
-            }, save_path)
-
-        # if args.ft_comp_model2 and args.layer_name in ['v', 'o', 'k', 'q']:
+        metadata = out['metadata']
+         # if args.ft_comp_model2 and args.layer_name in ['v', 'o', 'k', 'q']:
         if args.ft_comp_model2 or args.code_optim:
             utils.plot_ft_comp_result(ft_result, args, idx, name)
 
         if args.ft_rnorm == True:
+            assert args.row_normalize == True
             comp_linear = CompLinear(orig_linear.in_features,
                                     orig_linear.out_features,
                                     orig_linear.bias,
                                     orig_linear.weight.device,
                                     orig_linear.weight.dtype,
                                     )
-            comp_linear.weight.copy_(W_hat)
-            comp_linear.weight.requires_grad = False
-            comp_linear.row_norm = nn.Parameter(rnorm, requires_grad=True)
-        if args.ft_scale_cond:
+            comp_linear.Wr.copy_(hatWr)
+            comp_linear.Wr.requires_grad = False
+            comp_linear.row_norm = nn.Parameter(metadata['row_std'], requires_grad=True)
+        elif args.ft_metadata:
+            assert args.ldlq == True
             comp_linear = CompLinear2(orig_linear.in_features,
                                     orig_linear.out_features,
                                     orig_linear.bias,
                                     orig_linear.weight.device,
                                     orig_linear.weight.dtype,
                                     )
-            comp_linear.weight.copy_(W)
-            assert comp_linear.weight.requires_grad
-            comp_linear.row_norm = nn.Parameter(rnorm, requires_grad=True)
-            comp_linear.scale_cond = nn.Parameter(out['scaleH'], requires_grad=True)
+            comp_linear.Wr.copy_(out['Wr_ldlq'])
+            comp_linear.Wr.requires_grad = True ## test
             comp_linear.model = comp_model
-            comp_linear.args = args
+            for param in comp_linear.model.parameters():
+                param.requires_grad = False
+            comp_linear.model.eval()
+            comp_linear.model.mode = 'ste'
+            comp_linear.args = utils.filter_compression_args(args)
+            comp_linear.args.ldlq = False
+            comp_linear.args.comp_batch_size = 1024
+            params_to_register = {
+                key: nn.Parameter(value) 
+                for key, value in metadata.items() 
+                if isinstance(value, torch.Tensor) and value.is_floating_point()
+            }
+            params_to_register['scale_cond'].requires_grad = False ## scale_cond test
+            comp_linear.metadata = nn.ParameterDict(params_to_register)
+            # comp_linear.qlevel = metadata['qlevel']  
+        elif args.ft_y:
+            # assert args.ldlq == True
+            comp_linear = CompLinear3(orig_linear.in_features,
+                                    orig_linear.out_features,
+                                    orig_linear.bias,
+                                    orig_linear.weight.device,
+                                    orig_linear.weight.dtype,
+                                    )
+            y_params = [
+                nn.Parameter(y, requires_grad=False)
+                for (y, s, e) in out['y_list'] 
+                if isinstance(y, torch.Tensor)
+            ]
+            comp_linear.y_in_list = nn.ParameterList(y_params)
+            y_idx = [
+                (s, e)
+                for (y, s, e) in out['y_list'] 
+                if isinstance(y, torch.Tensor)
+            ]
+            comp_linear.y_in_idx = y_idx
+            comp_linear.Wshape = W.shape
+            comp_linear.model = comp_model
+            for param in comp_linear.model.parameters():
+                param.requires_grad = False
+            comp_linear.model.eval()
+            comp_linear.model.mode = 'ste'
+            comp_linear.args = utils.filter_compression_args(args)
+            comp_linear.args.ldlq = False
+            comp_linear.args.comp_batch_size = 1024
+            params_to_register = {
+                key: nn.Parameter(value) 
+                for key, value in metadata.items() 
+                if isinstance(value, torch.Tensor) and value.is_floating_point()
+            }
+            # params_to_register['scale_cond'].requires_grad = False ## scale_cond test
+            comp_linear.metadata = nn.ParameterDict(params_to_register)
+            comp_linear.qlevel = metadata['qlevel']  
         else:
             comp_linear = copy.deepcopy(orig_linear)
             comp_linear.weight.copy_(W_hat)
             comp_linear.weight.requires_grad = False
-        
-        assert not torch.equal(orig_linear.weight.data, comp_linear.weight.data)
+            # assert not torch.equal(orig_linear.weight.data, comp_linear.weight.data)
         del orig_linear
 
         split_attr = linear_attr.split('.')
@@ -268,30 +288,125 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
             attrgetter('.'.join(split_attr[:-1]))(mixed_layer), split_attr[-1],
             comp_linear)
 
+        save_path = f'{args.save_path}/{idx}_{name}.pt'
+        
+        for k, v in metadata.items():
+            if isinstance(v, torch.Tensor):
+                metadata[k] = v.cpu()
+                
+        if all(value is None for value in metadata.values()):
+            W_hat = W_hat.cpu()
+            hatWr = None
+        else:
+            W_hat = None
+            hatWr = hatWr.cpu()
+                            
+        torch.save(
+            {
+                'W_hat': W_hat,
+                'hatWr': hatWr,
+                'codes': out['codes'],
+                'bpp_loss': bpp_loss,
+                'bpp': bpp,
+                'proxy_err': proxy_err.item(),
+                'err': err.item(),
+                'tr(WHW.T)': trWHW.item(),
+                'mse': mse,
+                'bpp_sum': out['bpp_sum'],
+                'bpp_loss_sum': out['bpp_loss_sum'],
+                'direction': args.direction,
+                'num_pixels': out['num_pixels'],
+                'metadata': metadata
+            }, save_path)
+
         if args.ft_epochs > 0:
             with torch.enable_grad():
-                finetune_decoder_layer(mixed_layer, f'{idx}_{name}', device,
-                                    train_dl, valid_dl, orig_dtype, args)
-            # if args.ft_rnorm:
-            #     assert not torch.allclose(out['row_norm'], attrgetter(linear_attr)(mixed_layer).row_norm)
+                # if quant_i > 0:
+                    finetune_decoder_layer(mixed_layer, f'{idx}_{name}', device,
+                                        train_dl, valid_dl, orig_dtype, args)
+            if args.ft_rnorm:
+                updated_row_norm = attrgetter(linear_attr)(mixed_layer).row_norm
+                original_row_std_for_comparison = metadata['row_std'].to(
+                    device=updated_row_norm.device, 
+                    dtype=updated_row_norm.dtype
+                )
+                assert not torch.allclose(original_row_std_for_comparison, updated_row_norm), \
+                    "row_norm was not updated after fine-tuning."
+            elif args.ft_metadata:
+                # attrgetter(linear_attr)(mixed_layer).Wr.requires_grad = False
+                l = attrgetter(linear_attr)(mixed_layer)
+                l = l.to(device)
+                out = l.compress_linear()
+                setattr(l, 'hatWr', out['hatWr'])
+                # attrgetter(linear_attr)(mixed_layer).hatWr = out['hatWr']
+                del out
+                # updated = attrgetter(linear_attr)(mixed_layer).metadata['row_std']
+                # original = metadata['row_std'].to(
+                #     device=updated.device, 
+                #     dtype=updated.dtype
+                # )
+                # assert not torch.allclose(original, updated), \
+                #     "row_norm was not updated after fine-tuning."
             
-        assert torch.isnan(W_hat).any() == False
-        if not args.ft_rnorm:
-            assert torch.equal(W_hat, attrgetter(linear_attr)(mixed_layer).weight)
+                # updated = attrgetter(linear_attr)(mixed_layer).metadata['scaleH']
+                # original = metadata['scaleH'].to(
+                #     device=updated.device, 
+                #     dtype=updated.dtype
+                # )
+                # assert not torch.allclose(original, updated), \
+                #     "scaleH was not updated after fine-tuning."
+            
+                # updated = attrgetter(linear_attr)(mixed_layer).Wr
+                # original = out['Wr_ldlq'].to(
+                #     device=updated.device, 
+                #     dtype=updated.dtype
+                # )
+                # assert not torch.allclose(original, updated), \
+                #     "Wr was not updated after fine-tuning."
+            # else:
+            #     assert torch.equal(W_hat, attrgetter(linear_attr)(mixed_layer).weight)
 
-        del HR, W, W_hat
+        del HR, W, W_hat, hatWr
         utils.clean()
 
-    if args.ft_epochs > 0 and args.ft_rnorm:
-        for quant_i, (linear_attr, name, in_hess_name, out_hess_name,
-                    rcp) in enumerate(quant_order):
-            quant_linear = attrgetter(linear_attr)(mixed_layer)
-            save_path = f'{args.save_path}/{idx}_{name}.pt'
-            data = torch.load(save_path)
-            # data['row_norm'] = quant_linear.row_norm.data.to(orig_dtype).cpu()
-            data['row_norm'] = quant_linear.row_norm.data.to(dtype_).cpu()
-            torch.save(data, save_path)
-
+    if args.ft_epochs > 0:
+        if args.ft_rnorm:
+            for quant_i, (linear_attr, name, in_hess_name, out_hess_name,
+                        rcp) in enumerate(quant_order):
+                quant_linear = attrgetter(linear_attr)(mixed_layer)
+                save_path = f'{args.save_path}/{idx}_{name}.pt'
+                data = torch.load(save_path)
+                # data['row_norm'] = quant_linear.row_norm.data.to(orig_dtype).cpu()
+                data['row_norm'] = quant_linear.row_norm.data.to(dtype_).cpu()
+                torch.save(data, save_path)
+        elif args.ft_metadata:
+            for quant_i, (linear_attr, name, in_hess_name, out_hess_name,
+                        rcp) in enumerate(quant_order):
+                quant_linear = attrgetter(linear_attr)(mixed_layer)
+                save_path = f'{args.save_path}/{idx}_{name}.pt'
+                data = torch.load(save_path)
+                data['hatWr'] = quant_linear.out['hatWr'].data.to(dtype_).cpu()
+                data['bpp_loss'] = quant_linear.out['bpp_loss']
+                data['bpp_loss_sum'] = quant_linear.out['bpp_loss_sum']
+                data['bpp'] = quant_linear.out['bpp']
+                data['bpp_sum'] = quant_linear.out['bpp_sum']
+                tensors_to_update = {key: param.data for key, param in quant_linear.metadata.items()}
+                data['metadata'].update(tensors_to_update)
+                torch.save(data, save_path)
+        # elif args.ft_y:
+        #     for quant_i, (linear_attr, name, in_hess_name, out_hess_name,
+        #                 rcp) in enumerate(quant_order):
+        #         quant_linear = attrgetter(linear_attr)(mixed_layer)
+        #         save_path = f'{args.save_path}/{idx}_{name}.pt'
+        #         data = torch.load(save_path)
+        #         data['hatWr'] = quant_linear.out['hatWr'].data.to(dtype_).cpu()
+        #         data['bpp_loss'] = quant_linear.out['bpp_loss']
+        #         data['bpp_loss_sum'] = quant_linear.out['bpp_loss_sum']
+        #         data['bpp'] = quant_linear.out['bpp']
+        #         data['bpp_sum'] = quant_linear.out['bpp_sum']
+        #         tensors_to_update = {key: param.data for key, param in quant_linear.metadata.items()}
+        #         data['metadata'].update(tensors_to_update)
+        #         torch.save(data, save_path)
 
     mixed_layer = mixed_layer.to(orig_dtype).cpu()
     utils.clean()

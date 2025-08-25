@@ -16,7 +16,7 @@ from lib import utils
 # from lib.linear import QuantizedLinear
 
 # from . import ldlq
-from . import nwc
+from .archive import nwc
 
 @contextmanager
 def use_tf32():

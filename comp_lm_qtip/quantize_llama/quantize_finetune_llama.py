@@ -36,6 +36,8 @@ parser.add_argument('--devset_size', default=384, type=int)
 parser.add_argument('--ctx_size', default=4096, type=int)
 parser.add_argument('--save_path', type=str)
 parser.add_argument('--in_hess_path', type=str)
+parser.add_argument('--in_hess_eig_path', type=str)
+parser.add_argument('--whiten', action='store_true', default=False)
 parser.add_argument('--base_model', type=str)
 parser.add_argument('--sigma_reg', default=1e-2, type=float)
 parser.add_argument('--sigma_reg2', default=1e-2, type=float)
@@ -96,6 +98,7 @@ parser.add_argument("--ql_tuned", action='store_true', default=False)
 parser.add_argument('--layer_normalize', action='store_true', default=False)
 parser.add_argument('--channelwise_scale', action='store_true', default=False)
 parser.add_argument('--row_normalize', action='store_true', default=False)
+parser.add_argument('--row_normalize2', action='store_true', default=False)
 parser.add_argument('--col_normalize', action='store_true', default=False)
 parser.add_argument('--code_optim', action='store_true', default=False)
 parser.add_argument('--code_optim_it', type=int, default=False)
@@ -117,8 +120,13 @@ parser.add_argument('--qmap_optim', action='store_true', default=False)
 parser.add_argument('--cnorm_optim', action='store_true', default=False)
 parser.add_argument('--rnorm_optim', action='store_true', default=False)
 parser.add_argument('--ft_rnorm', action='store_true', default=False)
-parser.add_argument('--ft_scale_cond', action='store_true', default=False)
+parser.add_argument('--ft_scale_cond0', action='store_true', default=False)
+parser.add_argument('--ft_metadata', action='store_true', default=False)
+parser.add_argument('--ft_y', action='store_true', default=False)
+parser.add_argument('--ft_bpp_loss', action='store_true', default=False)
 parser.add_argument('--scaleH', action='store_true', default=False)
+parser.add_argument('--smooth_scaleH_alpha', type=float, default=None)
+parser.add_argument('--lb_scaleH', type=float, default=None)
 parser.add_argument('--scaleHinv', action='store_true', default=False)
 parser.add_argument('--scale_std', type=float, default=None)
 parser.add_argument('--ste', action='store_true', default=False)
@@ -133,11 +141,12 @@ parser.add_argument("--nic_checkpoint", type=str, default=None)
 parser.add_argument("--nic_patch_size", type=int, default=-1)
 parser.add_argument("--nic_norm_patch_size", type=int, default=-1)
 parser.add_argument("--illm_quality", type=int, default=-1)
+parser.add_argument('--scale_cond0', action='store_true', default=False)
+parser.add_argument('--scale_cond_ub', type=float, default=None)
 parser.add_argument('--scale_cond', action='store_true', default=False)
-parser.add_argument('--scale_cond_r_c', action='store_true', default=False)
-parser.add_argument('--scale_cond_c_r', action='store_true', default=False)
-parser.add_argument('--scale_cond_test', type=float, default=None)
-
+parser.add_argument('--fp_iter', action='store_true', default=False)
+parser.add_argument('--fp_iter_max', type=int, default=None)
+parser.add_argument('--fp_tol', type=float, default=1e-5)
 def check_exist(idx, args):
     suffix = ['q', 'k', 'v', 'o', 'up', 'down', 'layernorm']
     for _ in suffix:
@@ -188,8 +197,32 @@ def compress_llama_decoder(layer, idx, comp_model, q_level, args, device, pre_or
 
 def main(args):
     if args.skip_list is not None:
-        args.skip_list = args.skip_list.split(',')
+        # args.skip_list = args.skip_list.split(',')
+
+        def build_auto_skip(upto:int, except_keys):
+            s = {f'{i}_{tag}' for i in range(upto+1) for tag in ['v', 'q', 'k', 'o', 'up', 'gate', 'down']}
+            for k in except_keys:
+                s.discard(k)
+            return s
         
+        raw = (args.skip_list or '').strip()
+        if raw.startswith('auto:'):
+            # 형식: auto:upto=31,except=1_v|2_o|10_gate
+            upto = 31
+            except_keys = []
+            for part in raw.split(','):
+                part = part.strip()
+                if part.startswith('auto:'):
+                    continue
+                if part.startswith('upto='):
+                    upto = int(part.split('=',1)[1])
+                elif part.startswith('except='):
+                    except_keys = [x.strip() for x in part.split('=',1)[1].split('|') if x.strip()]
+            skip_set = build_auto_skip(upto, except_keys)
+        else:
+            skip_set = set(x.strip() for x in raw.split(',') if x.strip())
+        args.skip_list = list(skip_set)
+
     dtype_ = torch.float64 if args.use_fp64 else torch.float32
 
     model = AutoModelForCausalLM.from_pretrained(args.base_model,
@@ -220,7 +253,7 @@ def main(args):
             config = json.load(file)
         config = Config(**config)
         
-        shift, scale = None, None
+        shift, scale = torch.empty(()), torch.empty(())
         if config.architecture == 'nwc_ql' and not hasattr(config, "Q"):
             config.Q = 4
         if not hasattr(config, "no_layernorm"):
@@ -231,7 +264,8 @@ def main(args):
         comp_model = get_model(config.architecture, config, scale=scale, shift=shift)
         comp_model.config = config
         ckpt = torch.load(args.comp_model_path, weights_only=False)
-        if args.use_train_scale or args.layerwise_cdt or args.layer_normalize or args.row_normalize or args.col_normalize or args.scaleH:
+        if (args.use_train_scale or args.layerwise_cdt or args.layer_normalize \
+              or args.row_normalize or args.col_normalize or args.scaleH):
             try:
                 scale = ckpt["state_dict"]["scale"]
                 shift = ckpt["state_dict"]["shift"]
@@ -252,8 +286,13 @@ def main(args):
         print('shift: ', shift, ' scale:', scale)
 
         comp_model.load_state_dict(ckpt["state_dict"], strict = False)
-        comp_model.scale = scale
-        comp_model.shift = shift
+        # comp_model.scale = scale
+        # comp_model.shift = shift
+        try: ## scale_cond
+            comp_model.scale.copy_(scale)
+            comp_model.shift.copy_(shift)
+        except:
+            pass
         comp_model.eval()
         comp_model.update()
         if args.ste:

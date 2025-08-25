@@ -51,7 +51,7 @@ class CompLinear(Module):
     __constants__ = ["in_features", "out_features"]
     in_features: int
     out_features: int
-    weight: Tensor
+    Wr: Tensor
 
     def __init__(
         self,
@@ -65,7 +65,7 @@ class CompLinear(Module):
         super().__init__()
         self.in_features = in_features
         self.out_features = out_features
-        self.weight = Parameter(
+        self.Wr = Parameter(
             torch.empty((out_features, in_features), **factory_kwargs)
         )
         if bias:
@@ -81,16 +81,16 @@ class CompLinear(Module):
         # Setting a=sqrt(5) in kaiming_uniform is the same as initializing with
         # uniform(-1/sqrt(in_features), 1/sqrt(in_features)). For details, see
         # https://github.com/pytorch/pytorch/issues/57109
-        init.kaiming_uniform_(self.weight, a=math.sqrt(5))
+        init.kaiming_uniform_(self.Wr, a=math.sqrt(5))
         if self.bias is not None:
-            fan_in, _ = init._calculate_fan_in_and_fan_out(self.weight)
+            fan_in, _ = init._calculate_fan_in_and_fan_out(self.Wr)
             bound = 1 / math.sqrt(fan_in) if fan_in > 0 else 0
             init.uniform_(self.bias, -bound, bound)
         if hasattr(self, 'row_norm') and self.row_norm is not None:
             init.uniform_(self.row_norm)
             
     def forward(self, input: Tensor) -> Tensor:
-        W = self.weight * self.row_norm
+        W = self.Wr * self.row_norm
         return F.linear(input, W, self.bias)
 
     def extra_repr(self) -> str:

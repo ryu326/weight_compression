@@ -31,6 +31,8 @@ parser.add_argument('--max_mem_ratio', type=float, default=0.7)
 
 def main(args):
     model, model_str = model_from_hf_path(args.hf_path, max_mem_ratio=args.max_mem_ratio, device_map='balanced')
+    # model, model_str = model_from_hf_path(args.hf_path, max_mem_ratio=args.max_mem_ratio, device_map='auto')
+    # model, model_str = model_from_hf_path(args.hf_path, max_mem_ratio=args.max_mem_ratio, device_map=None)
 
     # manifest for faster inference
     # use for codebooks without kernel support

@@ -16,8 +16,11 @@ def configure_optimizers(net, args):
         (params_dict[n] for n in sorted(parameters)),
         lr=args.learning_rate,
     )
-    aux_optimizer = optim.Adam(
-        (params_dict[n] for n in sorted(aux_parameters)),
-        lr=args.aux_learning_rate,
-    )
+    if aux_parameters:
+        aux_optimizer = optim.Adam(
+            (params_dict[n] for n in sorted(aux_parameters)),
+            lr=args.aux_learning_rate,
+        )
+    else :
+        aux_optimizer = None
     return optimizer, aux_optimizer

@@ -91,7 +91,7 @@ def optimize_qmap_rnorm(W, H, model, args, **kwargs):
     # comp_W와 비슷한 구조
     # Row 방향으로 자르기
     
-    from lib.algo import nwc
+    from Weight_compression.comp_lm_qtip.lib.algo.archive import nwc
     
     blks = model.input_size
     split_size = min(W.shape[0], 4096 * 1024 // W.shape[1])

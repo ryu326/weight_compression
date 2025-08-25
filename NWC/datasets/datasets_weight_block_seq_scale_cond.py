@@ -41,6 +41,11 @@ class Weight_Vector_Dataset(Dataset):
             self.std = torch.Tensor(dataset_stats["std_channel"]).view(-1, input_size)
 
         self.input_size = input_size
+        
+        if args.pre_normalize == True:
+            self.dataset['weight'] = (self.dataset['weight'] - self.mean) / self.std
+            self.mean = torch.tensor(0.0)
+            self.std = torch.tensor(1.0)
 
     def __len__(self):
         return len(self.dataset['weight'])

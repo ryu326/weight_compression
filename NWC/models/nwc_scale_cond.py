@@ -14,6 +14,17 @@ from compressai.entropy_models import EntropyBottleneck, GaussianConditional, Ga
 from compressai.models import CompressionModel
 # from sga import EntropyBottleneckNoQuant
 
+import sys
+import os
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+nwc_root = os.path.abspath(os.path.join(current_dir, '..'))  # /NWC
+sys.path.append(nwc_root)
+
+from lattice_transform_coding.LTC.entropy_models import EntropyBottleneckLattice
+from lattice_transform_coding.LTC.quantizers import get_lattice
+
+
 __all__ = [
     "CompressionModel",
     "SimpleVAECompressionModel",
@@ -182,7 +193,7 @@ class NWC_scale_cond(CompressionModel):
     """
     
     def __init__(self, input_size, dim_encoder, n_resblock, M, scale, shift, dim_proj = None, n_clayers = 2,
-                 norm=True, mode = 'aun', pe = False, pe_n_depth = 42, pe_n_ltype = 7, use_hyper = False):
+                 norm=True, mode = 'aun', pe = False, pe_n_depth = 42, pe_n_ltype = 7, use_hyper = False, pre_normalize = False, normalize = False):
         super().__init__()
             
         # self.register_buffer('scale', scale)    
@@ -190,6 +201,8 @@ class NWC_scale_cond(CompressionModel):
         
         self.M = M
         self.n_resblock = n_resblock
+        self.scale = scale
+        self.shift = shift
         
         self.mode = mode
         assert self.mode in ['aun', 'ste', 'sga']
@@ -214,6 +227,8 @@ class NWC_scale_cond(CompressionModel):
         self.entropy_bottleneck = EntropyBottleneck(M)
         self.pe = pe
         self.use_hyper = use_hyper
+        self.pre_normalize = pre_normalize
+        self.normalize = normalize
 
         if pe:
             self.depth_embedding = nn.Embedding(pe_n_depth, input_size)
@@ -232,8 +247,17 @@ class NWC_scale_cond(CompressionModel):
         x = data['weight_block']  # (B, -1, input_size)
         scale_cond = data['scale_cond'] # (B, -1, input_size)
         
-        x_shift = x / scale_cond
+        # scale = scale if scale is not None else self.scale # scalar or (B, -1, 1)
+        # shift = shift if shift is not None else self.shift # scalar or (B, -1, 1)
         
+        # if self.normalize:
+        #     x_shift = (x - shift) / scale
+        
+        if self.pre_normalize == False:       
+            x_shift = x / scale_cond
+        else:
+            x_shift = x
+            
         if self.pe:
             d_embed = self.depth_embedding(data['depth']) # (B, 1, 16)
             l_embed = self.ltype_embedding(data['ltype']) # (B, 1, 16)
@@ -282,15 +306,17 @@ class NWC_scale_cond(CompressionModel):
             x_hat = self.proj_y(y_hat).squeeze(-1)  # (B, -1, input_size, dim_proj) --> (B, -1, input_size, 1) --> (B, -1, input_size)
             
             # x_hat = scale * x_hat + shift
-            x_hat = x_hat * scale_cond
+            if self.pre_normalize == False:       
+               x_hat = x_hat * scale_cond
             
             return {
-                "x": x,
+                # "x": x,
                 "x_hat": x_hat,
                 "likelihoods": {'y': y_likelihoods, 'z': z_likelihoods},
-                "embedding_loss": None,
-                "y": y,
-                "y_hat": y_hat
+                "scale_cond": scale_cond,
+                # "embedding_loss": None,
+                # "y": y,
+                # "y_hat": y_hat
             }
 
         else:
@@ -327,22 +353,34 @@ class NWC_scale_cond(CompressionModel):
             x_hat = self.proj_y(y_hat).squeeze(-1)  # (B, -1, input_size, dim_proj) --> (B, -1, input_size, 1) --> (B, -1, input_size)
             
             # x_hat = scale * x_hat + shift
-            x_hat = x_hat * scale_cond
-            
+            if self.pre_normalize == False:    
+                x_hat = x_hat * scale_cond
+                
             return {
-                "x": x,
+                # "x": x,
                 "x_hat": x_hat,
                 "likelihoods": y_likelihoods,
-                "embedding_loss": None,
-                "y": y,
-                "y_hat": y_hat
+                "scale_cond": scale_cond,
+                # "embedding_loss": None,
+                # "y": y,
+                # "y_hat": y_hat
             }
 
     def compress(self, data, scale= None, shift= None):
         x = data['weight_block']  # (B, -1, input_size)
         scale_cond = data['scale_cond'] # (B, -1, input_size)
         
-        x_shift = x / scale_cond
+        # scale = scale if scale is not None else self.scale # scalar or (B, -1, 1)
+        # shift = shift if shift is not None else self.shift # scalar or (B, -1, 1)
+        
+        # if self.normalize:
+        #     x_shift = (x - shift) / scale
+        
+        if self.pre_normalize == False:       
+            x_shift = x / scale_cond
+        else:
+            x_shift = x
+        
         
         if self.pe:
             d_embed = self.depth_embedding(data['depth']) # (B, 1, 16)
@@ -424,10 +462,8 @@ class NWC_scale_cond(CompressionModel):
         x_hat = self.proj_y(y_hat).squeeze(-1)  # (B, -1, input_size, dim_proj) --> (B, -1, input_size, 1) --> (B, -1, input_size)
         
         # x_hat = scale * x_hat + shift
-        x_hat = x_hat * scale_cond
-        
-        
-        x_hat = x_hat * scale_cond
+        if self.pre_normalize == False:       
+            x_hat = x_hat * scale_cond
         return {"x_hat": x_hat}
 
     def decompress_with_hyperprior(self, strings, shape, scale_cond):
@@ -468,298 +504,186 @@ class NWC_scale_cond(CompressionModel):
         
         return y_hat
 
-    # def forward_without_encoder(self, data):
-    #     x = data['weight_block']
-    #     q_level = data['q_level']
-    #     q_embed = self.quality_embedding(q_level)
-
-    #     y = x
-        
-    #     perm = list(range(y.dim()))
-    #     perm[-1], perm[1] = perm[1], perm[-1]
-    #     y = y.permute(*perm).contiguous()
-        
-    #     _y_hat, y_likelihoods = self.entropy_bottleneck(y)
-        
-    #     # ####### STE quant ########
-    #     if self.mode == 'ste':
-    #         perm_ = np.arange(len(y.shape))
-    #         perm_[0], perm_[1] = perm_[1], perm_[0]
-    #         inv_perm = np.arange(len(y.shape))[np.argsort(perm_)]
-    #         y_hat = y.permute(*perm_).contiguous()
-    #         shape = y_hat.size()
-    #         y_hat = y_hat.reshape(y_hat.size(0), 1, -1)        
-    #         y_offset = self.entropy_bottleneck._get_medians()
-    #         y_tmp = y_hat - y_offset
-    #         y_hat = ste_round(y_tmp) + y_offset        
-    #         y_hat = y_hat.reshape(shape)
-    #         y_hat = y_hat.permute(*inv_perm).contiguous()
-    #     # ####################
-        
-    #     y_hat = y_hat.permute(*perm).contiguous()        
-        
-    #     x_hat = self.g_s(y_hat, q_embed)
-    #     x_hat = self.scale * x_hat + self.shift
-        
-    #     return {
-    #         "x": x,
-    #         "x_hat": x_hat,
-    #         "likelihoods": y_likelihoods,
-    #         "embedding_loss": None,
-    #         "y": y,
-    #         "y_hat": y_hat
-    #     }
-    
-    # def compress_without_encoder(self, data):
-    #     x = data['weight_block']
-    #     q_level = data['q_level']
-    #     q_embed = self.quality_embedding(q_level)
-        
-    #     y = x   
-
-    #     perm = list(range(y.dim()))
-    #     perm[-1], perm[1] = perm[1], perm[-1]
-    #     y = y.permute(*perm).contiguous()
-
-    #     # shape = torch.Size([])
-    #     shape = y.size()[2:]
-    #     y_strings = self.entropy_bottleneck.compress(y)
-        
-    #     y_hat = self.entropy_bottleneck.decompress(y_strings, shape)
-    #     # import ipdb; ipdb.set_trace()
-    #     return {"strings": [y_strings], "shape": shape, "y_hat": y_hat, "q_level": q_level}
-    
-    # def forward_encoder(self, data):
-    #     x = data['weight_block']
-    #     x_shift = (x - self.shift) / self.scale
-    #     q_level = data['q_level']
-    #     q_embed = self.quality_embedding(q_level)
-    #     y = self.g_a(x_shift, q_embed)
-    #     return {
-    #         "y": y
-    #     }
-
-# class NWC_ql_ste(CompressionModel):
-#     def __init__(self, input_size, dim_encoder, n_resblock, Q, M, scale, shift):
-#         super().__init__()
+class NWC_scale_cond_ltc(CompressionModel):
+    def __init__(self, input_size, dim_encoder, n_resblock, M, scale, shift, dim_proj = None, n_clayers = 2,
+                 norm=True, mode = 'aun', pe = False, pe_n_depth = 42, pe_n_ltype = 7,
+                 lattice='Hexagonal', N = 256, MC_method="standard"):
+        super().__init__()
             
-#         self.register_buffer('scale', scale)    
-#         self.register_buffer('shift', shift)
+        self.M = M
+        self.n_resblock = n_resblock
         
-#         ## quality level 개수
-#         self.Q = Q
-#         self.M = M
-#         self.n_resblock = n_resblock
+        self.mode = mode
+        assert self.mode in ['aun', 'ste', 'sga']
         
-#         # self.scale = scale
-#         # self.shift = shift    
+        self.input_size = input_size
+        self.dim_encoder = dim_encoder
+                
+        dim_proj = dim_encoder//input_size if dim_proj is None else dim_proj
+        self.dim_proj = dim_proj
+        self.proj_x = nn.Linear(1, dim_proj)
+        self.proj_s = nn.Linear(1, dim_proj)
+        self.cond_layers = nn.ModuleList([FiLMLayer(dim_proj) for _ in range(n_clayers)])
         
-#         self.input_size = input_size
-#         self.dim_encoder = dim_encoder
+        # dim_proj = dim_encoder//M if dim_proj is None else dim_proj
+        self.proj_y = nn.Linear(dim_proj, 1)
+        self.proj_s_dec = nn.Linear(1, dim_proj)
+        self.cond_layers_dec = nn.ModuleList([FiLMLayer(dim_proj) for _ in range(n_clayers)])
         
-#         self.quality_embedding = nn.Embedding(Q, dim_encoder)
+        self.g_a = Encoder_without_q_embedding(dim_encoder, n_resblock, dim_encoder, M, norm)
+        self.g_s = Encoder_without_q_embedding(M, n_resblock, dim_encoder, dim_encoder, norm)
         
-#         self.g_a = Encoder(input_size, n_resblock, dim_encoder, M)
-#         self.g_s = Encoder(M, n_resblock, dim_encoder, input_size)
-        
-#         # self.entropy_bottleneck = EntropyBottleneck(self.dim_encoder_out)
-#         self.entropy_bottleneck = EntropyBottleneck(M)
-
-#     # def __getitem__(self, key: str) -> LatentCodec:
-#     #     return self.latent_codec[key]
-
-#     def forward(self, data):
-#         x = data['weight_block']
-#         q_level = data['q_level']
-        
-#         q_embed = self.quality_embedding(q_level)
-#         x_shift = (x - self.shift) / self.scale
-#         y = self.g_a(x_shift, q_embed)
-        
-#         perm = list(range(y.dim()))
-#         perm[-1], perm[1] = perm[1], perm[-1]
-#         y = y.permute(*perm).contiguous()
-        
-#         _y_hat, y_likelihoods = self.entropy_bottleneck(y)
-        
-#         # ####### STE quant ########
-#         # v2 이걸 하는게 맞다 
-#         perm_ = np.arange(len(y.shape))
-#         perm_[0], perm_[1] = perm_[1], perm_[0]
-#         inv_perm = np.arange(len(y.shape))[np.argsort(perm_)]
-#         y_hat = y.permute(*perm_).contiguous()
-#         shape = y_hat.size()
-#         y_hat = y_hat.reshape(y_hat.size(0), 1, -1)        
-#         y_offset = self.entropy_bottleneck._get_medians()
-#         y_tmp = y_hat - y_offset
-#         y_hat = ste_round(y_tmp) + y_offset        
-#         y_hat = y_hat.reshape(shape)
-#         y_hat = y_hat.permute(*inv_perm).contiguous()
-#         # ####################
-        
-#         y_hat = y_hat.permute(*perm).contiguous()        
-        
-#         x_hat = self.g_s(y_hat, q_embed)
-#         x_hat = self.scale * x_hat + self.shift
-        
-#         return {
-#             "x": x,
-#             "x_hat": x_hat,
-#             "likelihoods": y_likelihoods,
-#             "embedding_loss": None,
-#             "y": y,
-#             "y_hat": y_hat
-#         }
-
-#     def compress(self, data):
-#         x = data['weight_block']
-#         x_shift = (x - self.shift) / self.scale
-        
-#         q_level = data['q_level']
-        
-#         q_embed = self.quality_embedding(q_level)
-        
-#         y = self.g_a(x_shift, q_embed)      
-
-#         perm = list(range(y.dim()))
-#         perm[-1], perm[1] = perm[1], perm[-1]
-#         y = y.permute(*perm).contiguous()
-
-#         shape = y.size()[2:]
-#         y_strings = self.entropy_bottleneck.compress(y)
-        
-#         y_hat = self.entropy_bottleneck.decompress(y_strings, shape)
-#         return {"strings": [y_strings], "shape": shape, "y_hat": y_hat, "q_level": q_level}
-
-#     # def decompress(self, strings: List[List[bytes]], shape, q_level, **kwargs):
-#     # def decompress(self, strings, shape, q_level, **kwargs):
-#     def decompress(self, enc_data, **kwargs):
-#         strings = enc_data["strings"]
-#         shape = enc_data["shape"]
-#         q_level = enc_data["q_level"]
-        
-#         y_hat = self.entropy_bottleneck.decompress(strings[0], shape, **kwargs)
-        
-#         perm = list(range(y_hat.dim()))
-#         perm[-1], perm[1] = perm[1], perm[-1]
-#         y_hat = y_hat.permute(*perm).contiguous()
-        
-#         q_embed = self.quality_embedding(q_level)
-        
-#         # x_hat = self.g_s(y_hat).clamp_(0, 1)
-#         x_hat = self.g_s(y_hat, q_embed)
-        
-#         x_hat = self.scale * x_hat + self.shift
-        
-#         return {
-#             "x_hat": x_hat,
-#         }
-    
-
-
-# class NWC_ql_without_encoder(CompressionModel):
-#     """Simple VAE model with arbitrary latent codec.
-
-#     .. code-block:: none
-
-#                ┌───┐  y  ┌────┐ y_hat ┌───┐
-#         x ──►──┤g_a├──►──┤ lc ├───►───┤g_s├──►── x_hat
-#                └───┘     └────┘       └───┘
-#     """
-    
-#     def __init__(self, input_size, dim_encoder, n_resblock, Q, scale, shift):
-#         super().__init__()
+        self.entropy_bottleneck = EntropyBottleneckLattice(M)
+        self.quantizer = get_lattice(lattice, M)
+        self.lattice_name = lattice
+        self.MC_method = MC_method # can be ["standard", "antithetic", "sobol", "sobol_scrambled", "fixed"]
+        self.N = N
+        if self.MC_method == "sobol":
+            self.sobol_eng = torch.quasirandom.SobolEngine(dimension=M)
+        elif self.MC_method == "sobol_scrambled":
+            self.sobol_eng = torch.quasirandom.SobolEngine(dimension=M, scramble=True)
             
-#         self.register_buffer('scale', scale)    
-#         self.register_buffer('shift', shift)
-        
-#         ## quality level 개수
-#         self.Q = Q
-        
-#         # self.scale = scale
-#         # self.shift = shift    
-        
-#         self.input_size = input_size
-#         self.dim_encoder_out = input_size
-#         self.dim_encoder = dim_encoder
-        
-#         self.quality_embedding = nn.Embedding(Q, dim_encoder)
-        
-#         self.g_s = Encoder(self.dim_encoder_out, n_resblock, dim_encoder, input_size)
-        
-#         self.entropy_bottleneck = EntropyBottleneck(self.dim_encoder_out)
+        self.pe = pe
+        if pe:
+            self.depth_embedding = nn.Embedding(pe_n_depth, input_size)
+            self.ltype_embedding = nn.Embedding(pe_n_ltype, input_size)
 
-#     # def __getitem__(self, key: str) -> LatentCodec:
-#     #     return self.latent_codec[key]
+    def _voronoi_volume(self):
+        return torch.sqrt(torch.linalg.det((self.quantizer.G @ self.quantizer.G.T)))
 
-#     def forward(self, data):
-#         x = data['weight_block']
-#         q_level = data['q_level']
-#         q_embed = self.quality_embedding(q_level)
-        
-#         y = x
+    def _sample_from_voronoi(self, device, N=2048):
+        # returns [N, d] samples drawn from Voronoi region of quantizer
+        if self.MC_method == "standard":
+            u = torch.rand((N, self.M), device=device)
+        elif self.MC_method == "antithetic":
+            N = N // 2
+            u = torch.rand((N, self.M), device=device)
+            u = torch.cat((u, -u), dim=0)
+        elif self.MC_method.startswith("sobol"):
+            u = self.sobol_eng.draw(N).to(device)
+        else:
+            raise Exception("MC method invalid")
+        u2 = u @ self.quantizer.G
+        u2 = u2 - self.quantizer(u2)
+        return u2
+    
+    def _quantize(self, y, training=True):
+        # Use STE no matter what
+        y_q = self.quantizer(y)
+        y_hat = y + (y_q - y).detach()
+        return y_hat
+    
+    def _compute_likelihoods(self, y_hat):
+        u2 = self._sample_from_voronoi(device=y_hat.device, N=self.N)
+        lik = self._voronoi_volume()*self.entropy_bottleneck._likelihood(y_hat, u2)
+        return lik
 
-#         perm = list(range(y.dim()))
-#         perm[-1], perm[1] = perm[1], perm[-1]
-#         y = y.permute(*perm).contiguous()
-        
-#         y_hat, y_likelihoods = self.entropy_bottleneck(y)
-        
-#         y_hat = y_hat.permute(*perm).contiguous()
+    def _flatten(self, y):
+        # y: [B, L, M]
+        y_shape = y.size()
+        y = y.reshape(-1, self.M) # [B*h*w, dy]
+        return y, y_shape
+    
+    def _unflatten(self, y_hat, y_shape):
+        y_hat = y_hat.reshape(y_shape) # [B, L, dy]
+        return y_hat
 
-#         x_hat = self.g_s(y_hat, q_embed)
-#         x_hat = self.scale * x_hat + self.shift
+    def forward(self, data, scale_norm = True):
+        x = data['weight_block']  # (B, -1, input_size)
+        scale_cond = data['scale_cond'] # (B, -1, input_size)
         
-#         return {
-#             "x": x,
-#             "x_hat": x_hat,
-#             "likelihoods": y_likelihoods,
-#             "embedding_loss": None,
-#             "y": y,
-#             "y_hat": y_hat
-#         }
+        if scale_norm:
+            x_shift = x / scale_cond
+        else :
+            x_shift = x
+                
+        if self.pe:
+            d_embed = self.depth_embedding(data['depth']) # (B, 1, 16)
+            l_embed = self.ltype_embedding(data['ltype']) # (B, 1, 16)
+            x_shift = x_shift + d_embed + l_embed
+         
+        x_shift = self.proj_x(x_shift.unsqueeze(-1)) # (B, -1, input_size, 1) -> (B, -1, input_size, dim_proj)
+        s_enc = self.proj_s(scale_cond.unsqueeze(-1)) # (B, -1, input_size, 1) -> (B, -1, input_size, dim_proj)
+        
+        for layer in self.cond_layers:
+            x_shift = layer(x_shift, s_enc)
+        
+        x_shift = torch.flatten(x_shift, start_dim=-2)  # (B, -1, dim_encoder)
+        y = self.g_a(x_shift)
+        
+        y_hat, y_shape = self._flatten(y)
+        y_hat = self._quantize(y_hat, training=True)
+        y_likelihoods = self._compute_likelihoods(y_hat)
+        
+        y_hat = self._unflatten(y_hat, y_shape)
+        y_likelihoods = self._unflatten(y_likelihoods, y_shape)
+    
+        y_hat = self.g_s(y_hat)
+        
+        y_hat = y_hat.reshape(y_hat.shape[0], y_hat.shape[1], self.input_size, self.dim_proj)  # (B, -1, input_size, dim_proj)
+        s_dec = self.proj_s_dec(scale_cond.unsqueeze(-1)) # (B, -1, input_size, 1) -> (B, -1, input_size, dim_proj)
+        
+        for layer in self.cond_layers_dec:
+            y_hat = layer(y_hat, s_dec)
+        
+        x_hat = self.proj_y(y_hat).squeeze(-1)  # (B, -1, input_size, dim_proj) --> (B, -1, input_size, 1) --> (B, -1, input_size)
+        x_hat = x_hat * scale_cond
+        
+        return {
+            "x_hat": x_hat,
+            "likelihoods": y_likelihoods,
+            # "y": y,
+        }
 
-#     def compress(self, data):
-#         x = data['weight_block']
-#         q_level = data['q_level']
+    def forward_eval(self, data, scale_norm = False):
+        x = data['weight_block']  # (B, -1, input_size)
+        scale_cond = data['scale_cond'] # (B, -1, input_size)
         
-#         q_embed = self.quality_embedding(q_level)
+        with torch.no_grad():
+            if scale_norm:
+                x_shift = x / scale_cond
+            else :
+                x_shift = x
+                    
+            if self.pe:
+                d_embed = self.depth_embedding(data['depth']) # (B, 1, 16)
+                l_embed = self.ltype_embedding(data['ltype']) # (B, 1, 16)
+                x_shift = x_shift + d_embed + l_embed
+            
+            x_shift = self.proj_x(x_shift.unsqueeze(-1)) # (B, -1, input_size, 1) -> (B, -1, input_size, dim_proj)
+            s_enc = self.proj_s(scale_cond.unsqueeze(-1)) # (B, -1, input_size, 1) -> (B, -1, input_size, dim_proj)
+            
+            for layer in self.cond_layers:
+                x_shift = layer(x_shift, s_enc)
+            
+            x_shift = torch.flatten(x_shift, start_dim=-2)  # (B, -1, dim_encoder)
+            y = self.g_a(x_shift)
+            
+            y_hat, y_shape = self._flatten(y)
+            y_hat = self._quantize(y_hat, training=True)
+            y_likelihoods = self._compute_likelihoods(y_hat)
+            
+            y_hat = self._unflatten(y_hat, y_shape)
+            y_likelihoods = self._unflatten(y_likelihoods, y_shape)
+        
+            y_hat = self.g_s(y_hat)
+            
+            y_hat = y_hat.reshape(y_hat.shape[0], y_hat.shape[1], self.input_size, self.dim_proj)  # (B, -1, input_size, dim_proj)
+            s_dec = self.proj_s_dec(scale_cond.unsqueeze(-1)) # (B, -1, input_size, 1) -> (B, -1, input_size, dim_proj)
+            
+            for layer in self.cond_layers_dec:
+                y_hat = layer(y_hat, s_dec)
+            
+            x_hat = self.proj_y(y_hat).squeeze(-1)  # (B, -1, input_size, dim_proj) --> (B, -1, input_size, 1) --> (B, -1, input_size)
+            x_hat = x_hat * scale_cond
+            
+            return {
+                "x_hat": x_hat,
+                "likelihoods": y_likelihoods,
+                # "y": y,
+            }
 
-#         y = x        
-
-#         perm = list(range(y.dim()))
-#         perm[-1], perm[1] = perm[1], perm[-1]
-#         y = y.permute(*perm).contiguous()
-
-#         # shape = torch.Size([])
-#         shape = y.size()[2:]
-#         y_strings = self.entropy_bottleneck.compress(y)
-        
-#         y_hat = self.entropy_bottleneck.decompress(y_strings, shape)
-#         # import ipdb; ipdb.set_trace()
-#         return {"strings": [y_strings], "shape": shape, "y_hat": y_hat, "q_level": q_level}
-
-#     # def decompress(self, strings: List[List[bytes]], shape, q_level, **kwargs):
-#     # def decompress(self, strings, shape, q_level, **kwargs):
-#     def decompress(self, enc_data, **kwargs):
-#         strings = enc_data["strings"]
-#         shape = enc_data["shape"]
-#         q_level = enc_data["q_level"]
-        
-#         y_hat = self.entropy_bottleneck.decompress(strings[0], shape, **kwargs)
-        
-#         perm = list(range(y_hat.dim()))
-#         perm[-1], perm[1] = perm[1], perm[-1]
-#         y_hat = y_hat.permute(*perm).contiguous()
-        
-#         q_embed = self.quality_embedding(q_level)
-#         # q_embed = self.quality_embedding(q_level).unsqueeze(1)
-        
-#         # x_hat = self.g_s(y_hat).clamp_(0, 1)
-#         x_hat = self.g_s(y_hat, q_embed)
-        
-#         x_hat = self.scale * x_hat + self.shift
-        
-#         return {
-#             "x_hat": x_hat,
-#         }
+    def aux_loss(self):
+        loss = 0.
+        # return cast(torch.Tensor, loss)
+        return torch.tensor(loss)

@@ -10,29 +10,72 @@ import torch.nn.functional as F
 from torch import Tensor
 
 
-def logger_setup(log_file_name=None, log_file_folder_name=None, filepath=os.path.abspath(__file__), package_files=[]):
-    formatter = logging.Formatter("%(asctime)s %(levelname)s - %(funcName)s: %(message)s", "%H:%M:%S")
-    logger = logging.getLogger(__name__)
-    logger.setLevel("INFO".upper())
+# def logger_setup(log_file_name=None, log_file_folder_name=None, filepath=os.path.abspath(__file__), package_files=[]):
+#     formatter = logging.Formatter("%(asctime)s %(levelname)s - %(funcName)s: %(message)s", "%H:%M:%S")
+#     logger = logging.getLogger(__name__)
+#     logger.setLevel("INFO".upper())
 
+#     stream = logging.StreamHandler()
+#     stream.setLevel("INFO".upper())
+    
+#     stream.setFormatter(formatter)
+#     logger.addHandler(stream)
+
+#     info_file_handler = logging.FileHandler(log_file_folder_name + "/" + log_file_name, mode="a")
+#     info_file_handler.setLevel("INFO".upper())
+#     info_file_handler.setFormatter(formatter)
+#     logger.addHandler(info_file_handler)
+
+#     logger.info(filepath)
+
+#     for f in package_files:
+#         logger.info(f)
+#         with open(f, "r") as package_f:
+#             logger.info(package_f.read())
+
+#     return logger
+
+
+def logger_setup(log_file_name=None, log_file_folder_name=None,
+                 filepath=os.path.abspath(__file__), package_files=[]):
+    formatter = logging.Formatter(
+        "%(asctime)s %(levelname)s - %(funcName)s: %(message)s", "%H:%M:%S"
+    )
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+
+    # 중복 핸들러 방지
+    if logger.handlers:
+        return logger
+
+    # 스트림 핸들러 (항상 추가)
     stream = logging.StreamHandler()
-    stream.setLevel("INFO".upper())
+    stream.setLevel(logging.INFO)
     stream.setFormatter(formatter)
     logger.addHandler(stream)
 
-    info_file_handler = logging.FileHandler(log_file_folder_name + "/" + log_file_name, mode="a")
-    info_file_handler.setLevel("INFO".upper())
-    info_file_handler.setFormatter(formatter)
-    logger.addHandler(info_file_handler)
+    # 파일 핸들러 (둘 다 값이 있을 때만)
+    if log_file_name and log_file_folder_name:
+        os.makedirs(log_file_folder_name, exist_ok=True)
+        info_file_handler = logging.FileHandler(
+            os.path.join(log_file_folder_name, log_file_name), mode="a"
+        )
+        info_file_handler.setLevel(logging.INFO)
+        info_file_handler.setFormatter(formatter)
+        logger.addHandler(info_file_handler)
 
     logger.info(filepath)
 
     for f in package_files:
         logger.info(f)
-        with open(f, "r") as package_f:
-            logger.info(package_f.read())
+        try:
+            with open(f, "r") as package_f:
+                logger.info(package_f.read())
+        except FileNotFoundError:
+            logger.warning(f"File not found: {f}")
 
     return logger
+
 
 
 #######################################################################################################################################

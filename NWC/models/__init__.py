@@ -4,12 +4,12 @@ from .vqvae_calib_mag import VQVAE_MAG
 from .vqvae_scale import VQVAE_SCALE
 from .vqvae_idx_mag import VQVAE_IDX_MAG
 from .nwc import SimpleVAECompressionModel, MeanScaleHyperprior, SimpleVAECompressionModel_with_Transformer
-from .nwc_ql import NWC_ql
+from .nwc_ql import NWC_ql, NWC_ql_LTC
 from .nwc_ql_cdt import NWC_ql_conditional
 from .nwc_ql_v2 import NWC_ql_learnable_scale
 from .nwc_ql_sga import NWC_ql_SGA, NWC_ql_SGA_Vbr
 from .nwc_qmap import NWC_qmap, NWC_qmap2, NWC_qmap3
-from .nwc_scale_cond import NWC_scale_cond
+from .nwc_scale_cond import NWC_scale_cond, NWC_scale_cond_ltc
 # from .nwc_ql_cdt import NWC_conditional, NWC_conditional2
 # from .nwc_ql_cdt_ln import NWC_conditional_ln
 # from .nwc_hess import SimpleVAECompressionModel_hess
@@ -49,6 +49,34 @@ def get_model(model_class, opts, scale, shift):
             norm = (not opts.no_layernorm),
             use_hyper = opts.use_hyper,
             # pe = opts.use_pe,
+        )
+    elif model_class == "nwc_ql_compand":
+        model = NWC_ql(
+            input_size=opts.input_size,
+            dim_encoder=opts.dim_encoder,
+            n_resblock=opts.n_resblock,
+            Q = opts.Q,
+            M = opts.M,
+            scale=scale,
+            shift=shift,
+            norm = (not opts.no_layernorm),
+            use_hyper = opts.use_hyper,
+            # pe = opts.use_pe,
+            use_companding=True,
+            learnable_s= opts.learnable_s
+        )
+    elif model_class == "nwc_ql_ltc":
+        model = NWC_ql_LTC(
+            input_size=opts.input_size,
+            dim_encoder=opts.dim_encoder,
+            n_resblock=opts.n_resblock,
+            Q = opts.Q,
+            M = opts.M,
+            scale=scale,
+            shift=shift,
+            norm = (not opts.no_layernorm),
+            lattice='BarnesWallUnitVol',
+            N = opts.ltc_N,
         )
     elif model_class == "nwc_ql2":
         model = NWC_ql_learnable_scale(
@@ -184,6 +212,10 @@ def get_model(model_class, opts, scale, shift):
             shift=shift,
         )
     elif model_class == "nwc_scale_cond":
+        if not hasattr(opts, 'pre_normalize'):
+            setattr(opts, 'pre_normalize', False)
+        if not hasattr(opts, 'normalize'):
+            setattr(opts, 'normalize', False)
         model = NWC_scale_cond(
             input_size=opts.input_size,
             dim_encoder=opts.dim_encoder,
@@ -194,7 +226,24 @@ def get_model(model_class, opts, scale, shift):
             norm = (not opts.no_layernorm),
             use_hyper = opts.use_hyper,
             # pe = opts.use_pe,
+            pre_normalize = opts.pre_normalize,
+            normalize = opts.normalize
         )
+    elif model_class == "nwc_scale_cond_ltc":
+        model = NWC_scale_cond_ltc(
+            input_size=opts.input_size,
+            dim_encoder=opts.dim_encoder,
+            n_resblock=opts.n_resblock,
+            M = opts.M,
+            scale=scale,
+            shift=shift,
+            norm = (not opts.no_layernorm),
+            # pe = opts.use_pe,
+            # lattice='Leech2ProductUnitVol',
+            lattice='Leech2UnitVol',
+            N = opts.ltc_N,
+        )
+        
     else:
         raise
     return model

@@ -117,7 +117,8 @@ class RateDistortionLoss_ql(nn.Module):
         qlevel = data['q_level']
 
         coff = self.coff[qlevel].reshape(output["likelihoods"].shape[0], 1, 1)
-        
+        assert output["likelihoods"].dim() == coff.dim(), \
+            f"Shape mismatch: likelihoods {output['likelihoods'].shape} vs coff {coff.shape}"
         out["recon_loss"] = self.mse(w, output["x_hat"]) / self.std**2
 
         out["bpp_loss"] = torch.log(output["likelihoods"]).sum() / (-math.log(2) * num_pixels)
@@ -139,7 +140,7 @@ class RateDistortionLoss_ql_hyper(nn.Module):
 
     def forward(self, data, output):
         out = {}
-        w = data['weight_block'].reshape(output["x_hat"].shape)
+        w = data['weight_block'].reshape(output["x_hat"].shape)            
         num_pixels = w.numel() 
         qlevel = data['q_level']
 
@@ -199,19 +200,25 @@ class RateDistortionLoss_ql_code_opt(nn.Module):
 class RateDistortionLoss(nn.Module):
     """Custom rate distortion loss with a Lagrangian parameter."""
 
-    def __init__(self, std, lmbda=1e-2):
+    def __init__(self, std, lmbda=1e-2, args = None):
         super().__init__()
         self.mse = nn.MSELoss()
         self.lmbda = lmbda
         self.std = std
+        self.args = args
 
     def forward(self, data, output):
         out = {}
 
         # shape = output["x"].size()
-        num_pixels = output["x"].numel()
+        # num_pixels = output["x"].numel()
+        # if 'scale_cond' in output.keys() and self.args.pre_normalize:
+        #     output["x_hat"] = output["x_hat"] * output["scale_cond"]
+        
+        w = data['weight_block'].reshape(output["x_hat"].shape)
+        num_pixels = w.numel() 
 
-        out["recon_loss"] = self.mse(output["x"], output["x_hat"]) / self.std**2
+        out["recon_loss"] = self.mse(w, output["x_hat"]) / self.std**2
         # BPP
         # out["bpp_loss"] = sum(
         #     (torch.log(likelihoods).sum() / (-math.log(2) * num_pixels))
@@ -235,6 +242,9 @@ class RateDistortionLoss_hyper(nn.Module):
     def forward(self, data, output):
         out = {}
         num_pixels = output["x"].numel()
+
+        # if 'scale_cond' in output.keys() and self.args.pre_normalize:
+        #     output["x_hat"] = output["x_hat"] * output["scale_cond"]
 
         out["recon_loss"] = self.mse(output["x"], output["x_hat"]) / self.std**2
         out["bpp_loss"] = sum(
@@ -372,9 +382,9 @@ def get_loss_fn(args, std=None, device = None):
         return VQVAE_loss(CalibMagScaledMSELoss(std))
     elif args.loss == "rdloss":
         if args.use_hyper:
-            return RateDistortionLoss_hyper(std, lmbda= args.lmbda)
+            return RateDistortionLoss_hyper(std, lmbda= args.lmbda, args = args)
         else :
-            return RateDistortionLoss(std, lmbda= args.lmbda)
+            return RateDistortionLoss(std, lmbda= args.lmbda, args = args)
     elif args.loss == "rdloss_ql":
         # assert 'clip' in args.dataset_path.lower()
         if args.Q == 2:

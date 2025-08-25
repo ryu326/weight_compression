@@ -25,7 +25,6 @@ def get_datasets(args):
         train_dataset, test_dataset, train_std, test_std = get_datasets_block_seq_qmap_uniform(args.dataset_path, args.input_size, args)
     elif args.dataset == 'block_seq_scale_cond':
         train_dataset, test_dataset, train_std, test_std = get_datasets_block_seq_scale_cond(args.dataset_path, args.input_size, args)
-    # elif args.dataset == 'block_seq_scale_cond_uniform':
     elif args.dataset.startswith('block_seq_scale_cond_uniform'):
         train_dataset, test_dataset, train_std, test_std = get_datasets_block_seq_scale_cond(args.dataset_path, args.input_size, args, True, args.uniform_scale_max)
     return train_dataset, test_dataset, train_std, test_std

@@ -10,6 +10,10 @@ nohup bash scripts/run7.sh > ./logs/run7.log 2>&1 &
 nohup bash scripts/run6.sh > ./logs/run6.log 2>&1 &
 nohup bash scripts/run7.sh > ./logs/run7.log 2>&1 &
 
+# nohup bash scripts/run_ddp.sh >> ./logs/run_ql_ltc.log 2>&1 &
+nohup bash scripts/run_ddp.sh > ./logs/run_sc_ltc.log 2>&1 &
+
+
 wait
 
 ## sudo pkill -f train_nwc.py

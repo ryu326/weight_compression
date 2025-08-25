@@ -98,7 +98,7 @@ def configure_optimizers(net, args, other_parms):
     return optimizer, aux_optimizer
 
 def fine_tune_comp_model_v3(W, HR, comp_model, args, **kwargs):
-    from lib.algo.nwc import pseudo_compress_tensor, encode_latent, model_input
+    from Weight_compression.comp_lm_qtip.lib.algo.archive.nwc import pseudo_compress_tensor, encode_latent, model_input
     
     ft_result = defaultdict(list)
     ft_result['best_loss_epoch'] = []
@@ -395,7 +395,7 @@ def model_forward_without_encoder(w, model, args, **kwargs):
 #         return out
 
 def optim_code_delta_cnndec(W, HR, comp_model, args, **kwargs):
-    from lib.algo.nwc import pseudo_compress_tensor
+    from Weight_compression.comp_lm_qtip.lib.algo.archive.nwc import pseudo_compress_tensor
     
     ft_result = defaultdict(list)
     ft_result['best_loss_epoch'] = []
