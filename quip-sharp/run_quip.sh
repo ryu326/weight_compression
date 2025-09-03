@@ -5,12 +5,12 @@
 
 # 실험을 수행할 모델 목록 (아래 'MODEL CONFIGURATION'에 정의된 이름 사용)
 MODELS_TO_RUN=(
-    # "llama3_8b"
+    "llama3.2_1b_inst"
+    "llama3.2_3b_inst"
+    "llama3_8b"
     "llama2_7b"
     # "llama3.2_3b"
     "llama2_13b"
-    "llama3.2_1b_inst"
-    "llama3.2_3b_inst"
 )
 
 # 각 모델에 대해 수행할 실험 타입 목록 ('ft', 'noft')
@@ -35,10 +35,10 @@ export WANDB_SILENT=true
 ##########################################################################
 declare -A MODEL_PATHS
 MODEL_PATHS=(
-    # ["llama2_7b"]="../Wparam_dataset/hf_model/meta-llama--Llama-2-7b-hf"
-    ["llama2_7b"]="meta-llama/Llama-2-7b-hf"
-    # ["llama2_13b"]="../Wparam_dataset/hf_model/meta-llama--Llama-2-13b-hf"
-    ["llama2_13b"]="meta-llama/Llama-2-13b-hf"
+    ["llama2_7b"]="../Wparam_dataset/hf_model/meta-llama--Llama-2-7b-hf"
+    # ["llama2_7b"]="meta-llama/Llama-2-7b-hf"
+    ["llama2_13b"]="../Wparam_dataset/hf_model/meta-llama--Llama-2-13b-hf"
+    # ["llama2_13b"]="meta-llama/Llama-2-13b-hf"
     ["llama3_8b"]="../Wparam_dataset/hf_model/meta-llama--Meta-Llama-3-8B"
     ["vicuna_7b"]="../Wparam_dataset/hf_model/lmsys--vicuna-7b-v1.5"
     ["llama3.2_3b"]="../Wparam_dataset/hf_model/meta-llama--Llama-3.2-3B"

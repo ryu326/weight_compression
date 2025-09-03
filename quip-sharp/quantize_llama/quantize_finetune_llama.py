@@ -8,7 +8,7 @@ os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:512'
 
 import torch
 import torch.multiprocessing as mp
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, AutoConfig
 from transformers.modeling_attn_mask_utils import \
     _prepare_4d_causal_attention_mask
 
@@ -137,6 +137,14 @@ def main(args):
     model = AutoModelForCausalLM.from_pretrained(args.base_model,
                                                  torch_dtype='auto',
                                                  low_cpu_mem_usage=True)
+    # mid = args.base_model
+    # cfg = AutoConfig.from_pretrained(mid)
+    # rs = getattr(cfg, "rope_scaling", None)
+    # if isinstance(rs, dict):
+    #     # 최소 형태로 강제: type+factor만 남김
+    #     factor = rs.get("factor", 1.0)
+    #     cfg.rope_scaling = {"type": "linear", "factor": factor}  # 또는 {"type":"dynamic","factor":factor}
+    # model = AutoModelForCausalLM.from_pretrained(mid, config=cfg)
 
     # save configs
     all_config = {'quant_args': args, 'model_config': model.config}
