@@ -112,7 +112,8 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
         
         self.weight_in = nn.Linear(in_dim, dim_encoder)
-        self.weight_stack = nn.ModuleList([Linear_ResBlock(dim_encoder, norm)] * n_res_layers)
+        # self.weight_stack = nn.ModuleList([Linear_ResBlock(dim_encoder, norm)] * n_res_layers)
+        self.weight_stack = nn.ModuleList([Linear_ResBlock(dim_encoder, norm) for _ in range(n_res_layers)])
         self.out = nn.Linear(dim_encoder, dim_encoder_out)
 
     def forward(self, x, q_embedding):
@@ -134,7 +135,8 @@ class Encoder_without_q_embedding(nn.Module):
         super(Encoder_without_q_embedding, self).__init__()
         
         self.weight_in = nn.Linear(in_dim, dim_encoder)
-        self.weight_stack = nn.ModuleList([Linear_ResBlock(dim_encoder, norm)] * n_res_layers)
+        # self.weight_stack = nn.ModuleList([Linear_ResBlock(dim_encoder, norm)] * n_res_layers)
+        self.weight_stack = nn.ModuleList([Linear_ResBlock(dim_encoder, norm) for _ in range(n_res_layers)])
         self.out = nn.Linear(dim_encoder, dim_encoder_out)
 
     def forward(self, x):
@@ -313,7 +315,7 @@ class NWC_scale_cond(CompressionModel):
                 # "x": x,
                 "x_hat": x_hat,
                 "likelihoods": {'y': y_likelihoods, 'z': z_likelihoods},
-                "scale_cond": scale_cond,
+                # "scale_cond": scale_cond,
                 # "embedding_loss": None,
                 # "y": y,
                 # "y_hat": y_hat
@@ -360,7 +362,7 @@ class NWC_scale_cond(CompressionModel):
                 # "x": x,
                 "x_hat": x_hat,
                 "likelihoods": y_likelihoods,
-                "scale_cond": scale_cond,
+                # "scale_cond": scale_cond,
                 # "embedding_loss": None,
                 # "y": y,
                 # "y_hat": y_hat
@@ -379,8 +381,7 @@ class NWC_scale_cond(CompressionModel):
         if self.pre_normalize == False:       
             x_shift = x / scale_cond
         else:
-            x_shift = x
-        
+            x_shift = x        
         
         if self.pe:
             d_embed = self.depth_embedding(data['depth']) # (B, 1, 16)

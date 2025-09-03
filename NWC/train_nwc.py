@@ -69,6 +69,14 @@ def parse_args(argv):
     parser.add_argument("--pre_normalize", action='store_true', default=False)
     parser.add_argument("--normalize", action='store_true', default=False)
     parser.add_argument("--learnable_s", action='store_true', default=False)
+    parser.add_argument("--aug_scale", action='store_true', default=False)
+    parser.add_argument("--aug_log_uniform", action='store_true', default=False)
+    parser.add_argument("--aug_update_cond", action='store_true', default=False)
+    parser.add_argument("--aug_scale_p", type=float, default=0.1)
+    parser.add_argument("--aug_scale_max", type=float, default=2.0)
+    parser.add_argument("--aug_scale_min", type=float, default=0.5)
+    parser.add_argument("--aug_scale_mode", type=str, default='block')
+    
     
     args = parser.parse_args(argv)
     return args

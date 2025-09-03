@@ -4,7 +4,7 @@ from typing import Dict, List, Optional, Tuple
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from compressai.layers import EntropyBottleneck
+from compressai.entropy_models import EntropyBottleneck
 from compressai.models.google import CompressionModel
 
 
