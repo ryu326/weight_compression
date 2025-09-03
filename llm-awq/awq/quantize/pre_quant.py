@@ -122,8 +122,21 @@ def run_awq(
 
     # patch layer 0 to catch input and kwargs
     layers[0] = Catcher(layers[0])
+    ##
+    device = next(model.parameters()).device
+    def to_device(x, device):
+        if hasattr(x, "to"):  # torch.Tensor 또는 HF BatchEncoding
+            return x.to(device)
+        if isinstance(x, dict):
+            return {k: (v.to(device) if torch.is_tensor(v) else v) for k, v in x.items()}
+        if isinstance(x, (list, tuple)):
+            return type(x)(to_device(xx, device) for xx in x)
+        return x
+    samples = to_device(samples, device)   # ★ dict/리스트/BatchEncoding 모두 안전하게 이동
+    
     try:
-        model(samples.to(next(model.parameters()).device))
+        # model(samples.to(next(model.parameters()).device))
+        model(samples)
     except ValueError:  # work with early exit
         pass
     del samples

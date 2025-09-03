@@ -18,7 +18,6 @@ from lib.linear import FusedLinear
 from model.llama import LlamaDecoderLayer
 
 from huggingface_hub import login
-login(token = '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')
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--seed', default=0, type=int)

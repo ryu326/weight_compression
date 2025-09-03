@@ -99,10 +99,21 @@ def build_model_and_enc(model_path):
         config = AutoConfig.from_pretrained(model_path, trust_remote_code=True)
         # Note (Haotian): To avoid OOM after huggingface transformers 4.36.2
         config.use_cache = False
+        ##
+        rs = getattr(config, "rope_scaling", None)
+        if rs is None or rs == {}:
+            # 로프 스케일링 정보가 없으면 '없음'에 해당하는 안전 기본값
+            config.rope_scaling = {"type": "linear", "factor": 1.0}
+        elif isinstance(rs, dict):
+            # 오래된 구성: 'rope_type'만 있고 'type'이 없을 때 보정
+            if "type" not in rs and "rope_type" in rs:
+                rs["type"] = rs.pop("rope_type")
+        
         if "mpt" in config.__class__.__name__.lower():
             enc = AutoTokenizer.from_pretrained(config.tokenizer_name, trust_remote_code=True)
         else:
-            enc = AutoTokenizer.from_pretrained(model_path, use_fast=False, trust_remote_code=True)
+            # enc = AutoTokenizer.from_pretrained(model_path, use_fast=False, trust_remote_code=True)
+            enc = AutoTokenizer.from_pretrained(model_path + '_awq', use_fast=False, trust_remote_code=True)
             ##
             # enc = AutoTokenizer.from_pretrained("meta-llama/Meta-Llama-3-8B", use_fast=False, trust_remote_code=True, local_files_only=False)
             # enc = AutoTokenizer.from_pretrained(model_path, use_fast=False, trust_remote_code=True, legacy=False)
