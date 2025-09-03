@@ -1,16 +1,16 @@
-lmbdas=(300 10000)
+lmbdas=(100 10000)
 for lmbda in "${lmbdas[@]}"; do
     echo "=== Running with λ=${lmbda} ==="
     CUDA_VISIBLE_DEVICES=3 taskset -c 48-63 python -u train_nwc.py \
-        --architecture nwc_scale_cond \
-        --dataset_path "/workspace/Weight_compression/Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/row_1024_whiten_scale_cond(col_std).pt" \
-        --dataset block_seq_scale_cond \
+        --architecture nwc_ql \
+        --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
+        --dataset block_seq_ql_random \
+        --run_name debug_module \
         --iter 200000 \
-        --input_size 128 \
-        --M 256 \
-        --n_resblock 4 \
-        --dim_encoder 1024 \
+        --input_size 16 \
+        --M 16 \
+        --dim_encoder 512 \
         --batch_size 2048 \
-        --loss rdloss \
+        --loss rdloss_ql --Q 4 \
         --lmbda $lmbda
 done

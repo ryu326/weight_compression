@@ -55,6 +55,7 @@ class CompLinear2(Module):
             self.bpp_loss = self.out['bpp_loss_for_train']
         else:
             W_hat = utils.de_standardize_Wr(self.hatWr, self.metadata, self.args)
+        assert any([not torch.isnan(W_hat).any(), not torch.isinf(W_hat).any()]), "W_hat has NaN or Inf values"
         return F.linear(input, W_hat, self.bias)
 
     def extra_repr(self) -> str:

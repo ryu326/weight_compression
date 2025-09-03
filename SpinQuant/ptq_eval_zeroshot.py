@@ -71,7 +71,8 @@ def train() -> None:
     num_fewshot = 0
     apply_chat_template = False
     fewshot_as_multiturn = False
-    task_names = "arc_challenge,arc_easy,boolq,piqa,winogrande".split(",")
+    # task_names = "arc_challenge,arc_easy,boolq,piqa,winogrande".split(",")
+    task_names = "hellaswag,mmlu".split(",")
 
     results = evaluator.simple_evaluate(
         model=lm_eval_model,
@@ -97,7 +98,7 @@ def train() -> None:
 
     if local_rank == 0:
         result_path = ptq_args.save_qmodel_path if ptq_args.save_qmodel_path not in [None, ''] else ptq_args.load_qmodel_path
-        result_path = result_path.split('.pth')[0] + f'_zeroshot_results.json'
+        result_path = result_path.split('.pth')[0] + f'_hs_mmlu_zeroshot_results.json'
         os.makedirs(os.path.dirname(result_path), exist_ok=True)
         results["config"]["model"] = ptq_args.save_qmodel_path
         if "samples" in results:
