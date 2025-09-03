@@ -1,10 +1,10 @@
 # lmbdas=(30 1000 50 100)
-lmbdas=(20 15)
+lmbdas=(1000 50)
 for lmbda in "${lmbdas[@]}"; do
     echo "=== Running with λ=${lmbda} ==="
     CUDA_VISIBLE_DEVICES=0 taskset -c 0-15 python -u train_nwc.py \
         --architecture nwc_scale_cond \
-        --dataset_path "/workspace/Weight_compression/Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/row_1024_whiten_scale_cond(col_std).pt" \
+        --dataset_path "/workspace/Weight_compression/Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/row_1024_rnormed_scale_cond(col_std).pt" \
         --dataset block_seq_scale_cond \
         --iter 200000 \
         --input_size 128 \
@@ -15,6 +15,18 @@ for lmbda in "${lmbdas[@]}"; do
         --loss rdloss \
         --lmbda $lmbda
 done
+        # --architecture nwc_scale_cond \
+        # --dataset_path "/workspace/Weight_compression/Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/row_1024_whiten_scale_cond(col_std).pt" \
+        # --dataset block_seq_scale_cond \
+        # --iter 200000 \
+        # --input_size 128 \
+        # --M 256 \
+        # --n_resblock 4 \
+        # --dim_encoder 1024 \
+        # --batch_size 2048 \
+        # --loss rdloss \
+        # --lmbda $lmbda
+
         # --architecture nwc_scale_cond \
         # --dataset_path "../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/row_1024_rnormed_scale_cond(scaleWH).pt" \
         # --dataset block_seq_scale_cond_uniform \

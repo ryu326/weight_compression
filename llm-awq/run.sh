@@ -1,5 +1,5 @@
 
-# MODEL_0="meta-llama--Llama-2-13b-hf"  # GPU 0에서 실행
+MODEL_0="meta-llama--Llama-2-13b-hf"  # GPU 0에서 실행
 # MODEL_1="meta-llama--Meta-Llama-3-8B"  # GPU 1에서 실행
 # MODEL_0="lmsys--vicuna-7b-v1.5"  # GPU 1에서 실행
 # MODEL_0="Qwen--Qwen2.5-7B"  # GPU 1에서 실행

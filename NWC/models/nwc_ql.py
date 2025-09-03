@@ -154,7 +154,7 @@ class Encoder(nn.Module):
         
         self.weight_in = nn.Linear(in_dim, dim_encoder)
         # self.weight_stack = nn.ModuleList([Linear_ResBlock(dim_encoder, norm)] * n_res_layers)
-        self.weight_stack = nn.ModuleList([Linear_ResBlock(dim_encoder, norm) for _ in range(n_res_layers)])
+        self.weight_stack = nn.ModuleList([Linear_ResBlock(dim_encoder, norm) for _ in range(n_res_layers)]) ## debug
         self.out = nn.Linear(dim_encoder, dim_encoder_out)
 
     def forward(self, x, q_embedding):

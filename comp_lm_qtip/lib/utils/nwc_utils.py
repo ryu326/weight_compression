@@ -333,7 +333,8 @@ def standardize_W(W, H, args, device):
     if args.scaleH:
         diagH = torch.diag(Hr)
         diagH = torch.clamp(diagH, min=1e-8)
-        scaleH = diagH.sqrt().to(torch.float16)
+        # scaleH = diagH.sqrt().to(torch.float16)
+        scaleH = diagH.sqrt().to(torch.float32)
         # print(scaleH.max(), scaleH.min(), scaleH.mean())
         if args.lb_scaleH is not None:
             scaleH = torch.clamp(scaleH, min=args.lb_scaleH)
@@ -359,6 +360,8 @@ def standardize_W(W, H, args, device):
         Hr = Hr / scaleH[None, :]
         Hr = Hr / scaleH[:, None]
 
+    U = None
+    inv_sqrtLam = None
     if args.whiten:
         H_eig = torch.load(f'{args.in_hess_eig_path}/{args.layer_idx}_{args.in_hess_name}_eig.pt')
         U = H_eig['eigenvectors'].to(device)       # [n, k] (k=n이면 full)
@@ -377,7 +380,7 @@ def standardize_W(W, H, args, device):
         Wr = (Wr - layer_mean) / layer_std
     
     if args.row_normalize:
-        row_std = Wr.std(dim=1, keepdim=True).to(torch.float16)
+        row_std = Wr.std(dim=1, keepdim=True).to(torch.float32)
         Wr /= row_std
     
     if args.row_normalize2:
@@ -390,7 +393,7 @@ def standardize_W(W, H, args, device):
         Wr /= row_std
         
     if args.col_normalize:
-        col_std = Wr.std(dim=0, keepdim=True)
+        col_std = Wr.std(dim=0, keepdim=True).to(torch.float16)
         Wr /= col_std
         
     if args.scale_cond:
@@ -420,9 +423,9 @@ def standardize_W(W, H, args, device):
         # scale_cond = _scaleH * col_std ## scale_cond3
         scale_cond = scale_cond[None, :].to(torch.float32)
 
-        if args.scale_cond_ub is not None:
-            scale_cond = torch.clamp(scale_cond, max=args.scale_cond_ub)
-            glog.info(f'--{args.layer_idx}_{args.layer_name} scale_cond0: {scale_cond.mean()}, {scale_cond.max()}, {scale_cond.min()}')
+    if args.scale_cond_ub is not None and scale_cond is not None:
+        scale_cond = torch.clamp(scale_cond, max=args.scale_cond_ub)
+        glog.info(f'--{args.layer_idx}_{args.layer_name} scale_cond0: {scale_cond.mean()}, {scale_cond.max()}, {scale_cond.min()}')
             
         # glog.info(f'--{args.layer_idx}_{args.layer_name} col_std: {col_std.mean()}, {col_std.max()}, {col_std.min()}')
         # glog.info(f'--{args.layer_idx}_{args.layer_name} scaleH: {_scaleH.mean()}, {_scaleH.max()}, {_scaleH.min()}')
@@ -472,7 +475,7 @@ def de_standardize_Wr(W_hat, metadata, args):
     if args.layer_normalize and layer_std is not None and layer_mean is not None:
         W_hat = W_hat * layer_std + layer_mean
         
-    if args.whiten:
+    if hasattr(args, 'whiten') and args.whiten:
         inv_sqrtLam = metadata.get('inv_sqrtLam')
         U = metadata.get('U')
         W_hat = W_hat * inv_sqrtLam
@@ -532,7 +535,8 @@ def filter_compression_args(source_args):
         'ql_search_r',
         'layer_idx',
         'layer_name',
-        'ft_y'
+        'ft_y',
+        'whiten'
     ]
     # 2. 새로운 빈 Namespace 객체 생성
     filtered_args = argparse.Namespace()

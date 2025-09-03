@@ -214,23 +214,13 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
             comp_linear.Wr.requires_grad = False
             comp_linear.row_norm = nn.Parameter(metadata['row_std'], requires_grad=True)
         elif args.ft_metadata:
-            assert args.ldlq == True
             comp_linear = CompLinear2(orig_linear.in_features,
                                     orig_linear.out_features,
                                     orig_linear.bias,
                                     orig_linear.weight.device,
                                     orig_linear.weight.dtype,
                                     )
-            comp_linear.Wr.copy_(out['Wr_ldlq'])
-            comp_linear.Wr.requires_grad = True ## test
-            comp_linear.model = comp_model
-            for param in comp_linear.model.parameters():
-                param.requires_grad = False
-            comp_linear.model.eval()
-            comp_linear.model.mode = 'ste'
             comp_linear.args = utils.filter_compression_args(args)
-            comp_linear.args.ldlq = False
-            comp_linear.args.comp_batch_size = 1024
             params_to_register = {
                 key: nn.Parameter(value) 
                 for key, value in metadata.items() 
@@ -238,7 +228,20 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
             }
             params_to_register['scale_cond'].requires_grad = False ## scale_cond test
             comp_linear.metadata = nn.ParameterDict(params_to_register)
-            # comp_linear.qlevel = metadata['qlevel']  
+            if args.ft_Wr == True:
+                assert args.ldlq == True
+                comp_linear.Wr.copy_(out['Wr_ldlq'])
+                comp_linear.Wr.requires_grad = True ## test
+                comp_linear.model = comp_model
+                for param in comp_linear.model.parameters():
+                    param.requires_grad = False
+                comp_linear.model.eval()
+                comp_linear.model.mode = 'ste'
+                comp_linear.args.ldlq = False
+                comp_linear.args.comp_batch_size = 1024
+            else:
+                comp_linear.hatWr = hatWr
+                comp_linear.hatWr.requires_grad = False
         elif args.ft_y:
             # assert args.ldlq == True
             comp_linear = CompLinear3(orig_linear.in_features,
@@ -300,7 +303,6 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
         else:
             W_hat = None
             hatWr = hatWr.cpu()
-                            
         torch.save(
             {
                 'W_hat': W_hat,
@@ -330,39 +332,45 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
                     device=updated_row_norm.device, 
                     dtype=updated_row_norm.dtype
                 )
-                assert not torch.allclose(original_row_std_for_comparison, updated_row_norm), \
-                    "row_norm was not updated after fine-tuning."
-            elif args.ft_metadata:
-                # attrgetter(linear_attr)(mixed_layer).Wr.requires_grad = False
-                l = attrgetter(linear_attr)(mixed_layer)
-                l = l.to(device)
-                out = l.compress_linear()
-                setattr(l, 'hatWr', out['hatWr'])
-                # attrgetter(linear_attr)(mixed_layer).hatWr = out['hatWr']
-                del out
-                # updated = attrgetter(linear_attr)(mixed_layer).metadata['row_std']
-                # original = metadata['row_std'].to(
-                #     device=updated.device, 
-                #     dtype=updated.dtype
-                # )
-                # assert not torch.allclose(original, updated), \
+                # assert not torch.allclose(original_row_std_for_comparison, updated_row_norm), \
                 #     "row_norm was not updated after fine-tuning."
-            
-                # updated = attrgetter(linear_attr)(mixed_layer).metadata['scaleH']
-                # original = metadata['scaleH'].to(
-                #     device=updated.device, 
-                #     dtype=updated.dtype
-                # )
-                # assert not torch.allclose(original, updated), \
-                #     "scaleH was not updated after fine-tuning."
-            
-                # updated = attrgetter(linear_attr)(mixed_layer).Wr
-                # original = out['Wr_ldlq'].to(
-                #     device=updated.device, 
-                #     dtype=updated.dtype
-                # )
-                # assert not torch.allclose(original, updated), \
-                #     "Wr was not updated after fine-tuning."
+            elif args.ft_metadata:
+                if args.ft_Wr:
+                    updated = attrgetter(linear_attr)(mixed_layer).Wr
+                    original = out['Wr_ldlq'].to(
+                        device=updated.device, 
+                        dtype=updated.dtype
+                    )
+                    # assert not torch.allclose(original, updated), \
+                    #     "Wr was not updated after fine-tuning."
+                    
+                    ## 이번에는 ft 후에 다시 freeze 할 때
+                    l = attrgetter(linear_attr)(mixed_layer)
+                    l = l.to(device)
+                    out = l.compress_linear()
+                    setattr(l, 'hatWr', out['hatWr'])
+                    del out
+                    l.Wr = None
+                    # attrgetter(linear_attr)(mixed_layer).Wr.requires_grad = False
+                    l.comp_model = None                    
+                else:
+                    attrgetter(linear_attr)(mixed_layer).hatWr = out['hatWr']
+                    updated = attrgetter(linear_attr)(mixed_layer).metadata['row_std']
+                    original = metadata['row_std'].to(
+                        device=updated.device, 
+                        dtype=updated.dtype
+                    )
+                    # assert not torch.allclose(original, updated), \
+                    #     "row_norm was not updated after fine-tuning."
+                
+                    updated = attrgetter(linear_attr)(mixed_layer).metadata['scaleH']
+                    original = metadata['scaleH'].to(
+                        device=updated.device, 
+                        dtype=updated.dtype
+                    )
+                    # assert not torch.allclose(original, updated), \
+                    #     "scaleH was not updated after fine-tuning."
+                
             # else:
             #     assert torch.equal(W_hat, attrgetter(linear_attr)(mixed_layer).weight)
 
@@ -385,11 +393,14 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
                 quant_linear = attrgetter(linear_attr)(mixed_layer)
                 save_path = f'{args.save_path}/{idx}_{name}.pt'
                 data = torch.load(save_path)
-                data['hatWr'] = quant_linear.out['hatWr'].data.to(dtype_).cpu()
-                data['bpp_loss'] = quant_linear.out['bpp_loss']
-                data['bpp_loss_sum'] = quant_linear.out['bpp_loss_sum']
-                data['bpp'] = quant_linear.out['bpp']
-                data['bpp_sum'] = quant_linear.out['bpp_sum']
+                if args.ft_Wr == True:
+                    data['hatWr'] = quant_linear.out['hatWr'].data.to(dtype_).cpu()
+                    data['bpp_loss'] = quant_linear.out['bpp_loss']
+                    data['bpp_loss_sum'] = quant_linear.out['bpp_loss_sum']
+                    data['bpp'] = quant_linear.out['bpp']
+                    data['bpp_sum'] = quant_linear.out['bpp_sum']
+                else:
+                    assert torch.equal(data['hatWr'], quant_linear.hatWr.data.to(dtype_).cpu())
                 tensors_to_update = {key: param.data for key, param in quant_linear.metadata.items()}
                 data['metadata'].update(tensors_to_update)
                 torch.save(data, save_path)

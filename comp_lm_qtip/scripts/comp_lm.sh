@@ -11,7 +11,7 @@ comp_model_bases=(
     # "../NWC/checkpoint/nwc_ql/block_seq_ql_random_pos_scaler_meta-llama--Meta-Llama-3-8B__scaleHinv_sig0.0001_std_rnormed_lidx_row_1024.pt/rdloss_ql_size128_encdim1024_M256_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
     # "../NWC/checkpoint/nwc_ql/block_seq_ql_random_pos_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_std_rnormed_lidx_row_1024.pt/rdloss_ql_size128_encdim1024_M256_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
     # "../NWC/checkpoint/nwc_ql/block_seq_ql_random_pos_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_std_rnormed_lidx_row_1024.pt/rdloss_ql_size128_encdim2048_M256_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
-    # "../NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_uniform31.6_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
+    "../NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_uniform31.6_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
     # "../NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
     # "../NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt/rdloss_size16_encdim512_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
     # "../NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_with_colrow_std_lidx_row_1024.pt/rdloss_size16_encdim512_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
@@ -36,9 +36,13 @@ comp_model_bases=(
     # "/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/debug_module_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
     # "/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__row_1024_rnormed_scale_cond(scaleWH).pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
     # "/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_uniform50.0_scaler_meta-llama--Meta-Llama-3-8B__row_1024_rnormed_scale_cond(scaleWH).pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
-    '/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__row_1024_whiten_scale_cond(col_std).pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100'
+    # '/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__row_1024_whiten_scale_cond(col_std).pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100'
+    # '/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__row_1024_whiten_scale_cond(col_std).pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100'
+    # '/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__row_1024_rnormed_scale_cond(col_std).pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100'
 )
 quantize_flags=(
+    "--direction row --scaleH --row_normalize --scale_cond --ldlq --comp_batch_size 128 --ft_epochs 5 --ft_metadata"
+    # "--direction row --row_normalize --scale_cond --ldlq --comp_batch_size 128"
     # "--direction row --scaleH --row_normalize --ldlq --comp_batch_size 128 --scale_cond"
     # "--direction row --scaleH --row_normalize --ldlq --comp_batch_size 128 --scale_cond"
     # "--direction col --ql --Q 4 --row_normalize"
@@ -54,7 +58,6 @@ quantize_flags=(
     # "--direction col --ql --Q 4 --row_normalize --comp_batch_size 1024 --ft_epochs 5 --ft_y"
     # "--direction row --scaleH --row_normalize --ft_epochs 5 --ft_scale_cond0 --scale_cond0"
     # "--direction row --scaleHinv --row_normalize --ldlq --comp_batch_size 128"
-    # "--direction row --scaleH --row_normalize --scale_cond --ldlq --comp_batch_size 128 --ft_epochs 5 --ft_metadata"
     # "--direction row --scaleH --row_normalize --scale_cond --ldlq --comp_batch_size 128 --ft_epochs 5"
     # "--direction row --scaleH --row_normalize --scale_cond --ldlq --comp_batch_size 128 --lb_scaleH 1"
     # "--direction row --scaleH --row_normalize --scale_cond --ldlq --comp_batch_size 128"
@@ -73,10 +76,10 @@ quantize_flags=(
     # "--direction row --row_normalize --scale_cond0 --ldlq --comp_batch_size 128 --scale_cond_ub 50"
     # "--direction row --scale_cond0 --ldlq --comp_batch_size 128"
     # "--direction row --scale_cond0 --ldlq --comp_batch_size 128"
-    "--direction row --comp_batch_size 4096 --whiten --in_hess_eig_path /workspace/Weight_compression/Wparam_dataset/quip_hess_eig_reg0.0001/llama3_8b_6144"
+    # "--direction row --comp_batch_size 4096 --whiten --in_hess_eig_path /workspace/Weight_compression/Wparam_dataset/quip_hess_eig_reg0.0001/llama3_8b_6144"
 )
 experiment_names=(
-    # "scaleH_std_ldlq128_scale_cond(col)/(trained_no_rnormed)size128_encdim1024_M256"
+    # "scale_cond(col)_rnorm/size128_encdim1024_M256"
     # "ql_compand_rnorm(trained_rnormed)"
     # "ql_compand_ldlq128_rnorm"
     # "ql_ldlq128_rnorm_debug"
@@ -96,11 +99,11 @@ experiment_names=(
     # "scaleH_std_scale_cond(col)/size128_encdim2048_M256_ft_meta_test"
     # "scaleH_std_ldlq128_scale_cond(col)_ft_scaleh_rnrom/size128_encdim2048_M256"
     # "scaleH_std_ldlq128_scale_cond(col)_uniform10/size128_encdim2048_M256"
-    # "scaleH_std_ldlq128_scale_cond(col)_uniform31.6/size128_encdim1024_M256_test"
+    # "scaleH_std_ldlq128_scale_cond(col)_uniform31.6_ft_meta/size128_encdim1024_M256"
     # "scaleH_std_ldlq128_scale_cond(col)_uniform31.6/smooth_0.5_size128_encdim2048_M256"
     # "scaleH_std_ldlq128_scale_cond(col)_uniform31.6/smooth_0.1_size128_encdim2048_M256"
     # "scaleH_std_ldlq128_scale_cond(col)_uniform31.6/smooth_0.8_size128_encdim2048_M256"
-    # "scaleH_std_ldlq128_scale_cond(col)_ft/size128_encdim1024_M256"
+    "scaleH_std_ldlq128_scale_cond(col)_ft/size128_encdim1024_M256"
     # "scaleH_std_ldlq128_scale_cond(col)_ltc/size16_encdim512_M24"
     # "scaleH_std_ldlq128_scale_cond(col)/size128_encdim1024_M256_lb1"
     # "scaleH_std_ldlq128_scale_cond(colrow)/size16_encdim512_M256"
@@ -109,21 +112,21 @@ experiment_names=(
     # "ql_lnorm_trained"
     # "scale_cond2_rnorm_ldldq128/(trained_rnormed)"
     # "scale_cond2_rnorm_ldldq128/(trained_rnormed)uniform50"
-    "scale_cond(col_std)_whiten/size128_encdim1024_M256"
+    # "scale_cond(col_std)_whiten/size128_encdim1024_M256"
 )
 ##########################################################################
 ##                           MODEL CONFIGURATION                        ##
 ##########################################################################
 model_names=(
-    # "meta-llama--Llama-2-7b-hf"
     "meta-llama--Meta-Llama-3-8B"
+    "meta-llama--Llama-2-7b-hf"
     # "meta-llama--Llama-3.2-3B"
     # "meta-llama--Llama-2-13b-hf"
     # "meta-llama--Llama-2-70b-hf_"
 )
 hess_paths=(
-    # "../Wparam_dataset/quip_hess/Hessians-Llama-2-7b-6144"
     "../Wparam_dataset/quip_hess/llama3_8b_6144"
+    "../Wparam_dataset/quip_hess/Hessians-Llama-2-7b-6144"
     # "../Wparam_dataset/quip_hess/meta-llama--Llama-3.2-3B-256"
     # "../Wparam_dataset/quip_hess/Hessians-Llama-2-13b-6144"
     # "../Wparam_dataset/quip_hess/llama2_70b_relaxml_git/Hessians-Llama-2-70b-6144"
@@ -140,13 +143,13 @@ mkdir -p $CKPT
 mkdir -p $HF
 mkdir -p $LOG
 mkdir -p $RES
-export CUDA_VISIBLE_DEVICES=0,1,2,3
+export CUDA_VISIBLE_DEVICES=1,2,3
 export WANDB_SILENT=true
 
 # 모든 실험에 공통으로 적용될 Lambda 값
 # lmbda_values=(30 50 100 300 1000 10000)
 # lmbda_values=(10 20 30 50 100 300 1000)
-lmbda_values=(300 1000)
+lmbda_values=(1000 300 100 50 30)
 # lmbda_values=(99 82 88 66 77 93 71)
 ##########################################################################
 ##                        MAIN EXECUTION LOOP                           ##
@@ -184,43 +187,47 @@ for i in "${!experiment_names[@]}"; do
             comp_model=$comp_model_base/lmbda${lmbda}_*/best_loss*.pth.tar
             mkdir -p $(dirname "$LOG/$SAVE_NAME.log")
             
-            taskset -c 0-63 \
-            python -m quantize_llama.quantize_finetune_llama --save_path $CKPT/$SAVE_NAME \
-                --base_model $lm_model_path \
-                --comp_model_path $comp_model \
-                --in_hess_path $HESS \
-                --devset_size 384 --ft_valid_size 128 --batch_size 8 \
-                ${current_quantize_flags} \
-                2>&1 | tee $LOG/$SAVE_NAME.log
+            # taskset -c 0-63 \
+            # python -m quantize_llama.quantize_finetune_llama --save_path $CKPT/$SAVE_NAME \
+            #     --base_model $lm_model_path \
+            #     --comp_model_path $comp_model \
+            #     --in_hess_path $HESS \
+            #     --devset_size 384 --ft_valid_size 128 --batch_size 8 \
+            #     ${current_quantize_flags} \
+            #     2>&1 | tee $LOG/$SAVE_NAME.log
 
                 # --devset_size 48 --ft_valid_size 16 --batch_size 1 \
                 # --devset_size 384 --ft_valid_size 128 --batch_size 8 \
 
-
+            
             echo "################## Running hfize | lmbda=${lmbda} | Exp: ${exp_name} | Model: ${model_name} ##################"
             python -m quantize_llama.hfize_llama --quantized_path $CKPT/${SAVE_NAME} \
-                    --hf_output_path $HF/${SAVE_NAME} \
-                    2>&1 | tee -a $LOG/$SAVE_NAME.log \
-                    # --skip_list 0_q,0_k \
+                    --hf_output_path $HF/${SAVE_NAME}_skip1down \
+                    --skip_list 1_down \
+                    2>&1 | tee -a $LOG/${SAVE_NAME}.log \
+
+                    # --skip_list 1_down \
+
+            SAVE_NAME=${model_name}/${exp_name}/lmbda${lmbda}_skip1down
 
 
             echo "################## Running PPL evaluation | lmbda=${lmbda} | Exp: ${exp_name} | Model: ${model_name} ##################"
             echo "Running evaluation for directory: $HF/$SAVE_NAME"
             python -m eval.eval_ppl_hf \
-                --hf_path $HF/$SAVE_NAME \
+                --hf_path $HF/${SAVE_NAME} \
                 --seqlen 2048 \
                 --output_path ${RES}/${SAVE_NAME} \
                 --datasets wikitext2,c4 \
                 --no_use_cuda_graph 2>&1 | tee -a $LOG/$SAVE_NAME.log
 
 
-            # echo "################## Running benchmark evaluation | lmbda=${lmbda} | Exp: ${exp_name} | Model: ${model_name} ##################"
-            # python -m eval.eval_zeroshot_hf \
-            #     --tasks arc_challenge,arc_easy,piqa,winogrande,boolq,hellaswag \
-            #     --batch_size 8  \
-            #     --hf_path $HF/$SAVE_NAME \
-            #     --output_path $RES/${SAVE_NAME} \
-            #     2>&1 | tee -a $LOG/$SAVE_NAME.log
+            echo "################## Running benchmark evaluation | lmbda=${lmbda} | Exp: ${exp_name} | Model: ${model_name} ##################"
+            python -m eval.eval_zeroshot_hf \
+                --tasks arc_challenge,arc_easy,piqa,winogrande,boolq,hellaswag,mmlu \
+                --batch_size 8  \
+                --hf_path $HF/$SAVE_NAME \
+                --output_path $RES/${SAVE_NAME} \
+                2>&1 | tee -a $LOG/$SAVE_NAME.log
 
             # python -m eval.eval_zeroshot_hf \
             #     --tasks mmlu \
