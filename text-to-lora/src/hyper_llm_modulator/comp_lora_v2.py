@@ -198,13 +198,17 @@ class LoRACompressionModelV2(CompressionModel):
         ortho_reflections: int = 4,
         mean_recon_target: Optional[Dict[str, torch.Tensor]] = None,
         std_recon_target: Optional[Dict[str, torch.Tensor]] = None,
+        autoreg_gen: bool = True,
+        learnable_pos_emb: bool = True,
     ):
         super().__init__()
         self.r = r
         self.in_features = in_features
         self.out_features = out_features
         self.target_modules = target_modules
-
+        self.autoreg_gen = autoreg_gen
+        self.learnable_pos_emb =learnable_pos_emb
+        
         # cond
         self.cond = CondEmbedder(max_num_layers=max_num_layers,
                                  target_modules=target_modules,
@@ -213,7 +217,9 @@ class LoRACompressionModelV2(CompressionModel):
 
         # flat dims
         self.flat_dims = {m: r * (in_features[m] + out_features[m]) for m in target_modules}
-
+        self.rank_input_dimsA = {m: in_features[m] for m in target_modules}
+        self.rank_input_dimsB = {m: out_features[m] for m in target_modules}
+        
         if d_enc_in is None:  d_enc_in = latent_dim * 2
         if d_dec_out is None: d_dec_out = latent_dim * 2
         self.d_enc_in, self.d_dec_out = d_enc_in, d_dec_out
@@ -224,13 +230,37 @@ class LoRACompressionModelV2(CompressionModel):
             self.ortho = nn.ModuleDict({m: OrthoWhiten(self.flat_dims[m], ortho_reflections) for m in target_modules})
         else:
             self.ortho = nn.ModuleDict({m: nn.Identity() for m in target_modules})
+            
+        # self.ortho_rank = nn.ModuleDict({
+        #     m: OrthoWhiten(self.rank_input_dims[m], ortho_reflections)
+        #     for m in target_modules
+        # }) if use_ortho_whiten else nn.ModuleDict({m: nn.Identity() for m in target_modules})
 
-        self.enc_tails = nn.ModuleDict()
-        self.dec_heads = nn.ModuleDict()
-        for m in target_modules:
-            fd = self.flat_dims[m]
-            self.enc_tails[m] = nn.Sequential(nn.LayerNorm(fd), nn.Linear(fd, d_enc_in), nn.SiLU())
-            self.dec_heads[m] = nn.Sequential(nn.LayerNorm(d_dec_out), nn.Linear(d_dec_out, fd))
+        if autoreg_gen:
+            self.enc_tailsA = nn.ModuleDict()
+            self.enc_tailsB = nn.ModuleDict()
+            self.dec_headsA = nn.ModuleDict()
+            self.dec_headsB = nn.ModuleDict()
+            for m in target_modules:
+                fdA = self.rank_input_dimsA[m]
+                fdB = self.rank_input_dimsB[m]
+                self.enc_tailsA[m] = nn.Sequential(nn.LayerNorm(fdA), nn.Linear(fdA, d_enc_in), nn.SiLU())
+                self.enc_tailsB[m] = nn.Sequential(nn.LayerNorm(fdB), nn.Linear(fdB, d_enc_in), nn.SiLU())
+                self.dec_headsA[m] = nn.Sequential(nn.LayerNorm(d_dec_out), nn.Linear(d_dec_out, fdA))
+                self.dec_headsB[m] = nn.Sequential(nn.LayerNorm(d_dec_out), nn.Linear(d_dec_out, fdB))
+        else:
+            self.enc_tails = nn.ModuleDict()
+            self.dec_heads = nn.ModuleDict()
+            for m in target_modules:
+                fd = self.flat_dims[m]
+                self.enc_tails[m] = nn.Sequential(nn.LayerNorm(fd), nn.Linear(fd, d_enc_in), nn.SiLU())
+                self.dec_heads[m] = nn.Sequential(nn.LayerNorm(d_dec_out), nn.Linear(d_dec_out, fd))
+        
+        if autoreg_gen:
+            if self.learnable_pos_emb:
+                self.rank_pos = nn.Embedding(r, d_enc_in)   # 인코더 입력 쪽에 더할 용도
+            else:
+                self.register_buffer("rank_pos_sin_enc", self._build_sincos(r, d_enc_in), persistent=False)
 
         # FiLM 코어(funnel)
         self.encoder_core = EncoderCoreV2(d_enc_in=d_enc_in, cond_dim=cond_dim, latent_dim=latent_dim, width=width)

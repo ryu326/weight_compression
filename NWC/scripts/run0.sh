@@ -26,7 +26,7 @@ done
 ) > ./logs/run1.log 2>&1 &
 
 
-(lmbdas=(1000 50)
+(lmbdas=(50)
 for lmbda in "${lmbdas[@]}"; do
     echo "=== Running with λ=${lmbda} ==="
     CUDA_VISIBLE_DEVICES=2 taskset -c 32-47 python -u train_nwc.py \
@@ -40,7 +40,7 @@ for lmbda in "${lmbdas[@]}"; do
 done
 ) > ./logs/run2.log 2>&1 &
 
-(lmbdas=(300 100)
+(lmbdas=(100)
 for lmbda in "${lmbdas[@]}"; do
     echo "=== Running with λ=${lmbda} ==="
     CUDA_VISIBLE_DEVICES=3 taskset -c 48-63 python -u train_nwc.py \

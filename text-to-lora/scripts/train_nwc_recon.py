@@ -172,6 +172,10 @@ def main(args):
 
     logger.info(f"# of target LORAs: {len(target_loras)}")
 
+    if os.environ.get("DUMP_LORAS") == "1":
+        torch.save({"lora_dirs": lora_dirs, "target_loras": target_loras}, "target_loras.pt")
+        raise SystemExit
+
     train_data = dict()
 
     for task, state_dict in target_loras.items():

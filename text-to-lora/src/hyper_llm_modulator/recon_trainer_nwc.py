@@ -159,8 +159,8 @@ def compute_loss(args, model, batch_data, layer_indices, device):
     aux_loss = 0.0
     mse_loss_sum = 0.0
     bpp_loss_sum = 0.0
-    # mseA_sum = 0.0
-    # mseB_sum = 0.0
+    mseA_sum = 0.0
+    mseB_sum = 0.0
 
     batch_tasks = list(batch_data.keys())
     layer_indices = torch.tensor(layer_indices)
@@ -177,7 +177,7 @@ def compute_loss(args, model, batch_data, layer_indices, device):
                 std_A = model.std_recon_target["A"][layer_type]
                 std_B = model.std_recon_target["B"][layer_type]
                 A_t = (A_t - avg_A) / (std_A + 1e-10)
-                B_t = (B_t - avg_B) / (std_B + 1e-10)       
+                B_t = (B_t - avg_B) / (std_B + 1e-10)
             
             A_list.append(A_t)
             B_list.append(B_t)
@@ -198,6 +198,8 @@ def compute_loss(args, model, batch_data, layer_indices, device):
             mse_A = F.mse_loss(out['A_hat'], A_cat, reduction="mean")
             mse_B = F.mse_loss(out['B_hat'], B_cat, reduction="mean")
             mse_loss = (mse_A + mse_B) / 2
+            mseA_sum    += float(mse_A)
+            mseB_sum    += float(mse_B)
         else:
             A_hat = out["A_hat"]        # [N, r, in]
             B_hat = out["B_hat"]        # [N, out, r]
@@ -220,8 +222,7 @@ def compute_loss(args, model, batch_data, layer_indices, device):
         
         mse_loss_sum += float(mse_loss)
         bpp_loss_sum += float(bpp_loss)
-        # mseA_sum    += float(mse_A)
-        # mseB_sum    += float(mse_B)
+
 
         # unnormalized error: A/B L1 평균(로그용)
         # with torch.no_grad():
@@ -234,13 +235,15 @@ def compute_loss(args, model, batch_data, layer_indices, device):
     aux_loss = aux_loss / len(target_modules)
     mse_avg = mse_loss_sum / len(target_modules)
     bpp_avg      = bpp_loss_sum      / len(target_modules)
-    # mseA_avg     = mseA_sum     / len(target_modules)
-    # mseB_avg     = mseB_sum     / len(target_modules)
+    mseA_avg     = mseA_sum     / len(target_modules)
+    mseB_avg     = mseB_sum     / len(target_modules)
     # unnorm_err   = unnorm_err_sum / len(target_modules)
 
     log_items = {
         "bpp": bpp_avg,
         "mse": mse_avg,
+        "mseA": mseA_avg,
+        "mseB": mseB_avg
     }
     return loss, aux_loss, log_items
 
