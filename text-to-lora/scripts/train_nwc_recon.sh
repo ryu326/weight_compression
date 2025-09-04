@@ -1,6 +1,7 @@
 # train T2L via reconstruction training
-export CUDA_VISIBLE_DEVICES=3
-WANDB_MODE=online uv run python scripts/train_nwc_recon.py configs/hyper_lora_decontam_lol_tasks.yaml \
+export CUDA_VISIBLE_DEVICES=1
+env DUMP_LORAS=1 \
+WANDB_MODE=disabled uv run python scripts/train_nwc_recon.py configs/hyper_lora_decontam_lol_tasks.yaml \
     --model_dir=mistralai/Mistral-7B-Instruct-v0.2 \
     --emb_model=Alibaba-NLP/gte-large-en-v1.5 \
     --warmup_frac=0.01 --lr=1e-3 --epochs=10000 \
