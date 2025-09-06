@@ -10,6 +10,7 @@ from .nwc_ql_v2 import NWC_ql_learnable_scale
 from .nwc_ql_sga import NWC_ql_SGA, NWC_ql_SGA_Vbr
 from .nwc_qmap import NWC_qmap, NWC_qmap2, NWC_qmap3
 from .nwc_scale_cond import NWC_scale_cond, NWC_scale_cond_ltc
+from .nwc_scale_cond_v2 import NWCScaleCond
 from .nwc_lora import LoRACompressionModel
 # from .nwc_ql_cdt import NWC_conditional, NWC_conditional2
 # from .nwc_ql_cdt_ln import NWC_conditional_ln
@@ -229,6 +230,23 @@ def get_model(model_class, opts, scale, shift):
             # pe = opts.use_pe,
             pre_normalize = opts.pre_normalize,
             normalize = opts.normalize
+        )
+    elif model_class == "nwc_scale_cond_pe":
+        if not hasattr(opts, 'pre_normalize'):
+            setattr(opts, 'pre_normalize', False)
+        if not hasattr(opts, 'normalize'):
+            setattr(opts, 'normalize', False)
+        model = NWCScaleCond(
+            input_size=opts.input_size,
+            dim_encoder=opts.dim_encoder,
+            n_resblock=opts.n_resblock,
+            M = opts.M,
+            scale=scale,
+            shift=shift,
+            norm = (not opts.no_layernorm),
+            use_hyper = opts.use_hyper,
+            pe = True,
+            pre_normalize = opts.pre_normalize,
         )
     elif model_class == "nwc_scale_cond_ltc":
         model = NWC_scale_cond_ltc(

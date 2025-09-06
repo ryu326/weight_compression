@@ -37,6 +37,7 @@ def train(
         losses = []
         grad_norms = []
         bpp_list, mse_list, aux_list = [], [], []
+        mseA_list, mseB_list = [], []
         
         for start_idx in range(0, len(tasks), tasks_per_batch):
             # sample tasks (so that we train all the layer/depth embedding for sampled tasks)
@@ -62,8 +63,8 @@ def train(
             grad_norms.append(float(grad_norm))
             bpp_list.append(float(log_items["bpp"]))
             mse_list.append(float(log_items["mse"]))
-            # mseA_list.append(float(log_items["mse_A"]))
-            # mseB_list.append(float(log_items["mse_B"]))
+            mseA_list.append(float(log_items["mse_A"]))
+            mseB_list.append(float(log_items["mse_B"]))
             
 
             # pbar.update(1)
@@ -81,8 +82,8 @@ def train(
                     torch.tensor(losses).mean(),
                     torch.tensor(aux_list).mean(),
                     torch.tensor(mse_list).mean(),
-                    # torch.tensor(mseA_list).mean(),
-                    # torch.tensor(mseB_list).mean(),
+                    torch.tensor(mseA_list).mean(),
+                    torch.tensor(mseB_list).mean(),
                     torch.tensor(bpp_list).mean(),
                     torch.tensor(grad_norms).mean(),
                     lr_scheduler.get_last_lr()[0],
