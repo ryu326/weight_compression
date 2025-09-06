@@ -231,7 +231,7 @@ def get_model(model_class, opts, scale, shift):
             pre_normalize = opts.pre_normalize,
             normalize = opts.normalize
         )
-    elif model_class == "nwc_scale_cond_pe":
+    elif model_class == "nwc_scale_cond_v2":
         if not hasattr(opts, 'pre_normalize'):
             setattr(opts, 'pre_normalize', False)
         if not hasattr(opts, 'normalize'):
@@ -245,7 +245,7 @@ def get_model(model_class, opts, scale, shift):
             shift=shift,
             norm = (not opts.no_layernorm),
             use_hyper = opts.use_hyper,
-            pe = True,
+            pe = opts.use_pe,
             pre_normalize = opts.pre_normalize,
         )
     elif model_class == "nwc_scale_cond_ltc":

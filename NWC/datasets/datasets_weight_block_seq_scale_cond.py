@@ -22,7 +22,7 @@ from torchvision import transforms
 
 
 class Weight_Vector_Dataset(Dataset):
-    def __init__(self, dataset, dataset_stats, input_size, args, uniform_scale = False, scale_max = -1,
+    def __init__(self, dataset, dataset_stats, input_size, args, uniform_scale = False, return_idx_ltype = False, scale_max = -1,
         aug_scale=False,              # 랜덤 스케일링 on/off
         aug_scale_p=0.01,              # 적용 확률
         aug_scale_min=0.5,            # 스케일 하한
@@ -49,6 +49,7 @@ class Weight_Vector_Dataset(Dataset):
             self.std = torch.Tensor(dataset_stats["std_channel"]).view(-1, input_size)
 
         self.input_size = input_size
+        self.return_idx_ltype = return_idx_ltype
         
         if getattr(args, "pre_normalize", False):
             self.dataset['weight'] = (self.dataset['weight'] - self.mean) / self.std
@@ -118,8 +119,10 @@ class Weight_Vector_Dataset(Dataset):
             
         return {'weight_block': img,
                 'scale_cond': scale,
-                }
-        
+                'depth': self.dataset['idx'][idx].to(torch.long).reshape(1,), # (1, )
+                'ltype': self.dataset['layer_type'][idx].to(torch.long).reshape(1,), # (1, )
+            }
+
         
         
 def get_datasets_block_seq_scale_cond(dataset_pt_path, input_size, args, uniform_scale = False, scale_max = None):
