@@ -300,6 +300,23 @@ class LoRACompressionModelV2(CompressionModel):
     def _from_nchw(x: torch.Tensor) -> torch.Tensor:
         return x.squeeze(-1).squeeze(-1)
 
+    def _build_sincos(self, r: int, d: int) -> torch.Tensor:
+        # 간단한 sin/cos pos emb: [r, d]
+        pe = torch.zeros(r, d)
+        position = torch.arange(0, r, dtype=torch.float32).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, d, 2, dtype=torch.float32) * (-math.log(10000.0) / d))
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        return pe  # buffer로 등록함
+
+    def _rank_pos_embed(self, k: int, L: int, device: torch.device) -> torch.Tensor:
+        """[L, d_enc_in] 랭크별 pos 임베딩 생성"""
+        if self.learnable_pos_emb:
+            pos = self.rank_pos.weight[k].unsqueeze(0).expand(L, -1)  # [L, d_enc_in]
+        else:
+            pos = self.rank_pos_sin_enc[k].unsqueeze(0).expand(L, -1) # [L, d_enc_in]
+        return pos.to(device)
+
     # ---------- forward ----------
     def forward(
         self,
@@ -317,42 +334,183 @@ class LoRACompressionModelV2(CompressionModel):
         Lb, out_feat, rB = lora_B.shape
         assert L == Lb and rA == self.r and rB == self.r
 
-        cond = self._make_cond(layer_indices.to(device), layer_type)   # [L, cond_dim]
+        if not self.autoreg_gen:
+            cond = self._make_cond(layer_indices.to(device), layer_type)   # [L, cond_dim]
 
-        # flatten -> (optional OrthoWhiten) -> enc_tail -> encoder_core
-        x_flat = _flatten_lora(lora_A, lora_B)                         # [L, fd]
-        x_flat = self.ortho[layer_type](x_flat)
-        enc_in = self.enc_tails[layer_type](x_flat)                    # [L, d_enc_in]
-        y = self.encoder_core(enc_in, cond)                            # [L, C]
+            # flatten -> (optional OrthoWhiten) -> enc_tail -> encoder_core
+            x_flat = _flatten_lora(lora_A, lora_B)                         # [L, fd]
+            x_flat = self.ortho[layer_type](x_flat)
+            enc_in = self.enc_tails[layer_type](x_flat)                    # [L, d_enc_in]
+            y = self.encoder_core(enc_in, cond)                            # [L, C]
 
-        # hyperprior: scales from hyper path
-        y_abs = y.abs()
-        h = self.hyper_enc(y_abs)                                      # [L, C_h]
-        h_nchw = self._to_nchw(h)
-        h_hat_nchw, h_likelihoods = self.hyper_bottleneck(h_nchw)      # training: returns tuple
-        h_hat = self._from_nchw(h_hat_nchw)                            # [L, C_h]
-        scales_hat = self.hyper_dec(h_hat)                              # [L, C]
-        scales_hat_nchw = self._to_nchw(scales_hat)
+            # hyperprior: scales from hyper path
+            y_abs = y.abs()
+            h = self.hyper_enc(y_abs)                                      # [L, C_h]
+            h_nchw = self._to_nchw(h)
+            h_hat_nchw, h_likelihoods = self.hyper_bottleneck(h_nchw)      # training: returns tuple
+            h_hat = self._from_nchw(h_hat_nchw)                            # [L, C_h]
+            scales_hat = self.hyper_dec(h_hat)                              # [L, C]
+            scales_hat_nchw = self._to_nchw(scales_hat)
 
-        # quantize y and compute likelihoods
-        y_nchw = self._to_nchw(y)
-        # y_hat_nchw = self.gaussian_conditional.quantize(
-        #     y_nchw, mode="noise" if self.training else "dequantize"
-        # )
-        # y_likelihoods = self.gaussian_conditional.likelihood(
-        #     y_hat_nchw, scales_hat_nchw
-        # )  # [L, C, 1, 1]
-        y_hat_nchw, y_likelihoods = self.gaussian_conditional(y_nchw, scales_hat_nchw)
+            # quantize y and compute likelihoods
+            y_nchw = self._to_nchw(y)
+            # y_hat_nchw = self.gaussian_conditional.quantize(
+            #     y_nchw, mode="noise" if self.training else "dequantize"
+            # )
+            # y_likelihoods = self.gaussian_conditional.likelihood(
+            #     y_hat_nchw, scales_hat_nchw
+            # )  # [L, C, 1, 1]
+            y_hat_nchw, y_likelihoods = self.gaussian_conditional(y_nchw, scales_hat_nchw)
 
-        y_hat = self._from_nchw(y_hat_nchw)                            # [L, C]
-        dec_core = self.decoder_core(y_hat, cond)                       # [L, d_dec_out]
-        x_hat_flat = self.dec_heads[layer_type](dec_core)               # [L, fd]
-        A_hat, B_hat = _unflatten_lora(x_hat_flat, self.r, in_feat, out_feat)
+            y_hat = self._from_nchw(y_hat_nchw)                            # [L, C]
+            dec_core = self.decoder_core(y_hat, cond)                       # [L, d_dec_out]
+            x_hat_flat = self.dec_heads[layer_type](dec_core)               # [L, fd]
+            A_hat, B_hat = _unflatten_lora(x_hat_flat, self.r, in_feat, out_feat)
 
-        return dict(
-            A_hat=A_hat, B_hat=B_hat,
-            likelihoods={"y": y_likelihoods, "h": h_likelihoods},
+            return dict(
+                A_hat=A_hat, B_hat=B_hat,
+                likelihoods={"y": y_likelihoods, "h": h_likelihoods},
+            )
+        else:
+            # A_hat = lora_A.new_zeros((L, self.r, in_feat))
+            # B_hat = lora_B.new_zeros((L, out_feat, self.r))
+            # like_list = []
+            # for k in range(self.r):
+            #     A_k = lora_A[:, k, :]      # [L, in]
+            #     B_k = lora_B[:, :, k]      # [L, out]
+            #     A_hat_k, B_hat_k, lik_k = self.forward_rank(
+            #         layer_type=layer_type,
+            #         layer_indices=layer_indices,
+            #         A_k=A_k,
+            #         B_k=B_k,
+            #         rank_idx=k,
+            #     )
+            #     A_hat[:, k, :] = A_hat_k
+            #     B_hat[:, :, k] = B_hat_k
+            #     like_list.append(lik_k)    # [L, *]
+
+            # likelihoods = torch.cat(like_list, dim=1)  # [L, total_symbols]
+            # return dict(A_hat=A_hat, B_hat=B_hat, likelihoods=likelihoods)
+
+            # --------- 여기부터 랭크-벡터화 경로 ---------
+            R = rA
+            cond = self._make_cond(layer_indices.to(device), layer_type)      # [L, cond]
+            cond = cond.unsqueeze(1).expand(L, R, -1).reshape(L*R, -1)        # [L*R, cond]
+
+            # rank pos-emb: [R, d_enc_in] -> [L, R, d_enc_in] -> [L*R, d_enc_in]
+            if self.learnable_pos_emb:
+                pos = self.rank_pos.weight                                    # [R, d_enc_in]
+            else:
+                pos = self.rank_pos_sin_enc                                   # [R, d_enc_in]
+            pos = pos.unsqueeze(0).expand(L, -1, -1).reshape(L*R, -1)
+
+            # A 경로: [L,R,in] -> [L*R, in]
+            A_in = lora_A.reshape(L*R, in_feat)
+            enc_in_A = self.enc_tailsA[layer_type](A_in) + pos                # [L*R, d_enc_in]
+            yA = self.encoder_core(enc_in_A, cond)                            # [L*R, C]
+            hA = self.hyper_enc(yA.abs())                                     # [L*R, C_h]
+            hA_hat_nchw, hA_lik = self.hyper_bottleneck(self._to_nchw(hA))    # ([L*R,C_h,1,1], ...)
+            hA_hat = self._from_nchw(hA_hat_nchw)
+            scalesA_hat = self.hyper_dec(hA_hat)                               # [L*R, C]
+            yA_hat_nchw, yA_lik = self.gaussian_conditional(
+                self._to_nchw(yA), self._to_nchw(scalesA_hat)
+            )
+            yA_hat = self._from_nchw(yA_hat_nchw)
+            decA = self.decoder_core(yA_hat, cond)                             # [L*R, d_dec_out]
+            A_hat_flat = self.dec_headsA[layer_type](decA)                     # [L*R, in]
+            A_hat = A_hat_flat.view(L, R, in_feat)                             # [L, R, in]
+
+            # B 경로: [L,out,R] -> [L,R,out] -> [L*R, out]
+            B_in = lora_B.permute(0, 2, 1).reshape(L*R, out_feat)              # [L*R, out]
+            enc_in_B = self.enc_tailsB[layer_type](B_in) + pos                 # [L*R, d_enc_in]
+            yB = self.encoder_core(enc_in_B, cond)                             # [L*R, C]
+            hB = self.hyper_enc(yB.abs())
+            hB_hat_nchw, hB_lik = self.hyper_bottleneck(self._to_nchw(hB))
+            hB_hat = self._from_nchw(hB_hat_nchw)
+            scalesB_hat = self.hyper_dec(hB_hat)
+            yB_hat_nchw, yB_lik = self.gaussian_conditional(
+                self._to_nchw(yB), self._to_nchw(scalesB_hat)
+            )
+            yB_hat = self._from_nchw(yB_hat_nchw)
+            decB = self.decoder_core(yB_hat, cond)
+            B_hat_flat = self.dec_headsB[layer_type](decB)                     # [L*R, out]
+            B_hat = B_hat_flat.view(L, R, out_feat).permute(0, 2, 1).contiguous()  # [L, out, R]
+
+            # # likelihoods: (y,h) for A/B -> [L*R, S] -> [L, R, S] -> [L, R*S]; A,B 붙여 [L, total]
+            # likA = torch.cat((yA_lik.reshape(L*R, -1), hA_lik.reshape(L*R, -1)), dim=1)  # [L*R, Sa]
+            # likB = torch.cat((yB_lik.reshape(L*R, -1), hB_lik.reshape(L*R, -1)), dim=1)  # [L*R, Sb]
+            # lik = torch.cat((likA, likB), dim=1).view(L, R, -1).reshape(L, -1)           # [L, total_symbols]
+            # return dict(A_hat=A_hat, B_hat=B_hat, likelihoods=lik)
+            
+            likelihoods = {
+                "yA": yA_lik,  # 보통 [L*R, C, 1, 1]
+                "hA": hA_lik,  # 보통 [L*R, C_h, 1, 1]
+                "yB": yB_lik,  # 보통 [L*R, C, 1, 1]
+                "hB": hB_lik,  # 보통 [L*R, C_h, 1, 1]
+            }
+            return dict(A_hat=A_hat, B_hat=B_hat, likelihoods=likelihoods)       
+
+    def forward_rank(
+        self,
+        *,
+        layer_type: str,
+        layer_indices: torch.Tensor,  # [L]
+        A_k: torch.Tensor,            # [L, in]
+        B_k: torch.Tensor,            # [L, out]
+        rank_idx: int,
+    ):
+        """
+        한 랭크(k)에 대해 A_k, B_k 를 별도 인코더/디코더 경로로 복원
+        반환:
+          A_hat_k: [L, in]
+          B_hat_k: [L, out]
+          likelihoods_k: 텐서 (yA, hA, yB, hB) 를 [L, *] 로 concat
+        """
+        device = A_k.device
+        L = A_k.size(0)
+        cond = self._make_cond(layer_indices.to(device), layer_type)     # [L, cond_dim]
+        pos = self._rank_pos_embed(rank_idx, L, device)                  # [L, d_enc_in]
+
+        # --- A 경로 ---
+        enc_in_A = self.enc_tailsA[layer_type](A_k) + pos                # [L, d_enc_in]
+        yA = self.encoder_core(enc_in_A, cond)                           # [L, C]
+        # hyper A
+        hA = self.hyper_enc(yA.abs())                                    # [L, C_h]
+        hA_hat_nchw, hA_lik = self.hyper_bottleneck(self._to_nchw(hA))   # ([L,C_h,1,1], [L,C_h,1,1])
+        hA_hat = self._from_nchw(hA_hat_nchw)
+        scalesA_hat = self.hyper_dec(hA_hat)                              # [L, C]
+        yA_hat_nchw, yA_lik = self.gaussian_conditional(
+            self._to_nchw(yA), self._to_nchw(scalesA_hat)
         )
+        yA_hat = self._from_nchw(yA_hat_nchw)
+        decA = self.decoder_core(yA_hat, cond)                            # [L, d_dec_out]
+        A_hat_k = self.dec_headsA[layer_type](decA)                       # [L, in]
+
+        # --- B 경로 ---
+        enc_in_B = self.enc_tailsB[layer_type](B_k) + pos                # [L, d_enc_in]
+        yB = self.encoder_core(enc_in_B, cond)                           # [L, C]
+        # hyper B
+        hB = self.hyper_enc(yB.abs())
+        hB_hat_nchw, hB_lik = self.hyper_bottleneck(self._to_nchw(hB))
+        hB_hat = self._from_nchw(hB_hat_nchw)
+        scalesB_hat = self.hyper_dec(hB_hat)
+        yB_hat_nchw, yB_lik = self.gaussian_conditional(
+            self._to_nchw(yB), self._to_nchw(scalesB_hat)
+        )
+        yB_hat = self._from_nchw(yB_hat_nchw)
+        decB = self.decoder_core(yB_hat, cond)
+        B_hat_k = self.dec_headsB[layer_type](decB)                       # [L, out]
+
+        # likelihoods: 기존 compute_loss 호환을 위해 하나의 텐서로 합치기
+        # (로그합산이므로 concat 후 sum해도 동일)
+        likelihoods_k = torch.cat((
+            yA_lik.reshape(L, -1),
+            hA_lik.reshape(L, -1),
+            yB_lik.reshape(L, -1),
+            hB_lik.reshape(L, -1),
+        ), dim=1)  # [L, something]
+
+        return A_hat_k, B_hat_k, likelihoods_k
 
     @torch.no_grad()
     def compress(
@@ -465,11 +623,13 @@ def _unflatten_lora(x: torch.Tensor, r: int, in_feat: int, out_feat: int) -> Tup
 def zero_lora_param_dict(target_modules, n_layers, r, in_features, out_features):
     return nn.ParameterDict({
         "A": nn.ParameterDict({
-            m: nn.Parameter(torch.zeros(n_layers, r, in_features[m]), requires_grad=False)
+            # m: nn.Parameter(torch.zeros(n_layers, r, in_features[m]), requires_grad=False)
+            m: nn.Parameter(torch.zeros(n_layers, 1, 1), requires_grad=False)
             for m in target_modules
         }),
         "B": nn.ParameterDict({
-            m: nn.Parameter(torch.zeros(n_layers, out_features[m], r), requires_grad=False)
+            # m: nn.Parameter(torch.zeros(n_layers, out_features[m], r), requires_grad=False)
+            m: nn.Parameter(torch.zeros(n_layers, 1, 1), requires_grad=False)
             for m in target_modules
         }),
     })
@@ -601,5 +761,7 @@ def get_compnet_v2(
         ortho_reflections = 4,
         mean_recon_target = mean_recon_target,
         std_recon_target = std_recon_target,
+        autoreg_gen = args.autoreg_gen,
+        learnable_pos_emb = args.learnable_pos_emb,
     ).to(device)
     return comp_model

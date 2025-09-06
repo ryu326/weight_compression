@@ -8,7 +8,8 @@ from functools import partial
 from glob import glob
 import argparse
 import yaml
-
+import math
+import torch.nn.functional as F
 import torch
 import pandas as pd
 import wandb
@@ -71,11 +72,68 @@ def load_compnet_checkpoint(checkpoint_path, device):
         get_compnet = get_compnet_v3
     comp_model = get_compnet(args, "lora", device, model, layer_indices, task_emb_size=None, from_scratch=False)
     state_dict = torch.load(checkpoint_path, map_location=device)
+    if 'model_state' in state_dict:
+        state_dict = state_dict['model_state']
     comp_model.load_state_dict(state_dict, strict=True)
     comp_model.eval()
     comp_model.update()
     
     return args, comp_model, model, tokenizer, layer_indices
+
+# def _sum_log_likelihood(t: torch.Tensor) -> torch.Tensor:
+#     # log(0) 방지
+#     return torch.log(t.clamp_min(1e-12)).reshape(t.shape[0], -1).sum()
+
+# def _bpp_from_branch_liks(branch_liks: dict, num_params: int) -> float:
+#     """
+#     branch_liks: {"y": Tensor[...,], "h": Tensor[...,]} 형태 (차원은 [L, *] 또는 [L, R, *] 등 자유)
+#     num_params : bpp 정규화 분모 (A면 A_in.numel(), B면 B_in.numel())
+#     """
+#     s = 0.0
+#     for k in ("y", "h"):
+#         if k in branch_liks and branch_liks[k] is not None:
+#             s = s + _sum_log_likelihood(branch_liks[k])
+#     bpp = s / (-math.log(2) * num_params)
+#     return float(bpp)
+
+def _sum_log_likelihood(t: torch.Tensor) -> torch.Tensor:
+    # t: [L, ...] 또는 [L*R, ...] 등. 안전하게 클램프 후 전체 합산.
+    return torch.log(t.clamp_min(1e-12)).reshape(t.shape[0], -1).sum()
+
+def _bpp_from_list(liks: list[torch.Tensor | None], num_params: int) -> float:
+    s = torch.tensor(0.0, device=liks[0].device if liks and liks[0] is not None else "cpu")
+    for x in liks:
+        if x is not None:
+            s = s + _sum_log_likelihood(x)
+    return float(s / (-math.log(2) * max(1, num_params)))
+
+def split_bpp_from_likelihoods(likelihoods: dict, A_in: torch.Tensor, B_in: torch.Tensor):
+    """
+    likelihoods가 다음 중 하나의 형태를 지원:
+      1) {"A":{"y":..., "h":...}, "B":{"y":..., "h":...}}
+      2) {"yA":..., "hA":..., "yB":..., "hB":...}
+    A_in: [L, R, in]   B_in: [L, out, R]
+    """
+    # 분기별 텐서 꺼내기
+    if "A" in likelihoods:  # nested 형태
+        yA = likelihoods["A"].get("y"); hA = likelihoods["A"].get("h")
+        yB = likelihoods["B"].get("y"); hB = likelihoods["B"].get("h")
+    else:                   # flat 키 형태
+        yA = likelihoods.get("yA"); hA = likelihoods.get("hA")
+        yB = likelihoods.get("yB"); hB = likelihoods.get("hB")
+
+    num_params_A = A_in.numel()
+    num_params_B = B_in.numel()
+
+    bpp_A = _bpp_from_list([yA, hA], num_params_A)
+    bpp_B = _bpp_from_list([yB, hB], num_params_B)
+
+    # 전체 bpp(가중 평균; 참고용)
+    total_bpp = (
+        (bpp_A * num_params_A) + (bpp_B * num_params_B)
+    ) / float(max(1, num_params_A + num_params_B))
+
+    return bpp_A, bpp_B, total_bpp
 
 @torch.no_grad()
 def generate_loras_with_compnet(
@@ -106,6 +164,7 @@ def generate_loras_with_compnet(
 
         # 모듈별로 압축/복원 실행
         A_hat_all, B_hat_all = {}, {}
+        task_metrics = {}
         for layer_type in args.target_modules:
             A = td["A"][layer_type]            # [L, r, in]
             B = td["B"][layer_type]            # [L, out, r]
@@ -144,6 +203,33 @@ def generate_loras_with_compnet(
 
             A_hat_all[layer_type] = A_hat
             B_hat_all[layer_type] = B_hat
+            
+            
+            # ---- 메트릭 (A/B 각각의 bpp + MSE들) ----
+            mse_A = F.mse_loss(A_hat, A, reduction="mean").item()
+            mse_B = F.mse_loss(B_hat, B, reduction="mean").item()
+            deltaW_hat = torch.bmm(B_hat, A_hat)          # [L, out, in]
+            deltaW_tgt = torch.bmm(B, A)
+            mse_deltaW = F.mse_loss(deltaW_hat, deltaW_tgt, reduction="mean").item()
+            
+            
+            bpp_A = bpp_B = None
+            bpp_total = None
+            likelihoods = out.get("likelihoods", None)
+            if isinstance(likelihoods, dict):
+                bpp_A, bpp_B, bpp_total = split_bpp_from_likelihoods(out["likelihoods"], A_in, B_in)
+                    
+            task_metrics[layer_type] = {
+                "mse_A": mse_A,
+                "mse_B": mse_B,
+                "mse_deltaW": mse_deltaW,
+                "bpp_A": bpp_A,
+                "bpp_B": bpp_B,
+                "bpp_total": bpp_total,
+                "num_params_A": int(A_in.numel()),
+                "num_params_B": int(B_in.numel()),
+            }
+            # ----------------------------------------
 
         # 텐서딕트를 state_dict로 변환 후 저장
         recon_td = {"A": A_hat_all, "B": B_hat_all}
@@ -151,6 +237,11 @@ def generate_loras_with_compnet(
             recon_td, module_names, args.target_modules, layer_indices
         )
 
+        # 모듈별 메트릭 JSON 저장
+        metrics_path = os.path.join(tgt_save_dir, "comp_metrics.json")
+        with open(metrics_path, "w") as f:
+            json.dump(task_metrics, f, indent=2)
+            
         # 어댑터 설정은 원본 것을 재사용
         peft_cfg = get_peft_config(PeftConfig.from_json_file(f"{src_lora_dir}/adapter_config.json"))
         save_lora(recon_sd, peft_cfg, tgt_save_dir)
@@ -182,19 +273,23 @@ def eval_compnet_checkpoint(checkpoint_path, device, curstep, full_eval, use_icl
     torch.cuda.empty_cache()
 
     for eval_ds in args.eval_ds_info:
+        # if not eval_ds in ['mbpp', 'openbookqa', 'winogrande']: continue
         ds_kwargs = args.eval_ds_info[eval_ds].get("ds_kwargs")
-        results = do_eval_task(
-            args.model_dir,
-            chat_template,
-            save_dir,
-            all_lora_dirs[eval_ds],
-            eval_ds,
-            save_dicts[eval_ds],
-            ds_kwargs,
-            use_icl,
-            curstep=curstep
-        )
-        print(results)
+        try:
+            results = do_eval_task(
+                args.model_dir,
+                chat_template,
+                save_dir,
+                all_lora_dirs[eval_ds],
+                eval_ds,
+                save_dicts[eval_ds],
+                ds_kwargs,
+                use_icl,
+                curstep=curstep
+            )
+            print(results)
+        except:
+            pass
 
     df = aggregrate_results_and_save_to_file(
         base_model_dir=args.model_dir,
