@@ -21,7 +21,7 @@ from lib.linear import CompLinear, CompLinear2, CompLinear3
 # from . import nwc
 from . import nwc_refactory as nwc
 from . import handcraft
-from . import nic
+# from . import nic
 import copy
 
 @contextmanager

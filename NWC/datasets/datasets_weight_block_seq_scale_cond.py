@@ -149,20 +149,20 @@ def get_datasets_block_seq_scale_cond(dataset_pt_path, input_size, args, uniform
 
     return train_dataset, valid_dataset, dataset_stats["train"]["std"], dataset_stats["val"]["std"]
 
-def get_datasets_block_seq_scale_cond(dataset_pt_path, input_size, args, uniform_scale = False, scale_max = None):
+# def get_datasets_block_seq_scale_cond(dataset_pt_path, input_size, args, uniform_scale = False, scale_max = None):
     
-    data = torch.load(dataset_pt_path)
+#     data = torch.load(dataset_pt_path)
     
-    with open(dataset_pt_path.replace(".pt", "_dataset_stats.json"), "r", encoding="utf-8") as file:
-        dataset_stats = json.load(file)  # JSON 파일을 Python 객체로 변환
+#     with open(dataset_pt_path.replace(".pt", "_dataset_stats.json"), "r", encoding="utf-8") as file:
+#         dataset_stats = json.load(file)  # JSON 파일을 Python 객체로 변환
 
-    train_dataset = Weight_Vector_Dataset(
-        data["train"], dataset_stats["train"], input_size, args,
-        uniform_scale=uniform_scale, scale_max=scale_max
-    )
-    valid_dataset = Weight_Vector_Dataset(
-        data["val"], dataset_stats["val"], input_size, args,
-        uniform_scale=uniform_scale, scale_max=scale_max
-    )
+#     train_dataset = Weight_Vector_Dataset(
+#         data["train"], dataset_stats["train"], input_size, args,
+#         uniform_scale=uniform_scale, scale_max=scale_max
+#     )
+#     valid_dataset = Weight_Vector_Dataset(
+#         data["val"], dataset_stats["val"], input_size, args,
+#         uniform_scale=uniform_scale, scale_max=scale_max
+#     )
 
-    return train_dataset, valid_dataset, dataset_stats["train"]["std"], dataset_stats["val"]["std"]
+#     return train_dataset, valid_dataset, dataset_stats["train"]["std"], dataset_stats["val"]["std"]

@@ -13,7 +13,7 @@ from tqdm import tqdm
 import copy
 from torch.utils.data import TensorDataset, DataLoader
 import sys
-sys.path.append('/workspace/Weight_compression')
+sys.path.append('/home/jgryu/workspace/weight_compression')
 # from NWC.models.nwc_ql import NWC_ql_without_encoder
 # from NWC.models.nwc import NWC_without_encoder
 from NWC.models.cnn_dec import NWCC_dec_only

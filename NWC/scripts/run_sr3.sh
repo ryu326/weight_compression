@@ -68,7 +68,7 @@ for lmbda in "${lmbdas[@]}"; do
         --dataset_path /home/jgryu/workspace/weight_compression/Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt \
         --dataset block_seq_scale_cond --iter 200000 --batch_size 2048 \
         --input_size 128 --M 256 --n_resblock 4 --dim_encoder 1024 \
-        --lmbda $lmbda --run_name aug_scale_p.2_M4 --aug_scale --aug_scale_p 0.2 --aug_scale_max 4   
+        --lmbda $lmbda --run_name aug_scale_p.2_M4 --aug_scale --aug_scale_p 0.2 --aug_scale_max 4
 done
 ) > ./logs/run7.log 2>&1 &
 
