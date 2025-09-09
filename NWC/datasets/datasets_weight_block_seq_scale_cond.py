@@ -147,7 +147,7 @@ def get_datasets_block_seq_scale_cond(dataset_pt_path, input_size, args, uniform
         aug_scale_min=args.aug_scale_min, aug_scale_max=args.aug_scale_max,
         aug_scale_mode=args.aug_scale_mode, aug_log_uniform=args.aug_log_uniform,
         aug_update_cond=args.aug_update_cond,
-        return_idx_ltype = opts.use_pe
+        return_idx_ltype = args.use_pe
     )
 
     train_dataset = Weight_Vector_Dataset(data["train"], dataset_stats["train"], **common_kwargs)

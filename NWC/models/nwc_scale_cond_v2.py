@@ -369,8 +369,11 @@ class NWCScaleCond(CompressionModel):
         y_BML, = _permute_BLMD_to_BML(y)
         y_shape = y_BML.size()[2:]
         y_strings = self.y_entropy_bottleneck.compress(y_BML)
-        return {"strings": [y_strings], "shape": y_shape, "scale_cond": s, "depth": data["depth"], "ltype": data["ltype"]}
-
+        if self.pe:
+            return {"strings": [y_strings], "shape": y_shape, "scale_cond": s, "depth": data["depth"], "ltype": data["ltype"]}
+        else:
+            return {"strings": [y_strings], "shape": y_shape, "scale_cond": s,}
+            
     def decompress(self, enc_data: Dict[str, object]):
         strings = enc_data["strings"]
         shape = enc_data["shape"]
