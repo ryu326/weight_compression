@@ -97,8 +97,9 @@ def train() -> None:
         return None 
 
     if local_rank == 0:
-        result_path = ptq_args.save_qmodel_path if ptq_args.save_qmodel_path not in [None, ''] else ptq_args.load_qmodel_path
-        result_path = result_path.split('.pth')[0] + f'_hs_mmlu_zeroshot_results.json'
+        # result_path = ptq_args.save_qmodel_path if ptq_args.save_qmodel_path not in [None, ''] else ptq_args.load_qmodel_path
+        # result_path = result_path.split('.pth')[0] + f'_hs_mmlu_zeroshot_results.json'
+        result_path = ptq_args.output_path + f'_hs_mmlu_zeroshot_results.json'
         os.makedirs(os.path.dirname(result_path), exist_ok=True)
         results["config"]["model"] = ptq_args.save_qmodel_path
         if "samples" in results:
@@ -107,65 +108,62 @@ def train() -> None:
             json.dump(results, f, indent=2, default=convert)
             
             
-    # if local_rank == 0:
-            
-    # datasets = ['wikitext2', 'c4']
-    # seed = 0
-    # seqlen = training_args.model_max_length
-    # seqlen = 2048
-    # for dataset in datasets:
-    #     try:
-    #         input_tok = gptq_data_utils.get_test_tokens(dataset,
-    #                                                     seed=seed,
-    #                                                     seqlen=seqlen,
-    #                                                     model=model_args.input_model)
-    #     except Exception as e:
-    #         print(f"Error loading dataset {dataset}: {e}")
-    #         input_tok = gptq_data_utils.get_test_tokens(dataset,
-    #                                                     seed=seed,
-    #                                                     seqlen=seqlen,
-    #                                                     model="../Wparam_dataset/hf_model/meta-llama--Meta-Llama-3-8B")
-    #     nsamples = input_tok.numel() // seqlen
-    #     input_tok = input_tok[0, :(seqlen * nsamples)].view(
-    #         nsamples, seqlen)
+    if local_rank == 0:   
+        datasets = ['wikitext2', 'c4']
+        seed = 0
+        seqlen = training_args.model_max_length
+        seqlen = 2048
+        for dataset in datasets:
+            try:
+                input_tok = gptq_data_utils.get_test_tokens(dataset,
+                                                            seed=seed,
+                                                            seqlen=seqlen,
+                                                            model=model_args.input_model)
+            except Exception as e:
+                print(f"Error loading dataset {dataset}: {e}")
+                input_tok = gptq_data_utils.get_test_tokens(dataset,
+                                                            seed=seed,
+                                                            seqlen=seqlen,
+                                                            model="../Wparam_dataset/hf_model/meta-llama--Meta-Llama-3-8B")
+            nsamples = input_tok.numel() // seqlen
+            input_tok = input_tok[0, :(seqlen * nsamples)].view(
+                nsamples, seqlen)
 
-    #     loss_fct = torch.nn.CrossEntropyLoss().cuda()
-    #     acc_loss = 0.0
-    #     progress = tqdm(range(nsamples))
-    #     for ii in progress:
-    #         input = input_tok[ii, :].cuda().view(1, -1)
-    #         output = model(input,
-    #                     use_cache=False,
-    #                     output_hidden_states=False,
-    #                     output_attentions=False)[0]
-    #         shift_logits = output[:, :-1, :].contiguous()
-    #         shift_labels = input[:, 1:]
-    #         loss = loss_fct(shift_logits.view(-1, shift_logits.size(-1)),
-    #                         shift_labels.view(-1))
-    #         acc_loss += loss.item()
-    #         progress.set_description(f"avg_loss = {acc_loss/(ii+1)}")
+            loss_fct = torch.nn.CrossEntropyLoss().cuda()
+            acc_loss = 0.0
+            progress = tqdm(range(nsamples))
+            for ii in progress:
+                input = input_tok[ii, :].cuda().view(1, -1)
+                output = model(input,
+                            use_cache=False,
+                            output_hidden_states=False,
+                            output_attentions=False)[0]
+                shift_logits = output[:, :-1, :].contiguous()
+                shift_labels = input[:, 1:]
+                loss = loss_fct(shift_logits.view(-1, shift_logits.size(-1)),
+                                shift_labels.view(-1))
+                acc_loss += loss.item()
+                progress.set_description(f"avg_loss = {acc_loss/(ii+1)}")
 
-    #     avg_loss = acc_loss / nsamples
+            avg_loss = acc_loss / nsamples
 
-    #     ppl = torch.exp(torch.tensor(avg_loss)).item()
-    #     print(f'{dataset} perplexity: {ppl:.3f}')
-        
-    #     if local_rank == 0:
-    #         result_path = ptq_args.save_qmodel_path if ptq_args.save_qmodel_path not in [None, ''] else ptq_args.load_qmodel_path
-    #         result_path = result_path.split('.pth')[0] + f'_ppl_results.json'
+            ppl = torch.exp(torch.tensor(avg_loss)).item()
+            print(f'{dataset} perplexity: {ppl:.3f}')
             
-    #         try:
-    #             with open(result_path, 'r') as f:
-    #                 comp_result= json.load(f)
-    #         except:
-    #             comp_result = {}
-    #             comp_result['ppl'] = {}
-    #         if not isinstance(comp_result['ppl'], dict):
-    #             comp_result['ppl'] = {}
-    #         comp_result['ppl'][dataset] = ppl
+            result_path = ptq_args.output_path + f'_ppl_results.json'
             
-    #         with open(result_path, 'w') as f:
-    #             json.dump(comp_result, f, indent=4)
+            try:
+                with open(result_path, 'r') as f:
+                    comp_result= json.load(f)
+            except:
+                comp_result = {}
+                comp_result['ppl'] = {}
+            if not isinstance(comp_result['ppl'], dict):
+                comp_result['ppl'] = {}
+            comp_result['ppl'][dataset] = ppl
+            
+            with open(result_path, 'w') as f:
+                json.dump(comp_result, f, indent=4)
 
 if __name__ == "__main__":
     train()

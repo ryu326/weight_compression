@@ -146,7 +146,7 @@ def get_eval_results(hypermod_dir, hypermod_name, base_model_dir, mt_lora_dir, t
     return out
 
 
-def aggregrate_results_and_save_to_file(hypermod_dir, hypermod_name, base_model_dir, mt_lora_dir, curstep = -1):
+def aggregrate_results_and_save_to_file(hypermod_dir, hypermod_name, base_model_dir, mt_lora_dir, subname = None):
     tasks = get_tasks(hypermod_dir)
     dfs = []
     _get_eval_results = partial(
@@ -173,7 +173,9 @@ def aggregrate_results_and_save_to_file(hypermod_dir, hypermod_name, base_model_
         col for col in combined_df.columns if ("acc" in col or "human" in col or "mbpp" in col) and not "avg" in col
     ]
     combined_df["benchmark_avg"] = combined_df[benchmark_task_cols].mean(axis=1)
-    combined_df.to_csv(f"{hypermod_dir}/eval_results/combined_results_it{curstep}.csv", float_format="%.5f")
-    print(f"Saved to {hypermod_dir}/eval_results/combined_results_it{curstep}.csv")
+    combined_df.to_csv(f"{hypermod_dir}/eval_results/combined_results.csv", float_format="%.5f")
+    if subname is not None:
+        combined_df.to_csv(f"{hypermod_dir}/eval_results{subname}/combined_results.csv", float_format="%.5f")
+    print(f"Saved to {hypermod_dir}/eval_results/combined_results.csv")
     print(combined_df["benchmark_avg"])
     return combined_df

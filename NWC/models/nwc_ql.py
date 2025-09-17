@@ -205,6 +205,32 @@ class IdxEmbedding(nn.Module):
         output = self.output_layer(hidden)
         return output
 
+class ContinuousEmbedding(nn.Module):
+    def __init__(self, in_dim=1, dim=256, hidden=128, n_freq=16, rand_std=1.0):
+        super().__init__()
+        if n_freq > 0:
+            B = torch.randn(1, n_freq) * rand_std  # 랜덤 Fourier 주파수
+            self.register_buffer("B", B)
+            feat_dim = 1 + 2 * n_freq
+            self.use_ff = True
+        else:
+            feat_dim = 1
+            self.use_ff = False
+        self.mlp = nn.Sequential(
+            nn.Linear(feat_dim, hidden),
+            nn.SiLU(),
+            nn.Linear(hidden, dim),
+        )
+
+    def forward(self, x):  # x: (..., in_dim), float
+        x = x.unsqueeze(-1)
+        if self.use_ff:
+            proj = 2 * math.pi * (x @ self.B)                  # (..., n_freq)
+            enc = torch.cat([x, torch.sin(proj), torch.cos(proj)], dim=-1)
+        else:
+            enc = x
+        y = self.mlp(enc)                                      # (..., dim)
+        return y
 
 def get_scale_table(min=SCALES_MIN, max=SCALES_MAX, levels=SCALES_LEVELS):
     """Returns table of logarithmically scales."""
@@ -222,7 +248,7 @@ class NWC_ql(CompressionModel, AsinhCompandingMixin):
     
     def __init__(self, input_size, dim_encoder, n_resblock, Q, M, scale, shift, 
                  norm=True, mode = 'aun', pe = False, pe_n_depth = 42, pe_n_ltype = 7, use_hyper = False,
-                 use_companding=False, learnable_s=True, per_feature_s=True, comp_s_init=1.0):
+                 use_companding=False, learnable_s=True, per_feature_s=True, comp_s_init=1.0, scale_cond = False, continuous = False):
         super().__init__()
             
         self.register_buffer('scale', scale)    
@@ -239,8 +265,13 @@ class NWC_ql(CompressionModel, AsinhCompandingMixin):
         self.input_size = input_size
         self.dim_encoder = dim_encoder
         
-        self.quality_embedding = nn.Embedding(Q, dim_encoder)
-        
+        self.scale_cond = scale_cond
+        self.continuous = continuous
+        if not scale_cond and not continuous:
+            self.quality_embedding = nn.Embedding(Q, dim_encoder)
+        else:
+            self.quality_embedding = ContinuousEmbedding(dim = dim_encoder)
+            
         self.g_a = Encoder(input_size, n_resblock, dim_encoder, M, norm)
         self.g_s = Encoder(M, n_resblock, dim_encoder, input_size, norm)
 
@@ -269,15 +300,20 @@ class NWC_ql(CompressionModel, AsinhCompandingMixin):
     #     return self.latent_codec[key]
 
     def forward(self, data, scale = None, shift = None, y_in = None):
-        q_level = data['q_level'] # (B, -1)
-        q_embed = self.quality_embedding(q_level) # (B, -1, encdim)
-        scale = scale if scale is not None else self.scale # scalar or (B, -1, 1)
-        shift = shift if shift is not None else self.shift # scalar or (B, -1, 1)
         if y_in is not None:
             y = y_in
         else:
             x = data['weight_block']  # (B, -1, input_size)            
-            x_shift = (x - shift) / scale
+            if not self.scale_cond:
+                q_level = data['q_level'] # (B, -1)
+                q_embed = self.quality_embedding(q_level) # (B, -1, encdim)
+                scale = scale if scale is not None else self.scale # scalar or (B, -1, 1)
+                shift = shift if shift is not None else self.shift # scalar or (B, -1, 1)
+                x_shift = (x - shift) / scale
+            else : 
+                scale_cond = data['scale_cond'] # (B, -1), dataset이면 (B, 1)
+                q_embed = self.quality_embedding(scale_cond) # (B, -1, encdim)
+                x_shift = x / scale_cond.unsqueeze(-1)
             
             if self.pe:
                 d_embed = self.depth_embedding(data['depth']) # (B, 1, 16)
@@ -315,8 +351,11 @@ class NWC_ql(CompressionModel, AsinhCompandingMixin):
             
             x_hat = self._inv_compand(x_hat)
             
-            x_hat = scale * x_hat + shift
-            
+            if not self.scale_cond:
+                x_hat = scale * x_hat + shift
+            else:
+                x_hat = x_hat * scale_cond.unsqueeze(-1)   
+                
             return {
                 # "x": x,
                 "x_hat": x_hat,
@@ -354,8 +393,11 @@ class NWC_ql(CompressionModel, AsinhCompandingMixin):
             
             x_hat = self._inv_compand(x_hat)
             
-            x_hat = scale * x_hat + shift
-            
+            if not self.scale_cond:
+                x_hat = scale * x_hat + shift
+            else:
+                x_hat = x_hat * scale_cond.unsqueeze(-1)        
+                
             return {
                 # "x": x,
                 "x_hat": x_hat,
@@ -367,13 +409,22 @@ class NWC_ql(CompressionModel, AsinhCompandingMixin):
 
     def compress(self, data, scale= None, shift= None):
         x = data['weight_block']  # (B, -1, input_size)
-        q_level = data['q_level'] # (B, -1)
-        scale = scale if scale is not None else self.scale # scalar or (B, -1, 1)
-        shift = shift if shift is not None else self.shift # scalar or (B, -1, 1)
+        # q_level = data['q_level'] # (B, -1)
+        # scale = scale if scale is not None else self.scale # scalar or (B, -1, 1)
+        # shift = shift if shift is not None else self.shift # scalar or (B, -1, 1)
+        # x_shift = (x - shift) / scale
         
-        x_shift = (x - shift) / scale
-        q_embed = self.quality_embedding(q_level)
-        
+        if not self.scale_cond:
+            q_level = data['q_level'] # (B, -1)
+            q_embed = self.quality_embedding(q_level) # (B, -1, encdim)            
+            scale = scale if scale is not None else self.scale # scalar or (B, -1, 1)
+            shift = shift if shift is not None else self.shift # scalar or (B, -1, 1)
+            x_shift = (x - shift) / scale
+        else : 
+            scale_cond = data['scale_cond'] # (B, -1), dataset이면 (B, 1)
+            q_embed = self.quality_embedding(scale_cond) # (B, -1, encdim)
+            x_shift = x / scale_cond.unsqueeze(-1)
+                
         x_shift = self._compand(x_shift)
 
         y = self.g_a(x_shift, q_embed)
@@ -382,7 +433,11 @@ class NWC_ql(CompressionModel, AsinhCompandingMixin):
             enc_data = self.compress_with_hyperprior(y)
         else:
             enc_data = self.compress_without_hyperprior(y)
-        enc_data["q_level"] = q_level
+        if not self.scale_cond:
+            enc_data["q_level"] = q_level
+        else:
+            enc_data["scale_cond"] = scale_cond
+            
         return enc_data
         
 
@@ -429,12 +484,15 @@ class NWC_ql(CompressionModel, AsinhCompandingMixin):
     def decompress(self, enc_data, scale= None, shift= None):
         strings = enc_data["strings"]
         shape = enc_data["shape"]
-        q_level = enc_data["q_level"]
-        scale = scale if scale is not None else self.scale # scalar or (B, -1, 1)
-        shift = shift if shift is not None else self.shift # scalar or (B, -1, 1)
-        
-        q_embed = self.quality_embedding(q_level)
-
+        if not self.scale_cond:
+            q_level = enc_data["q_level"]
+            scale = scale if scale is not None else self.scale # scalar or (B, -1, 1)
+            shift = shift if shift is not None else self.shift # scalar or (B, -1, 1)
+            q_embed = self.quality_embedding(q_level)
+        else:
+            scale_cond = enc_data['scale_cond'] # (B, -1), dataset이면 (B, 1)
+            q_embed = self.quality_embedding(scale_cond) # (B, -1, encdim)
+            
         if self.use_hyper == True:
             x_hat = self.decompress_with_hyperprior(strings, shape, q_embed)
         else:
@@ -442,7 +500,10 @@ class NWC_ql(CompressionModel, AsinhCompandingMixin):
 
         x_hat = self._inv_compand(x_hat)
 
-        x_hat = scale * x_hat + shift
+        if not self.scale_cond:
+            x_hat = scale * x_hat + shift
+        else:
+            x_hat = x_hat * scale_cond.unsqueeze(-1)
         return {"x_hat": x_hat}
 
     def decompress_with_hyperprior(self, strings, shape, q_embed):

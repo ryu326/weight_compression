@@ -15,6 +15,8 @@ from peft import get_peft_config, PeftConfig, load_peft_weights
 from hyper_llm_modulator.comp_lora import get_compnet_v1
 from hyper_llm_modulator.comp_lora_v2 import get_compnet_v2
 from hyper_llm_modulator.comp_lora_v3 import get_compnet_v3
+from hyper_llm_modulator.comp_lora_v4 import get_compnet_v4
+from hyper_llm_modulator.comp_lora_v5 import get_compnet_v5
 
 from hyper_llm_modulator.configs import ArgumentParser, TrainingArguments
 from hyper_llm_modulator.data import get_embs_dict, get_recon_train_data
@@ -138,7 +140,10 @@ def main(args):
         get_compnet = get_compnet_v2
     elif args.compnet_v == 3:    
         get_compnet = get_compnet_v3
-
+    elif args.compnet_v == 4:    
+        get_compnet = get_compnet_v4
+    elif args.compnet_v == 5:    
+        get_compnet = get_compnet_v5
     comp_model = get_compnet(args, peft_config.peft_type.lower(), device, model, layer_indices, task_emb_size)
     comp_model.train()
     # hypermod.train()
@@ -204,6 +209,12 @@ def main(args):
         num_warmup_steps=int(num_warmup_steps),
         num_training_steps=int(n_batches),
     )   
+    aux_lr_scheduler = get_scheduler(
+        "linear",
+        aux_optimizer,
+        num_warmup_steps=int(num_warmup_steps),
+        num_training_steps=int(n_batches),
+    )   
 
     train(
         args,
@@ -216,6 +227,7 @@ def main(args):
         optimizer,
         aux_optimizer,
         lr_scheduler,
+        aux_lr_scheduler,
         device,
         save_dir,
     )
@@ -228,11 +240,12 @@ if __name__ == "__main__":
 
     parser = ArgumentParser((TrainingArguments,))
     args = parser.parse()
-    assert args.exp_setup == "hyper_lora"
+    assert args.exp_setup == "compnet"
 
     uuid = "".join([random.choice(string.ascii_letters + string.digits) for _ in range(8)])
     args.run_name = time.strftime("%Y%m%d-%H%M%S") + f"_{uuid}"
-    args.save_dir = f"train_outputs/compnet_recon/{args.exp_setup}/{args.run_name}"
+    # args.save_dir = f"train_outputs/compnet_recon/{args.exp_setup}/{args.run_name}"
+    args.save_dir = f"train_outputs/compnet_recon/{args.exp_setup}/v{args.compnet_v}_ld{args.rdlmbda}_{args.run_name}"
     global logger
     logger = create_logger(args.save_dir, debug=args.debug)
     logger.debug(f"CMD: {' '.join(os.sys.argv)}")

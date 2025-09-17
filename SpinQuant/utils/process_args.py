@@ -241,6 +241,10 @@ def parser_gen():
     parser.add_argument(
         "--layer_idx", type=int, default=10, help="Which decoder layer to capture"
     )
+    ##
+    parser.add_argument(
+        "--output_path", type=str, required=True,
+    )
 
     args, unknown = parser.parse_known_args()
 

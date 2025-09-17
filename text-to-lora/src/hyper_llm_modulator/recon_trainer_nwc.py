@@ -7,7 +7,6 @@ import wandb
 from tqdm import tqdm
 import math
 import os
-from hyper_llm_modulator.utils.eval_hypermod import eval_hypermod_checkpoint
 from hyper_llm_modulator.utils.eval_compnet import eval_compnet_checkpoint
 
 logger = logging.getLogger()
@@ -24,6 +23,7 @@ def train(
     optimizer,
     aux_optimizer,
     lr_scheduler,
+    aux_lr_scheduler,
     device,
     save_dir,
 ):
@@ -38,6 +38,7 @@ def train(
         grad_norms = []
         bpp_list, mse_list, aux_list = [], [], []
         mseA_list, mseB_list = [], []
+        bppA_list, bppB_list = [], []
         
         for start_idx in range(0, len(tasks), tasks_per_batch):
             # sample tasks (so that we train all the layer/depth embedding for sampled tasks)
@@ -56,6 +57,7 @@ def train(
             aux_optimizer.step()
             
             lr_scheduler.step()
+            aux_lr_scheduler.step()
             
             losses.append(loss.item())
             aux_list.append(aux_loss.item())
@@ -63,9 +65,10 @@ def train(
             grad_norms.append(float(grad_norm))
             bpp_list.append(float(log_items["bpp"]))
             mse_list.append(float(log_items["mse"]))
-            mseA_list.append(float(log_items["mse_A"]))
-            mseB_list.append(float(log_items["mse_B"]))
-            
+            mseA_list.append(float(log_items["mseA"]))
+            mseB_list.append(float(log_items["mseB"]))
+            bppA_list.append(float(log_items["bppA"]))
+            bppB_list.append(float(log_items["bppB"]))
 
             # pbar.update(1)
             pbar.set_description(f"loss: {loss.item():.4E}")
@@ -74,7 +77,11 @@ def train(
                     "train/loss",
                     "train/aux_loss",
                     "train/mse",
+                    "train/mseA",
+                    "train/mseB",
                     "train/bpp_loss",
+                    "train/bpp_lossA",
+                    "train/bpp_lossB",
                     "train/grad_norm",
                     "train/lr",
                 ]
@@ -85,6 +92,8 @@ def train(
                     torch.tensor(mseA_list).mean(),
                     torch.tensor(mseB_list).mean(),
                     torch.tensor(bpp_list).mean(),
+                    torch.tensor(bppA_list).mean(),
+                    torch.tensor(bppB_list).mean(),
                     torch.tensor(grad_norms).mean(),
                     lr_scheduler.get_last_lr()[0],
                 ]
@@ -92,7 +101,7 @@ def train(
                     log_scalar(k, v, curstep)
 
             # if (curstep % args.logging_freq == 0):
-            if (curstep % args.val_freq == 0):
+            if (curstep % args.val_freq == 0) or (curstep == n_batches):
                 os.makedirs(save_dir, exist_ok=True)
                 ckpt_path = os.path.join(save_dir, "checkpoints", f"latest_it{curstep}.pt")
                 torch.save(
@@ -114,11 +123,13 @@ def train(
                         os.remove(prev_path)
 
                 comp_model.eval()
+                comp_model.update()
                 sd = comp_model.state_dict()
                 save_path = f"{save_dir}/comp_model.pt"
                 torch.save(sd, save_path)
                 try:
-                    eval_compnet_checkpoint(save_path, device, curstep, full_eval=False)
+                    with torch.no_grad():
+                       eval_compnet_checkpoint(save_path, device, curstep, full_eval=False)
                 except Exception as e:
                     logger.warning(f"Eval failed: {e}")
                 comp_model.train()
@@ -143,10 +154,12 @@ def train(
 
     # save final model
     comp_model.eval()
+    comp_model.update()
     sd = comp_model.state_dict()
     save_path = f"{save_dir}/comp_model.pt"
     torch.save(sd, save_path)
-    # eval_hypermod_checkpoint(save_path, device, curstep, full_eval=True)
+    with torch.no_grad():
+        eval_compnet_checkpoint(save_path, device, curstep, full_eval=True)
 
 
 def log_scalar(metric_name, val, curstep):
@@ -154,12 +167,17 @@ def log_scalar(metric_name, val, curstep):
         wandb.log({metric_name: val}, step=curstep)
     logger.info(f"{metric_name}: {val:.4f}")
 
+def safe_log(x, eps=1e-12):
+    return torch.log(torch.clamp(x, min=eps))
+
 def compute_loss(args, model, batch_data, layer_indices, device):
     target_modules = args.target_modules
     loss = 0.0
     aux_loss = 0.0
     mse_loss_sum = 0.0
     bpp_loss_sum = 0.0
+    bpp_lossA_sum = 0.0
+    bpp_lossB_sum = 0.0
     mseA_sum = 0.0
     mseB_sum = 0.0
 
@@ -212,18 +230,26 @@ def compute_loss(args, model, batch_data, layer_indices, device):
             mse_loss = F.mse_loss(deltaW_hat, deltaW_tgt)
             
         num_param = A_cat.numel() + B_cat.numel()
+        bpp_lossA = 0.0
+        bpp_lossB = 0.0
         if isinstance(out["likelihoods"], dict):
-            bpp_loss = sum([torch.log(l).sum() for l in out["likelihoods"].values()]) / (-math.log(2) * num_param)
+            bpp_loss = sum([safe_log(l).sum() for l in out["likelihoods"].values()]) / (-math.log(2) * num_param)
+            bpp_lossA = sum([safe_log(l).sum() for k, l in out["likelihoods"].items() if 'A' in k]) / (-math.log(2) * num_param)
+            bpp_lossB = sum([safe_log(l).sum() for k, l in out["likelihoods"].items() if 'B' in k]) / (-math.log(2) * num_param)
         else:
             bpp_loss = torch.log(out["likelihoods"]).sum() / (-math.log(2) * num_param)
         
         loss += args.rdlmbda * mse_loss + bpp_loss
-        # loss += args.rdlmbda * mse_loss ## test
-        aux_loss += model.aux_loss()
         
+        try:
+            aux_loss += model.aux_loss()
+        except:
+            aux_loss += model.module.aux_loss()
+            
         mse_loss_sum += float(mse_loss)
         bpp_loss_sum += float(bpp_loss)
-
+        bpp_lossA_sum += float(bpp_lossA)
+        bpp_lossB_sum += float(bpp_lossB)
 
         # unnormalized error: A/B L1 평균(로그용)
         # with torch.no_grad():
@@ -238,13 +264,17 @@ def compute_loss(args, model, batch_data, layer_indices, device):
     bpp_avg      = bpp_loss_sum      / len(target_modules)
     mseA_avg     = mseA_sum     / len(target_modules)
     mseB_avg     = mseB_sum     / len(target_modules)
+    bppA_avg     = bpp_lossA_sum     / len(target_modules)
+    bppB_avg     = bpp_lossB_sum     / len(target_modules)
     # unnorm_err   = unnorm_err_sum / len(target_modules)
 
     log_items = {
         "bpp": bpp_avg,
         "mse": mse_avg,
         "mseA": mseA_avg,
-        "mseB": mseB_avg
+        "mseB": mseB_avg,
+        "bppA": bppA_avg,
+        "bppB": bppB_avg,
     }
     return loss, aux_loss, log_items
 

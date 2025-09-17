@@ -1,0 +1,54 @@
+import sys
+from argparse import ArgumentParser
+# from hyper_llm_modulator.sft_trainer import eval_hypermod_checkpoint
+from hyper_llm_modulator.utils.eval_quantization import eval_quantized_lora_checkpoint
+
+if __name__ == "__main__":
+    parser = ArgumentParser()
+    parser.add_argument("--checkpoint_path", type=str, default='/workspace/Weight_compression/text-to-lora/train_outputs/qunat_lora/quant/checkpoints')
+    parser.add_argument("--device", type=str, default="cuda")
+    parser.add_argument("--full_eval", action="store_true")
+    parser.add_argument("--use-icl", action="store_true")
+    parser.add_argument(
+        "--group", 
+        type=int, 
+        default=128, 
+    )
+    parser.add_argument(
+        "--bit", 
+        type=int, 
+        default=8, 
+        help="Quantization bits for LoRA matrices (e.g., 2, 4, 8)."
+    )
+    parser.add_argument(
+        "--mode", 
+        type=str, 
+        default="channel", 
+        choices=['tensor', 'channel', 'group'], 
+        help="Quantization mode ('tensor', 'channel', or 'group')."
+    )
+    args = parser.parse_args()
+    
+    quant_cfg = {
+        "A": {
+            "mode": args.mode,
+            "bits": args.bit,
+            "axis": -1,
+            "group_size": args.group,
+        },
+        "B": {
+            "mode": args.mode,
+            "bits": args.bit,
+            "axis": 1,        # LoRA B 행렬의 채널 축은 보통 1입니다.
+            "group_size": args.group,
+        },
+    }
+
+    eval_quantized_lora_checkpoint(
+        checkpoint_path=args.checkpoint_path,
+        device=args.device,
+        full_eval=args.full_eval,
+        use_icl=args.use_icl,
+        quant_cfg=quant_cfg, 
+        curstep=None
+    )

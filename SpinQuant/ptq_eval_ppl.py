@@ -25,10 +25,14 @@ import eval.gptq_data_utils as gptq_data_utils
 import json
 from tqdm import tqdm
 from accelerate import load_checkpoint_and_dispatch
+from accelerate import Accelerator
+
 
 log: Logger = utils.get_logger("spinquant")
 
 def train() -> None:
+    accelerator = Accelerator()
+    
     model_args, training_args, ptq_args = process_args_ptq()
     # local_rank = utils.get_local_rank()
 
@@ -63,14 +67,16 @@ def train() -> None:
     #     max_memory={0: "10GiB", 1: "10GiB", "cpu": "30GiB"},
     #     no_split_module_classes=["LlamaDecoderLayer"] # 트랜스포머 블록이 쪼개지지 않도록 설정
     # )
-    model.cuda()
-    model.seqlen = training_args.model_max_length    
+    # model.cuda()
+    model = accelerator.prepare(model)
+    # model.seqlen = training_args.model_max_length    
+    model.seqlen = 2048
 
     tokenizer = AutoTokenizer.from_pretrained(model_args.input_model)            
             
     datasets = ['wikitext2', 'c4']
     seed = 0
-    seqlen = training_args.model_max_length
+    # seqlen = training_args.model_max_length
     seqlen = 2048
     for dataset in datasets:
         try:
@@ -114,8 +120,9 @@ def train() -> None:
         ppl = torch.exp(torch.tensor(avg_loss)).item()
         print(f'{dataset} perplexity: {ppl:.3f}')
         
-        result_path = ptq_args.save_qmodel_path if ptq_args.save_qmodel_path not in [None, ''] else ptq_args.load_qmodel_path
-        result_path = result_path.split('.pth')[0] + f'_ppl_results.json'
+        # result_path = ptq_args.save_qmodel_path if ptq_args.save_qmodel_path not in [None, ''] else ptq_args.load_qmodel_path
+        # result_path = result_path.split('.pth')[0] + f'_ppl_results.json'
+        result_path = ptq_args.output_path + f'_ppl_results.json'
         
         try:
             with open(result_path, 'r') as f:

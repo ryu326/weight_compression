@@ -1,12 +1,12 @@
-export CUDA_VISIBLE_DEVICES=3
+export CUDA_VISIBLE_DEVICES=0,1,2,3
 MODELS_TO_RUN=(
     # "llama3_8b"
     # "llama2_7b"
     # # "llama3.2_3b"
     # "llama2_13b"
     # # "vicuna_7b"
-    "8B"
-    "7B"
+    # "8B"
+    # "7B"
     "13B"
 )
 
@@ -22,8 +22,8 @@ MODEL_PATHS=(
 for model_key in "${MODELS_TO_RUN[@]}"; do
     base_model=${MODEL_PATHS[$model_key]}
 
-    for b in 4 5 6 7 8; do
-        torchrun --nnodes=1 --nproc_per_node=1 --master_port=29502 ptq_eval_zeroshot.py \
+    for b in 5 6 7 8; do
+        torchrun --nnodes=1 --nproc_per_node=4 --master_port=29502 ptq_eval_zeroshot.py \
         --input_model $base_model \
         --do_train False \
         --do_eval True \
@@ -37,12 +37,14 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
         --w_clip \
         --a_asym \
         --rotate \
-        --load_qmodel_path ../hf_model_comp/spinquant/output_qmodel/${model_key}_w${b}a16.pth \
+        --optimized_rotation_path /workspace/Weight_compression/hf_model_comp/spinquant/output_rotation/${model_key}_w${b}a16/R.bin \
+        --output_path ../hf_model_comp_results/spinquant/${model_key}_/${model_key}_w${b}a16 \
         2>&1 | tee ./logs/eval_zeroshot_hs_mmlu_${model_key}_w${b}a16.log
     done
 done
-        # --optimized_rotation_path /workspace/Weight_compression/hf_model_comp/spinquant/output_rotation/${model_key}_w${b}a16/R.bin \
 
+    # 안 됨
+    # --save_qmodel_path ../hf_model_comp/spinquant/output_qmodel/${model_key}_w${b}a16.pth \
 
     # --optimized_rotation_path /workspace/Weight_compression/hf_model_comp/spinquant/output_rotation/8b_w${b}a16/R.bin \
     # --optimized_rotation_path /workspace/Weight_compression/hf_model_comp/spinquant/output_rotation/${model_key}_W4A16KV16_lr_1.5_seed_0/R.bin \
