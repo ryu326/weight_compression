@@ -95,8 +95,11 @@ class Weight_Vector_Dataset(Dataset):
             # scale = torch.full_like(img, random_scale_val)
             scale = torch.rand_like(img) * self.scale_max + 1e-6  # 0 방지
         else:
-            scale = self.dataset['scale'][idx].view(-1, self.input_size)
-        
+            if self.dataset['scale'].shape[-1] != 1:
+                scale = self.dataset['scale'][idx].view(-1, self.input_size)
+            else :   ## dataset['scale'].shape == (len, 1)
+                scale = self.dataset['scale'][idx] # shape: (1)
+                    
         if self.aug_scale and (random.random() < self.aug_scale_p):
             if self.aug_scale_mode == 'block':
                 s = self._sample_scale_scalar()

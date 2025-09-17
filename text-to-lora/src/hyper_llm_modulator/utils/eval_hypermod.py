@@ -287,13 +287,16 @@ def do_eval_task(
     save_dicts: list[dict] = None,
     ds_kwargs: dict = None,
     use_icl: bool = False,
-    curstep: int = 1
+    subname: str = None,
 ):
     perf_keys = ["acc", "mbpp_base_pass@1", "humaneval_base_pass@1", "rouge1_fmeasure", "rougeL_fmeasure"]
     os.makedirs(f"{save_dir}/eval_results", exist_ok=True)
+    if subname is not None:
+        os.makedirs(f"{save_dir}/eval_results{subname}", exist_ok=True)
     results = {eval_dataset: []}
     if save_dicts is None:
         save_dicts = [dict() for _ in lora_dirs]
+        
     full_results = eval(
         model_dir,
         lora_dirs,
@@ -306,6 +309,7 @@ def do_eval_task(
 
     for (lora_dir, res), save_dict in zip(full_results.items(), save_dicts):
         sampled_res_details = res.sample_details[:10]
+        # sampled_res_details = res.sample_details
         results[eval_dataset].append(
             dict(
                 results=preprocess_result(res, perf_keys),
@@ -316,6 +320,9 @@ def do_eval_task(
 
     torch.cuda.empty_cache()
     gc.collect()
-    result_path = f"{save_dir}/eval_results/{eval_dataset}_it{curstep}_eval_results.json"
+    result_path = f"{save_dir}/eval_results/{eval_dataset}_eval_results.json"
     save_json(results, result_path)
+    if subname is not None:
+        result_path = f"{save_dir}/eval_results{subname}/{eval_dataset}_eval_results.json"
+        save_json(results, result_path)
     return results

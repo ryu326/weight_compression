@@ -63,7 +63,7 @@ if __name__ == "__main__":
                 )
             else:
                 result_path = (
-                    f"eval_results/{args.model_dir}/lora/{json_name}_lora.json"
+                    f"eval_results/{args.model_dir}/lora/{json_name}_lora_{args.lora_dirs[0].split('/')[-1]}.json"
                 )
             os.makedirs(os.path.dirname(result_path), exist_ok=True)
             save_json(

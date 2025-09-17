@@ -130,7 +130,10 @@ def finetune_decoder_layer(layer, name, device, train_dl, valid_dl, orig_dtype,
 
 def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, ql_i, args,
                                     device, pre_orig_emb, orig_emb):
-    torch.manual_seed(idx)
+    try:
+        torch.manual_seed(idx)
+    except:
+        torch.manual_seed(int(idx.split('_')[-1]))
     torch.set_num_threads(args.num_cpu_threads)
     torch.set_grad_enabled(False)
 
@@ -141,7 +144,8 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
         break
     mixed_layer = mixed_layer.float()
 
-    train_dl, valid_dl = utils.split_data(pre_orig_emb, orig_emb, args)
+    if pre_orig_emb != None and orig_emb != None:
+        train_dl, valid_dl = utils.split_data(pre_orig_emb, orig_emb, args)
 
     # has_kernel = utils.has_kernel(args.decode_mode, args.L, args.K, args.V,
     #                               args.tlut_bits, args.td_x, args.td_y)

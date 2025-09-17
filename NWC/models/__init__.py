@@ -40,6 +40,23 @@ def get_model(model_class, opts, scale, shift):
             shift=shift,
         )
     elif model_class == "nwc_ql":
+        no_layernorm = getattr(opts, "no_layernorm", False)
+        use_pe = getattr(opts, "use_pe", False)
+        model = NWC_ql(
+            input_size=opts.input_size,
+            dim_encoder=opts.dim_encoder,
+            n_resblock=opts.n_resblock,
+            Q = opts.Q,
+            M = opts.M,
+            scale=scale,
+            shift=shift,
+            norm = (not no_layernorm),
+            use_hyper = opts.use_hyper,
+            pe = use_pe,
+            )
+    elif model_class == "nwc_ql_scale_cond":
+        ql_scale_cond = getattr(opts, 'ql_scale_cond', False)
+        assert ql_scale_cond == True
         model = NWC_ql(
             input_size=opts.input_size,
             dim_encoder=opts.dim_encoder,
@@ -50,8 +67,9 @@ def get_model(model_class, opts, scale, shift):
             shift=shift,
             norm = (not opts.no_layernorm),
             use_hyper = opts.use_hyper,
-            # pe = opts.use_pe,
-        )
+            pe = opts.use_pe,
+            scale_cond = ql_scale_cond
+            )
     elif model_class == "nwc_ql_compand":
         model = NWC_ql(
             input_size=opts.input_size,

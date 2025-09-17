@@ -1,38 +1,88 @@
 # train T2L via reconstruction training
+export HF_HOME=/workspace/hf_cache/huggingface_nwc
+nohup env WANDB_MODE=online CUDA_VISIBLE_DEVICES=0 uv run python scripts/train_nwc_recon.py configs/hyper_lora_decontam_lol_tasks.yaml \
+    --model_dir=mistralai/Mistral-7B-Instruct-v0.2 \
+    --warmup_frac=0.01 --lr=1e-4 --epochs=1000 \
+    --n_train_ds=479 --exp_setup=compnet --encoder_type=linear \
+    --pred_z_score=True --n_descs_per_ds=128 --n_embs_per_sampled_task=1 \
+    --n_tasks_per_batch=4 --factorized=True --delta_w_scaling=1 --shared_AB_head=True \
+    --rdlmbda=5 --val_freq=10000 \
+    --compnet_v=4 \
+    --compnet_latent_width=1 --block_size=128 --compnet_latent_size=256 d_enc_in=1024 d_dec_out=1024 \
+    --cond_dim=64 --autoreg_gen=True --learnable_pos_emb=True \
+    > ./logs/recon_train0.log 2>&1 &
+
+nohup env WANDB_MODE=online CUDA_VISIBLE_DEVICES=1 uv run python scripts/train_nwc_recon.py configs/hyper_lora_decontam_lol_tasks.yaml \
+    --model_dir=mistralai/Mistral-7B-Instruct-v0.2 \
+    --warmup_frac=0.01 --lr=1e-4 --epochs=1000 \
+    --n_train_ds=479 --exp_setup=compnet --encoder_type=linear \
+    --pred_z_score=True --n_descs_per_ds=128 --n_embs_per_sampled_task=1 \
+    --n_tasks_per_batch=4 --factorized=True --delta_w_scaling=1 --shared_AB_head=True \
+    --rdlmbda=10 --val_freq=10000 \
+    --compnet_v=4 \
+    --compnet_latent_width=1 --block_size=128 --compnet_latent_size=256 d_enc_in=1024 d_dec_out=1024 \
+    --cond_dim=64 --autoreg_gen=True --learnable_pos_emb=True \
+    > ./logs/recon_train1.log 2>&1 &
+
+nohup env WANDB_MODE=online CUDA_VISIBLE_DEVICES=2 uv run python scripts/train_nwc_recon.py configs/hyper_lora_decontam_lol_tasks.yaml \
+    --model_dir=mistralai/Mistral-7B-Instruct-v0.2 \
+    --emb_model=Alibaba-NLP/gte-large-en-v1.5 \
+    --warmup_frac=0.01 --lr=1e-4 --epochs=1000 \
+    --n_train_ds=479 --exp_setup=compnet --encoder_type=linear \
+    --pred_z_score=True --n_descs_per_ds=128 --n_embs_per_sampled_task=1 \
+    --n_tasks_per_batch=4 --factorized=True --delta_w_scaling=1 --shared_AB_head=True \
+    --rdlmbda=25 --val_freq=10000 \
+    --compnet_v=4 \
+    --compnet_latent_width=1 --block_size=128 --compnet_latent_size=256 d_enc_in=1024 d_dec_out=1024 \
+    --cond_dim=64 --autoreg_gen=True --learnable_pos_emb=True \
+    > ./logs/recon_train2.log 2>&1 &
 
 nohup env WANDB_MODE=online CUDA_VISIBLE_DEVICES=3 uv run python scripts/train_nwc_recon.py configs/hyper_lora_decontam_lol_tasks.yaml \
     --model_dir=mistralai/Mistral-7B-Instruct-v0.2 \
     --emb_model=Alibaba-NLP/gte-large-en-v1.5 \
-    --warmup_frac=0.01 --lr=1e-3 --epochs=5000 \
-    --n_train_ds=479 --exp_setup=hyper_lora --encoder_type=linear \
+    --warmup_frac=0.01 --lr=1e-4 --epochs=1000 \
+    --n_train_ds=479 --exp_setup=compnet --encoder_type=linear \
     --pred_z_score=True --n_descs_per_ds=128 --n_embs_per_sampled_task=1 \
-    --n_tasks_per_batch=4 --factorized=False --delta_w_scaling=1 --shared_AB_head=True \
-    --rdlmbda=10000 --val_freq=10000 \
-    --compnet_v=2 \
-    --compnet_latent_width=1 --compnet_latent_size=2048 d_enc_in=2048 d_dec_out=2048 \
+    --n_tasks_per_batch=4 --factorized=True --delta_w_scaling=1 --shared_AB_head=True \
+    --rdlmbda=50 --val_freq=10000 \
+    --compnet_v=4 \
+    --compnet_latent_width=1 --block_size=128 --compnet_latent_size=256 d_enc_in=1024 d_dec_out=1024 \
     --cond_dim=64 --autoreg_gen=True --learnable_pos_emb=True \
     > ./logs/recon_train3.log 2>&1 &
 
-nohup env WANDB_MODE=online CUDA_VISIBLE_DEVICES=1 uv run python scripts/train_nwc_recon.py configs/hyper_lora_decontam_lol_tasks.yaml \
-    --model_dir=mistralai/Mistral-7B-Instruct-v0.2 \
-    --emb_model=Alibaba-NLP/gte-large-en-v1.5 \
-    --warmup_frac=0.01 --lr=1e-3 --epochs=5000 \
-    --n_train_ds=479 --exp_setup=hyper_lora --encoder_type=linear \
-    --pred_z_score=True --n_descs_per_ds=128 --n_embs_per_sampled_task=1 \
-    --n_tasks_per_batch=4 --factorized=True --delta_w_scaling=10000 --shared_AB_head=True \
-    --rdlmbda=10000 --val_freq=10000 \
-    --compnet_v=2 \
-    --compnet_latent_width=1 --compnet_latent_size=2048 d_enc_in=4096 d_dec_out=4096 \
-    --cond_dim=64 --autoreg_gen=True --learnable_pos_emb=True \
-    > ./logs/recon_train1.log 2>&1 &
+# nohup env WANDB_MODE=online CUDA_VISIBLE_DEVICES=3 uv run python scripts/train_nwc_recon.py configs/hyper_lora_decontam_lol_tasks.yaml \
+#     --model_dir=mistralai/Mistral-7B-Instruct-v0.2 \
+#     --emb_model=Alibaba-NLP/gte-large-en-v1.5 \
+#     --warmup_frac=0.01 --lr=1e-3 --epochs=5000 \
+#     --n_train_ds=479 --exp_setup=compnet --encoder_type=linear \
+#     --pred_z_score=True --n_descs_per_ds=128 --n_embs_per_sampled_task=1 \
+#     --n_tasks_per_batch=4 --factorized=False --delta_w_scaling=1 --shared_AB_head=True \
+#     --rdlmbda=10000 --val_freq=10000 \
+#     --compnet_v=2 \
+#     --compnet_latent_width=1 --compnet_latent_size=2048 d_enc_in=2048 d_dec_out=2048 \
+#     --cond_dim=64 --autoreg_gen=True --learnable_pos_emb=True \
+#     > ./logs/recon_train3.log 2>&1 &
+
+# nohup env WANDB_MODE=online CUDA_VISIBLE_DEVICES=1 uv run python scripts/train_nwc_recon.py configs/hyper_lora_decontam_lol_tasks.yaml \
+#     --model_dir=mistralai/Mistral-7B-Instruct-v0.2 \
+#     --emb_model=Alibaba-NLP/gte-large-en-v1.5 \
+#     --warmup_frac=0.01 --lr=1e-3 --epochs=5000 \
+#     --n_train_ds=479 --exp_setup=compnet --encoder_type=linear \
+#     --pred_z_score=True --n_descs_per_ds=128 --n_embs_per_sampled_task=1 \
+#     --n_tasks_per_batch=4 --factorized=True --delta_w_scaling=10000 --shared_AB_head=True \
+#     --rdlmbda=10000 --val_freq=10000 \
+#     --compnet_v=2 \
+#     --compnet_latent_width=1 --compnet_latent_size=2048 d_enc_in=4096 d_dec_out=4096 \
+#     --cond_dim=64 --autoreg_gen=True --learnable_pos_emb=True \
+#     > ./logs/recon_train1.log 2>&1 &
 
 # export CUDA_VISIBLE_DEVICES=1
 # env DUMP_LORAS=1 \
-# WANDB_MODE=disabled uv run python scripts/train_nwc_recon.py configs/hyper_lora_decontam_lol_tasks.yaml \
+# WANDB_MODE=online uv run python scripts/train_nwc_recon.py configs/hyper_lora_decontam_lol_tasks.yaml \
 #     --model_dir=mistralai/Mistral-7B-Instruct-v0.2 \
 #     --emb_model=Alibaba-NLP/gte-large-en-v1.5 \
 #     --warmup_frac=0.01 --lr=1e-3 --epochs=10000 \
-#     --n_train_ds=479 --exp_setup=hyper_lora --encoder_type=linear \
+#     --n_train_ds=479 --exp_setup=compnet --encoder_type=linear \
 #     --pred_z_score=True --n_descs_per_ds=128 --n_embs_per_sampled_task=1 \
 #     --n_tasks_per_batch=4 --factorized=True --delta_w_scaling=10000 --shared_AB_head=True \
 #     --rdlmbda=10000 --compnet_latent_width=1 --compnet_latent_size=2048 d_enc_in=4096 d_dec_out=4096 \
@@ -43,7 +93,7 @@ nohup env WANDB_MODE=online CUDA_VISIBLE_DEVICES=1 uv run python scripts/train_n
 #     --model_dir=mistralai/Mistral-7B-Instruct-v0.2 \
 #     --emb_model=Alibaba-NLP/gte-large-en-v1.5 \
 #     --warmup_frac=0.1 --lr=1e-3 --epochs=10000 \
-#     --n_train_ds=479 --exp_setup=hyper_lora --encoder_type=linear \
+#     --n_train_ds=479 --exp_setup=compnet --encoder_type=linear \
 #     --pred_z_score=True --n_descs_per_ds=128 --n_embs_per_sampled_task=1 \
 #     --n_tasks_per_batch=4 --factorized=True --delta_w_scaling=10000 --shared_AB_head=True \
 #     --rdlmbda=10000 --compnet_latent_width=1 --compnet_latent_size=2048 d_enc_in=4096 d_dec_out=4096 \
@@ -53,7 +103,7 @@ nohup env WANDB_MODE=online CUDA_VISIBLE_DEVICES=1 uv run python scripts/train_n
 #     --model_dir=mistralai/Mistral-7B-Instruct-v0.2 \
 #     --emb_model=Alibaba-NLP/gte-large-en-v1.5 \
 #     --warmup_frac=0.1 --lr=1e-3 --epochs=10000 \
-#     --n_train_ds=479 --exp_setup=hyper_lora --encoder_type=linear \
+#     --n_train_ds=479 --exp_setup=compnet --encoder_type=linear \
 #     --pred_z_score=True --n_descs_per_ds=128 --n_embs_per_sampled_task=1 \
 #     --n_tasks_per_batch=4 --factorized=True --delta_w_scaling=10000 --shared_AB_head=True \
 #     --rdlmbda=10000 --compnet_latent_width=1 --compnet_latent_size=2048 d_enc_in=4096 d_dec_out=4096 \
@@ -64,7 +114,7 @@ nohup env WANDB_MODE=online CUDA_VISIBLE_DEVICES=1 uv run python scripts/train_n
 #     --model_dir=mistralai/Mistral-7B-Instruct-v0.2 \
 #     --emb_model=Alibaba-NLP/gte-large-en-v1.5 \
 #     --warmup_frac=0.1 --lr=1e-3 --epochs=10000 \
-#     --n_train_ds=479 --exp_setup=hyper_lora --encoder_type=linear \
+#     --n_train_ds=479 --exp_setup=compnet --encoder_type=linear \
 #     --pred_z_score=True --n_descs_per_ds=128 --n_embs_per_sampled_task=1 \
 #     --n_tasks_per_batch=4 --factorized=True --delta_w_scaling=10000 --shared_AB_head=True \
 #     --rdlmbda=10000 --compnet_latent_width=1 --compnet_latent_size=2048 d_enc_in=2048 d_dec_out=2048 \
@@ -76,7 +126,7 @@ nohup env WANDB_MODE=online CUDA_VISIBLE_DEVICES=1 uv run python scripts/train_n
 #     --model_dir=mistralai/Mistral-7B-Instruct-v0.2 \
 #     --emb_model=Alibaba-NLP/gte-large-en-v1.5 \
 #     --warmup_frac=0.1 --lr=1e-3 --epochs=1000 \
-#     --n_train_ds=479 --exp_setup=hyper_lora --encoder_type=linear \
+#     --n_train_ds=479 --exp_setup=compnet --encoder_type=linear \
 #     --pred_z_score=True --n_descs_per_ds=128 --n_embs_per_sampled_task=1 \
 #     --n_tasks_per_batch=4 --factorized=False --delta_w_scaling=10000 --shared_AB_head=True \
 #     --rdlmbda=10000 --val_freq=10000 \
@@ -86,10 +136,10 @@ nohup env WANDB_MODE=online CUDA_VISIBLE_DEVICES=1 uv run python scripts/train_n
 #     > ./logs/recon_train3.log 2>&1 &
 
 
-# # WANDB_MODE=disabled uv run python scripts/train_hyper_recon.py configs/hyper_lora_decontam_lol_tasks.yaml \
+# # WANDB_MODE=online uv run python scripts/train_hyper_recon.py configs/hyper_lora_decontam_lol_tasks.yaml \
 # # --model_dir=mistralai/Mistral-7B-Instruct-v0.2/ \
 # # --emb_model=Alibaba-NLP/gte-large-en-v1.5 \
 # # --warmup_frac=0.1 --lr=1e-3 --epochs=10000 \
-# # --n_train_ds=479 --exp_setup=hyper_lora --encoder_type=linear \
+# # --n_train_ds=479 --exp_setup=compnet --encoder_type=linear \
 # # --pred_z_score=True --n_descs_per_ds=128 --n_embs_per_sampled_task=1 \
 # # --n_tasks_per_batch=4 --factorized=False --delta_w_scaling=10000 --shared_AB_head=True

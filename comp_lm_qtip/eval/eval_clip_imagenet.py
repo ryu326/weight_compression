@@ -258,7 +258,7 @@ def main(args):
     except:
         comp_result = {}
     comp_result['ppl'] = {'imagenet': (top1 / total, top5 / total)}
-    with open(f'{args.hf_path}_result.json', 'w') as f:
+    with open(f'{args.hf_path}_imagenet_result.json', 'w') as f:
         json.dump(comp_result, f, indent=4)
 
 if __name__ == '__main__':

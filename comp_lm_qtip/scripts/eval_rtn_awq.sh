@@ -1,17 +1,15 @@
 #!/bin/bash
-export CUDA_VISIBLE_DEVICES=3
+export CUDA_VISIBLE_DEVICES=0
+export HF_HOME=/workspace/hf_cache/huggingface_nwc
 
-# 사용할 모델들
 MODELS=(
-    # "meta-llama--Meta-Llama-3-8B"
+    "meta-llama--Meta-Llama-3-8B"
     # "meta-llama--Llama-2-7b-hf"
-    "meta-llama--Llama-2-13b-hf"
+    # "meta-llama--Llama-2-13b-hf"
 )
 
-# 사용할 비트 수
-BITS=(2 3 4 5 6 7 8)   # 필요시 (2 3 4 8) 등으로 확장 가능
+BITS=(2 3) 
 
-# 로그 디렉토리
 LOG="./logs_eval"
 mkdir -p $LOG
 
@@ -19,7 +17,7 @@ for MODEL in "${MODELS[@]}"; do
     for b in "${BITS[@]}"; do
 
         pretrain_path=/workspace/Weight_compression/hf_model_comp/awq/${MODEL}/w${b}bit-g128-fake-quantized
-        output_path=/workspace/Weight_compression/hf_model_comp_results/awq/${MODEL}/w${b}bit-g128-fake-quantized_mmlu_hs
+        output_path=/workspace/Weight_compression/hf_model_comp_results/awq/${MODEL}/w${b}-g128-fake-quantized_common_mmlu
 
         mkdir -p "$output_path"
 
@@ -28,19 +26,21 @@ for MODEL in "${MODELS[@]}"; do
 
         echo "################## Running benchmark evaluation MODEL=${MODEL}, bit=${b} ##################"
         python -m eval.eval_zeroshot_hf \
-            --tasks mmlu,hellaswag \
+            --tasks arc_challenge,arc_easy,piqa,winogrande,boolq,hellaswag,mmlu \
             --batch_size 1 \
             --hf_path $pretrain_path \
             --output_path $output_path \
             2>&1 | tee -a $LOG_FILE
 
-        # 필요시 ppl 평가도 추가 가능
-        # python -m eval.eval_ppl_hf \
-        #     --hf_path $pretrain_path \
-        #     --seqlen 2048 \
-        #     --output_path $output_path \
-        #     --no_use_cuda_graph \
-        #     2>&1 | tee -a $LOG_FILE
+        output_path=/workspace/Weight_compression/hf_model_comp_results/awq/${MODEL}/w${b}-g128-fake-quantized
+
+        python -m eval.eval_ppl_hf \
+            --hf_path $pretrain_path \
+            --datasets wikitext2,c4 \
+            --seqlen 2048 \
+            --output_path $output_path \
+            --no_use_cuda_graph \
+            2>&1 | tee -a $LOG_FILE
 
     done
 done

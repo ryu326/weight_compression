@@ -113,9 +113,8 @@ def build_model_and_enc(model_path):
             enc = AutoTokenizer.from_pretrained(config.tokenizer_name, trust_remote_code=True)
         else:
             # enc = AutoTokenizer.from_pretrained(model_path, use_fast=False, trust_remote_code=True)
-            enc = AutoTokenizer.from_pretrained(model_path + '_awq', use_fast=False, trust_remote_code=True)
             ##
-            # enc = AutoTokenizer.from_pretrained("meta-llama/Meta-Llama-3-8B", use_fast=False, trust_remote_code=True, local_files_only=False)
+            enc = AutoTokenizer.from_pretrained("meta-llama/Meta-Llama-3-8B", use_fast=False, trust_remote_code=True, local_files_only=False)
             # enc = AutoTokenizer.from_pretrained(model_path, use_fast=False, trust_remote_code=True, legacy=False)
 
     if args.load_quant:  # directly load quantized weights

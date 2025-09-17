@@ -4,49 +4,19 @@
 # ##########################################################################
 comp_model_bases=(
     # "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16"
-    # "../NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"    
-    # "../NWC/checkpoint_srv2/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
-    # "/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M32__rdloss_ql_size16_encdim512_M32_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
-    # "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M32__rdloss_ql_size16_encdim512_M32_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100" # 예시
-    # "../NWC/checkpoint/nwc_ql/block_seq_ql_random_pos_scaler_meta-llama--Meta-Llama-3-8B__scaleHinv_sig0.0001_std_rnormed_lidx_row_1024.pt/rdloss_ql_size128_encdim1024_M256_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
-    # "../NWC/checkpoint/nwc_ql/block_seq_ql_random_pos_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_std_rnormed_lidx_row_1024.pt/rdloss_ql_size128_encdim1024_M256_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
-    # "../NWC/checkpoint/nwc_ql/block_seq_ql_random_pos_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_std_rnormed_lidx_row_1024.pt/rdloss_ql_size128_encdim2048_M256_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
-    # "../NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_uniform31.6_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
-    # "../NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
-    # "../NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt/rdloss_size16_encdim512_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
-    # "../NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_with_colrow_std_lidx_row_1024.pt/rdloss_size16_encdim512_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
-    # "../NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt/use_hyper_rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
-    # "/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Llama-2-7b-hf__droplast_col_1024.pt/rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
-    # "dummy"
-    # '/workspace/Weight_compression/NWC/checkpoint/nwc_ql_ltc/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/N256_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size256_total_iter100000_lr0.0001_seed100'
-    # '/workspace/Weight_compression/NWC/checkpoint/nwc_ql_ltc/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/N256_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size256_total_iter20000_lr0.0001_seed100'
-    # '/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt/rdloss_size128_encdim1024_M144_Q0_R0_m0_batch_size768_total_iter100000_lr0.0001_seed100'
-    # "/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_colwise_normed.pt"
-    # "/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_layerwise_normed.pt"
-    # "/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__row_1024_scale_cond(scaleWH).pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
-    # "/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_uniform50.0_scaler_meta-llama--Meta-Llama-3-8B__row_1024_scale_cond(scaleWH).pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
-    # "/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond_ltc/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt/N256_rdloss_size16_encdim512_M24_Q0_R0_m0_batch_size128_total_iter20000_lr0.0001_seed100"
-    # "/workspace/Weight_compression/NWC/checkpoint/nwc_ql_compand/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
-    # "/workspace/Weight_compression/NWC/checkpoint/nwc_ql_compand/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/fix_s_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
-    # "/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/fix_module_bug_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
     # '/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100'
-    # '/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_with_col_std_lidx_row_1024.pt/no_rnorm_rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100'
-    # '/workspace/Weight_compression/NWC/checkpoint/nwc_ql_compand/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__rnormed_col_1024.pt/rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100'
-    # "/workspace/Weight_compression/NWC/checkpoint/nwc_ql_compand/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
-    # "/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/debug_module_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
-    # "/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__row_1024_rnormed_scale_cond(scaleWH).pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
-    # "/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_uniform50.0_scaler_meta-llama--Meta-Llama-3-8B__row_1024_rnormed_scale_cond(scaleWH).pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
-    # '/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__row_1024_whiten_scale_cond(col_std).pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100'
-    # '/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__row_1024_whiten_scale_cond(col_std).pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100'
-    # '/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__row_1024_rnormed_scale_cond(col_std).pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100'
-    # '/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_uniform31.6_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt/debug_rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100'
-    # '/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt/aug_scale_p.1_M2_rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100'
-    # '/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100'
+<<<<<<< HEAD
     '/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt/aug_scale_p.2_M2_rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100'
     '/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt/aug_scale_p.1_M4_rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100'
     '/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt/aug_scale_p.2_M4_rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100'
+=======
+    # '/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Llama-2-7b-hf__row_256_scaleH0.0001_rnormed_scale_cond(col_std).pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size8192_total_iter200000_lr0.0001_seed100'
+    # "/workspace/Weight_compression/NWC/checkpoint/nwc_ql_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__col_1024_scaleH0.0001_rnormed_scale_cond(col_std).pt/rdloss_size16_encdim512_M16_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
+    "/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_synthetic__gaussian_llama8b_col_1024.pt/rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
+>>>>>>> clip test
 )
 quantize_flags=(
+    # "--direction col --scaleH --row_normalize --ldlq --comp_batch_size 128 --scale_cond"
     # "--direction row --scaleH --row_normalize --scale_cond --ldlq --comp_batch_size 128 --scale_cond_ub 31.6"
     # "--direction row --scaleH --row_normalize --scale_cond --ldlq --comp_batch_size 128"
     "--direction row --scaleH --row_normalize --scale_cond --ldlq --comp_batch_size 128"
@@ -54,9 +24,13 @@ quantize_flags=(
     "--direction row --scaleH --row_normalize --scale_cond --ldlq --comp_batch_size 128"
     # "--direction row --scaleH --row_normalize --scale_cond --ldlq --comp_batch_size 128 --ft_epochs 5 --ft_metadata"
     # "--direction row --row_normalize --scale_cond --ldlq --comp_batch_size 128"
+<<<<<<< HEAD
+    # "--direction row --scaleH --row_normalize --ldlq --comp_batch_size 128 --scale_cond"
+=======
+>>>>>>> clip test
     # "--direction row --scaleH --row_normalize --ldlq --comp_batch_size 128 --scale_cond"
     # "--direction row --scaleH --row_normalize --ldlq --comp_batch_size 128 --scale_cond"
-    # "--direction col --ql --Q 4 --row_normalize"
+    "--direction col --ql --Q 4 --row_normalize"
     # "--direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 128"
     # "--direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 128"
     # "--direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 32"
@@ -92,6 +66,7 @@ quantize_flags=(
 experiment_names=(
     # "scaleH_rnorm_ldlq128_scale_cond(col_std)/(uniform31.6)size128_encdim1024_M256"
     # "scaleH_rnorm_ldlq128_scale_cond(col_std)/size128_encdim1024_M256"
+<<<<<<< HEAD
     "scaleH_rnorm_ldlq128_scale_cond(col_std)/(aug_scale_p.2_M2)size128_encdim1024_M256"
     "scaleH_rnorm_ldlq128_scale_cond(col_std)/(aug_scale_p.1_M4)size128_encdim1024_M256"
     "scaleH_rnorm_ldlq128_scale_cond(col_std)/(aug_scale_p.2_M4)size128_encdim1024_M256"
@@ -129,11 +104,20 @@ experiment_names=(
     # "scale_cond2_rnorm_ldldq128/(trained_rnormed)"
     # "scale_cond2_rnorm_ldldq128/(trained_rnormed)uniform50"
     # "scale_cond(col_std)_whiten/size128_encdim1024_M256"
+=======
+    # "scaleH_rnorm_ldlq128_scale_cond(col_std)/(8B_trained)size128_encdim1024_M256"
+    # "ql_scale_cond_scaleH_rnorm_ldlq(col_std)"
+    "ql_gaussian_rnorm"
+>>>>>>> clip test
 )
 ##########################################################################
 ##                           MODEL CONFIGURATION                        ##
 ##########################################################################
 model_names=(
+<<<<<<< HEAD
+=======
+    # "meta-llama--Llama-2-7b-hf"
+>>>>>>> clip test
     "meta-llama--Meta-Llama-3-8B"
     # "meta-llama--Llama-2-7b-hf"
     # "meta-llama--Llama-3.2-3B"
@@ -141,6 +125,10 @@ model_names=(
     # "meta-llama--Llama-2-70b-hf_"
 )
 hess_paths=(
+<<<<<<< HEAD
+=======
+    # "../Wparam_dataset/quip_hess/Hessians-Llama-2-7b-6144"
+>>>>>>> clip test
     "../Wparam_dataset/quip_hess/llama3_8b_6144"
     "../Wparam_dataset/quip_hess/Hessians-Llama-2-7b-6144"
     # "../Wparam_dataset/quip_hess/meta-llama--Llama-3.2-3B-256"
@@ -159,13 +147,25 @@ mkdir -p $CKPT
 mkdir -p $HF
 mkdir -p $LOG
 mkdir -p $RES
+<<<<<<< HEAD
 export CUDA_VISIBLE_DEVICES=1,2,3,4,5,6,7
+=======
+export CUDA_VISIBLE_DEVICES=0
+>>>>>>> clip test
 export WANDB_SILENT=true
+export HF_HOME=/workspace/hf_cache/huggingface_nwc
+# export TRANSFORMERS_CACHE=$HF_HOME
+# export HF_DATASETS_CACHE=$HF_HOME/datasets
+# export HF_METRICS_CACHE=$HF_HOME/metrics
 
 # 모든 실험에 공통으로 적용될 Lambda 값
 # lmbda_values=(30 50 100 300 1000 10000)
 # lmbda_values=(10 20 30 50 100 300 1000)
+<<<<<<< HEAD
 lmbda_values=(100 50)
+=======
+lmbda_values=(30 300 10000)
+>>>>>>> clip test
 # lmbda_values=(99 82 88 66 77 93 71)
 ##########################################################################
 ##                        MAIN EXECUTION LOOP                           ##
@@ -219,7 +219,7 @@ for i in "${!experiment_names[@]}"; do
             echo "################## Running hfize | lmbda=${lmbda} | Exp: ${exp_name} | Model: ${model_name} ##################"
             python -m quantize_llama.hfize_llama --quantized_path $CKPT/${SAVE_NAME} \
                     --hf_output_path $HF/${SAVE_NAME} \
-                    2>&1 | tee -a $LOG/${SAVE_NAME}.log \
+                    2>&1 | tee -a $LOG/${SAVE_NAME}.log
 
                     # --skip_list 1_down \
             # SAVE_NAME=${model_name}/${exp_name}/lmbda${lmbda}_skip1down
@@ -236,6 +236,7 @@ for i in "${!experiment_names[@]}"; do
 
                 # --datasets wikitext2,c4 \
 
+<<<<<<< HEAD
             echo "################## Running benchmark evaluation | lmbda=${lmbda} | Exp: ${exp_name} | Model: ${model_name} ##################"
             python -m eval.eval_zeroshot_hf \
                 --tasks arc_challenge,arc_easy,piqa,winogrande,boolq,mmlu \
@@ -244,26 +245,15 @@ for i in "${!experiment_names[@]}"; do
                 --output_path $RES/${SAVE_NAME}_zeroshot_mmlu \
                 2>&1 | tee -a $LOG/$SAVE_NAME.log
 
+=======
+            # echo "################## Running benchmark evaluation | lmbda=${lmbda} | Exp: ${exp_name} | Model: ${model_name} ##################"
+>>>>>>> clip test
             # python -m eval.eval_zeroshot_hf \
-            #     --tasks mmlu \
-            #     --batch_size 16  \
+            #     --tasks arc_challenge,arc_easy,piqa,winogrande,boolq,hellaswag,mmlu \
+            #     --batch_size 16 \
             #     --hf_path $HF/$SAVE_NAME \
-            #     --output_path ${RES}/${SAVE_NAME}_mmlu \
+            #     --output_path $RES/${SAVE_NAME} \
             #     2>&1 | tee -a $LOG/$SAVE_NAME.log
-
-            # python -m eval.eval_zeroshot_hf \
-            #     --tasks mmlu,openbookqa,mathqa,sciq,pubmedqa \
-            #     --batch_size 8  \
-            #     --hf_path $HF/$SAVE_NAME \
-            #     --output_path ${RES}/${SAVE_NAME}_2 \
-            #     2>&1 | tee -a $LOG/$SAVE_NAME.log
-
-
-            # python -m eval.eval_zeroshot_hf \
-            #     --tasks mmlu \
-            #     --batch_size 16  \
-            #     --hf_path $HF/$SAVE_NAME \
-            #     --output_path ${RES}/${SAVE_NAME}_mmlu
 
                 # --tasks arc_challenge,arc_easy,piqa,winogrande,hellaswag,mmlu \
                 # --tasks arc_challenge,arc_easy,boolq,piqa,winogrande \

@@ -27,6 +27,8 @@ from hyper_llm_modulator.vllm_eval import eval
 from hyper_llm_modulator.comp_lora import get_compnet_v1
 from hyper_llm_modulator.comp_lora_v2 import get_compnet_v2
 from hyper_llm_modulator.comp_lora_v3 import get_compnet_v3
+from hyper_llm_modulator.comp_lora_v4 import get_compnet_v4
+from hyper_llm_modulator.comp_lora_v5 import get_compnet_v5
 from hyper_llm_modulator.utils.eval_hypermod import do_eval_task
 
 from hyper_llm_modulator.utils import (
@@ -70,6 +72,10 @@ def load_compnet_checkpoint(checkpoint_path, device):
         get_compnet = get_compnet_v2
     elif args.compnet_v == 3:    
         get_compnet = get_compnet_v3
+    elif args.compnet_v == 4:    
+        get_compnet = get_compnet_v4
+    elif args.compnet_v == 5:    
+        get_compnet = get_compnet_v5
     comp_model = get_compnet(args, "lora", device, model, layer_indices, task_emb_size=None, from_scratch=False)
     state_dict = torch.load(checkpoint_path, map_location=device)
     if 'model_state' in state_dict:
@@ -143,17 +149,23 @@ def generate_loras_with_compnet(
     layer_indices,
     save_dir,
     device,
+    eval_ds_info,
 ):
     # 평가할 타깃 LoRA 경로들 얻기 (train/eval 셋에 맞춰)
-    lora_dirs_map = get_target_lora_dirs(list(args.eval_ds_info.keys()), args.model_dir)
+    lora_dirs_map = get_target_lora_dirs(list(eval_ds_info.keys()), args.model_dir)
 
     # 모듈명 매핑(저장용 이름 생성)
     module_names = get_lora_module_names(model, args.target_modules, layer_indices)
     all_lora_dirs = {task: [] for task in lora_dirs_map}
     save_dicts    = {task: [] for task in lora_dirs_map}
 
+    metric = {}
     for task, src_lora_dir in lora_dirs_map.items():
         tgt_save_dir = f"{save_dir}/generated_loras/{task}/compressed/lora_0"
+        # if full_eval:
+        #     tgt_save_dir = f"{save_dir}/generated_loras/{task}_full_eval/compressed/lora_0"
+        # else:
+        #     tgt_save_dir = f"{save_dir}/generated_loras/{task}/compressed/lora_0"
         os.makedirs(tgt_save_dir, exist_ok=True)
 
         # 원본 LoRA 로드 → 텐서딕트
@@ -230,7 +242,6 @@ def generate_loras_with_compnet(
                 "num_params_B": int(B_in.numel()),
             }
             # ----------------------------------------
-
         # 텐서딕트를 state_dict로 변환 후 저장
         recon_td = {"A": A_hat_all, "B": B_hat_all}
         recon_sd = lora_tensor_dict_to_state_dict(
@@ -242,6 +253,8 @@ def generate_loras_with_compnet(
         with open(metrics_path, "w") as f:
             json.dump(task_metrics, f, indent=2)
             
+        metric[task] = task_metrics
+        
         # 어댑터 설정은 원본 것을 재사용
         peft_cfg = get_peft_config(PeftConfig.from_json_file(f"{src_lora_dir}/adapter_config.json"))
         save_lora(recon_sd, peft_cfg, tgt_save_dir)
@@ -249,7 +262,7 @@ def generate_loras_with_compnet(
         all_lora_dirs[task].append(tgt_save_dir)
         save_dicts[task].append({"src_lora": src_lora_dir, "split": "compressed", "lora_dir": tgt_save_dir})
 
-    return all_lora_dirs, save_dicts
+    return all_lora_dirs, save_dicts, metric
 
 
 def eval_compnet_checkpoint(checkpoint_path, device, curstep, full_eval, use_icl=False):
@@ -257,24 +270,43 @@ def eval_compnet_checkpoint(checkpoint_path, device, curstep, full_eval, use_icl
     args, comp_model, base_model, tokenizer, layer_indices = load_compnet_checkpoint(checkpoint_path, device)
     chat_template = tokenizer.chat_template
     save_dir = os.path.dirname(checkpoint_path)
+    # import ipdb; ipdb.set_trace()
+    eval_ds_info = deepcopy(args.eval_ds_info)
+    if not full_eval:
+        eval_ds_info = {k: v for k, v in eval_ds_info.items() if k in BENCHMARK_TASK_INFO}
+        for k in BENCHMARK_TASK_INFO:
+            eval_ds_info[k]["ds_kwargs"] = BENCHMARK_TASK_INFO[k]
+        
+    for ds in list(eval_ds_info.keys()):
+        if ds.startswith("lol_"):
+            eval_ds_info.pop(ds)
+            
+    subname = ''
+    if isinstance(curstep, int) and curstep > 0:
+        subname += f'_it{curstep}'
+    if full_eval:
+        subname += f'_full_eval'
 
     # 2) 압축/복원 LoRA 생성
-    all_lora_dirs, save_dicts = generate_loras_with_compnet(
+    all_lora_dirs, save_dicts, metric = generate_loras_with_compnet(
         args=args,
         comp_model=comp_model,
         model=base_model,
         layer_indices=layer_indices,
         save_dir=save_dir,
         device=device,
+        eval_ds_info= eval_ds_info,
     )
+    # import ipdb; ipdb.set_trace()
 
     del comp_model, base_model, tokenizer, layer_indices
     gc.collect()
     torch.cuda.empty_cache()
 
-    for eval_ds in args.eval_ds_info:
-        # if not eval_ds in ['mbpp', 'openbookqa', 'winogrande']: continue
-        ds_kwargs = args.eval_ds_info[eval_ds].get("ds_kwargs")
+    for eval_ds in eval_ds_info:
+        # if not eval_ds in ['mbpp']: continue
+        ds_kwargs = eval_ds_info[eval_ds].get("ds_kwargs")
+        # ds_kwargs = eval_ds_info[eval_ds]["ds_kwargs"] if eval_ds_info[eval_ds]["ds_kwargs"] else None
         try:
             results = do_eval_task(
                 args.model_dir,
@@ -285,7 +317,7 @@ def eval_compnet_checkpoint(checkpoint_path, device, curstep, full_eval, use_icl
                 save_dicts[eval_ds],
                 ds_kwargs,
                 use_icl,
-                curstep=curstep
+                subname = subname
             )
             print(results)
         except:
@@ -296,14 +328,17 @@ def eval_compnet_checkpoint(checkpoint_path, device, curstep, full_eval, use_icl
         mt_lora_dir=args.mt_lora_path,
         hypermod_dir=save_dir,
         hypermod_name="compnet",
-        curstep=curstep
+        subname=subname
     )
-
     
+    metrics_path = os.path.join(save_dir, f"eval_results/comp_metrics_it{curstep}.json")
+    with open(metrics_path, "w") as f:
+        json.dump(metric, f, indent=2)
+            
     # 로그 키만 compnet으로 맞추거나 기존 키 재사용
-    out = {
-        ("test" if full_eval else "val") + "/benchmark/acc/random_descs": df["benchmark_avg"].loc[("compnet", "random_descs")],
-    }
-    if wandb.run is not None:
-        wandb.log(out, step=curstep)
-    return out
+    # out = {
+    #     ("test" if full_eval else "val") + "/benchmark/acc/random_descs": df["benchmark_avg"].loc[("compnet", "random_descs")],
+    # }
+    # if wandb.run is not None:
+    #     wandb.log(out, step=curstep)
+    return None

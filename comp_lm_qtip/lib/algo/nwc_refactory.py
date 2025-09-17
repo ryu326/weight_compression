@@ -179,8 +179,8 @@ def model_foward_one_batch(w, model, args, **kwargs):
     assert (m if args.direction == 'col' else n) % blks == 0
     
     sc = kwargs.get('sc', None)  # (1, n)
-    sc = sc.repeat(m, 1) if sc is not None else None
-
+    sc = sc.repeat(m, 1) if sc is not None else None #(m, n)
+    
     if ql is not None:
         ql = ql.reshape(1, n).expand(m//blks, n)
     elif args.ql_search_value is not None:
@@ -209,7 +209,12 @@ def model_foward_one_batch(w, model, args, **kwargs):
         data['depth'] = torch.full((1, 1), depth, dtype=torch.long).to(w.device)
         data['ltype'] = torch.full((1, 1), ltype, dtype=torch.long).to(w.device)
     if sc is not None:
-        data['scale_cond'] = sc.reshape(1, -1, blks)
+        sc =  sc.reshape(1, -1, blks)       
+        if hasattr(model, 'scale_cond') and model.scale_cond:
+            assert torch.all(sc == sc[..., :1])
+            sc = sc[..., 0] #(1,  m*n//blks)
+            assert sc.shape == (1, m*n//blks)
+        data['scale_cond'] = sc
         
     num_pixels = m*n
     bpp_loss_sum = torch.tensor(0)

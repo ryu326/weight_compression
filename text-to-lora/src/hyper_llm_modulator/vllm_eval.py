@@ -61,6 +61,7 @@ def eval_model(
             enable_lora=lora_dirs is not None,
             max_lora_rank=64,  # current verson of vllm only supports up to 64
             gpu_memory_utilization=gpu_memory_utilization,
+            tokenizer=model_dir, ##
         ),
         sampling_params=vllm.SamplingParams(
             temperature=0,

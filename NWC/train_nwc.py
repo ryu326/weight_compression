@@ -76,6 +76,7 @@ def parse_args(argv):
     parser.add_argument("--aug_scale_max", type=float, default=2.0)
     parser.add_argument("--aug_scale_min", type=float, default=0.5)
     parser.add_argument("--aug_scale_mode", type=str, default='block')
+    parser.add_argument("--ql_scale_cond", action='store_true', default=False)
     
     
     args = parser.parse_args(argv)

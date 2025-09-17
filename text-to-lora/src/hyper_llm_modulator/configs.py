@@ -246,3 +246,5 @@ class TrainingArguments:
     compnet_v: int = field(default=2)
     autoreg_gen: bool = field(default=False)
     learnable_pos_emb: bool = field(default=False)
+    block_size: int = field(default=128)
+    

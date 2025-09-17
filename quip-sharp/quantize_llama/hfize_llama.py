@@ -25,7 +25,7 @@ def main(args):
 
     codebook_id = codebook.get_id(model_config.quip_params['codebook'])
     codesz = model_config.quip_params['codesz']
-
+    # import ipdb; ipdb.set_trace()
     tokenizer = AutoTokenizer.from_pretrained(model_config._name_or_path)
 
     model_config.quip_params['model_version'] = MODEL_VERSION
