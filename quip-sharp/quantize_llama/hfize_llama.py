@@ -26,7 +26,9 @@ def main(args):
     codebook_id = codebook.get_id(model_config.quip_params['codebook'])
     codesz = model_config.quip_params['codesz']
 
-    tokenizer = AutoTokenizer.from_pretrained(model_config._name_or_path)
+    # tokenizer = AutoTokenizer.from_pretrained(model_config._name_or_path)
+    tokenizer = AutoTokenizer.from_pretrained(model_config._name_or_path, use_fast = False)
+    # tokenizer = AutoTokenizer.from_pretrained(model_config._name_or_path, use_fast = True, tokenizer_file = None)
 
     model_config.quip_params['model_version'] = MODEL_VERSION
     model = LlamaForCausalLM.from_pretrained(model_config._name_or_path,
@@ -78,6 +80,7 @@ def main(args):
         glog.info(f'loaded layer {ii} down')
 
     glog.info(f'saving model...')
+    # model.config._name_or_path = model_config._name_or_path
     model.save_pretrained(args.hf_output_path, safe_serialization=True)
 
     del model
@@ -86,19 +89,19 @@ def main(args):
 
     glog.info('successfully loaded hfized model')
 
-    glog.info('generating some text...')
+    # glog.info('generating some text...')
 
-    start = time.time()
-    prompt = 'It is a truth universally acknowledged that'
-    inputs = tokenizer(prompt, return_tensors='pt')
-    outputs = model.generate(input_ids=inputs['input_ids'].cuda(),
-                             attention_mask=inputs['attention_mask'].cuda(),
-                             max_new_tokens=64,
-                             return_dict_in_generate=True)
-    token = outputs.sequences[0, :]
-    output_str = tokenizer.decode(token)
-    glog.info(output_str)
-    glog.info(f'elapsed: {time.time() - start}')
+    # start = time.time()
+    # prompt = 'It is a truth universally acknowledged that'
+    # inputs = tokenizer(prompt, return_tensors='pt')
+    # outputs = model.generate(input_ids=inputs['input_ids'].cuda(),
+    #                          attention_mask=inputs['attention_mask'].cuda(),
+    #                          max_new_tokens=64,
+    #                          return_dict_in_generate=True)
+    # token = outputs.sequences[0, :]
+    # output_str = tokenizer.decode(token)
+    # glog.info(output_str)
+    # glog.info(f'elapsed: {time.time() - start}')
 
 
 if __name__ == '__main__':

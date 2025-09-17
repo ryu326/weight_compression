@@ -34,6 +34,7 @@ parser.add_argument('--no_use_flash_attn', action='store_true')
 parser.add_argument("--output_path", default=None, type=str)
 
 
+
 def main(args):
     datasets = ['wikitext2', 'c4']
     # datasets = ['c4']
@@ -41,7 +42,7 @@ def main(args):
         args.hf_path,
         use_cuda_graph=not args.no_use_cuda_graph,
         use_flash_attn=not args.no_use_flash_attn)
-
+    print(model_str)
     result = {}
     for dataset in datasets:
         input_tok = gptq_data_utils.get_test_tokens(dataset,

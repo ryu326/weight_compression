@@ -5,29 +5,29 @@
 
 # 실험을 수행할 모델 목록 (아래 'MODEL CONFIGURATION'에 정의된 이름 사용)
 MODELS_TO_RUN=(
-    "llama3.2_1b_inst"
-    "llama3.2_3b_inst"
-    "llama3_8b"
+    # "llama3.2_1b_inst"
+    # "llama3.2_3b_inst"
+    # "llama3_8b"
     "llama2_7b"
-    # "llama3.2_3b"
     "llama2_13b"
+    # "llama3.2_3b"
 )
 
 # 각 모델에 대해 수행할 실험 타입 목록 ('ft', 'noft')
 EXP_TYPES_TO_RUN=(
-    "ft1"
+    # "ft1"
     "noft"
 )
-
 
 CKPT="../hf_model_comp/quip-sharp/ckpt"
 HF="../hf_model_comp/quip-sharp/hf"
 LOG="./log"
-RES="../hf_model_comp_results/quip-sharp"
+RES="../hf_model_comp_results_sv3/quip-sharp"
 
 # --- 환경 변수 설정 ---
-export CUDA_VISIBLE_DEVICES=2,3,5,6,7
+export CUDA_VISIBLE_DEVICES=1,2,3,4,5,6,7
 export WANDB_SILENT=true
+export HF_HOME=/workspace/hf_cache/huggingface_quip
 
 ##########################################################################
 ##                         MODEL CONFIGURATION                          ##
@@ -96,7 +96,7 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
             # SAVE_PATH="${CKPT}/3_8b_${K}bit_${exp_type}"
             SAVE_PATH="${CKPT}/${NAME}"
             LOG_FILE="${LOG}/${NAME}.log"
-            HF_PATH="$HF/$NAME"
+            HF_PATH="${HF}/${NAME}"
 
             mkdir -p $SAVE_PATH
             mkdir -p $(dirname "$LOG_FILE")
@@ -117,7 +117,7 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
                 --base_model $base_model \
                 --hessian_path $HESS \
                 --devset_size 384 \
-                --ft_epochs 0 \
+                --ft_epochs $ft_epochs \
                 --ft_valid_size 128 2>&1 | tee -a $LOG_FILE
 
             echo "[Stage: Convert to HF format] K=$K" | tee $LOG_FILE
@@ -145,11 +145,11 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
                 --output_path ${RES}/${NAME} \
                 --seqlen 2048  2>&1 | tee -a $LOG_FILE
 
-            echo "### [Stage: Eval Zero-shot | K=$K] ###" | tee -a $LOG_FILE
-            python -m eval.eval_zeroshot_ \
-                --tasks arc_challenge,arc_easy,boolq,piqa,winogrande,hellaswag,mmlu \
-                --batch_size 8  --hf_path ${HF_PATH} \
-                --output_path ${RES}/${NAME}_common_mmlu 2>&1 | tee -a $LOG_FILE
+            # echo "### [Stage: Eval Zero-shot | K=$K] ###" | tee -a $LOG_FILE
+            # python -m eval.eval_zeroshot_ \
+            #     --tasks arc_challenge,arc_easy,boolq,piqa,winogrande,hellaswag,mmlu \
+            #     --batch_size 16  --hf_path ${HF_PATH} \
+            #     --output_path ${RES}/${NAME}_common_mmlu 2>&1 | tee -a $LOG_FILE
 
             # echo "### [Stage: Eval Zero-shot | K=$K] ###" | tee -a $LOG_FILE
             # python -m eval.eval_zeroshot_ \

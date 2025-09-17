@@ -24,6 +24,8 @@ def model_from_hf_path(path,
     is_quantized = hasattr(bad_config, 'quip_params')
     model_type = bad_config.model_type
     if is_quantized:
+        # import ipdb; ipdb.set_trace()
+        
         if model_type == 'llama':
             model_str = transformers.LlamaConfig.from_pretrained(
                 path)._name_or_path

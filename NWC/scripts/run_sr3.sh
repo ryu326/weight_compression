@@ -3,11 +3,11 @@
 for lmbda in "${lmbdas[@]}"; do
     echo "=== Running with λ=${lmbda} ==="
     CUDA_VISIBLE_DEVICES=1 python -u train_nwc.py \
-        --architecture nwc_scale_cond --loss rdloss \
+        --architecture nwc_scale_cond_v2 --loss rdloss \
         --dataset_path /home/jgryu/workspace/weight_compression/Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt \
         --dataset block_seq_scale_cond --iter 200000 --batch_size 2048 \
         --input_size 128 --M 256 --n_resblock 4 --dim_encoder 1024 \
-        --lmbda $lmbda --run_name aug_scale_p.2_M2 --aug_scale --aug_scale_p 0.2        
+        --lmbda $lmbda      
 done
 ) > ./logs/run1.log 2>&1 &
 
@@ -15,11 +15,11 @@ done
 for lmbda in "${lmbdas[@]}"; do
     echo "=== Running with λ=${lmbda} ==="
     CUDA_VISIBLE_DEVICES=2 python -u train_nwc.py \
-        --architecture nwc_scale_cond --loss rdloss \
+        --architecture nwc_scale_cond_v2 --loss rdloss \
         --dataset_path /home/jgryu/workspace/weight_compression/Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt \
         --dataset block_seq_scale_cond --iter 200000 --batch_size 2048 \
         --input_size 128 --M 256 --n_resblock 4 --dim_encoder 1024 \
-        --lmbda $lmbda --run_name aug_scale_p.2_M2 --aug_scale --aug_scale_p 0.2
+        --lmbda $lmbda      
 done
 ) > ./logs/run2.log 2>&1 &
 
@@ -28,11 +28,11 @@ done
 for lmbda in "${lmbdas[@]}"; do
     echo "=== Running with λ=${lmbda} ==="
     CUDA_VISIBLE_DEVICES=3 python -u train_nwc.py \
-        --architecture nwc_scale_cond --loss rdloss \
+        --architecture nwc_scale_cond_v2 --loss rdloss \
         --dataset_path /home/jgryu/workspace/weight_compression/Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt \
         --dataset block_seq_scale_cond --iter 200000 --batch_size 2048 \
         --input_size 128 --M 256 --n_resblock 4 --dim_encoder 1024 \
-        --lmbda $lmbda --run_name aug_scale_p.1_M4 --aug_scale --aug_scale_p 0.1 --aug_scale_max 4
+        --lmbda $lmbda --use_pe --run_name pe
 done
 ) > ./logs/run3.log 2>&1 &
 
@@ -40,35 +40,35 @@ done
 for lmbda in "${lmbdas[@]}"; do
     echo "=== Running with λ=${lmbda} ==="
     CUDA_VISIBLE_DEVICES=5 python -u train_nwc.py \
-        --architecture nwc_scale_cond --loss rdloss \
+        --architecture nwc_scale_cond_v2 --loss rdloss \
         --dataset_path /home/jgryu/workspace/weight_compression/Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt \
         --dataset block_seq_scale_cond --iter 200000 --batch_size 2048 \
         --input_size 128 --M 256 --n_resblock 4 --dim_encoder 1024 \
-        --lmbda $lmbda --run_name aug_scale_p.1_M4 --aug_scale --aug_scale_p 0.1 --aug_scale_max 4   
+        --lmbda $lmbda --use_pe --run_name pe  
 done
 ) > ./logs/run5.log 2>&1 &
 
-(lmbdas=(1000 50)
+(lmbdas=(15 20)
 for lmbda in "${lmbdas[@]}"; do
     echo "=== Running with λ=${lmbda} ==="
     CUDA_VISIBLE_DEVICES=6 python -u train_nwc.py \
-        --architecture nwc_scale_cond --loss rdloss \
+        --architecture nwc_scale_cond_v2 --loss rdloss \
         --dataset_path /home/jgryu/workspace/weight_compression/Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt \
         --dataset block_seq_scale_cond --iter 200000 --batch_size 2048 \
         --input_size 128 --M 256 --n_resblock 4 --dim_encoder 1024 \
-        --lmbda $lmbda --run_name aug_scale_p.2_M4 --aug_scale --aug_scale_p 0.2 --aug_scale_max 4
+        --lmbda $lmbda --use_pe --run_name pe
 done
 ) > ./logs/run6.log 2>&1 &
 
-(lmbdas=(300 100)
+(lmbdas=(15 20)
 for lmbda in "${lmbdas[@]}"; do
     echo "=== Running with λ=${lmbda} ==="
     CUDA_VISIBLE_DEVICES=7 python -u train_nwc.py \
-        --architecture nwc_scale_cond --loss rdloss \
+        --architecture nwc_scale_cond_v2 --loss rdloss \
         --dataset_path /home/jgryu/workspace/weight_compression/Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt \
         --dataset block_seq_scale_cond --iter 200000 --batch_size 2048 \
         --input_size 128 --M 256 --n_resblock 4 --dim_encoder 1024 \
-        --lmbda $lmbda --run_name aug_scale_p.2_M4 --aug_scale --aug_scale_p 0.2 --aug_scale_max 4
+        --lmbda $lmbda
 done
 ) > ./logs/run7.log 2>&1 &
 

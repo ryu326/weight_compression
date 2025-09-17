@@ -161,7 +161,8 @@ def main(args):
     all_config['model_config'].update({'quip_params': quip_params})
     torch.save(all_config, os.path.join(args.save_path, 'config.pt'))
 
-    tokenizer = AutoTokenizer.from_pretrained(args.base_model)
+    tokenizer = AutoTokenizer.from_pretrained(args.base_model, use_fast = False)
+    # tokenizer = AutoTokenizer.from_pretrained(args.base_model, use_fast = True, tokenizer_file = None)
     tokenizer.pad_token = tokenizer.eos_token
     glog.info('loaded model')
 
