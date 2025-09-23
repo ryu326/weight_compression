@@ -40,29 +40,29 @@ def setup_logging(log_file):
 def get_named_linears(module):
     return {name: m for name, m in module.named_modules() if isinstance(m, nn.Linear)}
 
-def get_blocks(model):
-    if model.__class__.__name__ in ("LlamaForCausalLM", "Qwen2ForCausalLM"):
-        layers = model.model.layers
-    elif model.__class__.__name__ == "LlavaLlamaForCausalLM":
-        # layers = [model.model.layers, model.model.vision_tower.vision_tower.vision_model.encoder.layers]
-        layers = model.model.layers
-    elif isinstance(model, OPTForCausalLM):
-        layers = model.model.decoder.layers
-    elif isinstance(model, BloomForCausalLM):
-        layers = model.transformer.h
-    elif "mpt" in str(model.__class__).lower():
-        layers = model.transformer.blocks
-    elif "falcon" in str(model.__class__).lower():
-        layers = model.transformer.h
-    elif "bigcode" in str(model.__class__).lower():
-        layers = model.transformer.h
-    elif "neox" in str(model.__class__).lower():
-        layers = model.gpt_neox.layers
-    elif model.__class__.__name__ == "LlavaLlamaModel":
-        layers = model.llm.model.layers
-    else:
-        raise NotImplementedError(type(model))
-    return layers
+# def get_blocks(model):
+#     if model.__class__.__name__ in ("LlamaForCausalLM", "Qwen2ForCausalLM"):
+#         layers = model.model.layers
+#     elif model.__class__.__name__ == "LlavaLlamaForCausalLM":
+#         # layers = [model.model.layers, model.model.vision_tower.vision_tower.vision_model.encoder.layers]
+#         layers = model.model.layers
+#     elif isinstance(model, OPTForCausalLM):
+#         layers = model.model.decoder.layers
+#     elif isinstance(model, BloomForCausalLM):
+#         layers = model.transformer.h
+#     elif "mpt" in str(model.__class__).lower():
+#         layers = model.transformer.blocks
+#     elif "falcon" in str(model.__class__).lower():
+#         layers = model.transformer.h
+#     elif "bigcode" in str(model.__class__).lower():
+#         layers = model.transformer.h
+#     elif "neox" in str(model.__class__).lower():
+#         layers = model.gpt_neox.layers
+#     elif model.__class__.__name__ == "LlavaLlamaModel":
+#         layers = model.llm.model.layers
+#     else:
+#         raise NotImplementedError(type(model))
+#     return layers
 
 def get_blocks(model):
     if model.__class__.__name__ in ("LlamaForCausalLM", "Qwen2ForCausalLM"):
@@ -84,6 +84,11 @@ def get_blocks(model):
     elif model.__class__.__name__ == "LlavaLlamaModel":
         layers = model.llm.model.layers
     elif model.__class__.__name__ in ("CLIPModel"):
+        vision_layers = model.vision_model.encoder.layers
+        text_layers = model.text_model.encoder.layers
+        layers = {'vision': vision_layers,
+                  'text': text_layers}
+    elif model.__class__.__name__ in ("SiglipModel"):
         vision_layers = model.vision_model.encoder.layers
         text_layers = model.text_model.encoder.layers
         layers = {'vision': vision_layers,
@@ -250,13 +255,13 @@ def get_ql_from_H(H, comp_model, args):
     #     if args.layer_idx == 0:
     #         Qlevel = torch.max(Qlevel, torch.tensor(1))
 
-    # if args.ql_search:
-    #     ql_search_layer_idx = list(map(int, args.ql_search_layer_idx.split(',')))
-    #     ql_search_layer_name = args.ql_search_layer_name.split(',')
-    #     # assert args.ql
-    #     if args.layer_name in ql_search_layer_name and args.layer_idx in ql_search_layer_idx:
-    #         Qlevel = torch.full_like(Qlevel, args.ql_search_value)    
-    #     Qlevel = torch.full((W.shape[1],), args.ql_search_value, dtype=torch.int32) 
+    if args.ql_search:
+        ql_search_layer_idx = list(map(int, args.ql_search_layer_idx.split(',')))
+        ql_search_layer_name = args.ql_search_layer_name.split(',')
+        # assert args.ql
+        if args.layer_name in ql_search_layer_name and args.layer_idx in ql_search_layer_idx:
+            Qlevel = torch.full_like(Qlevel, args.ql_search_value)    
+        Qlevel = torch.full((H.shape[1],), args.ql_search_value, dtype=torch.int32) 
     #  
     return Qlevel
 

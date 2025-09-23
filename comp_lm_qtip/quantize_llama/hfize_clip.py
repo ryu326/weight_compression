@@ -2,7 +2,8 @@ import argparse
 import os
 import glog
 import torch
-from transformers import CLIPModel as OriCLIP
+# from transformers import CLIPModel as OriCLIP
+from transformers import AutoModel as OriCLIP
 import json
 
 from lib import utils

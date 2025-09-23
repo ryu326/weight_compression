@@ -14,15 +14,15 @@ torch.set_grad_enabled(False)
 import torch
 import transformers
 from torch.utils.data import Dataset, DataLoader
-from transformers import AutoProcessor, CLIPModel
+from transformers import AutoProcessor, CLIPModel, AutoModel
 from tqdm import tqdm
 from PIL import Image
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--seed', default=0, type=int)
-parser.add_argument('--hf_path', default='openai/clip-vit-large-patch14', type=str)
+parser.add_argument('--hf_path', default='None', type=str)
 parser.add_argument('--model_id', default='openai/clip-vit-large-patch14', type=str)
-# parser.add_argument('--output_path', default='', type=str)
+parser.add_argument("--output_path", default=None, type=str)
 
 
 # OpenAI CLIP 코드 참고해서 짜봄 
@@ -156,18 +156,14 @@ def model_from_hf_path_clip(path, max_mem_ratio=0.7, device_map=None):
     is_quantized = hasattr(bad_config, 'quip_params')
     model_type = bad_config.model_type
     if is_quantized:
-        model_str = transformers.CLIPConfig.from_pretrained(
+        model_str = transformers.AutoConfig.from_pretrained(
             path)._name_or_path
-        model_cls = CLIPModel
+        model_cls = AutoModel
     else:
         model_cls = transformers.AutoModel
         model_str = path
 
-    model = model_cls.from_pretrained(path,
-                                      torch_dtype='auto',
-                                      low_cpu_mem_usage=True,
-                                      attn_implementation='sdpa',
-                                      device_map='cuda')
+    model = model_cls.from_pretrained(path)
 
     return model
 
@@ -210,7 +206,7 @@ def main(args):
             texts_per_class = [template.format(class_name) for template in imagenet_templates]
             
             texts_input = processor(text = texts_per_class, return_tensors="pt", padding=True).to('cuda')
-            
+            # import ipdb; ipdb.set_trace()
             texts_embeds = model.get_text_features(**texts_input)
             texts_embeds = texts_embeds / texts_embeds.norm(p = 2, dim=-1, keepdim=True) # p = 2 를 넣지 않아도 결과는 같다.
             texts_embeds = texts_embeds.mean(dim=0)
@@ -258,7 +254,8 @@ def main(args):
     except:
         comp_result = {}
     comp_result['ppl'] = {'imagenet': (top1 / total, top5 / total)}
-    with open(f'{args.hf_path}_imagenet_result.json', 'w') as f:
+    os.makedirs(os.path.dirname(f'{args.output_path}_imagenet_result.json'), exist_ok = True)
+    with open(f'{args.output_path}_imagenet_result.json', 'w') as f:
         json.dump(comp_result, f, indent=4)
 
 if __name__ == '__main__':

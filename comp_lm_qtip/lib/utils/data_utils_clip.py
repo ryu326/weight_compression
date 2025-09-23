@@ -70,7 +70,7 @@ def sample_cc12m_concat(num_samples: int, resolution=(224, 224), seed: int = 0) 
     results = []
     
     # Hugging Face CC-12M 데이터셋 로드 (streaming 사용 권장)
-    dataset = load_dataset("google-research-datasets/conceptual_captions", 'unlabeled', split="train", streaming=True)
+    dataset = load_dataset("google-research-datasets/conceptual_captions", 'unlabeled', split="train", streaming=False)
     dataset_iter = iter(dataset)
 
     # while len(results) < num_samples:

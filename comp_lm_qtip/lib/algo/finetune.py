@@ -157,7 +157,8 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
         ql = ql_i[linear_attr] if ql_i is not None else None
         orig_linear = attrgetter(linear_attr)(mixed_layer)
         W = orig_linear.weight.to(dtype_)
-        in_hess_path = f'{args.in_hess_path}/{idx}_{in_hess_name}.pt'
+        # in_hess_path = f'{args.in_hess_path}/{idx}_{in_hess_name}.pt'
+        in_hess_path = f'{args.in_hess_path}/lang_{idx}_{in_hess_name}.pt'
         args.in_hess_name = in_hess_name
         
         H_data = torch.load(in_hess_path, map_location=torch.device('cpu'))

@@ -8,7 +8,7 @@ os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:512'
 
 import torch
 import torch.multiprocessing as mp
-from transformers import CLIPModel
+from transformers import CLIPModel, AutoModel
 from transformers.modeling_attn_mask_utils import \
     _prepare_4d_causal_attention_mask
 
@@ -210,7 +210,8 @@ def main(args):
         
     dtype_ = torch.float64 if args.use_fp64 else torch.float32
 
-    model = CLIPModel.from_pretrained(args.base_model,
+    # model = CLIPModel.from_pretrained(args.base_model,
+    model = AutoModel.from_pretrained(args.base_model,
                                                  torch_dtype='auto',
                                                  low_cpu_mem_usage=True,
                                                  local_files_only=True,)
@@ -237,7 +238,8 @@ def main(args):
     comp_model = get_model(config.architecture, config, scale=scale, shift=shift)      
     ckpt = torch.load(args.comp_model_path, weights_only=False)
     
-    if args.use_train_scale or args.layerwise_cdt:
+    if (args.use_train_scale or args.layerwise_cdt or args.layer_normalize \
+            or args.row_normalize or args.col_normalize or args.scaleH):
         try:
             scale = ckpt["state_dict"]["scale"]
             shift = ckpt["state_dict"]["shift"]

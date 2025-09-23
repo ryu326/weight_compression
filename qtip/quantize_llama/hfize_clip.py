@@ -5,7 +5,6 @@ import torch
 from transformers import CLIPModel as OriCLIP
 from model.clip import CLIPModel
 
-
 from lib import utils
 from lib.utils.unsafe_import import model_from_hf_path
 

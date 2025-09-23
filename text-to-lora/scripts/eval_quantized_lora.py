@@ -35,18 +35,16 @@ if __name__ == "__main__":
         bits = range(2,9)
     
     for bit in bits:
-        print(f"############ eval quant {args.mode} {bit} ################")
+        print(f"############ eval quant {args.mode} {args.group} bit{bit} ################")
         quant_cfg = {
             "A": {
                 "mode": args.mode,
                 "bits": bit,
-                "axis": -1,
                 "group_size": args.group,
             },
             "B": {
                 "mode": args.mode,
                 "bits": bit,
-                "axis": 1,        # LoRA B 행렬의 채널 축은 보통 1입니다.
                 "group_size": args.group,
             },
         }

@@ -266,11 +266,9 @@ def generate_loras_with_compnet(
 
 
 def eval_compnet_checkpoint(checkpoint_path, device, curstep, full_eval, use_icl=False):
-    # 1) 로드
     args, comp_model, base_model, tokenizer, layer_indices = load_compnet_checkpoint(checkpoint_path, device)
     chat_template = tokenizer.chat_template
     save_dir = os.path.dirname(checkpoint_path)
-    # import ipdb; ipdb.set_trace()
     eval_ds_info = deepcopy(args.eval_ds_info)
     if not full_eval:
         eval_ds_info = {k: v for k, v in eval_ds_info.items() if k in BENCHMARK_TASK_INFO}
@@ -284,6 +282,8 @@ def eval_compnet_checkpoint(checkpoint_path, device, curstep, full_eval, use_icl
     subname = ''
     if isinstance(curstep, int) and curstep > 0:
         subname += f'_it{curstep}'
+    else:
+        subname += f'_latest'
     if full_eval:
         subname += f'_full_eval'
 
@@ -297,12 +297,17 @@ def eval_compnet_checkpoint(checkpoint_path, device, curstep, full_eval, use_icl
         device=device,
         eval_ds_info= eval_ds_info,
     )
-    # import ipdb; ipdb.set_trace()
+
+    os.makedirs(f"{save_dir}/eval_results{subname}", exist_ok=True)
+    metrics_path = os.path.join(f"{save_dir}/eval_results{subname}", "comp_metrics.json")
+    with open(metrics_path, "w") as f:
+        json.dump(metric, f, indent=2)
 
     del comp_model, base_model, tokenizer, layer_indices
     gc.collect()
     torch.cuda.empty_cache()
 
+    all_results = {}
     for eval_ds in eval_ds_info:
         # if not eval_ds in ['mbpp']: continue
         ds_kwargs = eval_ds_info[eval_ds].get("ds_kwargs")
@@ -319,9 +324,10 @@ def eval_compnet_checkpoint(checkpoint_path, device, curstep, full_eval, use_icl
                 use_icl,
                 subname = subname
             )
-            print(results)
-        except:
-            pass
+            print(results[eval_ds][0]['results'])
+            all_results[eval_ds] = results[eval_ds][0]['results']
+        except Exception as e:
+            logger.warning(f"Eval failed on {eval_ds}: {e}")
 
     df = aggregrate_results_and_save_to_file(
         base_model_dir=args.model_dir,

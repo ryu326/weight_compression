@@ -1,19 +1,26 @@
-model_name="openai--clip-vit-large-patch14"
-HESS="../Wparam_dataset/quip_hess/clip-vit-large-patch14_512"
+# model_name="openai--clip-vit-large-patch14"
+# HESS="../Wparam_dataset/quip_hess/clip-vit-large-patch14_512"
+# model_name="google/siglip2-base-patch16-224"
+model_name="google/siglip-base-patch16-224"
+HESS="../Wparam_dataset/quip_hess/siglip-base-patch16-224_512"
+export HF_HOME=/workspace/hf_cache/huggingface_nwc
+
 # comp_model_base="/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_openai--clip-vit-large-patch14__vision_text_col_256.pt"
-comp_model_base="/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_openai--clip-vit-large-patch14__vision_text_col_256.pt/clip_llama8b_col1024_pretrained_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size4096_total_iter100000_lr0.0001_seed100"
-lm_model_path="../Wparam_dataset/hf_model/$model_name"
+# comp_model_base="/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_openai--clip-vit-large-patch14__vision_text_col_256.pt/clip_llama8b_col1024_pretrained_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size4096_total_iter100000_lr0.0001_seed100"
+lm_model_path="$model_name"
 
 comp_model_bases=(
-    "/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_openai--clip-vit-large-patch14__vision_text_col_256.pt/clip_llama8b_col1024_pretrained_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size4096_total_iter100000_lr0.0001_seed100"
-    "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16"
-    "/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_openai--clip-vit-large-patch14__vision_text_col_256.pt"
+    # "/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_openai--clip-vit-large-patch14__vision_text_col_256.pt/clip_llama8b_col1024_pretrained_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size4096_total_iter100000_lr0.0001_seed100"
+    # "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16"
+    # "/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_openai--clip-vit-large-patch14__vision_text_col_256.pt"
+    "/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_google--siglip-base-patch16-224__vision_text_col_256.pt/llama8b_pretrained_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter20000_lr0.0001_seed100"
 )
 
 experiment_names=(
-    "(llama-clip)_rnorm_ldlq128"
-    "(llama)_rnorm_ldlq128"
-    "(clip)_rnorm_ldlq128"
+    # "(llama-clip)_rnorm_ldlq128"
+    # "(llama)_rnorm_ldlq128"
+    # "(clip)_rnorm_ldlq128"
+    "(llama-siglib)_rnorm_ldlq128"
 )
 
 CKPT="../hf_model_comp/comp_qtip/ckpt"
@@ -25,7 +32,7 @@ mkdir -p $CKPT
 mkdir -p $HF
 mkdir -p $LOG
 
-lmbda_values=(30 50 100 300 1000 10000 100000)
+lmbda_values=(10 30 50 100 300 1000 10000 100000)
 PYTHON_BIN=$(which python)
 
 for i in "${!experiment_names[@]}"; do
@@ -45,14 +52,15 @@ for i in "${!experiment_names[@]}"; do
         echo ">> Launching full pipeline on GPU $gpu_id: lmbda=$lmbda"
         (
             export CUDA_VISIBLE_DEVICES=$gpu_id
-            # taskset -c 0-7 $PYTHON_BIN -m quantize_llama.quantize_finetune_clip \
-            #     --save_path ${CKPT}/${SAVE_NAME} \
-            #     --base_model $lm_model_path \
-            #     --comp_model_path $comp_model \
-            #     --in_hess_path $HESS \
-            #     --direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 128 \
-            #     --ft_epochs 0 \
-            #     > $LOG_FILE 2>&1
+
+            taskset -c 0-7 $PYTHON_BIN -m quantize_llama.quantize_finetune_clip \
+                --save_path ${CKPT}/${SAVE_NAME} \
+                --base_model $lm_model_path \
+                --comp_model_path $comp_model \
+                --in_hess_path $HESS \
+                --direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 128 \
+                --ft_epochs 0 \
+                > $LOG_FILE 2>&1
 
             echo ">> hfize lmbda=${lmbda}" >> $LOG_FILE
             $PYTHON_BIN -m quantize_llama.hfize_clip \
@@ -62,12 +70,13 @@ for i in "${!experiment_names[@]}"; do
                 > $LOG_FILE 2>&1
 
             echo ">> eval lmbda=${lmbda}" >> $LOG_FILE
-            $PYTHON_BIN -m eval.eval_clip_imagenet \
+            $PYTHON_BIN -m eval.eval_siglip_imagenet \
                 --hf_path $HF/$SAVE_NAME \
+                --output_path ${RES}/${SAVE_NAME} \
+                --model_id $model_name \
                 >> $LOG_FILE 2>&1
 
                 # --output_path ${RES}/${SAVE_NAME} \
-
 
             if [ "$HF/$SAVE_NAME" != "$HF" ]; then
                 echo "Cleaning up temporary files for $SAVE_NAME"
@@ -83,6 +92,20 @@ for i in "${!experiment_names[@]}"; do
 
     wait
 done
+
+# export CUDA_VISIBLE_DEVICES=3
+# RES="../hf_model_comp_results"
+# export HF_HOME=/workspace/hf_cache/huggingface_nwc
+# python -m eval.eval_siglip_imagenet \
+#     --hf_path google/siglip-base-patch16-224 \
+#     --output_path ${RES}/google/siglip-base-patch16-224/base
+
+# export CUDA_VISIBLE_DEVICES=1
+# RES="../hf_model_comp_results"
+# export HF_HOME=/workspace/hf_cache/huggingface_nwc
+# python -m eval.eval_clip_imagenet \
+#     --hf_path openai/clip-vit-large-patch14 \
+#     --output_path ${RES}/openai--clip-vit-large-patch14/base
 
 # # comp_model_base="../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_openai--clip-vit-large-patch14__vision_text_col_256.pt"
 # comp_model_base="../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt"

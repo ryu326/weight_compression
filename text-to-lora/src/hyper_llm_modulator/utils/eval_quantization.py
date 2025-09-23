@@ -47,6 +47,85 @@ from hyper_llm_modulator.utils import (
 )
 logger = logging.getLogger()
 
+
+def eval_quantized_lora(save_dir, device, curstep, full_eval, use_icl=False, quant_cfg = None):
+    args, _, base_model, tokenizer, layer_indices = load_compnet_checkpoint(save_dir, device = device)
+    chat_template = tokenizer.chat_template
+
+    args.quant_cfg = quant_cfg
+    quant_str = quant_cfg_to_str(args.quant_cfg)
+    if full_eval:
+        quant_str = quant_str + '_full_eval'
+    else:
+        quant_str = quant_str + '_val'
+
+    eval_ds_info = deepcopy(args.eval_ds_info)
+    if not full_eval:
+        eval_ds_info = {k: v for k, v in eval_ds_info.items() if k in BENCHMARK_TASK_INFO}
+        for k in BENCHMARK_TASK_INFO:
+            eval_ds_info[k]["ds_kwargs"] = BENCHMARK_TASK_INFO[k]
+    for ds in list(eval_ds_info.keys()):
+        if ds.startswith("lol_"):
+            eval_ds_info.pop(ds)
+
+    # 2) 양자화된 LoRA 생성
+    all_lora_dirs, save_dicts, metric = generate_loras_with_quantization(
+        args=args,
+        model=base_model,
+        layer_indices=layer_indices,
+        save_dir=save_dir,
+        device=device,
+        eval_ds_info=eval_ds_info,
+        subname=quant_str
+    )
+    
+    os.makedirs(f"{save_dir}/eval_results{quant_str}", exist_ok=True)
+    metrics_path = os.path.join(f"{save_dir}/eval_results{quant_str}", "quant_metrics.json")
+    with open(metrics_path, "w") as f:
+        json.dump(metric, f, indent=2)
+
+    del base_model, tokenizer, layer_indices
+    gc.collect()
+    torch.cuda.empty_cache()
+
+    # 3) 태스크 평가
+    all_results = {}
+    for eval_ds in eval_ds_info:
+        ds_kwargs = eval_ds_info[eval_ds].get("ds_kwargs")
+        logger.info(f"++++++++ Start eval {eval_ds} ++++++++++")
+        # import ipdb; ipdb.set_trace()
+        try:
+            results = do_eval_task(
+                args.model_dir,  # 'mistralai/Mistral-7B-Instruct-v0.2',
+                chat_template,
+                save_dir,
+                all_lora_dirs[eval_ds],
+                eval_ds,
+                save_dicts[eval_ds],
+                ds_kwargs,
+                use_icl,
+                subname=quant_str,
+            )
+            print(results[eval_ds][0]['results'])
+            all_results[eval_ds] = results[eval_ds][0]['results']
+        except Exception as e:
+            logger.warning(f"Eval failed on {eval_ds}: {e}")
+                
+    # 4) 집계 및 저장
+    df = aggregrate_results_and_save_to_file(
+        base_model_dir=args.model_dir,
+        mt_lora_dir=args.mt_lora_path,
+        hypermod_dir=save_dir,
+        hypermod_name="quant_lora",
+        subname=quant_str
+    )
+
+    path = os.path.join(f"{save_dir}/eval_results{quant_str}", "all_results.json")
+    with open(path, "w") as f:
+        json.dump(all_results, f, indent=2)
+    
+    return None
+
 def load_compnet_checkpoint(save_dir, device):
     base_dir = save_dir
     if "checkpoint" in base_dir:
@@ -65,24 +144,223 @@ def load_compnet_checkpoint(save_dir, device):
     return args, None, model, tokenizer, layer_indices
 
 @torch.no_grad()
-def _uniform_symmetric_quantize(
-    x: torch.Tensor, bits: int, reduce_dims: Tuple[int, ...]
-) -> Tuple[torch.Tensor, torch.Tensor]:
-    assert bits >= 2, "bits must be >= 2 for signed symmetric quantization"
-    qmax = (1 << (bits - 1)) - 1
-    max_abs = x.abs()
-    for d in sorted(reduce_dims):
-        max_abs = max_abs.max(dim=d, keepdim=True).values
-    scale = torch.clamp(max_abs / qmax, min=1e-12)
-    q = torch.clamp(torch.round(x / scale), min=-qmax, max=qmax)
-    return q * scale, scale
+def generate_loras_with_quantization(
+    args,
+    model,                  # 베이스 LLM (이름 매핑용)
+    layer_indices,
+    save_dir,
+    device,
+    eval_ds_info,
+    subname
+):
+    """
+    args.quant_cfg 예시:
+      args.quant_cfg = {
+        "A": {"mode":"channel","bits":8,"axis":-1,"group_size":None},
+        "B": {"mode":"channel","bits":8,"axis":0,"group_size":None},
+      }
+    비트/모드/축을 태스크별로 다르게 하고 싶으면 함수 내부에서 분기하세요.
+    """
+    
+    quant_cfg = getattr(args, "quant_cfg", None)
+    lora_dirs_map = get_target_lora_dirs(list(eval_ds_info.keys()), args.model_dir)
+    module_names = get_lora_module_names(model, args.target_modules, layer_indices)
+
+    all_lora_dirs = {task: [] for task in lora_dirs_map}
+    save_dicts    = {task: [] for task in lora_dirs_map}
+    metric = {}
+
+    for task, src_lora_dir in lora_dirs_map.items():
+        tgt_save_dir = f"{save_dir}/generated_loras{subname}/{task}/quantized/lora_0"
+        os.makedirs(tgt_save_dir, exist_ok=True)
+
+        # 원본 LoRA 로드 → 텐서 dict
+        tgt_sd = load_peft_weights(src_lora_dir)
+        td = lora_state_dict_to_tensor_dict(
+            tgt_sd, args.target_modules, layer_indices, device=device
+        )
+
+        A_hat_all, B_hat_all = {}, {}
+        task_metrics = {}
+
+        for layer_type in args.target_modules:
+            A = td["A"][layer_type]  # [L, r, in]
+            B = td["B"][layer_type]  # [L, out, r]
+            
+            A_q, B_q, n_scales_A, n_scales_B = quantize_lora_tensors(
+                A, B,
+                cfgA=quant_cfg.get("A", {}),
+                cfgB=quant_cfg.get("B", {}),
+            )
+
+            A_hat_all[layer_type] = A_q
+            B_hat_all[layer_type] = B_q
+
+            # ---- 메트릭 계산 ----
+            mse_A = F.mse_loss(A_q, A, reduction="mean").item()
+            mse_B = F.mse_loss(B_q, B, reduction="mean").item()
+
+            # deltaW_hat = torch.bmm(B_q, A_q)          # [L, out, in]
+            # deltaW_tgt = torch.bmm(B, A)
+            # mse_deltaW = F.mse_loss(deltaW_hat, deltaW_tgt, reduction="mean").item()
+            mse_deltaW = None
+
+            cfgA = {**quant_cfg['A'],"scale_bits":16}
+            cfgB = {**quant_cfg['B'],"scale_bits":16}
+
+            bits_w_A = int(cfgA["bits"]) * A.numel()
+            bits_w_B = int(cfgB["bits"]) * B.numel()
+
+            bits_s_A = int(cfgA["scale_bits"]) * n_scales_A
+            bits_s_B = int(cfgB["scale_bits"]) * n_scales_B
+
+            bits_A_total = bits_w_A + bits_s_A
+            bits_B_total = bits_w_B + bits_s_B
+            bits_total   = bits_A_total + bits_B_total
+
+            bppA = bits_A_total / max(1, A.numel())
+            bppB = bits_B_total / max(1, B.numel())
+            bpp_total = bits_total / max(1, (A.numel() + B.numel()))
+
+            task_metrics[layer_type] = {
+                "mse_A": mse_A,
+                "mse_B": mse_B,
+                "mse_deltaW": mse_deltaW,
+                "bits_A_weights_only": bits_w_A,
+                "bits_B_weights_only": bits_w_B,
+                "bits_A_scales": bits_s_A,
+                "bits_B_scales": bits_s_B,
+                "bits_A_total": bits_A_total,
+                "bits_B_total": bits_B_total,
+                "bits_total": bits_total,
+                "bppA": bppA,
+                "bppB": bppB,
+                "bpp_total": bpp_total,
+                "num_params_A": int(A.numel()),
+                "num_params_B": int(B.numel()),
+                "quant_A": {k: (int(v) if isinstance(v, bool) or isinstance(v, (int,)) else v) for k, v in cfgA.items()},
+                "quant_B": {k: (int(v) if isinstance(v, bool) or isinstance(v, (int,)) else v) for k, v in cfgB.items()},
+            }
+
+        # 텐서딕트를 state_dict로 변환 후 저장
+        recon_td = {"A": A_hat_all, "B": B_hat_all}
+        recon_sd = lora_tensor_dict_to_state_dict(
+            recon_td, module_names, args.target_modules, layer_indices
+        )
+        # 원본 adapter_config 재사용
+        peft_cfg = get_peft_config(PeftConfig.from_json_file(f"{save_dir}/adapter_config.json"))
+        save_lora(recon_sd, peft_cfg, tgt_save_dir)
+
+        metric[task] = task_metrics
+        all_lora_dirs[task].append(tgt_save_dir)
+        save_dicts[task].append({"src_lora": src_lora_dir, "split": "quantized", "lora_dir": tgt_save_dir})
+
+    return all_lora_dirs, save_dicts, metric
+
+def quant_cfg_to_str(quant_cfg: dict) -> str:
+    # {"A": {...}, "B": {...}} → "A_mode-channel_bits-8_axis--1|B_mode-channel_bits-8_axis-1"
+    parts = []
+    for name in ["A", "B"]:
+        cfg = quant_cfg.get(name, {})
+        s = "_".join(f"{v}" for k, v in cfg.items() if v is not None)
+        parts.append(f"{name}_{s}")
+    return "_".join(parts)
+
+@torch.no_grad()
+def quantize_lora_tensors(
+    A: torch.Tensor, B: torch.Tensor,
+    cfgA: Dict, cfgB: Dict,
+) -> Tuple[torch.Tensor, torch.Tensor, Dict]:
+    """
+    cfg* 예시:
+      cfgA = {"mode":"channel","bits":8,"group_size":None, "scale_bit":32}
+      cfgB = {"mode":"group","bits":4,"group_size":64, "scale_bit":32}
+    """
+    A_hat, n_scaleA = rtn_quantize(A, **cfgA)  # [L, r, in]
+    B_hat_T, n_scaleB = rtn_quantize(B.mT, **cfgB)  # [L, out, r]
+    # meta = {"A": mA, "B": mB}
+    
+    return A_hat, B_hat_T.mT, n_scaleA, n_scaleB
+
+def rtn_quantize(weight: torch.Tensor, bits: int, mode: str = 'tensor', group_size: int = 0):
+    assert mode in ['tensor', 'channel', 'group']
+    device = weight.device
+    original_shape = weight.shape
+    assert weight.dim() == 3
+
+    # weight = weight.to('cuda:1')
+
+    qmin = -(2 ** (bits - 1))
+    qmax = (2 ** (bits - 1)) - 1
+
+    if mode == 'tensor':
+        scale = weight.abs().amax(dim=(1, 2), keepdim=True) / qmax
+        quant = torch.round(weight / scale).clamp(qmin, qmax)
+        assert scale.element_size() * 8 == 32
+        return (quant * scale).to(device), scale.numel()
+
+    elif mode == 'per_channel':
+        # 2D(dim=1)와 3D(dim=2) 모두 마지막 차원을 기준으로 amax를 계산하도록 dim=-1 사용
+        scale = weight.abs().amax(dim=-1, keepdim=True) / qmax
+        quant = torch.round(weight / scale).clamp(qmin, qmax)
+        assert scale.element_size() * 8 == 32
+        return (quant * scale).to(device), scale.numel()
+
+    # elif mode == 'group':
+    #     # 3D 텐서를 (Batch * out_dim, in_dim) 형태로 잠시 변경하여 기존 로직 재사용
+    #     weight = weight.view(-1, original_shape[-1])
+        
+    #     assert group_size > 0 and weight.dim() == 2, "Group quantization requires valid group_size and 2D weight"
+    #     out_dim, in_dim = weight.shape
+    #     quant_weight = torch.empty_like(weight)
+
+    #     for i in range(0, in_dim, group_size):
+    #         group_slice = weight[:, i:i + group_size]
+    #         scale = group_slice.abs().amax(dim=1, keepdim=True) / qmax
+    #         quant = torch.round(group_slice / scale).clamp(qmin, qmax)
+    #         quant_weight[:, i:i + group_size] = quant * scale
+        
+    #     quant_weight = quant_weight.view(original_shape)
+
+    #     return quant_weight.to(device), n_scale
+
+    elif mode == 'group':
+        weight_2d = weight.reshape(-1, original_shape[-1])
+        
+        assert group_size > 0 and weight_2d.dim() == 2, "Group quantization requires valid group_size"
+        
+        out_dim_2d, in_dim = weight_2d.shape
+        num_groups = in_dim // group_size
+        
+        quant_weight = torch.empty_like(weight_2d)
+        all_scales = torch.empty(out_dim_2d, num_groups, device=device)
+
+        for i in range(0, in_dim, group_size):
+            group_idx = i // group_size
+            group_slice = weight_2d[:, i:i + group_size]
+            
+            scale_slice = group_slice.abs().amax(dim=1, keepdim=True) / qmax
+            all_scales[:, group_idx] = scale_slice.squeeze(-1)
+            
+            quant = torch.round(group_slice / scale_slice).clamp(qmin, qmax)
+            quant_weight[:, i:i + group_size] = quant * scale_slice
+            
+            # print(scale_slice.element_size() * 8)
+            assert scale_slice.element_size() * 8 == 32
+            
+        
+        quant_weight = quant_weight.reshape(original_shape)
+        # all_scales 텐서를 reshape 할 필요 없이 바로 개수 계산
+        
+        # 양자화된 가중치와 스케일의 요소 개수를 반환
+        return quant_weight.to(device), all_scales.numel()
+
 
 # @torch.no_grad()
 # def quantize_along_axis(
 #     x: torch.Tensor,
 #     bits: int,
 #     mode: str = "tensor",          # "tensor" | "channel" | "group"
-#     axis: Optional[int] = None,    # channel/group 기준 축 (음수 인덱스 허용)
 #     group_size: Optional[int] = None,
 # ) -> Dict[str, torch.Tensor]:
 #     """
@@ -139,416 +417,179 @@ def _uniform_symmetric_quantize(
 #         raise ValueError("mode must be one of {'tensor','channel','group'}")
 
 # @torch.no_grad()
+# def _uniform_symmetric_quantize(
+#     x: torch.Tensor, bits: int, reduce_dims: Tuple[int, ...]
+# ) -> Tuple[torch.Tensor, torch.Tensor]:
+#     assert bits >= 2, "bits must be >= 2 for signed symmetric quantization"
+#     qmax = (1 << (bits - 1)) - 1
+#     max_abs = x.abs()
+#     for d in sorted(reduce_dims):
+#         max_abs = max_abs.max(dim=d, keepdim=True).values
+#     scale = torch.clamp(max_abs / qmax, min=1e-12)
+#     q = torch.clamp(torch.round(x / scale), min=-qmax, max=qmax)
+#     return q * scale, scale
+
+
+# @torch.no_grad()
+# def _quantize_group_along_axis(
+#     x: torch.Tensor,
+#     bits: int,
+#     axis_r: int,          # r축 (A: -2, B: -1)
+#     other_axis: int,      # 행렬의 반대 축 (A: -1, B: -2)
+#     group_size: int,
+# ) -> Tuple[torch.Tensor, torch.Tensor]:
+#     assert group_size and group_size > 0
+#     D = x.dim()
+#     axis_r = axis_r % D
+#     other_axis = other_axis % D
+
+#     # 배치축 + r축 + other축 순서로 정렬
+#     batch_dims = tuple(i for i in range(D) if i not in (axis_r, other_axis))
+#     perm = batch_dims + (axis_r, other_axis)     # [..., R, C]
+#     inv_perm = [0]*D
+#     for i, p in enumerate(perm):
+#         inv_perm[p] = i
+
+#     x_t = x.permute(perm).contiguous()           # [..., R, C]
+#     R = x_t.shape[-2]
+#     C = x_t.shape[-1]
+#     n_groups = (R + group_size - 1) // group_size
+#     pad = n_groups * group_size - R
+#     if pad > 0:
+#         pad_shape = x_t.shape[:-2] + (pad, C)
+#         x_t = torch.cat([x_t, torch.zeros(pad_shape, dtype=x.dtype, device=x.device)], dim=-2)
+
+#     # [..., R, C] -> [..., G, Gs, C]
+#     new_shape = x_t.shape[:-2] + (n_groups, group_size, C)
+#     x_t = x_t.view(*new_shape)
+
+#     # 그룹 내부(Gs, C) 전체로 max-abs → per-group scale
+#     x_hat_t, scale = _uniform_symmetric_quantize(x_t, bits, reduce_dims=(-2, -1))  # scale: [..., G, 1, 1]
+
+#     # x_hat 복원
+#     x_hat_t = x_hat_t.view(*x_t.shape[:-3], n_groups * group_size, C)[..., :R, :]
+#     x_hat = x_hat_t.permute(inv_perm).contiguous()
+
+#     # === scale을 r축에 대해 브로드캐스트 가능한 텐서로 복원 ===
+#     # scale: [..., G, 1, 1] -> [..., G]
+#     scale_g = scale.squeeze(-1).squeeze(-1)              # [..., G]
+#     # [..., G] -> [..., R] (그룹 스케일을 각 행에 반복)
+#     scale_rows = scale_g.repeat_interleave(group_size, dim=-1)[..., :R]   # [..., R]
+#     # [..., R] -> [..., R, 1]  (x_t의 [..., R, C]에 대비해 C축을 1로 둔다)
+#     scale_rows = scale_rows.unsqueeze(-1)                 # [..., R, 1]
+#     # 원래 축 순서로 복원 (other_axis 위치는 길이 1이라 그대로 broadcast)
+#     scale_b = scale_rows.permute(inv_perm).contiguous()   # 원래 x와 같은 축 순서, r축에 상수, other축=1
+
+#     return x_hat, scale_b
+
+# @torch.no_grad()
+# def quantize_A(
+#     A: torch.Tensor,   # [L, r, in]
+#     bits: int,
+#     mode: str = "rank",     # "tensor" | "rank" | "group"
+#     group_size: Optional[int] = None,
+# ) -> Dict[str, torch.Tensor]:
+#     """
+#     A는 항상 r(행) 기준:
+#       - tensor:  r×in 전체 per-tensor
+#       - rank:    r별(per-row) 스케일 → 열(in) 축만 줄여서 scale shape=[..., r, 1]
+#       - group:   r축을 group_size로 잘라 그룹별 스케일
+#     """
+#     assert A.dim() >= 2
+#     R_dim, C_dim = -2, -1  # r, in
+#     if mode == "tensor":
+#         x_hat, scale = _uniform_symmetric_quantize(A, bits, reduce_dims=(R_dim, C_dim))
+#         return {"x_hat": x_hat, "scale": scale, "mode": mode, "bits": torch.tensor(bits)}
+#     if mode == "rank":
+#         x_hat, scale = _uniform_symmetric_quantize(A, bits, reduce_dims=(C_dim,))  # per-row
+#         return {"x_hat": x_hat, "scale": scale, "mode": mode, "bits": torch.tensor(bits)}
+#     if mode == "group":
+#         x_hat, scale = _quantize_group_along_axis(A, bits, axis_r=R_dim, other_axis=C_dim, group_size=group_size or 32)
+#         return {"x_hat": x_hat, "scale": scale, "mode": mode, "bits": torch.tensor(bits), "group_size": torch.tensor(group_size or 32)}
+#     raise ValueError("mode must be one of {'tensor','rank','group'}")
+
+# @torch.no_grad()
+# def quantize_B(
+#     B: torch.Tensor,   # [L, out, r]
+#     bits: int,
+#     mode: str = "rank",     # "tensor" | "rank" | "group"
+#     group_size: Optional[int] = None,
+# ) -> Dict[str, torch.Tensor]:
+#     """
+#     B는 항상 r(열) 기준:
+#       - tensor:  out×r 전체 per-tensor
+#       - rank:    r별(per-col) 스케일 → 행(out) 축만 줄여서 scale shape=[..., 1, r]
+#       - group:   r축을 group_size로 잘라 그룹별 스케일
+#     """
+#     assert B.dim() >= 2
+#     R_dim, C_dim = -2, -1  # out, r   (여기서 r은 열)
+#     if mode == "tensor":
+#         x_hat, scale = _uniform_symmetric_quantize(B, bits, reduce_dims=(R_dim, C_dim))
+#         return {"x_hat": x_hat, "scale": scale, "mode": mode, "bits": torch.tensor(bits)}
+#     if mode == "rank":
+#         x_hat, scale = _uniform_symmetric_quantize(B, bits, reduce_dims=(R_dim,))  # per-col
+#         return {"x_hat": x_hat, "scale": scale, "mode": mode, "bits": torch.tensor(bits)}
+#     if mode == "group":
+#         x_hat, scale = _quantize_group_along_axis(B, bits, axis_r=C_dim, other_axis=R_dim, group_size=group_size or 32)
+#         return {"x_hat": x_hat, "scale": scale, "mode": mode, "bits": torch.tensor(bits), "group_size": torch.tensor(group_size or 32)}
+#     raise ValueError("mode must be one of {'tensor','rank','group'}")
+
+# @torch.no_grad()
 # def quantize_lora_tensors(
 #     A: torch.Tensor, B: torch.Tensor,
 #     cfgA: Dict, cfgB: Dict,
 # ) -> Tuple[torch.Tensor, torch.Tensor, Dict]:
 #     """
-#     cfg* 예시:
-#       cfgA = {"mode":"channel","bits":8,"axis":-1,"group_size":None}
-#       cfgB = {"mode":"group","bits":4,"axis":0,"group_size":64}
+#     cfgA / cfgB 예시:
+#       {"mode":"rank","bits":8}            # per-rank
+#       {"mode":"group","bits":4,"group_size":32}
+#       {"mode":"tensor","bits":8}
+#     A는 r(행), B는 r(열)을 기준으로 고정 처리.
 #     """
-#     # A
-#     mA = quantize_along_axis(
+#     mA = quantize_A(
 #         A, bits=cfgA.get("bits", 8),
-#         mode=cfgA.get("mode", "channel"),
-#         axis=cfgA.get("axis", -1),
+#         mode=cfgA.get("mode", "rank"),
 #         group_size=cfgA.get("group_size", None),
 #     )
-#     # B
-#     mB = quantize_along_axis(
+#     mB = quantize_B(
 #         B, bits=cfgB.get("bits", 8),
-#         mode=cfgB.get("mode", "channel"),
-#         axis=cfgB.get("axis", 1),
+#         mode=cfgB.get("mode", "rank"),
 #         group_size=cfgB.get("group_size", None),
 #     )
-#     meta = {"A": mA, "B": mB}
-#     return mA["x_hat"], mB["x_hat"], meta
+#     return mA["x_hat"], mB["x_hat"], {"A": mA, "B": mB}
 
-@torch.no_grad()
-def _quantize_group_along_axis(
-    x: torch.Tensor,
-    bits: int,
-    axis_r: int,          # r축 (A: -2, B: -1)
-    other_axis: int,      # 행렬의 반대 축 (A: -1, B: -2)
-    group_size: int,
-) -> Tuple[torch.Tensor, torch.Tensor]:
-    assert group_size and group_size > 0
-    D = x.dim()
-    axis_r = axis_r % D
-    other_axis = other_axis % D
+# from peft import get_peft_config, load_peft_weights
+# from hyper_llm_modulator.utils.lora_formatting import lora_tensor_dict_to_state_dict
+# from hyper_llm_modulator.utils import get_lora_module_names, get_target_lora_dirs
 
-    # 배치축 + r축 + other축 순서로 정렬
-    batch_dims = tuple(i for i in range(D) if i not in (axis_r, other_axis))
-    perm = batch_dims + (axis_r, other_axis)     # [..., R, C]
-    inv_perm = [0]*D
-    for i, p in enumerate(perm):
-        inv_perm[p] = i
+# def _num_scales_A(shape, mode: str, group_size: int | None) -> int:
+#     # A: [L, r, in]  (r축 = 1)
+#     L, r = int(shape[0]), int(shape[1])
+#     if mode == "tensor":
+#         return L
+#     if mode == "rank":
+#         return L * r
+#     if mode == "group":
+#         if not group_size or group_size <= 0:
+#             raise ValueError("group 모드에서는 group_size > 0 이어야 합니다.")
+#         return L * int(math.ceil(r / float(group_size)))
+#     raise ValueError(f"unknown mode: {mode}")
 
-    x_t = x.permute(perm).contiguous()           # [..., R, C]
-    R = x_t.shape[-2]
-    C = x_t.shape[-1]
-    n_groups = (R + group_size - 1) // group_size
-    pad = n_groups * group_size - R
-    if pad > 0:
-        pad_shape = x_t.shape[:-2] + (pad, C)
-        x_t = torch.cat([x_t, torch.zeros(pad_shape, dtype=x.dtype, device=x.device)], dim=-2)
-
-    # [..., R, C] -> [..., G, Gs, C]
-    new_shape = x_t.shape[:-2] + (n_groups, group_size, C)
-    x_t = x_t.view(*new_shape)
-
-    # 그룹 내부(Gs, C) 전체로 max-abs → per-group scale
-    x_hat_t, scale = _uniform_symmetric_quantize(x_t, bits, reduce_dims=(-2, -1))  # scale: [..., G, 1, 1]
-
-    # x_hat 복원
-    x_hat_t = x_hat_t.view(*x_t.shape[:-3], n_groups * group_size, C)[..., :R, :]
-    x_hat = x_hat_t.permute(inv_perm).contiguous()
-
-    # === scale을 r축에 대해 브로드캐스트 가능한 텐서로 복원 ===
-    # scale: [..., G, 1, 1] -> [..., G]
-    scale_g = scale.squeeze(-1).squeeze(-1)              # [..., G]
-    # [..., G] -> [..., R] (그룹 스케일을 각 행에 반복)
-    scale_rows = scale_g.repeat_interleave(group_size, dim=-1)[..., :R]   # [..., R]
-    # [..., R] -> [..., R, 1]  (x_t의 [..., R, C]에 대비해 C축을 1로 둔다)
-    scale_rows = scale_rows.unsqueeze(-1)                 # [..., R, 1]
-    # 원래 축 순서로 복원 (other_axis 위치는 길이 1이라 그대로 broadcast)
-    scale_b = scale_rows.permute(inv_perm).contiguous()   # 원래 x와 같은 축 순서, r축에 상수, other축=1
-
-    return x_hat, scale_b
-
-@torch.no_grad()
-def quantize_A(
-    A: torch.Tensor,   # [L, r, in]
-    bits: int,
-    mode: str = "rank",     # "tensor" | "rank" | "group"
-    group_size: Optional[int] = None,
-) -> Dict[str, torch.Tensor]:
-    """
-    A는 항상 r(행) 기준:
-      - tensor:  r×in 전체 per-tensor
-      - rank:    r별(per-row) 스케일 → 열(in) 축만 줄여서 scale shape=[..., r, 1]
-      - group:   r축을 group_size로 잘라 그룹별 스케일
-    """
-    assert A.dim() >= 2
-    R_dim, C_dim = -2, -1  # r, in
-    if mode == "tensor":
-        x_hat, scale = _uniform_symmetric_quantize(A, bits, reduce_dims=(R_dim, C_dim))
-        return {"x_hat": x_hat, "scale": scale, "mode": mode, "bits": torch.tensor(bits)}
-    if mode == "rank":
-        x_hat, scale = _uniform_symmetric_quantize(A, bits, reduce_dims=(C_dim,))  # per-row
-        return {"x_hat": x_hat, "scale": scale, "mode": mode, "bits": torch.tensor(bits)}
-    if mode == "group":
-        x_hat, scale = _quantize_group_along_axis(A, bits, axis_r=R_dim, other_axis=C_dim, group_size=group_size or 32)
-        return {"x_hat": x_hat, "scale": scale, "mode": mode, "bits": torch.tensor(bits), "group_size": torch.tensor(group_size or 32)}
-    raise ValueError("mode must be one of {'tensor','rank','group'}")
-
-@torch.no_grad()
-def quantize_B(
-    B: torch.Tensor,   # [L, out, r]
-    bits: int,
-    mode: str = "rank",     # "tensor" | "rank" | "group"
-    group_size: Optional[int] = None,
-) -> Dict[str, torch.Tensor]:
-    """
-    B는 항상 r(열) 기준:
-      - tensor:  out×r 전체 per-tensor
-      - rank:    r별(per-col) 스케일 → 행(out) 축만 줄여서 scale shape=[..., 1, r]
-      - group:   r축을 group_size로 잘라 그룹별 스케일
-    """
-    assert B.dim() >= 2
-    R_dim, C_dim = -2, -1  # out, r   (여기서 r은 열)
-    if mode == "tensor":
-        x_hat, scale = _uniform_symmetric_quantize(B, bits, reduce_dims=(R_dim, C_dim))
-        return {"x_hat": x_hat, "scale": scale, "mode": mode, "bits": torch.tensor(bits)}
-    if mode == "rank":
-        x_hat, scale = _uniform_symmetric_quantize(B, bits, reduce_dims=(R_dim,))  # per-col
-        return {"x_hat": x_hat, "scale": scale, "mode": mode, "bits": torch.tensor(bits)}
-    if mode == "group":
-        x_hat, scale = _quantize_group_along_axis(B, bits, axis_r=C_dim, other_axis=R_dim, group_size=group_size or 32)
-        return {"x_hat": x_hat, "scale": scale, "mode": mode, "bits": torch.tensor(bits), "group_size": torch.tensor(group_size or 32)}
-    raise ValueError("mode must be one of {'tensor','rank','group'}")
-
-@torch.no_grad()
-def quantize_lora_tensors(
-    A: torch.Tensor, B: torch.Tensor,
-    cfgA: Dict, cfgB: Dict,
-) -> Tuple[torch.Tensor, torch.Tensor, Dict]:
-    """
-    cfgA / cfgB 예시:
-      {"mode":"rank","bits":8}            # per-rank
-      {"mode":"group","bits":4,"group_size":32}
-      {"mode":"tensor","bits":8}
-    A는 r(행), B는 r(열)을 기준으로 고정 처리.
-    """
-    mA = quantize_A(
-        A, bits=cfgA.get("bits", 8),
-        mode=cfgA.get("mode", "rank"),
-        group_size=cfgA.get("group_size", None),
-    )
-    mB = quantize_B(
-        B, bits=cfgB.get("bits", 8),
-        mode=cfgB.get("mode", "rank"),
-        group_size=cfgB.get("group_size", None),
-    )
-    return mA["x_hat"], mB["x_hat"], {"A": mA, "B": mB}
-
-from peft import get_peft_config, load_peft_weights
-from hyper_llm_modulator.utils.lora_formatting import lora_tensor_dict_to_state_dict
-from hyper_llm_modulator.utils import get_lora_module_names, get_target_lora_dirs
-
-def _num_scales_A(shape, mode: str, group_size: int | None) -> int:
-    # A: [L, r, in]  (r축 = 1)
-    L, r = int(shape[0]), int(shape[1])
-    if mode == "tensor":
-        return L
-    if mode == "rank":
-        return L * r
-    if mode == "group":
-        if not group_size or group_size <= 0:
-            raise ValueError("group 모드에서는 group_size > 0 이어야 합니다.")
-        return L * int(math.ceil(r / float(group_size)))
-    raise ValueError(f"unknown mode: {mode}")
-
-def _num_scales_B(shape, mode: str, group_size: int | None) -> int:
-    # B: [L, out, r] (r축 = 2)
-    L, r = int(shape[0]), int(shape[2])
-    if mode == "tensor":
-        return L
-    if mode == "rank":
-        return L * r
-    if mode == "group":
-        if not group_size or group_size <= 0:
-            raise ValueError("group 모드에서는 group_size > 0 이어야 합니다.")
-        return L * int(math.ceil(r / float(group_size)))
-    raise ValueError(f"unknown mode: {mode}")
+# def _num_scales_B(shape, mode: str, group_size: int | None) -> int:
+#     # B: [L, out, r] (r축 = 2)
+#     L, r = int(shape[0]), int(shape[2])
+#     if mode == "tensor":
+#         return L
+#     if mode == "rank":
+#         return L * r
+#     if mode == "group":
+#         if not group_size or group_size <= 0:
+#             raise ValueError("group 모드에서는 group_size > 0 이어야 합니다.")
+#         return L * int(math.ceil(r / float(group_size)))
+#     raise ValueError(f"unknown mode: {mode}")
 
 
-@torch.no_grad()
-def generate_loras_with_quantization(
-    args,
-    model,                  # 베이스 LLM (이름 매핑용)
-    layer_indices,
-    save_dir,
-    device,
-    eval_ds_info,
-):
-    """
-    args.quant_cfg 예시:
-      args.quant_cfg = {
-        "A": {"mode":"channel","bits":8,"axis":-1,"group_size":None},
-        "B": {"mode":"channel","bits":8,"axis":0,"group_size":None},
-      }
-    비트/모드/축을 태스크별로 다르게 하고 싶으면 함수 내부에서 분기하세요.
-    """
-    # quant_cfg = getattr(args, "quant_cfg", {
-    #     "A": {"mode":"channel","bits":8,"axis":-1,"group_size":None},
-    #     "B": {"mode":"channel","bits":8,"axis":1,"group_size":None},
-    # })
-    
-    quant_cfg = getattr(args, "quant_cfg", None)
-    lora_dirs_map = get_target_lora_dirs(list(eval_ds_info.keys()), args.model_dir)
-    module_names = get_lora_module_names(model, args.target_modules, layer_indices)
 
-    all_lora_dirs = {task: [] for task in lora_dirs_map}
-    save_dicts    = {task: [] for task in lora_dirs_map}
-    metric = {}
-
-    for task, src_lora_dir in lora_dirs_map.items():
-        tgt_save_dir = f"{save_dir}/generated_loras/{task}/quantized/lora_0"
-        os.makedirs(tgt_save_dir, exist_ok=True)
-
-        # 원본 LoRA 로드 → 텐서 dict
-        tgt_sd = load_peft_weights(src_lora_dir)
-        td = lora_state_dict_to_tensor_dict(
-            tgt_sd, args.target_modules, layer_indices, device=device
-        )
-
-        A_hat_all, B_hat_all = {}, {}
-        task_metrics = {}
-
-        for layer_type in args.target_modules:
-            A = td["A"][layer_type]  # [L, r, in]
-            B = td["B"][layer_type]  # [L, out, r]
-
-            # (옵션) z-score 정규화 및 역정규화는 여기선 생략. 원 데이터 직접 양자화.
-            A_q, B_q, meta = quantize_lora_tensors(
-                A, B,
-                cfgA=quant_cfg.get("A", {}),
-                cfgB=quant_cfg.get("B", {}),
-            )
-
-            # 저장용
-            A_hat_all[layer_type] = A_q
-            B_hat_all[layer_type] = B_q
-
-            # ---- 메트릭 계산 ----
-            mse_A = F.mse_loss(A_q, A, reduction="mean").item()
-            mse_B = F.mse_loss(B_q, B, reduction="mean").item()
-
-            # deltaW_hat = torch.bmm(B_q, A_q)          # [L, out, in]
-            # deltaW_tgt = torch.bmm(B, A)
-            # mse_deltaW = F.mse_loss(deltaW_hat, deltaW_tgt, reduction="mean").item()
-            mse_deltaW = None
-
-            cfgA = {**{"mode":"rank","bits":8,"group_size":None,"scale_bits":16},
-                    **quant_cfg.get("A", {})}
-            cfgB = {**{"mode":"rank","bits":8,"group_size":None,"scale_bits":16},
-                    **quant_cfg.get("B", {})}
-
-            bits_w_A = int(cfgA["bits"]) * A.numel()
-            bits_w_B = int(cfgB["bits"]) * B.numel()
-
-            n_scales_A = _num_scales_A(A.shape, cfgA["mode"], cfgA.get("group_size", None))
-            n_scales_B = _num_scales_B(B.shape, cfgB["mode"], cfgB.get("group_size", None))
-
-            bits_s_A = int(cfgA["scale_bits"]) * n_scales_A
-            bits_s_B = int(cfgB["scale_bits"]) * n_scales_B
-
-            bits_A_total = bits_w_A + bits_s_A
-            bits_B_total = bits_w_B + bits_s_B
-            bits_total   = bits_A_total + bits_B_total
-
-            bppA = bits_A_total / max(1, A.numel())
-            bppB = bits_B_total / max(1, B.numel())
-            bpp_total = bits_total / max(1, (A.numel() + B.numel()))
-
-            # bpp (= 파라미터 1개당 평균 비트 수)
-            bppA = bits_A_total / max(1, A.numel())
-            bppB = bits_B_total / max(1, B.numel())
-            bpp_total = (bits_A_total + bits_B_total) / max(1, (A.numel() + B.numel()))
-
-            task_metrics[layer_type] = {
-                "mse_A": mse_A,
-                "mse_B": mse_B,
-                "mse_deltaW": mse_deltaW,
-                # 원래 저장하던 raw 비트도 유지하고,
-                "bits_A_weights_only": bits_w_A,
-                "bits_B_weights_only": bits_w_B,
-                "bits_A_scales": bits_s_A,
-                "bits_B_scales": bits_s_B,
-                "bits_A_total": bits_A_total,
-                "bits_B_total": bits_B_total,
-                "bits_total": bits_total,
-                "bppA": bppA,
-                "bppB": bppB,
-                "bpp_total": bpp_total,
-                "num_params_A": int(A.numel()),
-                "num_params_B": int(B.numel()),
-                # 선택: 최종 사용된 양자화 설정도 저장
-                "quant_A": {k: (int(v) if isinstance(v, bool) or isinstance(v, (int,)) else v) for k, v in cfgA.items()},
-                "quant_B": {k: (int(v) if isinstance(v, bool) or isinstance(v, (int,)) else v) for k, v in cfgB.items()},
-            }
-            # ---------------
-            # ---------------------
-
-        # 텐서딕트를 state_dict로 변환 후 저장
-        recon_td = {"A": A_hat_all, "B": B_hat_all}
-        recon_sd = lora_tensor_dict_to_state_dict(
-            recon_td, module_names, args.target_modules, layer_indices
-        )
-        # 원본 adapter_config 재사용
-        peft_cfg = get_peft_config(PeftConfig.from_json_file(f"{src_lora_dir}/adapter_config.json"))
-        save_lora(recon_sd, peft_cfg, tgt_save_dir)
-
-        # 메트릭 JSON 저장
-        metrics_path = os.path.join(tgt_save_dir, "quant_metrics.json")
-        with open(metrics_path, "w") as f:
-            json.dump(task_metrics, f, indent=2)
-
-        metric[task] = task_metrics
-        all_lora_dirs[task].append(tgt_save_dir)
-        save_dicts[task].append({"src_lora": src_lora_dir, "split": "quantized", "lora_dir": tgt_save_dir})
-
-    return all_lora_dirs, save_dicts, metric
-
-def quant_cfg_to_str(quant_cfg: dict) -> str:
-    # {"A": {...}, "B": {...}} → "A_mode-channel_bits-8_axis--1|B_mode-channel_bits-8_axis-1"
-    parts = []
-    for name in ["A", "B"]:
-        cfg = quant_cfg.get(name, {})
-        s = "_".join(f"{k}-{v}" for k, v in cfg.items() if v is not None)
-        parts.append(f"{name}_{s}")
-    return "|".join(parts)
-
-
-def eval_quantized_lora(save_dir, device, curstep, full_eval, use_icl=False, quant_cfg = None):
-    args, _, base_model, tokenizer, layer_indices = load_compnet_checkpoint(save_dir, device = device)
-    chat_template = tokenizer.chat_template
-
-    args.quant_cfg = quant_cfg
-    quant_str = quant_cfg_to_str(args.quant_cfg)
-    if full_eval:
-        quant_str = quant_str + '_full_eval'
-    else:
-        quant_str = quant_str + '_val'
-        
-    # save_dir = f"{save_dir}/quant_{quant_str}"
-    # os.makedirs(save_dir, exist_ok=True)
-
-    eval_ds_info = deepcopy(args.eval_ds_info)
-    if not full_eval:
-        eval_ds_info = {k: v for k, v in eval_ds_info.items() if k in BENCHMARK_TASK_INFO}
-        for k in BENCHMARK_TASK_INFO:
-            eval_ds_info[k]["ds_kwargs"] = BENCHMARK_TASK_INFO[k]
-    for ds in list(eval_ds_info.keys()):
-        if ds.startswith("lol_"):
-            eval_ds_info.pop(ds)
-
-    # 2) 양자화된 LoRA 생성
-    all_lora_dirs, save_dicts, metric = generate_loras_with_quantization(
-        args=args,
-        model=base_model,
-        layer_indices=layer_indices,
-        save_dir=save_dir,
-        device=device,
-        eval_ds_info=eval_ds_info,
-    )
-
-    del base_model, tokenizer, layer_indices
-    gc.collect()
-    torch.cuda.empty_cache()
-
-    # 3) 태스크 평가
-    for eval_ds in eval_ds_info:
-        ds_kwargs = eval_ds_info[eval_ds].get("ds_kwargs")
-        logger.info(f"++++++++ Start eval {eval_ds} ++++++++++")
-        try:
-            results = do_eval_task(
-                args.model_dir,  # 'mistralai/Mistral-7B-Instruct-v0.2',
-                chat_template,
-                save_dir,
-                all_lora_dirs[eval_ds],
-                eval_ds,
-                save_dicts[eval_ds],
-                ds_kwargs,
-                use_icl,
-                curstep=quant_str,
-            )
-            print(results)
-        except Exception as e:
-            logger.warning(f"Eval failed on {eval_ds}: {e}")
-        
-        # import gc, torch
-        # gc.collect(); torch.cuda.empty_cache()
-        # try:
-        #     import ray
-        #     ray.shutdown()
-        # except Exception:
-        #     pass
-                
-    # 4) 집계 및 저장
-    df = aggregrate_results_and_save_to_file(
-        base_model_dir=args.model_dir,
-        mt_lora_dir=args.mt_lora_path,
-        hypermod_dir=save_dir,
-        hypermod_name="quant_lora",
-        curstep=quant_str
-    )
-    metrics_path = os.path.join(save_dir, f"eval_results/quant_metrics_it{quant_str}.json")
-    with open(metrics_path, "w") as f:
-        json.dump(metric, f, indent=2)
-    return None
 
 
 

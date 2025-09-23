@@ -12,7 +12,8 @@ import numpy
 import torch
 import torch.distributed as dist
 import torch.multiprocessing as mp
-from transformers import CLIPModel, CLIPProcessor
+from transformers import CLIPModel, CLIPProcessor, AutoModel, AutoProcessor, AutoImageProcessor, SiglipModel
+from transformers import AutoImageProcessor, AutoModelForImageClassification
 # CLIP은 causal mask가 필요 없으므로 text의 경우도 일반적인 attention_mask를 사용합니다.
 from lib import utils
 
@@ -41,15 +42,15 @@ parser.add_argument('--seed', default=0, type=int)
 def main(args):
     gpu_id = int(os.environ["LOCAL_RANK"])
     
-    print("loading CLIP model and processor...")
-    model = CLIPModel.from_pretrained(args.base_model, torch_dtype="auto", low_cpu_mem_usage=True)
-    processor = CLIPProcessor.from_pretrained(args.base_model)
+    # print("loading CLIP model and processor...")
+    # model = CLIPModel.from_pretrained(args.base_model, torch_dtype="auto", low_cpu_mem_usage=True)
+    # processor = CLIPProcessor.from_pretrained(args.base_model)
+    print("loading Auto model and processor...")
+    model = AutoModel.from_pretrained(args.base_model, torch_dtype="auto", low_cpu_mem_usage=True)
+    processor = AutoProcessor.from_pretrained(args.base_model)
+    
     model.eval()  # 평가 모드로 전환
-
-    # ----------------------------------------------------------------------------
-    # 데이터셋 로드
-    # utils.sample_clip_concat 함수는 LAION 등에서 이미지-텍스트 샘플을 추출하여
-    # [{"image": PIL.Image, "text": str}, ...] 형태로 반환한다고 가정합니다.
+    
     print("loading dataset...")
     # devset = utils.sample_clip_concat(args.devset_size, nproc=args.sample_proc)
     devset = utils.sample_cc12m_concat(args.devset_size)
@@ -62,6 +63,8 @@ def main(args):
     # ----------------------------------------------------------------------------
     # Vision 모달리티 처리: 이미지 전처리 및 임베딩 추출
     # utils.sample_clip_concat에서 추출한 이미지와 텍스트 리스트를 분리합니다.
+    
+
     clip_samples = utils.sample_clip_concat(args.devset_size, nproc=args.sample_proc)
     images = [s["image"] for s in clip_samples]
     texts  = [s["text"]  for s in clip_samples]
@@ -80,11 +83,13 @@ def main(args):
 
     # ----------------------------------------------------------------------------
     # Text 모달리티 처리: 텍스트 전처리 및 임베딩 추출
-    text_inputs = processor(text=texts, return_tensors="pt", padding=True, truncation=True, max_length=args.ctx_size)
+    # text_inputs = processor(text=texts, return_tensors="pt", padding=True, truncation=True, max_length=args.ctx_size) ## clip
+    text_inputs = processor(text=texts, return_tensors="pt", padding=True, truncation=True) ## siglib
     # text embedding: CLIP text 모듈의 embeddings (내부에서 position embedding 포함)
     text_emb_full = model.text_model.embeddings(input_ids=text_inputs["input_ids"])
     dev_text_emb = list(torch.split(text_emb_full, args.batch_size))
-    text_attn_mask = text_inputs["attention_mask"].cuda()
+    # import ipdb; ipdb.set_trace()
+    # text_attn_mask = text_inputs["attention_mask"].cuda()
 
     # ----------------------------------------------------------------------------
     # Vision Transformer Layers에 대해 후킹 및 Hessian 데이터 추출
@@ -110,7 +115,8 @@ def main(args):
             # import ipdb; ipdb.set_trace()
             tmp_input = dev_image_emb[di].cuda()
             # vision transformer layer의 forward는 (hidden_states, attention_mask)를 받습니다.
-            out = layer(tmp_input, causal_attention_mask=None, attention_mask =None)[0].cpu()
+            # out = layer(tmp_input, causal_attention_mask=None, attention_mask = None)[0].cpu() ## clip
+            out = layer(tmp_input, attention_mask = None)[0].cpu() ## siglib
             dev_image_emb[di] = out
             tmp_input.cpu()
             del tmp_input
@@ -181,8 +187,9 @@ def main(args):
         for di in range(len(dev_text_emb)):
             tmp_input = dev_text_emb[di].cuda()
             # text transformer layer forward: (hidden_states, attention_mask)
-            print(torch.all(text_attn_mask == 1).item())
-            out = layer(tmp_input, causal_attention_mask=None, attention_mask=None)[0].cpu()
+            # print(torch.all(text_attn_mask == 1).item())
+            # out = layer(tmp_input, causal_attention_mask=None, attention_mask=None)[0].cpu()
+            out = layer(tmp_input, attention_mask=None)[0].cpu() ## siglib
             dev_text_emb[di] = out
             tmp_input.cpu()
             del tmp_input

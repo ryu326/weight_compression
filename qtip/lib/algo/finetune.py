@@ -100,7 +100,9 @@ def quantize_finetune_decoder_layer(mixed_layer, quant_order, idx, cb, args,
         break
     mixed_layer = mixed_layer.float()
 
-    train_dl, valid_dl = utils.split_data(pre_orig_emb, orig_emb, args)
+    ##ryu
+    if pre_orig_emb != None and orig_emb != None:
+        train_dl, valid_dl = utils.split_data(pre_orig_emb, orig_emb, args)
 
     has_kernel = utils.has_kernel(args.decode_mode, args.L, args.K, args.V,
                                   args.tlut_bits, args.td_x, args.td_y)
@@ -118,7 +120,8 @@ def quantize_finetune_decoder_layer(mixed_layer, quant_order, idx, cb, args,
         SU = (torch.randn(n, device=device).sign() + 1e-5).sign().to(dtype_)
         SV = (torch.randn(m, device=device).sign() + 1e-5).sign().to(dtype_)
 
-        in_hess_path = f'{args.in_hess_path}/{idx}_{in_hess_name}.pt'
+        # in_hess_path = f'{args.in_hess_path}/{idx}_{in_hess_name}.pt'
+        in_hess_path = f'{args.in_hess_path}/lang_{idx}_{in_hess_name}.pt'
         H_data = torch.load(in_hess_path, map_location=torch.device('cpu'))
         HR = utils.flat_to_sym(H_data['flatH'], H_data['n'])
         if 'mu' in H_data:
@@ -316,8 +319,9 @@ def quantize_finetune_decoder_layer(mixed_layer, quant_order, idx, cb, args,
             attrgetter('.'.join(split_attr[:-1]))(mixed_layer), split_attr[-1],
             q_linear)
 
-        with torch.enable_grad():
-            finetune_decoder_layer(mixed_layer, f'{idx}_{name}', device,
+        if args.ft_epochs > 0:
+            with torch.enable_grad():
+                finetune_decoder_layer(mixed_layer, f'{idx}_{name}', device,
                                    train_dl, valid_dl, orig_dtype, args)
 
         cb = cb.cpu()

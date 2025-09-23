@@ -8,7 +8,7 @@ os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:512'
 
 import torch
 import torch.multiprocessing as mp
-from transformers import AutoModelForCausalLM, AutoTokenizer, CLIPModel
+from transformers import AutoModelForCausalLM, AutoTokenizer, CLIPModel, AutoModel
 from transformers.modeling_attn_mask_utils import \
     _prepare_4d_causal_attention_mask
 
@@ -114,10 +114,9 @@ def main(args):
                                     V=args.V,
                                     tlut_bits=args.tlut_bits,
                                     decode_mode=args.decode_mode)
-    model = CLIPModel.from_pretrained(args.base_model,
+    model = AutoModel.from_pretrained(args.base_model,
                                       torch_dtype='auto',
-                                      low_cpu_mem_usage=True,
-                                      token="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")
+                                      low_cpu_mem_usage=True,)
 
 
     # save configs

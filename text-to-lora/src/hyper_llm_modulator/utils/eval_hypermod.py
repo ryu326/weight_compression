@@ -308,7 +308,7 @@ def do_eval_task(
     )
 
     for (lora_dir, res), save_dict in zip(full_results.items(), save_dicts):
-        sampled_res_details = res.sample_details[:10]
+        sampled_res_details = res.sample_details[:50]
         # sampled_res_details = res.sample_details
         results[eval_dataset].append(
             dict(
