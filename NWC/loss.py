@@ -127,7 +127,39 @@ class RateDistortionLoss_ql(nn.Module):
         
         out["loss"] = self.lmbda * out["recon_loss"] + bpp_loss
         return out
- 
+
+class RateDistortionLoss_ql_v2(nn.Module):
+    """Custom rate distortion loss with a Lagrangian parameter."""
+
+    def __init__(self, std, coff, lmbda=1e-2):
+        super().__init__()
+        self.mse = nn.MSELoss(reduction='none')
+        self.lmbda = lmbda
+        self.std = std
+        self.coff = coff
+
+    def forward(self, data, output):
+        out = {}
+        w = data['weight_block'].reshape(output["x_hat"].shape)
+        num_pixels = w.numel() 
+        qlevel = data['q_level']
+
+        coff = self.coff[qlevel].reshape(output["likelihoods"].shape[0], 1, 1)
+        
+        mse_val = self.mse(w, output["x_hat"]) 
+        assert mse_val.dim() == coff.dim(), \
+            f"Shape mismatch: likelihoods {mse_val.shape} vs coff {coff.shape}"
+        
+        out["recon_loss"] = mse_val.mean() / self.std**2
+
+        weighted_mse = (1 / coff) * mse_val
+        
+        out["bpp_loss"] = torch.log(output["likelihoods"]).sum() / (-math.log(2) * num_pixels)
+
+        out["loss"] = self.lmbda * weighted_mse.mean() / self.std**2 + out["bpp_loss"]
+        return out
+
+
 class RateDistortionLoss_ql_hyper(nn.Module):
     """Custom rate distortion loss with a Lagrangian parameter."""
 
@@ -166,7 +198,7 @@ class RateDistortionLoss_ql_code_opt(nn.Module):
 
     def __init__(self, std, coff, lmbda=1e-2):
         super().__init__()
-        self.mse = nn.MSELoss(reduction='none')
+        self.mse = nn.MSELoss(reduction='None')
         self.lmbda = lmbda
         self.std = std
         self.coff = coff
@@ -398,6 +430,19 @@ def get_loss_fn(args, std=None, device = None):
         if args.use_hyper:
             return RateDistortionLoss_ql_hyper(std, coff, lmbda = args.lmbda)
         return RateDistortionLoss_ql(std, coff, lmbda = args.lmbda)
+    elif args.loss == "rdloss_ql_v2":
+        if args.Q == 2:
+            coff = torch.tensor([3.4, 0.05]).to(device)
+        if args.Q == 4:
+            coff = torch.tensor([3.4, 1.2, 0.1, 0.05]).to(device)
+        if args.Q == 8:
+            coff = torch.tensor([4.000, 1.707, 0.724, 0.307, 0.130, 0.055, 0.024, 0.010]).to(device)
+        if args.Q == 16:
+            coff = torch.tensor([4.000, 2.301, 1.324, 0.761, 0.438, 0.252, 0.145, 0.083, 0.048, 0.028, 0.016, 0.009, 0.005, 0.003, 0.0017, 0.001]).to(device)
+        assert not args.use_hyper
+        
+        return RateDistortionLoss_ql_v2(std, coff, lmbda = args.lmbda)
+    
     elif args.loss == "rdloss_ql_code_opt":
         if args.Q == 4:
             coff = torch.tensor([3.4, 1.2, 0.1, 0.05]).to(device)
