@@ -13,7 +13,7 @@ comp_model_bases=(
     # "/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_openai--clip-vit-large-patch14__vision_text_col_256.pt/clip_llama8b_col1024_pretrained_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size4096_total_iter100000_lr0.0001_seed100"
     # "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16"
     # "/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_openai--clip-vit-large-patch14__vision_text_col_256.pt"
-    "/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_google--siglip-base-patch16-224__vision_text_col_256.pt/llama8b_pretrained_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter20000_lr0.0001_seed100"
+    # "/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_google--siglip-base-patch16-224__vision_text_col_256.pt/llama8b_pretrained_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter20000_lr0.0001_seed100"
 )
 
 experiment_names=(
@@ -32,7 +32,7 @@ mkdir -p $CKPT
 mkdir -p $HF
 mkdir -p $LOG
 
-lmbda_values=(10 30 50 100 300 1000 10000 100000)
+lmbda_values=(50 100 300 1000)
 PYTHON_BIN=$(which python)
 
 for i in "${!experiment_names[@]}"; do

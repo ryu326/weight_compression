@@ -1,5 +1,5 @@
 model_name="facebook--dinov2-large-imagenet1k-1-layer"
-HESS="../Wparam_dataset/quip_hess/llava-hf--dinov2-large-imagenet1k-1-layer_cc512"
+HESS="../Wparam_dataset/quip_hess/dinov2-large-imagenet1k-1-layer_cc512"
 export HF_HOME=/workspace/hf_cache/huggingface_nwc
 lm_model_path="../Wparam_dataset/hf_model/$model_name"
 
@@ -20,7 +20,7 @@ mkdir -p $CKPT
 mkdir -p $HF
 mkdir -p $LOG
 
-lmbda_values=(10 30 50 100 300 1000 10000 100000)
+lmbda_values=(100 1000 10000 100000)
 PYTHON_BIN=$(which python)
 
 for i in "${!experiment_names[@]}"; do
@@ -41,7 +41,7 @@ for i in "${!experiment_names[@]}"; do
         (
             export CUDA_VISIBLE_DEVICES=$gpu_id
 
-            taskset -c 0-7 $PYTHON_BIN -m quantize_llama.quantize_finetune_clip \
+            taskset -c 0-7 $PYTHON_BIN -m quantize_llama.quantize_finetune_dino \
                 --save_path ${CKPT}/${SAVE_NAME} \
                 --base_model $lm_model_path \
                 --comp_model_path $comp_model \
@@ -55,13 +55,12 @@ for i in "${!experiment_names[@]}"; do
                 --quantized_path $CKPT/$SAVE_NAME \
                 --base_model $lm_model_path \
                 --hf_output_path $HF/$SAVE_NAME \
-                > $LOG_FILE 2>&1
+                >> $LOG_FILE 2>&1
 
             echo ">> eval lmbda=${lmbda}" >> $LOG_FILE
             $PYTHON_BIN -m eval.eval_dino \
                 --hf_path $HF/$SAVE_NAME \
                 --output_path ${RES}/${SAVE_NAME} \
-                --model_id $model_name \
                 >> $LOG_FILE 2>&1
 
                 # --output_path ${RES}/${SAVE_NAME} \

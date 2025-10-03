@@ -50,7 +50,7 @@ def main(args):
     saved_config = torch.load(os.path.join(args.quantized_path, 'config.pt'), weights_only=False)
     model_config = saved_config['model_config']
     comp_config = saved_config['quant_args']
-    glog.info(model_config)
+    # glog.info(model_config)
 
     model = AutoModelForImageClassification.from_pretrained(args.base_model,
                                       torch_dtype='auto',
@@ -63,6 +63,7 @@ def main(args):
 
     skip_list = args.skip_list.split(',') if args.skip_list else []
     comp_result = {}
+    comp_result['bpp'] = 0
     comp_result['bpp_loss'] = 0
     comp_result['ppl'] = 0
     comp_result['num_pixels'] = 0
@@ -85,15 +86,15 @@ def main(args):
                 ln_data = torch.load(ln_path, map_location=cpu, weights_only=False)
                 # load_layernorm(layer, ln_data)
 
-            load_proj_or_restore(layer.attention.attention, 'query', f'{prefix}{i}', 'q', None, args.quantized_path, comp_config)
-            load_proj_or_restore(layer.attention.attention, 'key', f'{prefix}_{i}', 'k', None, args.quantized_path, skip_list, comp_result, comp_config)
-            load_proj_or_restore(layer.attention.attention, 'value', f'{prefix}_{i}', 'v', None, args.quantized_path, skip_list, comp_result, comp_config)
-            load_proj_or_restore(layer.attention.output, 'dense', f'{prefix}_{i}', 'o', None, args.quantized_path, skip_list, comp_result, comp_config)
-            load_proj_or_restore(layer.mlp, 'fc1', f'{prefix}_{i}', 'fc1', None, args.quantized_path, skip_list, comp_result, comp_config)
-            load_proj_or_restore(layer.mlp, 'fc2', f'{prefix}_{i}', 'fc2', None, args.quantized_path, skip_list, comp_result, comp_config)
+            load_proj_or_restore(layer.attention.attention, 'query', f'{prefix}{i}', 'q', None, args.quantized_path, skip_list, comp_result, comp_config)
+            load_proj_or_restore(layer.attention.attention, 'key', f'{prefix}{i}', 'k', None, args.quantized_path, skip_list, comp_result, comp_config)
+            load_proj_or_restore(layer.attention.attention, 'value', f'{prefix}{i}', 'v', None, args.quantized_path, skip_list, comp_result, comp_config)
+            load_proj_or_restore(layer.attention.output, 'dense', f'{prefix}{i}', 'o', None, args.quantized_path, skip_list, comp_result, comp_config)
+            load_proj_or_restore(layer.mlp, 'fc1', f'{prefix}{i}', 'fc1', None, args.quantized_path, skip_list, comp_result, comp_config)
+            load_proj_or_restore(layer.mlp, 'fc2', f'{prefix}{i}', 'fc2', None, args.quantized_path, skip_list, comp_result, comp_config)
 
     # Load both text and vision branches
-    load_clip_block('vision_', model.dinov2.encoder.layers, orig_model.dinov2.encoder.layers)
+    load_clip_block('vision_', model.dinov2.encoder.layer, orig_model.dinov2.encoder.layer)
 
     glog.info(f'Saving model to {args.hf_output_path}...')
     model.save_pretrained(args.hf_output_path, safe_serialization=True)

@@ -1,78 +1,178 @@
-(lmbdas=(1000 10000)
+(lmbdas=(95)
 for lmbda in "${lmbdas[@]}"; do
     echo "=== Running with λ=${lmbda} ==="
     CUDA_VISIBLE_DEVICES=0 taskset -c 0-15 python -u train_nwc.py \
         --architecture nwc_ql \
-        --dataset_path /workspace/Weight_compression/Wparam_dataset/block_pt/facebook--dinov2-large-imagenet1k-1-layer/col_1024.pt \
-        --pretrained_path ./checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16/lmbda${lmbda}_*/best_loss_model_*.pth.tar \
-        --run_name llama8b_pretrained \
+        --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
         --dataset block_seq_ql_random \
-        --iter 20000 \
+        --iter 200000 \
         --input_size 16 \
         --M 16 \
+        --Q 4 \
         --dim_encoder 512 \
         --batch_size 2048 \
-        --loss rdloss_ql --Q 4 \
+        --loss rdloss_ql \
         --lmbda $lmbda
 done
 ) > ./logs/run0.log 2>&1 &
 
-(lmbdas=(300 100000)
+(lmbdas=(90)
 for lmbda in "${lmbdas[@]}"; do
     echo "=== Running with λ=${lmbda} ==="
     CUDA_VISIBLE_DEVICES=1 taskset -c 16-31 python -u train_nwc.py \
         --architecture nwc_ql \
-        --dataset_path /workspace/Weight_compression/Wparam_dataset/block_pt/facebook--dinov2-large-imagenet1k-1-layer/col_1024.pt \
-        --pretrained_path ./checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16/lmbda${lmbda}_*/best_loss_model_*.pth.tar \
-        --run_name llama8b_pretrained \
+        --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
         --dataset block_seq_ql_random \
-        --iter 20000 \
+        --iter 200000 \
         --input_size 16 \
         --M 16 \
+        --Q 4 \
         --dim_encoder 512 \
         --batch_size 2048 \
-        --loss rdloss_ql --Q 4 \
+        --loss rdloss_ql \
         --lmbda $lmbda
 done
 ) > ./logs/run1.log 2>&1 &
 
-(lmbdas=(100)
+(lmbdas=(85)
 for lmbda in "${lmbdas[@]}"; do
     echo "=== Running with λ=${lmbda} ==="
     CUDA_VISIBLE_DEVICES=2 taskset -c 32-47 python -u train_nwc.py \
         --architecture nwc_ql \
-        --dataset_path /workspace/Weight_compression/Wparam_dataset/block_pt/facebook--dinov2-large-imagenet1k-1-layer/col_1024.pt \
-        --pretrained_path ./checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16/lmbda${lmbda}_*/best_loss_model_*.pth.tar \
-        --run_name llama8b_pretrained \
+        --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
         --dataset block_seq_ql_random \
-        --iter 20000 \
+        --iter 200000 \
         --input_size 16 \
         --M 16 \
+        --Q 4 \
         --dim_encoder 512 \
         --batch_size 2048 \
-        --loss rdloss_ql --Q 4 \
+        --loss rdloss_ql \
         --lmbda $lmbda
 done
 ) > ./logs/run2.log 2>&1 &
 
-(lmbdas=(50 30)
+(lmbdas=(80)
 for lmbda in "${lmbdas[@]}"; do
     echo "=== Running with λ=${lmbda} ==="
     CUDA_VISIBLE_DEVICES=3 taskset -c 48-63 python -u train_nwc.py \
         --architecture nwc_ql \
-        --dataset_path /workspace/Weight_compression/Wparam_dataset/block_pt/facebook--dinov2-large-imagenet1k-1-layer/col_1024.pt \
-        --pretrained_path ./checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16/lmbda${lmbda}_*/best_loss_model_*.pth.tar \
-        --run_name llama8b_pretrained \
+        --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
         --dataset block_seq_ql_random \
-        --iter 20000 \
+        --iter 200000 \
         --input_size 16 \
         --M 16 \
+        --Q 4 \
         --dim_encoder 512 \
         --batch_size 2048 \
-        --loss rdloss_ql --Q 4 \
+        --loss rdloss_ql \
         --lmbda $lmbda
 done
 ) > ./logs/run3.log 2>&1 &
+
+
+(lmbdas=(75)
+for lmbda in "${lmbdas[@]}"; do
+    echo "=== Running with λ=${lmbda} ==="
+    CUDA_VISIBLE_DEVICES=4 python -u train_nwc.py \
+        --architecture nwc_ql \
+        --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
+        --dataset block_seq_ql_random \
+        --iter 200000 \
+        --input_size 16 \
+        --M 16 \
+        --Q 4 \
+        --dim_encoder 512 \
+        --batch_size 2048 \
+        --loss rdloss_ql \
+        --lmbda $lmbda
+done
+) > ./logs/run4.log 2>&1 &
+
+
+(lmbdas=(70)
+for lmbda in "${lmbdas[@]}"; do
+    echo "=== Running with λ=${lmbda} ==="
+    CUDA_VISIBLE_DEVICES=5 python -u train_nwc.py \
+        --architecture nwc_ql \
+        --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
+        --dataset block_seq_ql_random \
+        --iter 200000 \
+        --input_size 16 \
+        --M 16 \
+        --Q 4 \
+        --dim_encoder 512 \
+        --batch_size 2048 \
+        --loss rdloss_ql \
+        --lmbda $lmbda
+done
+) > ./logs/run5.log 2>&1 &
+
+
+(lmbdas=(65)
+for lmbda in "${lmbdas[@]}"; do
+    echo "=== Running with λ=${lmbda} ==="
+    CUDA_VISIBLE_DEVICES=6 python -u train_nwc.py \
+        --architecture nwc_ql \
+        --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
+        --dataset block_seq_ql_random \
+        --iter 200000 \
+        --input_size 16 \
+        --M 16 \
+        --Q 4 \
+        --dim_encoder 512 \
+        --batch_size 2048 \
+        --loss rdloss_ql \
+        --lmbda $lmbda
+done
+) > ./logs/run6.log 2>&1 &
+
+
+(lmbdas=(60)
+for lmbda in "${lmbdas[@]}"; do
+    echo "=== Running with λ=${lmbda} ==="
+    CUDA_VISIBLE_DEVICES=7 taskset -c 48-63 python -u train_nwc.py \
+        --architecture nwc_ql \
+        --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
+        --dataset block_seq_ql_random \
+        --iter 200000 \
+        --input_size 16 \
+        --M 16 \
+        --Q 4 \
+        --dim_encoder 512 \
+        --batch_size 2048 \
+        --loss rdloss_ql \
+        --lmbda $lmbda
+done
+) > ./logs/run7.log 2>&1 &
+
+
+        # --architecture nwc_ql \
+        # --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
+        # --dataset block_seq_ql_random \
+        # --iter 200000 \
+        # --input_size 16 \
+        # --M 16 \
+        # --Q 4 \
+        # --run_name ablation_ql \
+        # --dim_encoder 512 \
+        # --batch_size 2048 \
+        # --loss rdloss_ql_v2 \
+        # --lmbda $lmbda
+
+
+        # --architecture nwc_ql \
+        # --dataset_path /workspace/Weight_compression/Wparam_dataset/block_pt/facebook--dinov2-large-imagenet1k-1-layer/col_1024.pt \
+        # --pretrained_path ./checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16/lmbda${lmbda}_*/best_loss_model_*.pth.tar \
+        # --run_name llama8b_pretrained \
+        # --dataset block_seq_ql_random \
+        # --iter 20000 \
+        # --input_size 16 \
+        # --M 16 \
+        # --dim_encoder 512 \
+        # --batch_size 2048 \
+        # --loss rdloss_ql --Q 4 \
+        # --lmbda $lmbda
 
         # --architecture nwc_ql \
         # --dataset_path ../Wparam_dataset/block_pt/llava-hf--llava-1.5-7b-hf/col_1024.pt \

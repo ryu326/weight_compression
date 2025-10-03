@@ -211,7 +211,7 @@ def main(args):
     dtype_ = torch.float64 if args.use_fp64 else torch.float32
 
     # model = CLIPModel.from_pretrained(args.base_model,
-    model = AutoModel.from_pretrained(args.base_model,
+    model = AutoModelForImageClassification.from_pretrained(args.base_model,
                                                  torch_dtype='auto',
                                                  low_cpu_mem_usage=True,
                                                  local_files_only=True,)
