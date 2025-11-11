@@ -1,10 +1,11 @@
 export CUDA_VISIBLE_DEVICES=0,1,2,3
 
-CKPT="./ckpt"
-HF="./hf"
+CKPT="/home/jgryu/workspace/weight_compression/hf_model_comp/quip-sharp/ckpt"
+HF="/home/jgryu/workspace/weight_compression/hf_model_comp/quip-sharp/hf"
 LOG="./log"
 # HESS="/home/minkyu4506/weight_compression_dataset/llama3_8b_6144"
 HESS="../Wparam_dataset/quip_hess/llama3_8b_6144"
+RES=""
 
 mkdir -p $CKPT
 mkdir -p $LOG
@@ -26,15 +27,15 @@ do
         CODEBOOK="E8P12RVQ4B"
     fi
 
-    # echo "[Stage: Quantize with Finetuning] K=$K" | tee $LOG_FILE
-    # python -m quantize_llama.quantize_finetune_llama \
-    #     --save_path $SAVE_PATH \
-    #     --codebook $CODEBOOK \
-    #     --scale_override 0.9 \
-    #     --base_model meta-llama/Meta-Llama-3-8B \
-    #     --hessian_path $HESS \
-    #     --devset_size 384 \
-    #     --ft_valid_size 128 2>&1 | tee -a $LOG_FILE
+    echo "[Stage: Quantize with Finetuning] K=$K" | tee $LOG_FILE
+    python -m quantize_llama.quantize_finetune_llama \
+        --save_path $SAVE_PATH \
+        --codebook $CODEBOOK \
+        --scale_override 0.9 \
+        --base_model meta-llama/Meta-Llama-3-8B \
+        --hessian_path $HESS \
+        --devset_size 384 \
+        --ft_valid_size 128 2>&1 | tee -a $LOG_FILE
 
     echo "[Stage: Convert to HF format] K=$K" | tee $LOG_FILE
     python -m quantize_llama.hfize_llama \

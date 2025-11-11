@@ -545,31 +545,165 @@ class NWC_ql(CompressionModel, AsinhCompandingMixin):
         
         return x_hat
 
-    def fast_decompress(self, enc_data: dict) -> tuple[dict, dict]:
-            """
-            압축된 데이터로부터 원본을 복원하고, 각 단계별 소요 시간을 측정합니다.
+    # def fast_decompress(self, enc_data: dict) -> tuple[dict, dict]:
+    #         """
+    #         압축된 데이터로부터 원본을 복원하고, 각 단계별 소요 시간을 측정합니다.
             
-            Args:
-                enc_data (dict): 'strings', 'shape', 'q_level' 키를 포함하는 딕셔너리
+    #         Args:
+    #             enc_data (dict): 'strings', 'shape', 'q_level' 키를 포함하는 딕셔너리
 
-            Returns:
-                tuple[dict, dict]: 복원된 데이터 딕셔너리와 시간 측정 결과 딕셔너리
-            """
+    #         Returns:
+    #             tuple[dict, dict]: 복원된 데이터 딕셔너리와 시간 측정 결과 딕셔너리
+    #         """
+    #         timings = {}
+    #         total_start_time = time.perf_counter()
+
+    #         # 1. 입력 데이터 파싱
+    #         parse_start = time.perf_counter()
+    #         strings = enc_data["strings"]
+    #         shape = enc_data["shape"]
+    #         q_level = enc_data["q_level"]
+    #         timings['parse_input_ms'] = (time.perf_counter() - parse_start) * 1000
+
+    #         # 2. 엔트로피 디코딩 (EntropyBottleneck.decompress)
+    #         # 가장 시간이 많이 소요될 수 있는 부분 1
+    #         entropy_decompress_start = time.perf_counter()
+    #         y_hat = self.entropy_bottleneck.decompress(strings[0], shape)
+    #         timings['entropy_decompress_ms'] = (time.perf_counter() - entropy_decompress_start) * 1000
+
+    #         # 3. 텐서 차원 재배열 (Permute)
+    #         permute_start = time.perf_counter()
+    #         perm = list(range(y_hat.dim()))
+    #         perm[-1], perm[1] = perm[1], perm[-1] # [0, 2, 1] for (B, L, C) -> (B, C, L)
+    #         y_hat = y_hat.permute(*perm).contiguous()
+    #         timings['permute_ms'] = (time.perf_counter() - permute_start) * 1000
+            
+    #         # 4. 품질 임베딩 생성
+    #         embedding_start = time.perf_counter()
+    #         q_embed = self.quality_embedding(q_level)
+    #         timings['quality_embedding_ms'] = (time.perf_counter() - embedding_start) * 1000
+
+    #         # 5. Synthesis (Decoder) 네트워크 통과
+    #         # 가장 시간이 많이 소요될 수 있는 부분 2
+    #         synthesis_start = time.perf_counter()
+    #         x_hat = self.g_s(y_hat, q_embed)
+    #         timings['synthesis_g_s_ms'] = (time.perf_counter() - synthesis_start) * 1000
+            
+    #         # 6. 역정규화 (Rescale & Shift)
+    #         rescale_start = time.perf_counter()
+    #         x_hat = self.scale * x_hat + self.shift
+    #         timings['rescale_shift_ms'] = (time.perf_counter() - rescale_start) * 1000
+
+    #         timings['total_decompress_ms'] = (time.perf_counter() - total_start_time) * 1000
+            
+    #         return {"x_hat": x_hat}, timings
+
+    def fast_decompress(self, enc_data: dict) -> tuple[dict, dict]:
             timings = {}
             total_start_time = time.perf_counter()
 
             # 1. 입력 데이터 파싱
             parse_start = time.perf_counter()
-            strings = enc_data["strings"]
-            shape = enc_data["shape"]
-            q_level = enc_data["q_level"]
+            strings = enc_data["strings"]       # non-hyper: [[str_b0, str_b1, ...]]
+            spatial_shape = enc_data["shape"]   # (L,) 또는 (H, W) 등
+            
+            # scale_cond 로직 추가 (기존 fast_decompress의 버그 수정)
+            if not self.scale_cond:
+                q_level = enc_data["q_level"]
+            else:
+                scale_cond = enc_data['scale_cond']
             timings['parse_input_ms'] = (time.perf_counter() - parse_start) * 1000
 
-            # 2. 엔트로피 디코딩 (EntropyBottleneck.decompress)
-            # 가장 시간이 많이 소요될 수 있는 부분 1
-            entropy_decompress_start = time.perf_counter()
-            y_hat = self.entropy_bottleneck.decompress(strings[0], shape)
-            timings['entropy_decompress_ms'] = (time.perf_counter() - entropy_decompress_start) * 1000
+            
+            # 2. 엔트로피 디코딩 (EntropyBottleneck.decompress) - 세부 프로파일링
+            
+            # --- 2a. EntropyBottleneck.decompress (Setup) ---
+            # EntropyBottleneck.decompress의 로직을 인라인합니다.
+            eb_setup_start = time.perf_counter()
+            eb = self.entropy_bottleneck  # EntropyBottleneck 인스턴스
+            
+            # hyperprior가 아닌 경우 strings[0]이 디코딩할 y_strings 리스트임
+            strings_list = strings[0]
+            
+            # 1. output_size 계산
+            output_size = (len(strings_list), eb._quantized_cdf.size(0), *spatial_shape)
+            
+            # 2. indexes 빌드
+            indexes = eb._build_indexes(output_size).to(eb._quantized_cdf.device)
+            
+            # 3. medians (means) 준비
+            medians = eb._extend_ndims(eb._get_medians().detach(), len(spatial_shape))
+            medians = medians.expand(len(strings_list), *([-1] * (len(spatial_shape) + 1)))
+            dtype = medians.dtype
+            timings['entropy_dec_setup_ms'] = (time.perf_counter() - eb_setup_start) * 1000
+            
+            # --- 2b. EntropyModel.decompress (Core Logic) ---
+            # EntropyModel.decompress의 로직을 인라인합니다.
+            em_core_start = time.perf_counter()
+
+            # 버퍼 확인 (매우 빠르므로 타이밍 생략)
+            eb._check_cdf_size()
+            eb._check_cdf_length()
+            eb._check_offsets_size()
+
+            # 버퍼 가져오기 (이것도 빠름)
+            cdf = eb._quantized_cdf
+            cdf_length = eb._cdf_length.reshape(-1).int().tolist()
+            offset = eb._offset.reshape(-1).int().tolist()
+
+            # 1. 출력 텐서 할당
+            alloc_start = time.perf_counter()
+            outputs = cdf.new_empty(indexes.size())
+            timings['entropy_dec_alloc_ms'] = (time.perf_counter() - alloc_start) * 1000
+
+            # 2. CDF.tolist() (루프 전에 한 번만 수행)
+            cdf_list_start = time.perf_counter()
+            cdf_list = cdf.tolist()
+            timings['entropy_dec_cdf_to_list_ms'] = (time.perf_counter() - cdf_list_start) * 1000
+
+            # 3. 디코딩 루프 (배치 순회)
+            decode_loop_start = time.perf_counter()
+            total_list_conversion_ms = 0
+            total_decode_call_ms = 0
+            total_tensor_conversion_ms = 0
+
+            for i, s in enumerate(strings_list):
+                
+                # --- indexes.tolist() ---
+                list_conv_start = time.perf_counter()
+                indexes_list = indexes[i].reshape(-1).int().tolist()
+                total_list_conversion_ms += (time.perf_counter() - list_conv_start) * 1000
+                
+                # --- Core C++ Call ---
+                decode_call_start = time.perf_counter()
+                values = eb.entropy_coder.decode_with_indexes(
+                    s,
+                    indexes_list,
+                    cdf_list,     # 미리 변환된 리스트 사용
+                    cdf_length,
+                    offset,
+                )
+                total_decode_call_ms += (time.perf_counter() - decode_call_start) * 1000
+
+                # --- list to tensor ---
+                tensor_conv_start = time.perf_counter()
+                outputs[i] = torch.tensor(
+                    values, device=outputs.device, dtype=outputs.dtype
+                ).reshape(outputs[i].size())
+                total_tensor_conversion_ms += (time.perf_counter() - tensor_conv_start) * 1000
+            
+            timings['entropy_dec_loop_total_ms'] = (time.perf_counter() - decode_loop_start) * 1000
+            timings['entropy_dec_loop_indexes_to_list_ms'] = total_list_conversion_ms
+            timings['entropy_dec_loop_decode_call_ms'] = total_decode_call_ms # <-- 핵심 병목
+            timings['entropy_dec_loop_values_to_tensor_ms'] = total_tensor_conversion_ms
+
+            # 4. Dequantize (add medians)
+            dequantize_start = time.perf_counter()
+            y_hat = eb.dequantize(outputs, medians, dtype)
+            timings['entropy_dec_dequantize_ms'] = (time.perf_counter() - dequantize_start) * 1000
+            
+            timings['entropy_decompress_total_ms'] = (time.perf_counter() - eb_setup_start) * 1000
+
 
             # 3. 텐서 차원 재배열 (Permute)
             permute_start = time.perf_counter()
@@ -580,24 +714,130 @@ class NWC_ql(CompressionModel, AsinhCompandingMixin):
             
             # 4. 품질 임베딩 생성
             embedding_start = time.perf_counter()
-            q_embed = self.quality_embedding(q_level)
+            if not self.scale_cond:
+                q_embed = self.quality_embedding(q_level)
+            else:
+                q_embed = self.quality_embedding(scale_cond)
             timings['quality_embedding_ms'] = (time.perf_counter() - embedding_start) * 1000
 
             # 5. Synthesis (Decoder) 네트워크 통과
-            # 가장 시간이 많이 소요될 수 있는 부분 2
             synthesis_start = time.perf_counter()
             x_hat = self.g_s(y_hat, q_embed)
             timings['synthesis_g_s_ms'] = (time.perf_counter() - synthesis_start) * 1000
             
-            # 6. 역정규화 (Rescale & Shift)
+            # 6. Inverse Companding (원본 decompress에는 있으나 fast_decompress에는 누락됨)
+            inv_compand_start = time.perf_counter()
+            x_hat = self._inv_compand(x_hat)
+            timings['inv_compand_ms'] = (time.perf_counter() - inv_compand_start) * 1000
+
+            # 7. 역정규화 (Rescale & Shift)
             rescale_start = time.perf_counter()
-            x_hat = self.scale * x_hat + self.shift
+            if not self.scale_cond:
+                x_hat = self.scale * x_hat + self.shift
+            else:
+                x_hat = x_hat * scale_cond.unsqueeze(-1)
             timings['rescale_shift_ms'] = (time.perf_counter() - rescale_start) * 1000
 
             timings['total_decompress_ms'] = (time.perf_counter() - total_start_time) * 1000
             
             return {"x_hat": x_hat}, timings
-        
+
+    def fast_decompress_v2(self, enc_data: dict) -> tuple[dict, dict]:
+            timings = {}
+            total_start_time = time.perf_counter()
+            timings['setup_ms'] = 0
+            
+            
+            setup_start = time.perf_counter()
+            strings_list = enc_data["strings"][0]
+            spatial_shape = enc_data["shape"]
+            q_level = enc_data["q_level"]
+            eb = self.entropy_bottleneck
+            output_size = (len(strings_list), eb._quantized_cdf.size(0), *spatial_shape)
+            timings['setup_ms'] += (time.perf_counter() - setup_start) * 1000
+            
+            transfer_start = time.perf_counter()
+            indexes = eb._build_indexes(output_size).to(eb._quantized_cdf.device)
+            timings['transfer:indexes'] = (time.perf_counter() - transfer_start) * 1000
+            
+            setup_start = time.perf_counter()
+            medians = eb._extend_ndims(eb._get_medians().detach(), len(spatial_shape))
+            medians = medians.expand(len(strings_list), *([-1] * (len(spatial_shape) + 1)))
+            dtype = medians.dtype
+            eb._check_cdf_size()
+            eb._check_cdf_length()
+            eb._check_offsets_size()
+            cdf = eb._quantized_cdf
+            timings['setup_ms'] += (time.perf_counter() - setup_start) * 1000
+
+            transfer_start = time.perf_counter()
+            cdf_length = eb._cdf_length.reshape(-1).int().tolist()
+            offset = eb._offset.reshape(-1).int().tolist()
+            timings['transfer:cdf_length,offeset'] = (time.perf_counter() - transfer_start) * 1000
+
+            # 1. 출력 텐서 할당
+            setup_start = time.perf_counter()
+            outputs = cdf.new_empty(indexes.size())
+            timings['setup_ms'] += (time.perf_counter() - setup_start) * 1000
+
+            transfer_start = time.perf_counter()
+            cdf_list = cdf.tolist()
+            timings['transfer:cdf'] = (time.perf_counter() - transfer_start) * 1000
+
+            # decode_loop_start = time.perf_counter()
+            total_list_conversion_ms = 0
+            total_decode_call_ms = 0
+            total_tensor_conversion_ms = 0
+
+            for i, s in enumerate(strings_list):
+                
+                # --- indexes.tolist() ---
+                list_conv_start = time.perf_counter()
+                indexes_list = indexes[i].reshape(-1).int().tolist()
+                total_list_conversion_ms += (time.perf_counter() - list_conv_start) * 1000
+                
+                # --- Core C++ Call ---
+                decode_call_start = time.perf_counter()
+                values = eb.entropy_coder.decode_with_indexes(
+                    s,
+                    indexes_list,
+                    cdf_list,     # 미리 변환된 리스트 사용
+                    cdf_length,
+                    offset,
+                )
+                total_decode_call_ms += (time.perf_counter() - decode_call_start) * 1000
+
+                # --- list to tensor ---
+                tensor_conv_start = time.perf_counter()
+                outputs[i] = torch.tensor(
+                    values, device=outputs.device, dtype=outputs.dtype
+                ).reshape(outputs[i].size())
+                total_tensor_conversion_ms += (time.perf_counter() - tensor_conv_start) * 1000
+            
+            # timings['entropy_dec_loop_total_ms'] = (time.perf_counter() - decode_loop_start) * 1000
+            timings['transfer:entropy_dec_loop_indexes_to_list_ms'] = total_list_conversion_ms
+            timings['entropy_dec_loop_decode_call_ms'] = total_decode_call_ms # <-- 핵심 병목
+            timings['transfer:entropy_dec_loop_values_to_tensor_ms'] = total_tensor_conversion_ms
+
+            # 4. Dequantize (add medians)
+            dequantize_start = time.perf_counter()
+            y_hat = eb.dequantize(outputs, medians, dtype)
+            timings['entropy_dec_dequantize_ms'] = (time.perf_counter() - dequantize_start) * 1000
+            
+
+            # 3. 텐서 차원 재배열 (Permute)
+            synthesis_start = time.perf_counter()
+            perm = list(range(y_hat.dim()))
+            perm[-1], perm[1] = perm[1], perm[-1] # [0, 2, 1] for (B, L, C) -> (B, C, L)
+            y_hat = y_hat.permute(*perm).contiguous()
+            
+            q_embed = self.quality_embedding(q_level)
+            x_hat = self.g_s(y_hat, q_embed)
+            x_hat = self.scale * x_hat + self.shift
+            timings['synthesis_g_s_ms'] = (time.perf_counter() - synthesis_start) * 1000
+            timings['total_decompress_ms'] = (time.perf_counter() - total_start_time) * 1000
+            
+            return {"x_hat": x_hat}, timings
 
 class NWC_ql_LTC(CompressionModel):
     """Simple VAE model with arbitrary latent codec.

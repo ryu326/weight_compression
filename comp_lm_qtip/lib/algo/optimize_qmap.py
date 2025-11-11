@@ -1,6 +1,5 @@
 import torch
 import math
-# import utils
 from lib import utils
 import os
 from lib.algo import quip
@@ -14,8 +13,7 @@ from tqdm import tqdm
 import copy
 from torch.utils.data import TensorDataset, DataLoader
 import sys
-sys.path.append('/workspace/Weight_compression')
-# import wandb
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../..'))
 from NWC.loss import *
 import glog
 

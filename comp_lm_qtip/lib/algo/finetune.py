@@ -310,8 +310,8 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
             hatWr = hatWr.cpu()
         torch.save(
             {
-                'W_hat': W_hat,
-                'hatWr': hatWr,
+                'W_hat': W_hat if not args.use_codes else None,
+                'hatWr': hatWr if not args.use_codes else None,
                 'codes': out['codes'],
                 'bpp_loss': bpp_loss,
                 'bpp': bpp,
@@ -453,7 +453,7 @@ def infer(args, end_dev, n_layers, in_q, out_q):
                     dim=-1).cpu())
 
 
-def finetune_susv_e2e(quant_model, start_dev, devset, orig_dtype, args):
+def finetune_e2e(quant_model, start_dev, devset, orig_dtype, args):
 
     in_q = mp.Queue()
     out_q = mp.Queue()
@@ -468,6 +468,8 @@ def finetune_susv_e2e(quant_model, start_dev, devset, orig_dtype, args):
 
     best_loss = utils.calculate_ce_loss_model(quant_model, valid_dl, start_dev,
                                               in_q, out_q)
+    # best_loss = 0
+    
     scaler = torch.cuda.amp.GradScaler(enabled=True)
 
     best_sd = copy.deepcopy(quant_model.state_dict())

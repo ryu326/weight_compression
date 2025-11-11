@@ -413,6 +413,8 @@ def finetune_susv_e2e(quant_model, start_dev, devset, orig_dtype, args):
 
     best_loss = utils.calculate_ce_loss_model(quant_model, valid_dl, start_dev,
                                               in_q, out_q)
+    # best_loss = 0 # for test
+    
     scaler = torch.cuda.amp.GradScaler(enabled=True)
 
     best_sd = copy.deepcopy(quant_model.state_dict())
@@ -454,67 +456,6 @@ def finetune_susv_e2e(quant_model, start_dev, devset, orig_dtype, args):
                 worse_ct += 1
                 if worse_ct >= args.ft_early_stop:
                     break
-
-    in_q.put(None)
-    p.join()
-    with torch.no_grad():
-        quant_model.load_state_dict(best_sd)
-
-
-def finetune_susv_e2e_from_quip(quant_model, start_dev, devset, orig_dtype, args):
-
-    train_dl, valid_dl = utils.split_data(devset, devset, args)
-
-    optim = torch.optim.Adam(quant_model.parameters(), lr=args.ft_lr)
-
-    # best_loss = utils.calculate_ce_loss_model(quant_model, valid_dl, start_dev,
-    #                                           in_q, out_q)
-    best_loss = utils.calculate_ce_loss_quip(quant_model, position_ids, attention_mask,
-                                    valid_dl)
-
-    scaler = torch.cuda.amp.GradScaler(enabled=True)
-
-    best_sd = copy.deepcopy(quant_model.state_dict())
-    glog.info(f'initial loss {best_loss}')
-    worse_ct = 0
-    for epoch in range(args.ft_epochs):
-        for bidx, (source, targets) in enumerate(train_dl):
-            with torch.autocast(device_type='cuda',
-                                dtype=torch.float16,
-                                enabled=True):
-                output = quant_model(
-                    source,
-                    position_ids=position_ids,
-                    attention_mask=attention_mask,
-                )[:, :-1].contiguous()
-                loss = nn.CrossEntropyLoss()(output.view(-1, output.shape[-1]),
-                                             targets.to(0).view(
-                                                 -1, targets.shape[-1]))
-            scaler.scale(loss).backward()
-            if bidx % args.ft_update_freq == args.ft_update_freq - 1 or bidx == len(
-                    train_dl) - 1:
-                scaler.step(optim)
-                scaler.update()
-                optim.zero_grad()
-
-        if epoch % args.ft_valid_freq == (args.ft_valid_freq - 1):
-            test_loss = utils.calculate_ce_loss_quip(quant_model, position_ids,
-                                                attention_mask, valid_dl)
-            if test_loss < best_loss:
-                glog.info(
-                    f'epoch {epoch} new loss {test_loss} old loss {best_loss} BETTER'
-                )
-                best_loss = test_loss
-                best_sd = copy.deepcopy(quant_model.state_dict())
-                worse_ct = 0
-            else:
-                glog.info(
-                    f'epoch {epoch} new loss {test_loss} old loss {best_loss} WORSE'
-                )
-                worse_ct += 1
-                if worse_ct >= args.ft_early_stop:
-                    break
-
 
     in_q.put(None)
     p.join()

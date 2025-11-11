@@ -17,18 +17,17 @@ import eval.gptq_data_utils as gptq_data_utils
 # from lib.utils.unsafe_import import model_from_hf_path
 
 import transformers
-import model.llama
-# from transformers import LlamaForCausalLM
-# from model.llama import LlamaForCausalLM
-# from . import graph_wrapper
+from model.llama import LlamaForCausalLM
+# from transformers import LlamaForCausalLM as OrigLlama
 
 
 def model_from_hf_path(path,
                        use_cuda_graph=True,
                        use_flash_attn=True,
-                       device_map='auto'):
+                       device_map='auto',
+                       sep_rnorm = False):
 
-    model_cls = transformers.AutoModelForCausalLM
+    model_cls = transformers.AutoModelForCausalLM if not sep_rnorm else LlamaForCausalLM
     model_str = path
 
     model =model_cls.from_pretrained(
@@ -50,12 +49,13 @@ parser.add_argument('--no_use_cuda_graph', action='store_true')
 parser.add_argument('--no_use_flash_attn', action='store_true')
 parser.add_argument('--datasets', type=str, default='wikitext2,c4,ptb')
 parser.add_argument("--output_path", default=None, type=str)
+parser.add_argument('--sep_rnorm', action='store_true')
 
 def main(args):
     # datasets = ['wikitext2', 'c4']
     datasets = (args.datasets).split(',')
     model, model_str = model_from_hf_path(
-        args.hf_path)
+        args.hf_path, sep_rnorm = args.sep_rnorm)
 
     for dataset in datasets:
         try:

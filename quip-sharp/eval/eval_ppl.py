@@ -59,7 +59,8 @@ def main(args):
         acc_loss = 0.0
         progress = tqdm(range(nsamples))
         for ii in progress:
-            input = input_tok[ii, :].cuda().view(1, -1)
+            # input = input_tok[ii, :].cuda().view(1, -1)
+            input = input_tok[ii, :].to(model.device).view(1, -1)
             output = model(input,
                            use_cache=False,
                            output_hidden_states=False,

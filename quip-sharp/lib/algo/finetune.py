@@ -2,6 +2,7 @@
 Utilities for fine tuning
 """
 import copy
+import os
 from operator import attrgetter
 
 import glog
@@ -160,8 +161,10 @@ def finetune_susv_e2e(model, orig_logits, emb, position_ids, attention_mask,
     susv_params, params = utils.extract_susv_params(model)
     optim = utils.get_susv_adam(susv_params, params, args)
 
+    glog.info(f'+++++++ Calculating initial loss')
     best_loss = utils.calculate_ce_loss(model, position_ids, attention_mask,
                                         valid_dl)
+    # best_loss = 0
     scaler = torch.cuda.amp.GradScaler(enabled=True)
 
     best_sd = copy.deepcopy(model.state_dict())
@@ -207,4 +210,178 @@ def finetune_susv_e2e(model, orig_logits, emb, position_ids, attention_mask,
 
     with torch.no_grad():
         model.load_state_dict(best_sd)
-        save_fn(model)
+        # save_fn(model) 
+        # model.save_pretrained(args.hf_output_path, safe_serialization=True) ## not working
+
+
+## from qtip
+import copy
+import math
+from operator import attrgetter
+
+import glog
+import torch
+from torch import multiprocessing as mp
+from torch import nn
+from transformers import AutoModelForCausalLM
+
+from lib import codebook, utils
+# from lib.linear import QuantizedLinear
+
+
+def infer(args, end_dev, n_layers, in_q, out_q):
+    with torch.no_grad():
+        fake_dev_map = {
+            'model.embed_tokens': 0,
+            'model.rotary_emb': 0,
+            'model.norm': end_dev - 1,
+            'lm_head': end_dev - 1
+        }
+        per_dev = math.ceil(n_layers / end_dev)
+        for i in range(n_layers):
+            fake_dev_map[f'model.layers.{i}'] = (i + 1) // per_dev
+        
+        # num_gpus = 4
+        # # num_gpus = end_dev  # 사용 가능한 GPU 총 개수 (예: 4)
+        # # embedding과 rotary, norm, lm_head도 순환 방식으로 할당합니다.
+        # fake_dev_map = {
+        #     'model.embed_tokens': 2,
+        #     'model.rotary_emb': 1,
+        #     'model.norm': 2,
+        #     'lm_head': 3
+        # }
+        # # 레이어들을 GPU 0,1,2,3에 순환식으로 할당
+        # for i in range(n_layers):
+        #     fake_dev_map[f'model.layers.{i}'] = i % num_gpus
+
+
+        model = AutoModelForCausalLM.from_pretrained(args.base_model,
+                                                     torch_dtype='auto',
+                                                     device_map=fake_dev_map,
+                                                     low_cpu_mem_usage=True)
+        while True:
+            data = in_q.get()
+            if data is None:
+                return
+            out_q.put(
+                model(data.to(0))['logits'][:, :-1].contiguous().softmax(
+                    dim=-1).cpu())
+
+def calculate_ce_loss_model(model, dataloader, start_dev, in_q, out_q):
+    model.eval()
+    total_loss = 0
+    ct = 0
+    with torch.no_grad():
+        for source, target in dataloader:
+            in_q.put(source)
+            output = model(source.to(start_dev))['logits'][:, :-1].contiguous()
+            output = output.view(-1, output.shape[-1])
+            target = out_q.get().to(output.device)
+            target = target.view(-1, target.shape[-1])
+            total_loss += nn.CrossEntropyLoss()(output, target)
+            ct += 1
+    model.train()
+    return (total_loss / ct).cpu().item()
+
+def calculate_mse_loss_quip(layer, dataloader, device):
+    layer.eval()
+    total_loss = 0
+    ct = 0
+    position_ids = None
+    with torch.no_grad():
+        for source, target in dataloader:
+            if position_ids is None:
+                position_ids = torch.arange(source.shape[1], device=device).unsqueeze(0)
+            total_loss += nn.MSELoss()(layer(source.to(device), position_ids=position_ids)[0],
+                                       target.to(device))
+            ct += 1
+    layer.train()
+    return (total_loss / ct).cpu().item()
+
+def finetune_susv_e2e_qtip(quant_model, start_dev, devset, orig_dtype, args):
+    # start_dev = 2
+    in_q = mp.Queue()
+    out_q = mp.Queue()
+    p = mp.Process(target=infer,
+                   args=(args, start_dev, len(quant_model.model.layers), in_q,
+                         out_q))
+    p.start()
+
+    train_dl, valid_dl = utils.split_data(devset, devset, args)
+
+    optim = torch.optim.Adam(quant_model.parameters(), lr=args.ft_lr)
+
+    best_loss = calculate_ce_loss_model(quant_model, valid_dl, start_dev,
+                                              in_q, out_q)
+    # best_loss = 0 # for test
+    
+    scaler = torch.cuda.amp.GradScaler(enabled=True)
+
+    best_sd = copy.deepcopy(quant_model.state_dict())
+    glog.info(f'initial loss {best_loss}')
+    worse_ct = 0
+    
+    # 체크포인트 저장 경로 설정
+    if hasattr(args, 'checkpoint_path') and args.checkpoint_path:
+        checkpoint_dir = args.checkpoint_path
+    elif hasattr(args, 'hf_output_path') and args.hf_output_path:
+        checkpoint_dir = os.path.join(os.path.dirname(args.hf_output_path), 'checkpoints')
+    else:
+        checkpoint_dir = './checkpoints'
+    os.makedirs(checkpoint_dir, exist_ok=True)
+    glog.info(f'Checkpoint directory: {checkpoint_dir}')
+    
+    for epoch in range(args.ft_epochs):
+        for bidx, (source, _) in enumerate(train_dl):
+            in_q.put(source)
+            with torch.autocast(device_type='cuda',
+                                dtype=orig_dtype,
+                                enabled=True):
+                output = quant_model(
+                    source.to(start_dev))['logits'][:, :-1].contiguous()
+                target = out_q.get().to(output.device)
+                target = target.view(-1, target.shape[-1])
+                loss = nn.CrossEntropyLoss()(output.view(-1, output.shape[-1]),
+                                             target)
+            scaler.scale(loss).backward()
+            if bidx % args.ft_update_freq == args.ft_update_freq - 1 or bidx == len(
+                    train_dl) - 1:
+                scaler.step(optim)
+                scaler.update()
+                optim.zero_grad()
+
+        # 매 epoch마다 체크포인트 저장
+        checkpoint_path = os.path.join(checkpoint_dir, f'checkpoint_epoch_{epoch}.pt')
+        checkpoint = {
+            'epoch': epoch,
+            'model_state_dict': quant_model.state_dict(),
+            'optimizer_state_dict': optim.state_dict(),
+            'scaler_state_dict': scaler.state_dict(),
+            'best_loss': best_loss,
+            'worse_ct': worse_ct,
+        }
+        torch.save(checkpoint, checkpoint_path)
+        glog.info(f'Saved checkpoint at epoch {epoch} to {checkpoint_path}')
+
+        if epoch % args.ft_valid_freq == (args.ft_valid_freq - 1):
+            test_loss = calculate_ce_loss_model(quant_model, valid_dl,
+                                                      start_dev, in_q, out_q)
+            if test_loss < best_loss:
+                glog.info(
+                    f'epoch {epoch} new loss {test_loss} old loss {best_loss} BETTER'
+                )
+                best_loss = test_loss
+                best_sd = copy.deepcopy(quant_model.state_dict())
+                worse_ct = 0
+            else:
+                glog.info(
+                    f'epoch {epoch} new loss {test_loss} old loss {best_loss} WORSE'
+                )
+                worse_ct += 1
+                if worse_ct >= args.ft_early_stop:
+                    break
+
+    in_q.put(None)
+    p.join()
+    with torch.no_grad():
+        quant_model.load_state_dict(best_sd)

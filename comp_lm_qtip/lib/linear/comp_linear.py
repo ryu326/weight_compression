@@ -74,6 +74,7 @@ class CompLinear(Module):
             self.register_parameter("bias", None)
         ## my
         self.row_norm = Parameter(torch.empty((out_features, 1), **factory_kwargs))
+        # self.row_norm = None  # shape: (out_features, 1)
         self.reset_parameters()
         
 
@@ -86,12 +87,21 @@ class CompLinear(Module):
             fan_in, _ = init._calculate_fan_in_and_fan_out(self.Wr)
             bound = 1 / math.sqrt(fan_in) if fan_in > 0 else 0
             init.uniform_(self.bias, -bound, bound)
-        if hasattr(self, 'row_norm') and self.row_norm is not None:
-            init.uniform_(self.row_norm)
+        ## should initialize row_norm manually
+        # if hasattr(self, 'row_norm') and self.row_norm is not None:
+        #     init.uniform_(self.row_norm)
             
     def forward(self, input: Tensor) -> Tensor:
-        W = self.Wr * self.row_norm
-        return F.linear(input, W, self.bias)
-
+        ## v1
+        # W = self.Wr * self.row_norm
+        # return F.linear(input, W, self.bias)
+        ## v2
+        y = F.linear(input, self.Wr, None)
+        y = y * self.row_norm.T
+        if self.bias is not None:
+            y = y + self.bias
+            
+        return y
+    
     def extra_repr(self) -> str:
         return f"in_features={self.in_features}, out_features={self.out_features}, bias={self.bias is not None}"

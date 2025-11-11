@@ -86,19 +86,19 @@ def main(args):
 
     glog.info('successfully loaded hfized model')
 
-    glog.info('generating some text...')
+    # glog.info('generating some text...')
 
-    start = time.time()
-    prompt = 'It is a truth universally acknowledged that'
-    inputs = tokenizer(prompt, return_tensors='pt')
-    outputs = model.generate(input_ids=inputs['input_ids'].cuda(),
-                             attention_mask=inputs['attention_mask'].cuda(),
-                             max_new_tokens=64,
-                             return_dict_in_generate=True)
-    token = outputs.sequences[0, :]
-    output_str = tokenizer.decode(token)
-    glog.info(output_str)
-    glog.info(f'elapsed: {time.time() - start}')
+    # start = time.time()
+    # prompt = 'It is a truth universally acknowledged that'
+    # inputs = tokenizer(prompt, return_tensors='pt')
+    # outputs = model.generate(input_ids=inputs['input_ids'].cuda(),
+    #                          attention_mask=inputs['attention_mask'].cuda(),
+    #                          max_new_tokens=64,
+    #                          return_dict_in_generate=True)
+    # token = outputs.sequences[0, :]
+    # output_str = tokenizer.decode(token)
+    # glog.info(output_str)
+    # glog.info(f'elapsed: {time.time() - start}')
 
 
 if __name__ == '__main__':

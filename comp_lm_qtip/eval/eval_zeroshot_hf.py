@@ -11,6 +11,7 @@ from lm_eval.models.huggingface import HFLM
 from transformers import AutoTokenizer
 import transformers
 import accelerate
+from model.llama import LlamaForCausalLM
 
 os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:512'
 
@@ -26,10 +27,11 @@ parser.add_argument('--apply_chat_template', action='store_true')
 parser.add_argument('--fewshot_as_multiturn', action='store_true')
 parser.add_argument('--manifest_model', action='store_true')
 parser.add_argument('--max_mem_ratio', type=float, default=0.7)
+parser.add_argument('--sep_rnorm', action='store_true')
 
 
-def model_from_hf_path(path, max_mem_ratio=0.7, device_map=None):
-    model_cls = transformers.AutoModelForCausalLM
+def model_from_hf_path(path, max_mem_ratio=0.7, device_map=None, sep_rnorm = False):
+    model_cls = transformers.AutoModelForCausalLM if not sep_rnorm else LlamaForCausalLM
     model_str = path
 
     if device_map is None:
@@ -55,7 +57,7 @@ def model_from_hf_path(path, max_mem_ratio=0.7, device_map=None):
 
 
 def main(args):
-    model, model_str = model_from_hf_path(args.hf_path, max_mem_ratio=args.max_mem_ratio, device_map='balanced')
+    model, model_str = model_from_hf_path(args.hf_path, max_mem_ratio=args.max_mem_ratio, device_map='balanced', sep_rnorm = args.sep_rnorm)
 
     # manifest for faster inference
     # use for codebooks without kernel support

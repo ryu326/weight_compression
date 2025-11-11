@@ -93,14 +93,20 @@ def main(args):
     tokenizer.pad_token = tokenizer.eos_token
     devset = utils.sample_rp1t(tokenizer, args.devset_size, args.ctx_size,
                                args.sample_proc)
-
+    
     orig_model = AutoModelForCausalLM.from_pretrained(args.base_model,
                                                       torch_dtype='auto',
                                                       device_map='auto',
                                                       low_cpu_mem_usage=True)
+    glog.info(f'+++++++ Calculating logits')
     orig_logits = utils.calculate_logits(orig_model, devset, args.batch_size)
     orig_logits = orig_logits[:, :-1].contiguous().softmax(dim=-1).float()
-
+    glog.info(f'orig_logits shape: {orig_logits.shape}')
+    
+    # orig_logits = torch.zeros(args.devset_size, args.ctx_size-1, 128256)
+    # print(orig_logits.shape)
+    # import ipdb; ipdb.set_trace()
+    
     del orig_model
     utils.clean()
 
@@ -139,6 +145,8 @@ def main(args):
     torch.set_grad_enabled(True)
     finetune.finetune_susv_e2e(shard_model, orig_logits, emb, position_ids,
                                attention_mask, get_llama_save_fn(args), args)
+    # finetune.finetune_susv_e2e(shard_model, orig_logits, emb, position_ids,
+    #                            attention_mask, None, args)
 
 
 if __name__ == '__main__':

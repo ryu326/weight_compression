@@ -90,17 +90,20 @@ def evaluate(lm, args, logger):
 
     if args.eval_ppl:
         # for dataset in ["wikitext2", "ptb", "c4","ptb-new",'c4-new']:
+        ##
+        seqlen = args.seqlen
+        
         for dataset in ["wikitext2", "c4"]:
             cache_testloader = f"{args.cache_dir}/testloader_{args.model_family}_{dataset}_all.cache"
             if os.path.exists(cache_testloader):
-                testloader = torch.load(cache_testloader)
+                testloader = torch.load(cache_testloader, weights_only=False)
                 logger.info(f"load calibration from {cache_testloader}")
             else:
                 dataloader, testloader = get_loaders(
                     dataset,
                     seed=args.seed,
                     model=args.model,
-                    seqlen=lm.seqlen,
+                    seqlen=seqlen,
                 )
                 torch.save(testloader, cache_testloader)
             if "c4" in dataset:
@@ -108,13 +111,14 @@ def evaluate(lm, args, logger):
             else:
                 testenc = testloader.input_ids
 
-            nsamples = testenc.numel() // lm.seqlen
+            # nsamples = testenc.numel() // lm.seqlen
+            nsamples = testenc.numel() // seqlen
             use_cache = lm.model.config.use_cache
             lm.model.config.use_cache = False
             lm.model.eval()
             nlls = []
             for i in tqdm(range(nsamples)):
-                batch = testenc[:, (i * lm.seqlen) : ((i + 1) * lm.seqlen)].to(lm.device)
+                batch = testenc[:, (i * seqlen) : ((i + 1) * seqlen)].to(lm.device)
                 if "opt" in args.net.lower():
                     outputs = lm.model.model.decoder(batch)
                 elif "llama" in args.net.lower() or "mixtral" in args.net.lower():
@@ -124,7 +128,7 @@ def evaluate(lm, args, logger):
                 hidden_states = outputs[0]
                 logits = lm.model.lm_head(hidden_states)
                 shift_logits = logits[:, :-1, :]
-                shift_labels = testenc[:, (i * lm.seqlen) : ((i + 1) * lm.seqlen)][:, 1:].to(
+                shift_labels = testenc[:, (i * seqlen) : ((i + 1) * seqlen)][:, 1:].to(
                     lm.model.lm_head.weight.device
                 )
                 loss_fct = nn.CrossEntropyLoss()
@@ -132,12 +136,12 @@ def evaluate(lm, args, logger):
                     shift_logits.view(-1, shift_logits.size(-1)),
                     shift_labels.view(-1),
                 )
-                neg_log_likelihood = loss.float() * lm.seqlen
+                neg_log_likelihood = loss.float() * seqlen
                 nlls.append(neg_log_likelihood)
                 if i == args.limit:
                     break
 
-            ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * lm.seqlen))
+            ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
             logger.info(f"{dataset} : {ppl.item()}")
             lm.model.config.use_cache = use_cache
             results[dataset] = ppl.item()
@@ -247,6 +251,8 @@ def main():
     parser.add_argument("--net", type=str, default=None, choices=net_choices)
     parser.add_argument("--act-scales", type=str, default=None)
     parser.add_argument("--act-shifts", type=str, default=None)
+    parser.add_argument("--eval_out_dir", default=None, type=str)
+    parser.add_argument("--seqlen", default=2048, type=int)
 
     args = parser.parse_args()
     random.seed(args.seed)
@@ -339,7 +345,7 @@ def main():
         # load calibration dataset
         cache_dataloader = f"{args.cache_dir}/dataloader_{args.model_family}_{args.calib_dataset}_{args.nsamples}.cache"
         if os.path.exists(cache_dataloader):
-            dataloader = torch.load(cache_dataloader)
+            dataloader = torch.load(cache_dataloader, weights_only=False)
             logger.info(f"load calibration from {cache_dataloader}")
         else:
             dataloader, _ = get_loaders(
@@ -353,8 +359,8 @@ def main():
         act_scales = None
         act_shifts = None
         if args.let:
-            act_scales = torch.load(args.act_scales)
-            act_shifts = torch.load(args.act_shifts)
+            act_scales = torch.load(args.act_scales, weights_only=False)
+            act_shifts = torch.load(args.act_shifts, weights_only=False)
         omniquant(
             lm,
             args,
@@ -380,8 +386,14 @@ def main():
                     del module.fc1_smooth_shift
         lm.model.save_pretrained(args.save_dir)
         lm.tokenizer.save_pretrained(args.save_dir)
-    evaluate(lm, args, logger)
-
+    r = evaluate(lm, args, logger)
+    print(r)
+    # r 변수를 json 파일로 저장
+    import json
+    
+    Path(args.eval_out_dir).mkdir(parents=True, exist_ok=True)
+    with open(args.eval_out_dir + f"/w{args.wbits}a{args.abits}g{args.group_size}_results.json", "w", encoding="utf-8") as f:
+        json.dump(r, f, ensure_ascii=False, indent=2)
 
 if __name__ == "__main__":
     print(sys.argv)

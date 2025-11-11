@@ -8,8 +8,9 @@ from transformers import AutoTokenizer
 
 from lib import codebook, utils
 from lib.utils.unsafe_import import model_from_hf_path
-# from model.llama import LlamaForCausalLM
+from model.llama import LlamaForCausalLM
 from transformers import LlamaForCausalLM as OrigLlama
+from torch import nn
 import json
 
 torch.set_grad_enabled(False)
@@ -20,6 +21,7 @@ parser.add_argument('--hf_output_path', type=str)
 parser.add_argument('--skip_list', type=str, default='')
 parser.add_argument('--use_codes', action='store_true')
 parser.add_argument('--W_key', type=str, default='')
+parser.add_argument('--sep_rnorm', action='store_true')
 
 def main(args):
     assert os.path.exists(args.quantized_path)
@@ -30,7 +32,9 @@ def main(args):
 
     tokenizer = AutoTokenizer.from_pretrained(model_config._name_or_path)
     
-    model = OrigLlama.from_pretrained(model_config._name_or_path,
+    model_cls = LlamaForCausalLM if args.sep_rnorm else OrigLlama
+    
+    model = model_cls.from_pretrained(model_config._name_or_path,
                                       torch_dtype='auto',
                                       low_cpu_mem_usage=True,
                                       config=model_config)
@@ -62,9 +66,14 @@ def main(args):
                                  map_location=cpu, weights_only=False)
         model.lm_head.weight.copy_(lmhead_data['lm_head'].to(model.lm_head.weight.dtype))
         model.model.norm.weight.copy_(lmhead_data['norm'].to(model.model.norm.weight.dtype))
-
-    # --- 개선점: 반복되는 가중치 타입 정보를 리스트로 정의 ---
-    # 각 튜플은 (가중치 약어, 상위 모듈 이름, projection 레이어 이름)을 가집니다.
+    else:
+        glog.info("lmhead.pt not found. Asserting model and orig_model heads/norms are identical...")
+        assert torch.equal(model.lm_head.weight, orig_model.lm_head.weight), "LM heads do not match!"
+        assert torch.equal(model.model.norm.weight, orig_model.model.norm.weight), "Final norms do not match!"
+        assert torch.equal(model.model.embed_tokens.weight, orig_model.model.embed_tokens.weight), "Embeddings do not match!"
+        glog.info("Assert OK: Heads and norms are identical.")
+        
+        
     weight_types = [
         ('q', 'self_attn', 'q_proj'),
         ('k', 'self_attn', 'k_proj'),
@@ -96,24 +105,30 @@ def main(args):
                 file_path = f'{args.quantized_path}/{skip_key}.pt'
                 saved_layer = torch.load(file_path, map_location=cpu, weights_only=False)
                 
-                W_hat = saved_layer['W_hat' + args.W_key]
-                if W_hat == None:
-                    W_hat = utils.de_standardize_Wr(saved_layer['hatWr'], saved_layer['metadata'], comp_config)
-                
-                # # if model_config.get('comp_params', {}).get('ft_rnorm'):
-                # if hasattr(model_config, 'comp_params') and model_config.comp_params.get('ft_rnorm'):
-                #     rnorm = saved_layer['row_norm']
-                #     W_hat = W_hat * rnorm  
-                
-                # getattr을 사용해 동적으로 모듈과 가중치에 접근
                 submodule = getattr(layer, submodule_name)
                 proj_layer = getattr(submodule, proj_name)
-                proj_layer.weight.copy_(W_hat.to(proj_layer.weight.dtype))
-
+                
                 comp_result[f'{skip_key}.pt'] = {k: v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor) and k != 'codes' and k != 'metadata'}
                 comp_result['bpp_loss'] += saved_layer['bpp_loss_sum' + args.W_key]
                 comp_result['num_pixels'] += saved_layer['num_pixels']
                 comp_result['bpp'] += saved_layer['bpp_sum']
+                
+                if args.sep_rnorm:
+                    try:
+                        proj_layer.Wr.copy_(saved_layer['hatWr'])
+                        # proj_layer.row_norm = nn.Parameter(saved_layer['metadata']['row_std'], requires_grad=True)         
+                        proj_layer.row_norm.copy_(saved_layer['metadata']['row_std'])
+                    except:
+                        # proj_layer.Wr.copy_(saved_layer['W_hat']/saved_layer['row_norm'])
+                        proj_layer.Wr.copy_(saved_layer['W_hat'])
+                        proj_layer.row_norm = nn.Parameter(saved_layer['row_norm'])         
+                        # proj_layer.row_norm.copy_(saved_layer['row_norm'])
+                else:
+                    W_hat = saved_layer['W_hat' + args.W_key]
+                    if W_hat == None:
+                        W_hat = utils.de_standardize_Wr(saved_layer['hatWr'], saved_layer['metadata'], comp_config)
+                    proj_layer.weight.copy_(W_hat.to(proj_layer.weight.dtype))                
+
             else:
                 glog.info(f'### skipping {skip_key} ###')
                 # getattr과 setattr을 사용해 원본 모델의 레이어로 교체
@@ -135,7 +150,7 @@ def main(args):
     glog.info(f'saving model...')
     model.save_pretrained(args.hf_output_path, safe_serialization=True)
     tokenizer.save_pretrained(args.hf_output_path)
-    del model   
+    del model
     
     file_path = f'{args.hf_output_path}_result.json'
     if os.path.exists(file_path):

@@ -226,6 +226,8 @@ def model_foward_one_batch(w, model, args, **kwargs):
         out_enc = model.compress(data)
         out_dec = model.decompress(out_enc)
         w_hat = out_dec['x_hat']
+        # import ipdb; ipdb.set_trace()
+        # import web_pdb; web_pdb.set_trace(host='0.0.0.0')
         for s in out_enc["strings"]:
             nbits += len(s[0]) * 8.0
     else:
@@ -259,191 +261,191 @@ def model_foward_one_batch(w, model, args, **kwargs):
     return w_hat, num_pixels, bpp_loss_sum, out, out_enc, nbits
 
 
-def model_foward_one_batch2(w, model, args, **kwargs):
-    y_in = kwargs.get('y_in', None)
-    mode = kwargs.get('mode', 'init')
-    ql = kwargs.get('ql', None)  # (n, )
-    (m, n) = w.shape # (m, n), T안하고 들어오는 걸로 가정
-    blks = model.input_size
-    assert (m if args.direction == 'col' else n) % blks == 0
+# def model_foward_one_batch2(w, model, args, **kwargs):
+#     y_in = kwargs.get('y_in', None)
+#     mode = kwargs.get('mode', 'init')
+#     ql = kwargs.get('ql', None)  # (n, )
+#     (m, n) = w.shape # (m, n), T안하고 들어오는 걸로 가정
+#     blks = model.input_size
+#     assert (m if args.direction == 'col' else n) % blks == 0
     
-    sc = kwargs.get('sc', None)  # (1, n)
-    sc = sc.repeat(m, 1) if sc is not None else None
+#     sc = kwargs.get('sc', None)  # (1, n)
+#     sc = sc.repeat(m, 1) if sc is not None else None
 
-    if ql is not None:
-        ql = ql.reshape(1, n).expand(m//blks, n)
-    elif args.ql_search_value is not None:
-        ql = torch.full((m//blks, n), args.ql_search_value, dtype=torch.int32, device=w.device)
+#     if ql is not None:
+#         ql = ql.reshape(1, n).expand(m//blks, n)
+#     elif args.ql_search_value is not None:
+#         ql = torch.full((m//blks, n), args.ql_search_value, dtype=torch.int32, device=w.device)
     
-    transpose = args.direction == 'col'
-    w = w.T if (w is not None and transpose) else w
-    ql = ql.T if (ql is not None and transpose) else ql
-    # qm = qm.T if (qm is not None and transpose) else qm
-    sc = sc.T if sc is not None and transpose else sc
+#     transpose = args.direction == 'col'
+#     w = w.T if (w is not None and transpose) else w
+#     ql = ql.T if (ql is not None and transpose) else ql
+#     # qm = qm.T if (qm is not None and transpose) else qm
+#     sc = sc.T if sc is not None and transpose else sc
     
-    data = {}
-    w = w.reshape(1, -1, blks)
-    data['weight_block'] = w
-    assert torch.isnan(w).any() == False
+#     data = {}
+#     w = w.reshape(1, -1, blks)
+#     data['weight_block'] = w
+#     assert torch.isnan(w).any() == False
     
-    if ql is not None:
-        data['q_level'] = ql.reshape(1, w.shape[1])
-    # if qm is not None:
-    #     data['qmap'] = qm.reshape(1, w.shape[1])
-    if hasattr(model, 'pe') and model.pe:
-        wtype_mapping = {'q': 0, 'k': 1, 'v': 2, 'o': 3, 'gate': 4, 'up': 5, 'down': 6}
-        depth = args.layer_idx
-        ltype = wtype_mapping[args.layer_name]
-        data['depth'] = torch.full((1, 1), depth, dtype=torch.long).to(w.device)
-        data['ltype'] = torch.full((1, 1), ltype, dtype=torch.long).to(w.device)
-    if sc is not None:
-        data['scale_cond'] = sc.reshape(1, -1, blks)
+#     if ql is not None:
+#         data['q_level'] = ql.reshape(1, w.shape[1])
+#     # if qm is not None:
+#     #     data['qmap'] = qm.reshape(1, w.shape[1])
+#     if hasattr(model, 'pe') and model.pe:
+#         wtype_mapping = {'q': 0, 'k': 1, 'v': 2, 'o': 3, 'gate': 4, 'up': 5, 'down': 6}
+#         depth = args.layer_idx
+#         ltype = wtype_mapping[args.layer_name]
+#         data['depth'] = torch.full((1, 1), depth, dtype=torch.long).to(w.device)
+#         data['ltype'] = torch.full((1, 1), ltype, dtype=torch.long).to(w.device)
+#     if sc is not None:
+#         data['scale_cond'] = sc.reshape(1, -1, blks)
         
-    num_pixels = m*n
-    bpp_loss_sum = torch.tensor(0)
-    nbits = 0
-    out_enc = None
-    out = None
+#     num_pixels = m*n
+#     bpp_loss_sum = torch.tensor(0)
+#     nbits = 0
+#     out_enc = None
+#     out = None
     
-    if args.use_codes:
-        out_enc = model.compress(data)
-        out_dec = model.decompress(out_enc)
-        w_hat = out_dec['x_hat']
-        for s in out_enc["strings"]:
-            nbits += len(s[0]) * 8.0
-    else:
-        if hasattr(model, 'sga'):
-            out = model(data, mode = mode, y_in = y_in)
-        else:
-            out = model(data)
-        w_hat = out['x_hat']
+#     if args.use_codes:
+#         out_enc = model.compress(data)
+#         out_dec = model.decompress(out_enc)
+#         w_hat = out_dec['x_hat']
+#         for s in out_enc["strings"]:
+#             nbits += len(s[0]) * 8.0
+#     else:
+#         if hasattr(model, 'sga'):
+#             out = model(data, mode = mode, y_in = y_in)
+#         else:
+#             out = model(data)
+#         w_hat = out['x_hat']
             
-        if isinstance(out["likelihoods"], dict):
-            bpp_loss_sum = sum(
-                (torch.log(likelihoods).sum() / -math.log(2))
-                for likelihoods in out["likelihoods"].values()
-            )
-        else :
-            bpp_loss_sum = (torch.log(out["likelihoods"]).sum() / -math.log(2))
+#         if isinstance(out["likelihoods"], dict):
+#             bpp_loss_sum = sum(
+#                 (torch.log(likelihoods).sum() / -math.log(2))
+#                 for likelihoods in out["likelihoods"].values()
+#             )
+#         else :
+#             bpp_loss_sum = (torch.log(out["likelihoods"]).sum() / -math.log(2))
             
-    if args.direction == 'col':
-        w_hat = w_hat.reshape(n, m).transpose(0, 1).contiguous()
-    else:
-        w_hat = w_hat.reshape(m, n)
+#     if args.direction == 'col':
+#         w_hat = w_hat.reshape(n, m).transpose(0, 1).contiguous()
+#     else:
+#         w_hat = w_hat.reshape(m, n)
 
-    if args.use_codes:
-        del out_dec['x_hat']
-    else:
-        del out['x_hat']
-    torch.cuda.empty_cache()
+#     if args.use_codes:
+#         del out_dec['x_hat']
+#     else:
+#         del out['x_hat']
+#     torch.cuda.empty_cache()
     
-    return w_hat, num_pixels, bpp_loss_sum, out, out_enc, nbits
+#     return w_hat, num_pixels, bpp_loss_sum, out, out_enc, nbits
 
 
-def code_optimize(w, comp_model, init_out, args, **kwargs):
-    ql = kwargs.get('ql', None).reshape(w.shape[0], 1)
-    std = kwargs.get('std', None)
-    # mode = kwargs.get('mode', 'sga')
-    batch_idx = kwargs.get('batch_idx', -1)
-    ori_shape = w.shape
-    w = w.reshape(w.shape[0], -1, comp_model.input_size)
-    qs = kwargs.get('qs', None)
+# def code_optimize(w, comp_model, init_out, args, **kwargs):
+#     ql = kwargs.get('ql', None).reshape(w.shape[0], 1)
+#     std = kwargs.get('std', None)
+#     # mode = kwargs.get('mode', 'sga')
+#     batch_idx = kwargs.get('batch_idx', -1)
+#     ori_shape = w.shape
+#     w = w.reshape(w.shape[0], -1, comp_model.input_size)
+#     qs = kwargs.get('qs', None)
     
-    rnorm = kwargs.get('rnorm', None) # (1, m) 
-    cnorm = kwargs.get('cnorm', None) # (n, 1)
+#     rnorm = kwargs.get('rnorm', None) # (1, m) 
+#     cnorm = kwargs.get('cnorm', None) # (n, 1)
     
-    if args.optim_norm:
-        assert rnorm.dim() == 2 and cnorm.dim() == 2
-        assert rnorm.shape == (1, w.shape[1]) and cnorm.shape == (w.shape[0], 1)
-        assert cnorm == None or cnorm.dim() == 2 
-        assert cnorm == None or cnorm.shape == (w.shape[0], 1)
+#     if args.optim_norm:
+#         assert rnorm.dim() == 2 and cnorm.dim() == 2
+#         assert rnorm.shape == (1, w.shape[1]) and cnorm.shape == (w.shape[0], 1)
+#         assert cnorm == None or cnorm.dim() == 2 
+#         assert cnorm == None or cnorm.shape == (w.shape[0], 1)
     
-    wandb.init(project=f"NWC_code_optim", name=f"{'_'.join(args.save_path.split('/')[-2:])}_{args.layer_idx}_{args.layer_name}_batch{batch_idx}", config=vars(args))
+#     wandb.init(project=f"NWC_code_optim", name=f"{'_'.join(args.save_path.split('/')[-2:])}_{args.layer_idx}_{args.layer_name}_batch{batch_idx}", config=vars(args))
 
-    loss_fn =  get_loss_fn(args, std=std, device = w.device)
+#     loss_fn =  get_loss_fn(args, std=std, device = w.device)
 
-    with torch.no_grad():
-        data = {'weight_block': w, 'q_level': ql}
-        init_loss = loss_fn(data, init_out)
+#     with torch.no_grad():
+#         data = {'weight_block': w, 'q_level': ql}
+#         init_loss = loss_fn(data, init_out)
 
-    y = init_out['y'].clone()
-    y = nn.Parameter(y, requires_grad=True)
+#     y = init_out['y'].clone()
+#     y = nn.Parameter(y, requires_grad=True)
     
-    tune_params = [y]
-    if rnorm is not None and args.optim_norm:
-        rnorm = nn.Parameter(rnorm, requires_grad=True)
-        tune_params.append(rnorm)
-    if cnorm is not None and args.optim_norm:
-        cnorm = nn.Parameter(cnorm, requires_grad=True)
-        tune_params.append(cnorm)
-    if args.optim_qs:
-        qs = nn.Parameter(qs, requires_grad=True)
-        tune_params.append(qs)
-    optimizer = optim.Adam(tune_params, lr=args.code_optim_lr)
+#     tune_params = [y]
+#     if rnorm is not None and args.optim_norm:
+#         rnorm = nn.Parameter(rnorm, requires_grad=True)
+#         tune_params.append(rnorm)
+#     if cnorm is not None and args.optim_norm:
+#         cnorm = nn.Parameter(cnorm, requires_grad=True)
+#         tune_params.append(cnorm)
+#     if args.optim_qs:
+#         qs = nn.Parameter(qs, requires_grad=True)
+#         tune_params.append(qs)
+#     optimizer = optim.Adam(tune_params, lr=args.code_optim_lr)
 
-    # comp_model.train()
-    for param in comp_model.parameters():
-        param.requires_grad = False
+#     # comp_model.train()
+#     for param in comp_model.parameters():
+#         param.requires_grad = False
 
-    best_loss = init_loss['loss'].item()
-    best_loss_bpp = init_loss['bpp_loss'].item()
-    best_loss_recon = init_loss['recon_loss'].item()
-    best_y = y.detach().clone()
-    best_rnorm = rnorm.detach().clone() if rnorm is not None else None
-    best_cnorm = cnorm.detach().clone() if cnorm is not None else None
-    best_w_hat = init_out['x_hat'].detach().clone()
-    best_qs = qs.detach().clone() if qs is not None else None
+#     best_loss = init_loss['loss'].item()
+#     best_loss_bpp = init_loss['bpp_loss'].item()
+#     best_loss_recon = init_loss['recon_loss'].item()
+#     best_y = y.detach().clone()
+#     best_rnorm = rnorm.detach().clone() if rnorm is not None else None
+#     best_cnorm = cnorm.detach().clone() if cnorm is not None else None
+#     best_w_hat = init_out['x_hat'].detach().clone()
+#     best_qs = qs.detach().clone() if qs is not None else None
     
-    with torch.enable_grad():
-        for it in range(args.code_optim_it):
-            optimizer.zero_grad()
-            # qs = torch.clamp(qs, min=0.1)
-            qs.data.clamp_(min=0.1) if qs is not None else None
-            data = {'weight_block': None, 'q_level': ql}
-            out = comp_model(data, mode='sga', y_in = y, it = it, tot_it = args.code_optim_it, qs = qs)
-            data = {'weight_block': w, 'q_level': ql}
-            # loss = loss_fn(data, out, rnorm = rnorm, cnorm = cnorm)
-            loss = loss_fn(data, out)
-            loss['loss'].backward()
-            optimizer.step()
+#     with torch.enable_grad():
+#         for it in range(args.code_optim_it):
+#             optimizer.zero_grad()
+#             # qs = torch.clamp(qs, min=0.1)
+#             qs.data.clamp_(min=0.1) if qs is not None else None
+#             data = {'weight_block': None, 'q_level': ql}
+#             out = comp_model(data, mode='sga', y_in = y, it = it, tot_it = args.code_optim_it, qs = qs)
+#             data = {'weight_block': w, 'q_level': ql}
+#             # loss = loss_fn(data, out, rnorm = rnorm, cnorm = cnorm)
+#             loss = loss_fn(data, out)
+#             loss['loss'].backward()
+#             optimizer.step()
             
-            if loss['loss'].item() < best_loss:
-                best_loss = loss['loss'].item()
-                best_loss_bpp = loss['bpp_loss'].item()
-                best_loss_recon = loss['recon_loss'].item()
-                best_y = y.detach().clone()
-                best_w_hat = out['x_hat'].detach().clone()
-                best_rnorm = rnorm.detach().clone() if rnorm is not None else None
-                best_cnorm = cnorm.detach().clone() if cnorm is not None else None
-                best_qs = qs.detach().clone() if qs is not None else None
-            wandb.log({
-                "loss": loss['loss'].item(),
-                "bpp_loss": loss['bpp_loss'].item(),
-                "recon_loss": loss['recon_loss'].item(),
-                "it": it,
-                "best_loss": best_loss,
-                "best_loss_bpp": best_loss_bpp,
-                "best_loss_recon": best_loss_recon,
-                "init_loss": init_loss['loss'].item(),
-                "init_bpp_loss": init_loss['bpp_loss'].item(),
-                "init_recon_loss": init_loss['recon_loss'].item(),
-                "best_qs_mean": best_qs.mean().item() if qs is not None else None,
-            })
+#             if loss['loss'].item() < best_loss:
+#                 best_loss = loss['loss'].item()
+#                 best_loss_bpp = loss['bpp_loss'].item()
+#                 best_loss_recon = loss['recon_loss'].item()
+#                 best_y = y.detach().clone()
+#                 best_w_hat = out['x_hat'].detach().clone()
+#                 best_rnorm = rnorm.detach().clone() if rnorm is not None else None
+#                 best_cnorm = cnorm.detach().clone() if cnorm is not None else None
+#                 best_qs = qs.detach().clone() if qs is not None else None
+#             wandb.log({
+#                 "loss": loss['loss'].item(),
+#                 "bpp_loss": loss['bpp_loss'].item(),
+#                 "recon_loss": loss['recon_loss'].item(),
+#                 "it": it,
+#                 "best_loss": best_loss,
+#                 "best_loss_bpp": best_loss_bpp,
+#                 "best_loss_recon": best_loss_recon,
+#                 "init_loss": init_loss['loss'].item(),
+#                 "init_bpp_loss": init_loss['bpp_loss'].item(),
+#                 "init_recon_loss": init_loss['recon_loss'].item(),
+#                 "best_qs_mean": best_qs.mean().item() if qs is not None else None,
+#             })
             
-    glog.info(f'y == best_y :: {torch.equal(y, best_y)}')
-    glog.info(f'y == init_y :: {torch.equal(y, init_out["y"])}')
-    wandb.finish()
+#     glog.info(f'y == best_y :: {torch.equal(y, best_y)}')
+#     glog.info(f'y == init_y :: {torch.equal(y, init_out["y"])}')
+#     wandb.finish()
 
-    if isinstance(out["likelihoods"], dict):
-        bpp_loss = sum(
-            (torch.log(likelihoods).sum() / -math.log(2))
-            for likelihoods in out["likelihoods"].values()
-        ).item()
-    else :
-        bpp_loss = (torch.log(out["likelihoods"]).sum() / -math.log(2)).item()
-    num_pixels = ori_shape[0] * ori_shape[1]
+#     if isinstance(out["likelihoods"], dict):
+#         bpp_loss = sum(
+#             (torch.log(likelihoods).sum() / -math.log(2))
+#             for likelihoods in out["likelihoods"].values()
+#         ).item()
+#     else :
+#         bpp_loss = (torch.log(out["likelihoods"]).sum() / -math.log(2)).item()
+#     num_pixels = ori_shape[0] * ori_shape[1]
 
-    return best_y, best_w_hat.reshape(ori_shape), bpp_loss, num_pixels, best_rnorm, best_cnorm, best_qs
+#     return best_y, best_w_hat.reshape(ori_shape), bpp_loss, num_pixels, best_rnorm, best_cnorm, best_qs
     # return y, out['x_hat'].reshape(ori_shape)
 
 
@@ -469,33 +471,33 @@ def block_LDL(H, b, check_nan=True):
     L = L.reshape(n, n)
     return (L, D.to(DL.device))
 
-def describe_distribution(x):
-    assert isinstance(x, torch.Tensor), "Input must be a PyTorch tensor"
-    x = x.flatten().float()
-    n = x.numel()
+# def describe_distribution(x):
+#     assert isinstance(x, torch.Tensor), "Input must be a PyTorch tensor"
+#     x = x.flatten().float()
+#     n = x.numel()
     
-    # 중심 경향
-    mean = x.mean()
-    median = x.median()
+#     # 중심 경향
+#     mean = x.mean()
+#     median = x.median()
 
-    # 산포도
-    std_dev = x.std(unbiased=False)
-    value_range = x.max() - x.min()
-    q1 = x.kthvalue(int(0.25 * n + 1)).values
-    q3 = x.kthvalue(int(0.75 * n + 1)).values
-    iqr = q3 - q1
+#     # 산포도
+#     std_dev = x.std(unbiased=False)
+#     value_range = x.max() - x.min()
+#     q1 = x.kthvalue(int(0.25 * n + 1)).values
+#     q3 = x.kthvalue(int(0.75 * n + 1)).values
+#     iqr = q3 - q1
 
-    # 모양
-    skewness = ((x - mean)**3).mean() / (std_dev**3)
-    kurtosis = ((x - mean)**4).mean() / (std_dev**4) - 3  # Fisher's definition
+#     # 모양
+#     skewness = ((x - mean)**3).mean() / (std_dev**3)
+#     kurtosis = ((x - mean)**4).mean() / (std_dev**4) - 3  # Fisher's definition
 
-    del x
-    return {
-        "mean": mean.item(),
-        "median": median.item(),
-        "std": std_dev.item(),
-        "range": value_range.item(),
-        "iqr": iqr.item(),
-        "skewness": skewness.item(),
-        "kurtosis": kurtosis.item()
-    }
+#     del x
+#     return {
+#         "mean": mean.item(),
+#         "median": median.item(),
+#         "std": std_dev.item(),
+#         "range": value_range.item(),
+#         "iqr": iqr.item(),
+#         "skewness": skewness.item(),
+#         "kurtosis": kurtosis.item()
+#     }

@@ -110,14 +110,16 @@ class QuantLlamaAttention(nn.Module):
         )
 
         kv_seq_len = key_states.shape[-2]
-        if past_key_value is not None:
+        # if past_key_value is not None:
+        if past_key_value is not None and len(past_key_value) > 0: ## ryu
             kv_seq_len += past_key_value[0].shape[-2]
         cos, sin = self.rotary_emb(value_states, seq_len=kv_seq_len)
         query_states, key_states = apply_rotary_pos_emb(query_states, key_states, cos, sin, position_ids)
 
         # [bsz, nh, t, hd]
 
-        if past_key_value is not None:
+        # if past_key_value is not None:
+        if past_key_value is not None and len(past_key_value) > 0: ## ryu
             # reuse k, v, self_attention
             key_states = torch.cat([past_key_value[0], key_states], dim=2)
             value_states = torch.cat([past_key_value[1], value_states], dim=2)

@@ -34,7 +34,7 @@ parser.add_argument('--ctx_size', default=4096, type=int)
 parser.add_argument('--sample_proc', default=1, type=int)
 parser.add_argument('--base_model', type=str)
 parser.add_argument('--hf_path', type=str)
-parser.add_argument('--hf_output_path', type=str)
+parser.add_argument('--hf_output_path', type=str) ## ryu
 parser.add_argument('--ft_lr', default=1e-5, type=float)
 parser.add_argument('--ft_bs', default=2, type=int)
 parser.add_argument('--ft_update_freq', default=2, type=int)
