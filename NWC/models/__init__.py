@@ -12,6 +12,9 @@ from .nwc_qmap import NWC_qmap, NWC_qmap2, NWC_qmap3
 from .nwc_scale_cond import NWC_scale_cond, NWC_scale_cond_ltc
 from .nwc_scale_cond_v2 import NWCScaleCond
 from .nwc_lora import LoRACompressionModel
+from .nwc_id import NWC_id
+from .nwc_vq import NWC_vq
+from .nwc_lattice import NWC_lattice
 # from .nwc_ql_cdt import NWC_conditional, NWC_conditional2
 # from .nwc_ql_cdt_ln import NWC_conditional_ln
 # from .nwc_hess import SimpleVAECompressionModel_hess
@@ -43,6 +46,21 @@ def get_model(model_class, opts, scale, shift):
         no_layernorm = getattr(opts, "no_layernorm", False)
         use_pe = getattr(opts, "use_pe", False)
         model = NWC_ql(
+            input_size=opts.input_size,
+            dim_encoder=opts.dim_encoder,
+            n_resblock=opts.n_resblock,
+            Q = opts.Q,
+            M = opts.M,
+            scale=scale,
+            shift=shift,
+            norm = (not no_layernorm),
+            use_hyper = opts.use_hyper,
+            pe = use_pe,
+            )
+    elif model_class == "nwc_id":
+        no_layernorm = getattr(opts, "no_layernorm", False)
+        use_pe = getattr(opts, "use_pe", False)
+        model = NWC_id(
             input_size=opts.input_size,
             dim_encoder=opts.dim_encoder,
             n_resblock=opts.n_resblock,
@@ -280,6 +298,28 @@ def get_model(model_class, opts, scale, shift):
             lattice='Leech2UnitVol',
             N = opts.ltc_N,
         )
+    elif model_class == "nwc_vq":
+        model = NWC_vq(
+            input_size=opts.input_size,
+            dim_encoder=opts.dim_encoder,
+            n_resblock=opts.n_resblock,
+            M = opts.M,
+            scale=scale,
+            shift=shift,
+            beta = opts.vq_beta,
+            K = opts.K,
+            e_dim = opts.e_dim
+            )
+    elif model_class == "nwc_lattice":
+        model = NWC_lattice(
+            input_size=opts.input_size,
+            dim_encoder=opts.dim_encoder,
+            n_resblock=opts.n_resblock,
+            M = opts.M,
+            scale=scale,
+            shift=shift,
+            lattice = opts.lattice
+            )
     else:
         raise
     return model

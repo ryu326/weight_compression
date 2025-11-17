@@ -46,13 +46,25 @@ class CalibMagScaledMSELoss(nn.Module):
             var = torch.mean(y_true**2)
         return mse / var
 
-class VQVAE_loss(nn.Module):
-    def __init__(self, mse_fn):
-        super(VQVAE_loss, self).__init__()
-        self.mse_fn = mse_fn        
-
+class MSE_loss(nn.Module):
+    def __init__(self, std):
+        super(MSE_loss, self).__init__()
+        self.mse_fn = nn.MSELoss()        
+        self.std = std
     def forward(self, data, output):
-        recon_loss = self.mse_fn(output["x"], output["x_hat"], data['input_block'])
+        recon_loss = self.mse_fn(output["x"], output["x_hat"]) / self.std**2
+        loss = recon_loss
+        
+        return {'loss': loss,
+                'recon_loss': recon_loss}
+        
+class VQVAE_loss(nn.Module):
+    def __init__(self, std):
+        super(VQVAE_loss, self).__init__()
+        self.mse_fn = nn.MSELoss()        
+        self.std = std
+    def forward(self, data, output):
+        recon_loss = self.mse_fn(output["x"], output["x_hat"]) / self.std**2
         embedding_loss = output["embedding_loss"]
         loss = recon_loss + embedding_loss
         
@@ -126,6 +138,56 @@ class RateDistortionLoss_ql(nn.Module):
         bpp_loss = bpp_loss.sum() / (-math.log(2) * num_pixels)
         
         out["loss"] = self.lmbda * out["recon_loss"] + bpp_loss
+        return out
+
+class RateLoss_ql(nn.Module):
+    """Custom rate distortion loss with a Lagrangian parameter."""
+
+    def __init__(self, std, coff, lmbda_r):
+        super().__init__()
+        self.mse = nn.MSELoss()
+        self.lmbda_r = lmbda_r
+        self.std = std
+        self.coff = coff
+
+    def forward(self, data, output):
+        out = {}
+        w = data['weight_block'].reshape(output["x_hat"].shape)
+        num_pixels = w.numel() 
+        qlevel = data['q_level']
+
+        coff = self.coff[qlevel].reshape(output["likelihoods"].shape[0], 1, 1)
+        assert output["likelihoods"].dim() == coff.dim(), \
+            f"Shape mismatch: likelihoods {output['likelihoods'].shape} vs coff {coff.shape}"
+            
+        out["recon_loss"] = -1
+
+        out["bpp_loss"] = torch.log(output["likelihoods"]).sum() / (-math.log(2) * num_pixels)
+        bpp_loss = torch.log(output["likelihoods"]) * coff
+        bpp_loss = bpp_loss.sum() / (-math.log(2) * num_pixels)
+        
+        out["loss"] = self.lmbda_r * bpp_loss
+        return out
+    
+class RateLoss(nn.Module):
+    """Custom rate distortion loss with a Lagrangian parameter."""
+
+    def __init__(self, std, lmbda_r):
+        super().__init__()
+        self.mse = nn.MSELoss()
+        self.lmbda_r = lmbda_r
+        self.std = std
+
+    def forward(self, data, output):
+        out = {}
+        w = data['weight_block'].reshape(output["x_hat"].shape)
+        num_pixels = w.numel() 
+
+        out["recon_loss"] = torch.tensor(-1)
+
+        out["bpp_loss"] = torch.log(output["likelihoods"]).sum() / (-math.log(2) * num_pixels)
+        
+        out["loss"] = self.lmbda_r * out["bpp_loss"]
         return out
 
 # class RateDistortionLoss_ql_v2(nn.Module):
@@ -435,12 +497,16 @@ class RateDistortionLoss_qmap_v2(nn.Module):
 def get_loss_fn(args, std=None, device = None):
     if hasattr(args, 'code_optim_lr'):
         args.lmbda = args.code_optim_lmbda
-    if args.loss == "nmse":
-        return VQVAE_loss(NormalizedMSELoss(std))
-    elif args.loss == "enmse":
-        return VQVAE_loss(ElementwiseNormalizedMSELoss())
-    elif args.loss == "smse":
-        return VQVAE_loss(CalibMagScaledMSELoss(std))
+    # if args.loss == "nmse":
+    #     return VQVAE_loss(NormalizedMSELoss(std))
+    # elif args.loss == "enmse":
+    #     return VQVAE_loss(ElementwiseNormalizedMSELoss())
+    # elif args.loss == "smse":
+    #     return VQVAE_loss(CalibMagScaledMSELoss(std))
+    if args.loss == "vqloss":
+        return VQVAE_loss(std)
+    if args.loss == "mseloss":
+        return MSE_loss(std)
     elif args.loss == "rdloss":
         if args.use_hyper:
             return RateDistortionLoss_hyper(std, lmbda= args.lmbda, args = args)
@@ -469,9 +535,7 @@ def get_loss_fn(args, std=None, device = None):
         elif args.Q == 16:
             raise NotImplementedError
         assert not args.use_hyper
-        
         return RateDistortionLoss_ql_mse(std, coff, lmbda = args.lmbda)
-    
     elif args.loss == "rdloss_ql_code_opt":
         if args.Q == 4:
             coff = torch.tensor([3.4, 1.2, 0.1, 0.05]).to(device)
@@ -482,4 +546,16 @@ def get_loss_fn(args, std=None, device = None):
         return RateDistortionLoss_qmap(std, args.lmbda_min, args.lmbda_max)
     elif args.loss == "rdloss_qmap2":
         return RateDistortionLoss_qmap_v2(std, lmbda = args.lmbda)
+    elif args.loss == "rateloss_ql":
+        if args.Q == 2:
+            coff = torch.tensor([3.4, 0.05]).to(device)
+        if args.Q == 4:
+            coff = torch.tensor([3.4, 1.2, 0.1, 0.05]).to(device)
+        if args.Q == 8:
+            coff = torch.tensor([4.000, 1.707, 0.724, 0.307, 0.130, 0.055, 0.024, 0.010]).to(device)
+        if args.Q == 16:
+            coff = torch.tensor([4.000, 2.301, 1.324, 0.761, 0.438, 0.252, 0.145, 0.083, 0.048, 0.028, 0.016, 0.009, 0.005, 0.003, 0.0017, 0.001]).to(device)
+        return RateLoss_ql(std, coff, lmbda_r = args.lmbda_r)
+    elif args.loss == "rateloss":
+        return RateLoss(std, lmbda_r = args.lmbda)
         

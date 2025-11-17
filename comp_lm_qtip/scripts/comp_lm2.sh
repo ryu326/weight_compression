@@ -4,19 +4,16 @@
 # ##########################################################################
 comp_model_bases=(
     "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16"
-    "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16"
-    "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16"
-    "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16"
     # '/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100'
     # '/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Llama-2-7b-hf__row_256_scaleH0.0001_rnormed_scale_cond(col_std).pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size8192_total_iter200000_lr0.0001_seed100'
     # "/workspace/Weight_compression/NWC/checkpoint/nwc_ql_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__col_1024_scaleH0.0001_rnormed_scale_cond(col_std).pt/rdloss_size16_encdim512_M16_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
     # "/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_synthetic__gaussian_llama8b_col_1024.pt/rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
 )
 quantize_flags=(
-    "--direction col --scaleH --row_normalize --ql --ql_search --ql_search_value 0"
+    # "--direction col --scaleH --row_normalize --ql --ql_search --ql_search_value 0"
     "--direction col --scaleH --row_normalize --ql --ql_search --ql_search_value 1"
-    "--direction col --scaleH --row_normalize --ql --ql_search --ql_search_value 2"
-    "--direction col --scaleH --row_normalize --ql --ql_search --ql_search_value 3"
+    # "--direction col --scaleH --row_normalize --ql --ql_search --ql_search_value 2"
+    # "--direction col --scaleH --row_normalize --ql --ql_search --ql_search_value 3"
     # "--direction row --scaleH --row_normalize --scale_cond --ldlq --comp_batch_size 128 --scale_cond_ub 31.6"
     # "--direction row --scaleH --row_normalize --scale_cond --ldlq --comp_batch_size 128"
     # "--direction row --scaleH --row_normalize --scale_cond --ldlq --comp_batch_size 128"
@@ -65,24 +62,24 @@ experiment_names=(
     # "scaleH_rnorm_ldlq128_scale_cond(col_std)/(8B_trained)size128_encdim1024_M256"
     # "ql_scale_cond_scaleH_rnorm_ldlq(col_std)"
     # "ql_gaussian_rnorm"
-    "uniform_ql_rnorm/ql0"
+    # "uniform_ql_rnorm/ql0"
     "uniform_ql_rnorm/ql1"
-    "uniform_ql_rnorm/ql2"
-    "uniform_ql_rnorm/ql3"
+    # "uniform_ql_rnorm/ql2"
+    # "uniform_ql_rnorm/ql3"
 )
 ##########################################################################
 ##                           MODEL CONFIGURATION                        ##
 ##########################################################################
 model_names=(
     # "meta-llama--Meta-Llama-3-8B"
-    # "meta-llama--Llama-2-7b-hf"
+    "meta-llama--Llama-2-7b-hf"
     # "meta-llama--Llama-3.2-3B"
     "meta-llama--Llama-2-13b-hf"
     # "meta-llama--Llama-2-70b-hf_"
 )
 hess_paths=(
     # "../Wparam_dataset/quip_hess/llama3_8b_6144"
-    # "../Wparam_dataset/quip_hess/Hessians-Llama-2-7b-6144"
+    "../Wparam_dataset/quip_hess/Hessians-Llama-2-7b-6144"
     # "../Wparam_dataset/quip_hess/meta-llama--Llama-3.2-3B-256"
     "../Wparam_dataset/quip_hess/Hessians-Llama-2-13b-6144"
     # "../Wparam_dataset/quip_hess/llama2_70b_relaxml_git/Hessians-Llama-2-70b-6144"
@@ -99,15 +96,11 @@ mkdir -p $CKPT
 mkdir -p $HF
 mkdir -p $LOG
 mkdir -p $RES
-export CUDA_VISIBLE_DEVICES=2
+export CUDA_VISIBLE_DEVICES=2,3
 export WANDB_SILENT=true
-export HF_HOME=/workspace/hf_cache/huggingface_nwc
-# export TRANSFORMERS_CACHE=$HF_HOME
-# export HF_DATASETS_CACHE=$HF_HOME/datasets
-# export HF_METRICS_CACHE=$HF_HOME/metrics
+export HF_HOME=/home/jgryu/.cache/huggingface
 
-# 모든 실험에 공통으로 적용될 Lambda 값
-lmbda_values=(30 50 100 300 1000 10000 100000)
+lmbda_values=(10 5)
 # lmbda_values=(10 20 30 50 100 300 1000)
 # lmbda_values=(30 300 10000)
 # lmbda_values=(99 82 88 66 77 93 71)

@@ -13,8 +13,8 @@ HF="../hf_model_comp/quip-sharp/hf"
 LOG="./log"
 RES="../hf_model_comp_results/quip-sharp"
 
-K_VALUES=(2 3 4) 
-GPUS_TO_USE=(1 2 3) 
+K_VALUES=(2) 
+GPUS_TO_USE=(1) 
 
 MAX_PARALLEL_JOBS=${#GPUS_TO_USE[@]}
 
@@ -51,7 +51,7 @@ run_eval_for_k() {
 
     export CUDA_VISIBLE_DEVICES=$GPU
 
-    NAME="${model_key}/ft1_only/${K}bit"
+    NAME="${model_key}/ft1_e2e_after/${K}bit"
     CKPT_PATH="${CKPT}/${NAME}"
     HF_PATH="${HF}/${NAME}"
     LOG_FILE="${LOG}/evals/${NAME}.log"

@@ -35,23 +35,27 @@ model_list = [
     # 'liuhaotian/llava-v1.5-13b',
     # 'llava-hf/llava-v1.6-vicuna-7b-hf',
     # 'llava-hf/llava-v1.6-vicuna-13b-hf',
-    'facebook/dinov2-large-imagenet1k-1-layer',
-    'facebook/dinov2-base-imagenet1k-1-layer',
+    # 'facebook/dinov2-large-imagenet1k-1-layer',
+    # 'facebook/dinov2-base-imagenet1k-1-layer',
+    'Qwen/Qwen3-30B-A3B',
+    # 'mistralai/Mixtral-8x7B-v0.1',
 ]
 
-cache_directory = "./hf_model/cache"
+# cache_directory = "./hf_model/cache"
 # cache_directory = '/workspace/hf_cache/huggingface_nwc'
+cache_directory = '/home/jgryu/.cache/huggingface/hub'
 for model_name in tqdm(model_list):
     print(model_name)
     
-    while True:
+    max_it = 10
+    while max_it:
         try:
-            # tokenizer = AutoTokenizer.from_pretrained(model_name, cache_dir = cache_directory, trust_remote_code=True)
-            # model = AutoModelForCausalLM.from_pretrained(model_name, cache_dir = cache_directory, trust_remote_code=True, force_download=True)
-            model = AutoModelForImageClassification.from_pretrained(model_name, cache_dir = cache_directory, trust_remote_code=True, force_download=True)
+            tokenizer = AutoTokenizer.from_pretrained(model_name, cache_dir = cache_directory, trust_remote_code=True)
+            model = AutoModelForCausalLM.from_pretrained(model_name, cache_dir = cache_directory, trust_remote_code=True, force_download=False)
+            # model = AutoModelForImageClassification.from_pretrained(model_name, cache_dir = cache_directory, trust_remote_code=True, force_download=True)
             # model = LlavaForConditionalGeneration.from_pretrained(model_name, cache_dir = cache_directory, trust_remote_code=True)
-            pro = AutoProcessor.from_pretrained(model_name, cache_dir = cache_directory, trust_remote_code=True)
-            save_directory = f"./hf_model/{model_name.replace('/', '--')}"  # 저장할 경로
+            # pro = AutoProcessor.from_pretrained(model_name, cache_dir = cache_directory, trust_remote_code=True)
+            # save_directory = f"./hf_model/{model_name.replace('/', '--')}"  # 저장할 경로
             # save_directory = f"./hf_model/{model_name.replace('/', '--')}_awq"  # 저장할 경로
             
             # tokenizer.save_pretrained(save_directory)
@@ -61,18 +65,19 @@ for model_name in tqdm(model_list):
             #     resume_download=True,
             #     local_dir_use_symlinks=False 
             # )
-            try:
-                model.save_pretrained(save_directory)
-                # tokenizer.save_pretrained(save_directory)
-                pro.save_pretrained(save_directory)
-                print('########## Saved!! ##########')
-            except Exception as e:
-                print("Generation Config Error:", e)
-                # model.generation_config.do_sample = True
-                # model.save_pretrained(save_directory)
-                # tokenizer.save_pretrained(save_directory)
-                print('########## Saved!! ##########')
+            # try:
+            #     model.save_pretrained(save_directory)
+            #     # tokenizer.save_pretrained(save_directory)
+            #     pro.save_pretrained(save_directory)
+            #     print('########## Saved!! ##########')
+            # except Exception as e:
+            #     print("Generation Config Error:", e)
+            #     # model.generation_config.do_sample = True
+            #     # model.save_pretrained(save_directory)
+            #     # tokenizer.save_pretrained(save_directory)
+            #     print('########## Saved!! ##########')
             
             break
         except Exception as e:
             print("Download Error:", e)
+            max_it = max_it - 1

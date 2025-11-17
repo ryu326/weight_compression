@@ -109,8 +109,7 @@ def main(args):
                                     decode_mode=args.decode_mode)
     model = AutoModelForCausalLM.from_pretrained(args.base_model,
                                                  torch_dtype='auto',
-                                                 low_cpu_mem_usage=True,
-                                                 token="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")
+                                                 low_cpu_mem_usage=True)
 
     # save configs
     all_config = {'quant_args': args, 'model_config': model.config}
@@ -130,7 +129,7 @@ def main(args):
     all_config['model_config'].update({'quip_params': quip_params})
     torch.save(all_config, os.path.join(args.save_path, 'config.pt'))
 
-    tokenizer = AutoTokenizer.from_pretrained(args.base_model, token="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")
+    tokenizer = AutoTokenizer.from_pretrained(args.base_model)
     tokenizer.pad_token = tokenizer.eos_token
     glog.info('loaded model')
 

@@ -51,6 +51,9 @@ def parse_args(argv):
     parser.add_argument("--checkpoint", default=None, type=str)
     parser.add_argument("--block_direction", default='row', type=str)
     parser.add_argument("--lmbda", type=int, default=None)
+    ## vq
+    parser.add_argument("--K", type=int, default=None)
+    parser.add_argument("--vq_beta", type=float, default=0.25)
     # parser.add_argument("--vector", action='store_true')
     
     args = parser.parse_args(argv)

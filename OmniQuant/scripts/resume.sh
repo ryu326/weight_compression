@@ -40,9 +40,10 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
         --epochs 0 --output_dir ./log/test \
         --wbits ${wb} --abits 16 --lwc \
         --resume ${CKPT}/Llama-2-7b-w${wb}a16.pth \
-        --tasks piqa,arc_easy,arc_challenge,boolq,hellaswag,winogrande,mmlu \
+        --tasks hendrycksTest* \
         --eval_out_dir ${RES}/${model_key}
         # --eval_ppl 
+        # --tasks piqa,arc_easy,arc_challenge,boolq,hellaswag,winogrande,hendrycksTest \
     done
 done
 

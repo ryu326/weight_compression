@@ -189,7 +189,8 @@ def wrap_tokenizer(tokenizer, x, ctx_size, truncate=True):
     return tokenizer(x,
                      return_tensors='pt',
                      truncation=truncate,
-                     padding=True,
+                     padding=True, 
+                    #  padding=False, ##
                      max_length=ctx_size)
 
 

@@ -55,9 +55,9 @@ def parse_args(argv):
     parser.add_argument("--architecture", default=None, type=str)
     parser.add_argument("--loss", default="rdloss", type=str)
     parser.add_argument("--checkpoint", default=None, type=str)
-    parser.add_argument("--lmbda", type=int, default=None)
-    parser.add_argument("--lmbda_min", type=int, default=None)
-    parser.add_argument("--lmbda_max", type=int, default=None)
+    parser.add_argument("--lmbda", type=float, default=None)
+    parser.add_argument("--lmbda_min", type=float, default=None)
+    parser.add_argument("--lmbda_max", type=float, default=None)
     parser.add_argument("--dataset_stat_type", type=str, choices=['scaler', 'channel'], default='scaler')
     parser.add_argument("--pretrained_path", type=str, default=None)
     parser.add_argument("--run_name", type=str, default="")
@@ -77,7 +77,10 @@ def parse_args(argv):
     parser.add_argument("--aug_scale_min", type=float, default=0.5)
     parser.add_argument("--aug_scale_mode", type=str, default='block')
     parser.add_argument("--ql_scale_cond", action='store_true', default=False)
-    
+    parser.add_argument("--K", type=int, default=None)
+    parser.add_argument("--e_dim", type=int, default=None)
+    parser.add_argument("--vq_beta", type=float, default=0.25)
+    parser.add_argument("--lattice", type=str, default=None)
     
     args = parser.parse_args(argv)
     return args
@@ -98,7 +101,7 @@ def cleanup_distributed():
     if dist.is_available() and dist.is_initialized():
         dist.destroy_process_group()
 
-def test(test_dataset, model, criterion, args):
+def test_eb(test_dataset, model, criterion, args):
     mean_MSE = 0
     avg_bpp = 0
     mean_loss = 0
@@ -143,6 +146,37 @@ def test(test_dataset, model, criterion, args):
     mean_recon_loss /= len(test_dataset)
     mean_bpp_loss /= len(test_dataset)
     return {'TEST MSE': mean_MSE, 'TEST BPP': avg_bpp, 'TEST loss': mean_loss, 'TEST recon_loss': mean_recon_loss, 'TEST bpp_loss': mean_bpp_loss}
+
+
+def test_vq(test_dataset, model, criterion, args):
+    mean_MSE = 0
+    mean_loss = 0
+    mean_recon_loss = 0
+    mean_embedding_loss = 0
+    
+    device = next(model.parameters()).device
+    mse_func = nn.MSELoss()
+    
+    for idx, data in enumerate(test_dataset):
+        data = {key: tensor.unsqueeze(0).to(device) for key, tensor in data.items()}
+        out_net = model(data)
+        out_loss = criterion(data= data, output = out_net)
+        
+        mean_loss += out_loss['loss'].item()
+        mean_recon_loss += out_loss['recon_loss'].item()
+        if 'embedding_loss' in out_loss:
+            mean_embedding_loss += out_loss['embedding_loss'].item()
+        x_hat = out_net["x_hat"].clone().detach()
+        mean_MSE += mse_func(data['weight_block'], x_hat).item()
+
+    mean_MSE /= len(test_dataset)
+    mean_loss /= len(test_dataset)
+    mean_recon_loss /= len(test_dataset)
+    mean_embedding_loss /= len(test_dataset)
+    
+    return {'TEST MSE': mean_MSE, 'TEST loss': mean_loss, 'TEST recon_loss': mean_recon_loss, 'TEST embedding_loss': mean_embedding_loss, 
+            'TEST BPP': None, 'TEST bpp_loss': None }
+
 
 def main(args):
     run_name = '_'.join(filter(None, [args.run_name, args.architecture, f"{args.lmbda}"]))
@@ -309,6 +343,12 @@ def main(args):
 
     optimizer.zero_grad()
     if aux_optimizer is not None:
+        test = test_eb
+    else:
+        test = test_vq
+    
+    
+    if aux_optimizer is not None:
         aux_optimizer.zero_grad()
 
     while 1:
@@ -339,12 +379,11 @@ def main(args):
 
                 optimizer.step()
                 
-                try:
-                    aux_loss = net.aux_loss()
-                except:
-                    aux_loss = net.module.aux_loss()
-                
                 if aux_optimizer is not None:
+                    try:
+                        aux_loss = net.aux_loss()
+                    except:
+                        aux_loss = net.module.aux_loss()
                     aux_loss.backward()
                     aux_optimizer.step()
                 
@@ -358,8 +397,8 @@ def main(args):
                     f"Train iter. {total_iter}/{args.iter} ({100. * total_iter / args.iter}%): "
                     f"\tLoss: {out_loss['loss'].item()}"
                     f"\trecon_loss: {out_loss['recon_loss'].item()}"
-                    f"\tbpp_loss: {out_loss['bpp_loss'].item()}"
-                    f"\taux_loss: {aux_loss.item()}"
+                    f"\tbpp_loss: {out_loss['bpp_loss'].item() if aux_optimizer is not None else None}"
+                    f"\taux_loss: {aux_loss.item() if aux_optimizer is not None else None}"
                 )
                 wandb.log(out_loss)
 
@@ -379,7 +418,8 @@ def main(args):
 
                     net_eval = net_eval.eval().to(device)
                     net_eval.requires_grad_(False)
-                    net_eval.update()
+                    if aux_optimizer is not None:
+                        net_eval.update()
                     
                     if node_rank == 0:
                         test_result = test(test_dataset, net_eval, criterion, args)
@@ -403,9 +443,13 @@ def main(args):
                             os.remove(best_mse_model_path)  # 이전에 최고였던 모델 삭제
                         except:
                             logger.info("can not find prev_mse_best_model!")
-                        best_mse_model_path = (
-                            save_path + "/" + f"best_mse_model_loss_{round(test_result['TEST loss'], 5)}_bpp_{round(test_result['TEST BPP'], 5)}_MSE_{round(test_result['TEST MSE'], 5)}_total_iter_{total_iter}.pth.tar"
-                        )
+                            
+                        if aux_optimizer is not None:
+                            s_name = f"loss_{round(test_result['TEST loss'], 5)}_bpp_{round(test_result['TEST BPP'], 5)}_MSE_{round(test_result['TEST MSE'], 5)}_total_iter_{total_iter}.pth.tar"
+                        else:
+                            s_name = f"loss_{round(test_result['TEST loss'], 5)}_MSE_{round(test_result['TEST MSE'], 5)}_total_iter_{total_iter}.pth.tar"
+                            
+                        best_mse_model_path =  save_path + f"/best_mse_model_{s_name}"
                         torch.save(
                             {
                                 "state_dict": state_dict,
@@ -424,32 +468,32 @@ def main(args):
                             best_mse_model_path,
                         )
 
-                    if test_result['TEST BPP'] < best_bpp:
-                        best_bpp = test_result['TEST BPP']
-                        try:
-                            os.remove(best_bpp_model_path)  # 이전에 최고였던 모델 삭제
-                        except:
-                            logger.info("can not find prev_bpp_best_model!")
-                        best_bpp_model_path = (
-                            save_path + "/" + f"best_bpp_model_loss_{round(test_result['TEST loss'], 5)}_bpp_{round(test_result['TEST BPP'], 5)}_MSE_{round(test_result['TEST MSE'], 5)}_total_iter_{total_iter}.pth.tar"
-                        )
-                        torch.save(
-                            {
-                                "state_dict": state_dict,
-                                "optimizer": optimizer.state_dict(),
-                                "aux_optimizer": aux_optimizer.state_dict() if aux_optimizer is not None else None,
-                                "criterion": criterion.state_dict(),
-                                "best_mse": best_mse,
-                                "best_bpp": best_bpp,
-                                "best_loss": best_loss,
-                                "recent_saved_model_path": recent_saved_model_path,
-                                "best_mse_model_path": best_mse_model_path,
-                                "best_loss_model_path": best_loss_model_path,
-                                "best_bpp_model_path": best_bpp_model_path,
-                                "total_iter": total_iter,
-                            },
-                            best_bpp_model_path,
-                        )
+                    # if test_result['TEST BPP'] < best_bpp:
+                    #     best_bpp = test_result['TEST BPP']
+                    #     try:
+                    #         os.remove(best_bpp_model_path)  # 이전에 최고였던 모델 삭제
+                    #     except:
+                    #         logger.info("can not find prev_bpp_best_model!")
+                    #     best_bpp_model_path = (
+                    #         save_path + "/" + f"best_bpp_model_loss_{round(test_result['TEST loss'], 5)}_bpp_{round(test_result['TEST BPP'], 5)}_MSE_{round(test_result['TEST MSE'], 5)}_total_iter_{total_iter}.pth.tar"
+                    #     )
+                    #     torch.save(
+                    #         {
+                    #             "state_dict": state_dict,
+                    #             "optimizer": optimizer.state_dict(),
+                    #             "aux_optimizer": aux_optimizer.state_dict() if aux_optimizer is not None else None,
+                    #             "criterion": criterion.state_dict(),
+                    #             "best_mse": best_mse,
+                    #             "best_bpp": best_bpp,
+                    #             "best_loss": best_loss,
+                    #             "recent_saved_model_path": recent_saved_model_path,
+                    #             "best_mse_model_path": best_mse_model_path,
+                    #             "best_loss_model_path": best_loss_model_path,
+                    #             "best_bpp_model_path": best_bpp_model_path,
+                    #             "total_iter": total_iter,
+                    #         },
+                    #         best_bpp_model_path,
+                    #     )
                     
                     if test_result['TEST loss'] < best_loss:
                         best_loss = test_result['TEST loss']
@@ -457,9 +501,13 @@ def main(args):
                             os.remove(best_loss_model_path)  # 이전에 최고였던 모델 삭제
                         except:
                             logger.info("can not find prev_bpp_best_model!")
-                        best_loss_model_path = (
-                            save_path + "/" + f"best_loss_model_loss_{round(test_result['TEST loss'], 5)}_bpp_{round(test_result['TEST BPP'], 5)}_MSE_{round(test_result['TEST MSE'], 5)}_total_iter_{total_iter}.pth.tar"
-                        )
+                        
+                        if aux_optimizer is not None:
+                            s_name = f"loss_{round(test_result['TEST loss'], 5)}_bpp_{round(test_result['TEST BPP'], 5)}_MSE_{round(test_result['TEST MSE'], 5)}_total_iter_{total_iter}.pth.tar"
+                        else:
+                            s_name = f"loss_{round(test_result['TEST loss'], 5)}_MSE_{round(test_result['TEST MSE'], 5)}_total_iter_{total_iter}.pth.tar"
+                        best_loss_model_path =  save_path + f"/best_loss_model_{s_name}"
+                        
                         torch.save(
                             {
                                 "state_dict": state_dict,
@@ -483,9 +531,13 @@ def main(args):
                     except:
                         logger.info("can not find recent_saved_model!")
 
-                    recent_saved_model_path = (
-                        save_path + "/" + f"recent_model_loss_{round(test_result['TEST loss'], 5)}_bpp_{round(test_result['TEST BPP'], 5)}_MSE_{round(test_result['TEST MSE'], 5)}_total_iter_{total_iter}.pth.tar"
-                    )
+                    if aux_optimizer is not None:
+                        s_name = f"loss_{round(test_result['TEST loss'], 5)}_bpp_{round(test_result['TEST BPP'], 5)}_MSE_{round(test_result['TEST MSE'], 5)}_total_iter_{total_iter}.pth.tar"
+                    else:
+                        s_name = f"loss_{round(test_result['TEST loss'], 5)}_MSE_{round(test_result['TEST MSE'], 5)}_total_iter_{total_iter}.pth.tar"
+
+                    recent_saved_model_path =  save_path + f"/recent_model_{s_name}"
+                    
                     torch.save(
                         {
                             "state_dict": state_dict,
@@ -520,10 +572,6 @@ def before_main(argvs):
     checkpoint = "None"
     save_path = "./"
     
-    # folder_name = f"{args.dataset}_{args.dataset_stat_type}_{'__'.join(args.dataset_path.split('/')[-2:])}"
-    # folder_name += f"/{args.run_name}{args.loss}_size{args.input_size}_encdim{args.dim_encoder}_M{args.M}_Q{args.Q}_R{args.R}_m{args.m}"
-    # folder_name += f"_batch_size{args.batch_size}_total_iter{args.iter}_lr{args.learning_rate}_seed{args.seed}/lmbda{args.lmbda}"
-    
     if args.uniform_scale_max is not None:
         args.dataset += f'{args.uniform_scale_max}'
     
@@ -545,14 +593,26 @@ def before_main(argvs):
         f"batch_size{args.batch_size}",
         f"total_iter{args.iter}",
         f"lr{args.learning_rate}",
-        f"seed{args.seed}"
+        f"seed{args.seed}",
     ]))
 
     if args.lmbda is not None:
         folder_name = os.path.join(folder_name, subfolder, f"lmbda{args.lmbda}_")
-    else:
+    elif args.lmbda_min is not None:
         folder_name = os.path.join(folder_name, subfolder, f"ld_min{args.lmbda_min}_max{args.lmbda_max}_")
-
+    elif args.K is not None:
+        bits = (args.M / args.e_dim) * math.log2(args.K) / args.input_size
+        folder_name = os.path.join(folder_name, subfolder, f"{bits}bit_K{args.K}_e_dim{args.e_dim}_beta{args.vq_beta}_")
+    elif args.lattice is not None:
+        # 'E8', 8, 1bit / 'BarnesWallUnitVol', 16, 5bit, 'E8Product', 8*n, nbit
+        if args.lattice == 'E8P12':
+            bits= 2
+        elif args.lattice == 'E8P12RVQ3B':
+            bits= 3
+        elif args.lattice == 'E8P12RVQ4B':
+            bits= 4
+        folder_name = os.path.join(folder_name, subfolder, f"{bits}bit_{args.lattice}_")
+    
     if args.seed is not None:
         save_path = os.path.join("./checkpoint", args.save_dir, args.architecture, folder_name)
 

@@ -41,6 +41,7 @@ def model_from_hf_path(path, max_mem_ratio=0.7, device_map=None, sep_rnorm = Fal
         }
         model = model_cls.from_pretrained(path,
                                           torch_dtype='auto',
+                                        #   torch_dtype=torch.bfloat16,
                                           low_cpu_mem_usage=True,
                                           attn_implementation='sdpa')
         device_map = accelerate.infer_auto_device_map(
@@ -49,6 +50,7 @@ def model_from_hf_path(path, max_mem_ratio=0.7, device_map=None, sep_rnorm = Fal
             max_memory=mmap)
     model = model_cls.from_pretrained(path,
                                       torch_dtype='auto',
+                                        # torch_dtype=torch.bfloat16,
                                       low_cpu_mem_usage=True,
                                       attn_implementation='sdpa',
                                       device_map=device_map)

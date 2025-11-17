@@ -31,6 +31,32 @@ def calculate_mse_loss(layer, dataloader, device):
     layer.train()
     return (total_loss / ct).cpu().item()
 
+def calculate_mse_loss_mixtral(layer, dataloader, device, attention_mask): # 1. attention_mask 인자 추가
+    layer.eval()
+    total_loss = 0
+    ct = 0
+    position_ids = None
+    
+    # 2. 어텐션 마스크를 한 번만 device로 이동
+    attention_mask = attention_mask.to(device)
+    
+    with torch.no_grad():
+        for source, target in dataloader:
+            if position_ids is None:
+                position_ids = torch.arange(source.shape[1],
+                                            device=device).unsqueeze(0)
+            target = target.to(device, non_blocking=True)
+            
+            # 3. layer 호출 시 attention_mask 전달
+            output = layer(source.to(device),
+                           position_ids=position_ids,
+                           attention_mask=attention_mask)[0]
+                           
+            total_loss += nn.MSELoss()(output, target)
+            ct += 1
+            
+    layer.train()
+    return (total_loss / ct).cpu().item()
 
 def calculate_ce_loss_model(model, dataloader, start_dev, in_q, out_q):
     model.eval()

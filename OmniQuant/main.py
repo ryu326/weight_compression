@@ -156,6 +156,7 @@ def evaluate(lm, args, logger):
         logger.info(results)
         pprint(results)
         # for test of MMLU
+        # import ipdb; ipdb.set_trace()
         if "hendrycksTest" in args.tasks:
             all_cors = []
             all_cors_norm = []
@@ -388,12 +389,27 @@ def main():
         lm.tokenizer.save_pretrained(args.save_dir)
     r = evaluate(lm, args, logger)
     print(r)
+    
+    
     # r 변수를 json 파일로 저장
     import json
     
+    def convert(o):
+        if isinstance(o, (np.float64, np.float32, np.float16)):
+            return float(o)
+        if isinstance(o, (np.int64, np.int32, np.int16)):
+            return int(o)
+        if 'LMClass' in o.__class__.__name__:
+            return str(o)
+        if isinstance(o, torch.dtype):
+            return str(o)
+        if isinstance(o, torch.Tensor):
+            return o.tolist()
+        return None
+    
     Path(args.eval_out_dir).mkdir(parents=True, exist_ok=True)
-    with open(args.eval_out_dir + f"/w{args.wbits}a{args.abits}g{args.group_size}_results.json", "w", encoding="utf-8") as f:
-        json.dump(r, f, ensure_ascii=False, indent=2)
+    with open(args.eval_out_dir + f"/w{args.wbits}a{args.abits}g{args.group_size}_mmlu_results.json", "w", encoding="utf-8") as f:
+        json.dump(r, f, ensure_ascii=False, indent=2, default=convert)
 
 if __name__ == "__main__":
     print(sys.argv)

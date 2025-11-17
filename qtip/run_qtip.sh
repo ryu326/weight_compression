@@ -5,10 +5,10 @@
 
 # 실험을 수행할 모델 목록 (아래 'MODEL CONFIGURATION'에 정의된 이름 사용)
 MODELS_TO_RUN=(
-    "llama3_8b"
+    # "llama3_8b"
     # "llama2_7b"
     # "llama3.2_3b"
-    # "llama2_13b"
+    "llama2_13b"
     # "llama3.2_1b_inst"
     # "llama3.2_3b_inst"
 )
@@ -25,10 +25,9 @@ LOG="./log"
 RES="../hf_model_comp_results/qtip"
 
 # --- 환경 변수 설정 ---
-export CUDA_VISIBLE_DEVICES=2,3
+export CUDA_VISIBLE_DEVICES=4,5,6,7
 export WANDB_SILENT=true
 export TRANSFORMERS_NO_TORCHVISION=1
-# export HF_HOME=/workspace/hf_cache/huggingface_qtip
 export HF_HOME=/home/jgryu/.cache/huggingface
 
 ##########################################################################
@@ -94,21 +93,21 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
         echo "           Running Experiment Type: [$exp_type]"
         echo "------------------------------------------------------------"
 
-        for K in 4; do
+        for K in 4 5 6; do
             NAME="${model_key}/${exp_type}/${K}bit"
             SAVE_PATH="$CKPT/$NAME"
             LOG_FILE="${LOG}/${NAME}.log"
             HF_PATH="$HF/$NAME"
-            PTH_PATH="../complexity_test/8b_qtip_${exp_type}_${K}bit.pth"
+            # PTH_PATH="../complexity_test/8b_qtip_${exp_type}_${K}bit.pth"
 
             mkdir -p $SAVE_PATH
             mkdir -p $(dirname "$LOG_FILE")
 
             ## Saving pth
-            python -m quantize_llama.hfize_llama_pth \
-                --quantized_path $SAVE_PATH \
-                --hf_output_path $PTH_PATH \
-                --base_model $base_model 2>&1 | tee -a $LOG_FILE
+            # python -m quantize_llama.hfize_llama_pth \
+            #     --quantized_path $SAVE_PATH \
+            #     --hf_output_path $PTH_PATH \
+            #     --base_model $base_model 2>&1 | tee -a $LOG_FILE
 
             # echo "### [Stage: Quantize | K=$K] ###" | tee $LOG_FILE
             # python -m quantize_llama.quantize_finetune_llama \
@@ -121,11 +120,11 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
             #     --td_x 16 --td_y 16 --L 16 --K $K --V 2 \
             #     --decode_mode quantlut_sym --tlut_bits 9 2>&1 | tee -a $LOG_FILE
 
-            # echo "### [Stage: Hfize | K=$K] ###" | tee -a $LOG_FILE
-            # python -m quantize_llama.hfize_llama \
-            #     --quantized_path $SAVE_PATH \
-            #     --hf_output_path $HF_PATH \
-            #     --base_model $base_model 2>&1 | tee -a $LOG_FILE
+            echo "### [Stage: Hfize | K=$K] ###" | tee -a $LOG_FILE
+            python -m quantize_llama.hfize_llama \
+                --quantized_path $SAVE_PATH \
+                --hf_output_path $HF_PATH \
+                --base_model $base_model 2>&1 | tee -a $LOG_FILE
 
             # python -m quantize_llama.hfize_llama_cal_mse \
             #     --quantized_path $SAVE_PATH \
@@ -133,10 +132,10 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
             #     --output_path ${RES}/${NAME} \
             #     --base_model $base_model 2>&1 | tee -a $LOG_FILE
 
-            # MANIFEST_FLAG=""
-            # if [ "$K" -ge 5 ]; then
-            #     MANIFEST_FLAG="--manifest_model"
-            # fi
+            MANIFEST_FLAG=""
+            if [ "$K" -ge 5 ]; then
+                MANIFEST_FLAG="--manifest_model"
+            fi
 
             # echo "### [Stage: Eval PPL | K=$K] ###" | tee -a "$LOG_FILE"
             # python -m eval.eval_ppl \
@@ -145,13 +144,13 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
             #     --seqlen 2048 \
             #     $MANIFEST_FLAG 2>&1 | tee -a "$LOG_FILE"
 
-            # echo "### [Stage: Eval Zero-shot | K=$K] ###" | tee -a "$LOG_FILE"
-            # python -m eval.eval_zeroshot \
-            #     --tasks arc_challenge,arc_easy,boolq,piqa,winogrande,hellaswag,mmlu \
-            #     --batch_size 1 \
-            #     --hf_path "${HF_PATH}" \
-            #     --output_path "${RES}/${NAME}_common_mmlu" \
-            #     $MANIFEST_FLAG 2>&1 | tee -a "$LOG_FILE"
+            echo "### [Stage: Eval Zero-shot | K=$K] ###" | tee -a "$LOG_FILE"
+            python -m eval.eval_zeroshot \
+                --tasks arc_challenge,arc_easy,boolq,piqa,winogrande,hellaswag,mmlu \
+                --batch_size 1 \
+                --hf_path "${HF_PATH}" \
+                --output_path "${RES}/${NAME}_common_mmlu" \
+                $MANIFEST_FLAG 2>&1 | tee -a "$LOG_FILE"
 
 
             # python -m eval.eval_zeroshot \
@@ -210,10 +209,10 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
 
                 # --tasks arc_challenge,arc_easy,boolq,piqa,winogrande \
 
-            # if [ "$HF_PATH" != "$HF" ]; then
-            #     echo "Cleaning up temporary files for $SAVE_NAME"
-            #     rm -rf "$HF_PATH"
-            # fi
+            if [ "$HF_PATH" != "$HF" ]; then
+                echo "Cleaning up temporary files for $SAVE_NAME"
+                rm -rf "$HF_PATH"
+            fi
         done
     done
 done

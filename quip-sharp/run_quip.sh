@@ -77,12 +77,12 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
         echo "           Running Experiment Type: [$exp_type]"
         echo "------------------------------------------------------------"
 
-        for K in 2 3 4; do
+        for K in 4; do
             NAME="${model_key}/${exp_type}_e2e/${K}bit"
             CKPT_PATH="${CKPT}/${NAME}"
             HF_PATH="${HF}/${NAME}"
             
-            OUT_NAME="${model_key}/hf_${exp_type}_e2e/${K}bit"
+            OUT_NAME="${model_key}/${exp_type}_e2e_checkpoints/${K}bit"
             E2E_OUT_HF="${CKPT}/${OUT_NAME}"
             LOG_FILE="${LOG}/${NAME}.log"
 
@@ -128,7 +128,11 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
                 --ctx_size 4096 \
                 --ft_update_freq 2 \
                 --batch_size 8 \
+                --ckpt_path ${CKPT_PATH} \
                 --hf_output_path $E2E_OUT_HF 2>&1 | tee -a $LOG_FILE
+
+
+                # --resume_ckpt /home/jgryu/workspace/weight_compression/hf_model_comp/quip-sharp/ckpt/llama3_8b/hf_ft1_e2e/checkpoints/checkpoint_epoch_4.pt \
 
                 # --ckpt_path ${CKPT_PATH} 2>&1 | tee -a $LOG_FILE
                 # --ft_train_mode \
@@ -136,18 +140,29 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
             # example
             # python -m quantize_llama.finetune_e2e_llama --base_model meta-llama/Llama-2-7b-hf --hf_path $HF/2_7b_2bit --devset_size 384 --ft_valid_size 128 --ft_epochs 8  --ft_bs 1 --ctx_size 4096 --ft_update_freq 2 --ft_train_mode --ckpt_path $CKPT/2_7b_2bit >> $LOG/2_7b_2bit 2>&1
 
+
+            if [ "$HF_PATH" != "$HF" ] && [ "$exp_type" != "e2e" ]; then
+                echo "Cleaning up temporary files for $NAME"
+                rm -rf "$HF_PATH"
+            fi
+
+            echo "[Stage: Convert to HF format] K=$K" | tee -a $LOG_FILE
+            python -m quantize_llama.hfize_llama \
+                --quantized_path ${CKPT_PATH} \
+                --hf_output_path $HF_PATH 2>&1 | tee -a $LOG_FILE
+
             echo "### [Stage: Eval PPL | K=$K] ###" | tee -a $LOG_FILE
             python -m eval.eval_ppl \
-                --hf_path ${E2E_OUT_HF} \
-                --output_path ${RES}/${OUT_NAME} \
+                --hf_path $HF_PATH \
+                --output_path ${RES}/${NAME} \
                 --no_use_cuda_graph \
                 --seqlen 2048  2>&1 | tee -a $LOG_FILE
 
             echo "### [Stage: Eval Zero-shot | K=$K] ###" | tee -a $LOG_FILE
             python -m eval.eval_zeroshot_ \
                 --tasks arc_challenge,arc_easy,boolq,piqa,winogrande,hellaswag,mmlu \
-                --batch_size 8  --hf_path ${E2E_OUT_HF} \
-                --output_path ${RES}/${OUT_NAME}_common_mmlu 2>&1 | tee -a $LOG_FILE
+                --batch_size 8  --hf_path ${HF_PATH} \
+                --output_path ${RES}/${NAME}_common_mmlu 2>&1 | tee -a $LOG_FILE
 
             if [ "$HF_PATH" != "$HF" ] && [ "$exp_type" != "e2e" ]; then
                 echo "Cleaning up temporary files for $NAME"
@@ -160,3 +175,14 @@ done
 echo "############################################################"
 echo "##               All experiments finished.                ##"
 echo "############################################################"
+
+
+
+# python -m quantize_llama.hfize_llama \
+#     --quantized_path /home/jgryu/workspace/weight_compression/hf_model_comp/quip-sharp/ckpt/llama3_8b/ft1_e2e_after/2bit \
+#     --hf_output_path /home/jgryu/workspace/weight_compression/hf_model_comp/quip-sharp/hf/llama3_8b/ft1_e2e_after/2bit
+
+# python -m quantize_llama.finetune_e2e_llama_save_ckpt \
+#     --ckpt_path /home/jgryu/workspace/weight_compression/hf_model_comp/quip-sharp/ckpt/llama3_8b/ft1_e2e_after/2bit \
+#     --output_ckpt_path /home/jgryu/workspace/weight_compression/hf_model_comp/quip-sharp/ckpt/llama3_8b/hf_ft1_e2e/2bit_checkpoints/checkpoint_epoch_7.pt \
+#     --hf_path /home/jgryu/workspace/weight_compression/hf_model_comp/quip-sharp/hf/llama3_8b/ft1_e2e_after/2bit

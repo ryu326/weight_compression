@@ -38,24 +38,26 @@ def compress_linear(W, H, comp_model, Qlevel, args, device='cpu'):
     if Qlevel is None:
         if args.ql or args.ql_invH:
             Qlevel = utils.get_ql_from_H(Hr, comp_model, args).to(device)
+            if args.ql_search:
+                assert torch.all(Qlevel == Qlevel[0]), "Qlevel의 모든 값이 동일하지 않습니다."
     
     metadata['qlevel'] = Qlevel  
 
     res = comp_W(Wr, Hr, comp_model, args, **metadata)
     assert torch.isnan(res['hatWr']).any() == False
     
-    if args.fp_iter:
-        U, D = utils.compute_U_from_H(Hr)
-        W_hat_prev = res['hatWr']
-        for _ in range(args.fp_iter_max):
-            W_in = Wr + (Wr - W_hat_prev) @ U
-            res_ = comp_W(W_in, Hr, comp_model, args, **metadata)
-            W_hat = res_['hatWr']
-            # if torch.norm(W_hat - W_hat_prev) < args.fp_tol:
-            #     break
-            glog.info(f'{args.layer_idx}_{args.layer_name} Step {_}, Convergence error: {torch.norm(W_hat - W_hat_prev)}')
-            W_hat_prev = W_hat
-        res = res_
+    # if args.fp_iter:
+    #     U, D = utils.compute_U_from_H(Hr)
+    #     W_hat_prev = res['hatWr']
+    #     for _ in range(args.fp_iter_max):
+    #         W_in = Wr + (Wr - W_hat_prev) @ U
+    #         res_ = comp_W(W_in, Hr, comp_model, args, **metadata)
+    #         W_hat = res_['hatWr']
+    #         # if torch.norm(W_hat - W_hat_prev) < args.fp_tol:
+    #         #     break
+    #         glog.info(f'{args.layer_idx}_{args.layer_name} Step {_}, Convergence error: {torch.norm(W_hat - W_hat_prev)}')
+    #         W_hat_prev = W_hat
+    #     res = res_
 
     res['metadata'] = metadata
 
@@ -105,9 +107,6 @@ def comp_W(W, H, model, args, **kwargs):
             w = W[:, s:e]        
         
         ql = qlevel[s:e] if qlevel is not None else None
-        # r_norm = row_norm[:, :] if row_norm is not None else None
-        # c_norm = col_norm[:, s:e] if col_norm is not None else None
-
         sc = scale_cond[:, s:e] if scale_cond is not None else None
  
         x_hat, n_pixels, bpp_loss_, out, out_enc, nbits = model_foward_one_batch(w.clone(), model, args, ql = ql, sc = sc)
@@ -239,13 +238,16 @@ def model_foward_one_batch(w, model, args, **kwargs):
             out = model(data)
         w_hat = out['x_hat']
             
-        if isinstance(out["likelihoods"], dict):
-            bpp_loss_sum = sum(
-                (torch.log(likelihoods).sum() / -math.log(2))
-                for likelihoods in out["likelihoods"].values()
-            )
-        else :
-            bpp_loss_sum = (torch.log(out["likelihoods"]).sum() / -math.log(2))
+        if "likelihoods" in out:
+            if isinstance(out["likelihoods"], dict):
+                bpp_loss_sum = sum(
+                    (torch.log(likelihoods).sum() / -math.log(2))
+                    for likelihoods in out["likelihoods"].values()
+                )
+            else :
+                bpp_loss_sum = (torch.log(out["likelihoods"]).sum() / -math.log(2))
+        elif hasattr(model, 'bits'):
+            nbits += model.bits * num_pixels
             
     if args.direction == 'col':
         w_hat = w_hat.reshape(n, m).transpose(0, 1).contiguous()

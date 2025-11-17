@@ -256,13 +256,19 @@ def get_ql_from_H(H, comp_model, args):
     #         Qlevel = torch.max(Qlevel, torch.tensor(1))
 
     if args.ql_search:
-        ql_search_layer_idx = list(map(int, args.ql_search_layer_idx.split(',')))
+        if args.ql_search_layer_idx is None:
+            ql_search_layer_idx = list(range(40))
+        else:
+            if isinstance(args.ql_search_layer_idx, (list, tuple)):
+                ql_search_layer_idx = [int(x) for x in args.ql_search_layer_idx]
+            else:
+                ql_search_layer_idx = list(map(int, str(args.ql_search_layer_idx).split(',')))
         ql_search_layer_name = args.ql_search_layer_name.split(',')
         # assert args.ql
         if args.layer_name in ql_search_layer_name and args.layer_idx in ql_search_layer_idx:
             Qlevel = torch.full_like(Qlevel, args.ql_search_value)    
         Qlevel = torch.full((H.shape[1],), args.ql_search_value, dtype=torch.int32) 
-    #  
+
     return Qlevel
 
 def compute_U_from_H(H: torch.Tensor):

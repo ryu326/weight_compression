@@ -48,6 +48,38 @@ parser.add_argument('--ft_early_stop', default=3, type=int)
 parser.add_argument('--ft_train_mode', action='store_true')
 parser.add_argument('--ft_grad_ckpt', action='store_true')
 parser.add_argument('--ft_nshards', default=-1, type=int)
+parser.add_argument('--resume_ckpt', type=str)
+parser.add_argument('--ckpt_path', type=str)
+
+
+
+def save_fn(quant_model, args):
+    ct = 0
+    for j in range(len(quant_model.model.layers)):
+        layer = quant_model.model.layers[j]
+        utils.save_susv(layer.self_attn.qkv_proj,
+                        f'{args.ckpt_path}/{ct}_qkv.pt')
+        utils.save_susv(layer.self_attn.o_proj,
+                        f'{args.ckpt_path}/{ct}_o.pt')
+        utils.save_susv(layer.mlp.upgate_proj,
+                        f'{args.ckpt_path}/{ct}_up.pt')
+        utils.save_susv(layer.mlp.down_proj,
+                        f'{args.ckpt_path}/{ct}_down.pt')
+        torch.save(
+            {
+                'input_layernorm':
+                layer.input_layernorm.weight,
+                'post_attention_layernorm':
+                layer.post_attention_layernorm.weight,
+            }, f'{args.ckpt_path}/{ct}_layernorm.pt')
+        glog.info(f'wrote layer {ct}')
+        ct += 1
+    torch.save(
+        {
+            'lm_head': quant_model.lm_head.weight,
+            'norm': quant_model.model.norm.weight,
+        }, f'{args.ckpt_path}/lmhead.pt')
+
 
 def model_from_hf_path(path, max_mem_ratio=0.7, device_map=None):
 
@@ -150,7 +182,22 @@ def main(args):
         print(f"Error when converting quant_model to orig_dtype: {e}")
         pass
     quant_model.save_pretrained(args.hf_output_path, safe_serialization=True)
-
+    
+    
+    try:
+        save_fn(quant_model, args)
+    except:
+        new_best_sd = {}
+        best_sd = quant_model.state_dict()
+        for key, value in best_sd.items():
+            if key.endswith(".Qidxs_0"):
+                new_key = key.replace(".Qidxs_0", ".Qidxs")
+                new_best_sd[new_key] = value
+            else:
+                new_best_sd[key] = value
+        quant_model.load_state_dict(new_best_sd, strict=False)
+        save_fn(quant_model, args)
+        
 if __name__ == '__main__':
     mp.set_start_method('spawn')
     mp.set_sharing_strategy('file_system')
