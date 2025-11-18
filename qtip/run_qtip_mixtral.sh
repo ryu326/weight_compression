@@ -20,7 +20,7 @@ LOG="./log"
 RES="../hf_model_comp_results/qtip"
 
 # --- 환경 변수 설정 ---
-export CUDA_VISIBLE_DEVICES=2,3,4,5,6,7
+export CUDA_VISIBLE_DEVICES=3,4,5,6,7
 export WANDB_SILENT=true
 export HF_HOME=/home/jgryu/.cache/huggingface
 

@@ -149,12 +149,13 @@ parser.add_argument('--fp_iter', action='store_true', default=False)
 parser.add_argument('--fp_iter_max', type=int, default=None)
 parser.add_argument('--fp_tol', type=float, default=1e-5)
 
-def check_exist_mixtral(idx, args, model_config):
-    """Mixtral 레이어에 필요한 모든 파일이 존재하는지 확인"""
+def check_exist_moe(idx, args, model_config):
     suffix = ['q', 'k', 'v', 'o', 'layernorm']
     suffix.append('gate')
     if hasattr(model_config, 'num_local_experts'):
-        num_experts = model_config.num_local_experts
+        # num_experts = model_config.num_local_experts
+        num_experts = getattr(model_config, 'num_local_experts', getattr(model_config, 'num_experts', 0))
+        
         for i in range(num_experts):
             suffix.append(f'expert{i}_w1')
             suffix.append(f'expert{i}_w2')
@@ -174,9 +175,9 @@ class Config:
         self.__dict__.update(entries)
 
 
-def compress_llama_decoder(layer, idx, comp_model, q_level, args, device, pre_orig_emb,
-                           orig_emb, model_config, skip_list, attention_mask):
-    if check_exist_mixtral(idx, args):
+def compress_moe_decoder(layer, idx, comp_model, q_level, args, device, pre_orig_emb,
+                           orig_emb, model_config, skip_list, attention_mask, rotary_emb):
+    if check_exist_moe(idx, args, model_config):
         glog.info(f"Layer {idx}의 파일이 이미 존재하므로 스킵합니다.")
         return
 
@@ -189,20 +190,34 @@ def compress_llama_decoder(layer, idx, comp_model, q_level, args, device, pre_or
     # layer name, save_name, input hessian file, output hessian file
     quant_order = []
     for thing in [
-                    ('self_attn.v_proj', 'v', 'qkv', 'v', 'col'),
-                  ('self_attn.q_proj', 'q', 'qkv', 'q', 'col'),
-                  ('self_attn.k_proj', 'k', 'qkv', 'k', 'col'),
-                  ('self_attn.o_proj', 'o', 'o', 'o', 'row')]:
+                ('self_attn.v_proj', 'v', 'qkv', 'v', 'col'),
+                ('self_attn.q_proj', 'q', 'qkv', 'q', 'col'),
+                ('self_attn.k_proj', 'k', 'qkv', 'k', 'col'),
+                ('self_attn.o_proj', 'o', 'o', 'o', 'row')]:
         if f'{idx}_{thing[1]}' not in skip_list:
             quant_order.append(thing)
         else:
             attrgetter(thing[0])(layer).weight.requires_grad = False
             print(f'skipping {idx}_{thing[1]}')
         
-    # 2. MoE 라우터 게이트
-    # (layer_name, save_name, in_hess_file, out_hess_file, type)
-    # 이전 input_hessian 스크립트에서 'gate'로 저장했습니다.
-    gate_thing = ('block_sparse_moe.gate', 'gate', 'gate', 'gate', 'col')
+    model_type = model_config.model_type.lower()
+    is_qwen = 'qwen' in model_type
+    
+    if is_qwen:
+        # Qwen: layer.mlp.experts.{i}.[gate_proj, up_proj, down_proj]
+        gate_module_name = 'mlp.gate'
+        expert_prefix = 'mlp.experts'
+        # Qwen 실제 레이어 이름 매핑 (w1: gate, w3: up, w2: down)
+        layer_name_map = {'w1': 'gate_proj', 'w3': 'up_proj', 'w2': 'down_proj'}
+    else:
+        # Mixtral: layer.block_sparse_moe.experts.{i}.[w1, w3, w2]
+        gate_module_name = 'block_sparse_moe.gate'
+        expert_prefix = 'block_sparse_moe.experts'
+        # Mixtral 실제 레이어 이름 매핑
+        layer_name_map = {'w1': 'w1', 'w3': 'w3', 'w2': 'w2'}
+
+    # (1) Router Gate
+    gate_thing = (gate_module_name, 'gate', 'gate', 'gate', 'col')
     if f'{idx}_{gate_thing[1]}' not in skip_list:
         quant_order.append(gate_thing)
     else:
@@ -210,53 +225,37 @@ def compress_llama_decoder(layer, idx, comp_model, q_level, args, device, pre_or
         print(f'skipping {idx}_{gate_thing[1]}')
     # attrgetter('block_sparse_moe.gate')(layer).weight.requires_grad = False
 
-    # 3. MoE 전문가 레이어 (동적 생성)
-    num_experts = model_config.num_local_experts
+    expert_layers_config = [
+        ('w1', 'w3', 'col'), # w1 uses w3 hessian
+        ('w3', 'w3', 'col'),
+        ('w2', 'w2', 'row')
+    ]
+
+    # num_experts = model_config.num_local_experts
+    num_experts = getattr(model_config, 'num_local_experts', getattr(model_config, 'num_experts', 0))
     for i in range(num_experts):
-        
-        # w1 (Llama의 gate_proj에 해당)
-        # Hessian: Llama의 gate_proj가 up_proj의 Hessian을 썼듯이,
-        # w1은 w3의 Hessian(expert{i}_w3)을 사용합니다.
-        w1_name = f'block_sparse_moe.experts.{i}.w1'
-        w1_save = f'expert{i}_w1'
-        w1_hess = f'expert{i}_w3' # w3의 Hessian 사용
-        w1_thing = (w1_name, w1_save, w1_hess, w1_save, 'col')
-        
-        if f'{idx}_{w1_save}' not in skip_list:
-            quant_order.append(w1_thing)
-        else:
-            attrgetter(w1_name)(layer).weight.requires_grad = False
-            print(f'skipping {idx}_{w1_save}')
-
-        # w3 (Llama의 up_proj에 해당)
-        # Hessian: 이전 스크립트에서 'expert{i}_w3'로 저장했습니다.
-        w3_name = f'block_sparse_moe.experts.{i}.w3'
-        w3_save = f'expert{i}_w3'
-        w3_hess = f'expert{i}_w3' # 자신의 Hessian 사용
-        w3_thing = (w3_name, w3_save, w3_hess, w3_save, 'col')
-        
-        if f'{idx}_{w3_save}' not in skip_list:
-            quant_order.append(w3_thing)
-        else:
-            attrgetter(w3_name)(layer).weight.requires_grad = False
-            print(f'skipping {idx}_{w3_save}')
-
-        # w2 (Llama의 down_proj에 해당)
-        # Hessian: 이전 스크립트에서 'expert{i}_w2'로 저장했습니다.
-        w2_name = f'block_sparse_moe.experts.{i}.w2'
-        w2_save = f'expert{i}_w2'
-        w2_hess = f'expert{i}_w2' # 자신의 Hessian 사용
-        w2_thing = (w2_name, w2_save, w2_hess, w2_save, 'row')
-        
-        if f'{idx}_{w2_save}' not in skip_list:
-            quant_order.append(w2_thing)
-        else:
-            attrgetter(w2_name)(layer).weight.requires_grad = False
-            print(f'skipping {idx}_{w2_save}')
-
+        for logical_name, hess_src, rcp in expert_layers_config:
+            
+            # 실제 레이어 속성 이름 (예: gate_proj 또는 w1)
+            attr_name = layer_name_map[logical_name]
+            # 전체 모듈 경로 (예: mlp.experts.0.gate_proj)
+            full_module_name = f"{expert_prefix}.{i}.{attr_name}"
+            
+            # 저장 키 및 Hessian 키 (예: expert0_w1, expert0_w3)
+            save_key = f"expert{i}_{logical_name}"
+            hess_key = f"expert{i}_{hess_src}"
+            
+            # (linear_attr, name, in_hess_name, out_hess_name, rcp)
+            item = (full_module_name, save_key, hess_key, save_key, rcp)
+            
+            if f'{idx}_{save_key}' not in skip_list:
+                quant_order.append(item)
+            else:
+                attrgetter(full_module_name)(layer).weight.requires_grad = False
+                print(f'skipping {idx}_{save_key}')
 
     finetune_mixtral.compress_finetune_decoder_layer(layer, quant_order, idx, comp_model, ql_i, args,
-                                             device, pre_orig_emb, orig_emb, attention_mask)
+                                             device, pre_orig_emb, orig_emb, attention_mask, rotary_emb)
     torch.save(
         {
             'input_layernorm': layer.input_layernorm.weight,
@@ -304,16 +303,21 @@ def main(args):
     comp_params = {'ft_rnorm': args.ft_rnorm,
                    'row_normalize' : args.row_normalize,
                    'col_normalize': args.col_normalize}
-    all_config['model_config'].update({'comp_params': comp_params})
+    if hasattr(model.config, 'comp_params'):
+        model.config.quip_params = comp_params
+    else:
+        all_config['model_config'].__dict__.update({'comp_params': comp_params})
     torch.save(all_config, os.path.join(args.save_path, 'config.pt'))
 
-    all_config = {'quant_args': vars(args), 'model_config': model.config.to_dict()}
+    all_config_save = {'quant_args': vars(args), 'model_config': model.config.to_dict()}
     with open(os.path.join(args.save_path, 'config.json'), 'w') as f:
-        json.dump(all_config, f, indent=4)
+        json.dump(all_config_save, f, indent=4)
 
-    tokenizer = AutoTokenizer.from_pretrained(args.base_model)
-    tokenizer.pad_token = tokenizer.eos_token
-    glog.info('loaded model')
+    tokenizer = AutoTokenizer.from_pretrained(args.base_model, trust_remote_code=True)
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+    glog.info('loaded model and tokenizer')
+
 
     #################### load comp model ####################
     if args.comp_model_path is not None:
@@ -425,7 +429,8 @@ def main(args):
     position_ids = torch.arange(args.ctx_size, dtype=torch.int32)[None, :] + \
         torch.zeros(args.batch_size, args.ctx_size, dtype=torch.int32)
     # --- [수정] 슬라이딩 윈도우 어텐션 마스크 생성 ---
-    sliding_window = model.config.sliding_window
+    
+    sliding_window = getattr(model.config, 'sliding_window', None)
     if sliding_window is None:
         glog.warning("Sliding window config가 없습니다. Causal mask를 사용합니다.")
         sliding_window = None # _prepare_4d... 함수는 None을 처리합니다.
@@ -450,20 +455,38 @@ def main(args):
             proc_list[cur_device + 1][0].join()
         utils.clean()
         st = time.time()
+        
         position_ids = position_ids.to(cur_device)
         attention_mask = attention_mask.to(cur_device)
         model.model.layers[i].to(cur_device)
         
+        layer_kwargs = {
+            "hidden_states": None, # 아래 루프에서 채움
+            "attention_mask": attention_mask,
+            "position_ids": position_ids,
+            "use_cache": False,
+            "output_attentions": False,
+        }
+        # Qwen 모델인 경우에만 position_embeddings 계산 및 추가
+        rotary_emb = None
+        if "qwen" in all_config['model_config'].model_type.lower():
+            # rotary_emb 호출 (Qwen 전용)
+            position_embeddings = model.model.rotary_emb(
+                orig_emb_cache[cur_device][0:1].to(cur_device), 
+                position_ids
+            )
+            layer_kwargs["position_embeddings"] = position_embeddings
+            rotary_emb = model.model.rotary_emb
+        
+        
         if args.ft_epochs > 0:
             for j in range(args.devset_size // args.batch_size):
                 utils.clean()
+                input_feat = orig_emb_cache[cur_device][args.batch_size * j : args.batch_size * (j + 1)].to(cur_device)
+                layer_kwargs["hidden_states"] = input_feat # hidden_states 설정
+
                 orig_emb_cache[cur_device + 1][args.batch_size * j : args.batch_size * (j + 1)] = \
-                    model.model.layers[i](
-                        orig_emb_cache[cur_device][args.batch_size * j : args.batch_size * (j + 1)].to(cur_device),
-                        position_ids=position_ids,
-                        attention_mask=attention_mask,
-                        use_cache=False,
-                        output_attentions=False)[0].cpu()
+                    model.model.layers[i](**layer_kwargs)[0].cpu()    
         else:
             orig_emb_cache[cur_device + 1] = orig_emb_cache[cur_device]
             # orig_emb_cache[cur_device + 1] = None
@@ -473,7 +496,7 @@ def main(args):
         utils.clean()
         glog.info('computed original embedding for layer {} in {}s'.format(i, time.time() - st))
 
-        proc_list[cur_device] = (mp.Process(target=compress_llama_decoder,
+        proc_list[cur_device] = (mp.Process(target=compress_moe_decoder,
                                             args=(
                                                 model.model.layers[i],
                                                 i,
@@ -485,7 +508,8 @@ def main(args):
                                                 orig_emb_cache[cur_device + 1],
                                                 all_config['model_config'],
                                                 args.skip_list,
-                                                attention_mask[:args.ft_bs].cpu()
+                                                attention_mask[:args.ft_bs].cpu(),
+                                                rotary_emb
                                             )), i)
         proc_list[cur_device][0].start()
 

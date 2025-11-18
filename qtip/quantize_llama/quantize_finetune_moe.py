@@ -262,12 +262,11 @@ def main(args):
         attention_mask = attention_mask.to(cur_device)
         model.model.layers[i].to(cur_device)
         
-        
         # --- [수정] Forward 인자 준비 (모델별 분기) ---
         layer_kwargs = {
             "hidden_states": None, # 아래 루프에서 채움
             "attention_mask": attention_mask,
-            "position_ids": position_ids.to(cur_device),
+            "position_ids": position_ids,
             "use_cache": False,
             "output_attentions": False,
         }
@@ -275,14 +274,12 @@ def main(args):
         # Qwen 모델인 경우에만 position_embeddings 계산 및 추가
         rotary_emb = None
         if "qwen" in all_config['model_config'].model_type.lower():
-            pos_ids_device = position_ids.to(cur_device)
             # rotary_emb 호출 (Qwen 전용)
             position_embeddings = model.model.rotary_emb(
                 orig_emb_cache[cur_device][0:1].to(cur_device), 
-                pos_ids_device
+                position_ids
             )
             layer_kwargs["position_embeddings"] = position_embeddings
-            layer_kwargs["position_ids"] = pos_ids_device # device 이동된 id 사용
             rotary_emb = model.model.rotary_emb
 
         # ------------------------------------------------

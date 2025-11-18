@@ -33,7 +33,7 @@ def use_tf32():
 
 
 def finetune_decoder_layer(layer, name, device, train_dl, valid_dl, orig_dtype,
-                           args, attention_mask):
+                           args, attention_mask, rotary_emb):
     with use_tf32():
         layer = layer.to(device)
         attention_mask = attention_mask.to(device=device, dtype=next(layer.parameters()).dtype)
@@ -41,15 +41,22 @@ def finetune_decoder_layer(layer, name, device, train_dl, valid_dl, orig_dtype,
         source = next(iter(train_dl))[0]
         position_ids = torch.arange(source.shape[1], device=device).unsqueeze(0)
         # manifest tensor parallel attributes in layer
-        output = layer(source.to(device),
-                       position_ids=position_ids, 
-                       attention_mask=attention_mask)[0]
+        forward_kwargs = {
+            "hidden_states": source.to(device),
+            "position_ids": position_ids,
+            "attention_mask": attention_mask
+        }
+        # [수정] Qwen용 Position Embeddings 계산 및 추가
+        if rotary_emb is not None:
+            position_embeddings = rotary_emb(source.to(device), position_ids)
+            forward_kwargs["position_embeddings"] = position_embeddings
+        output = layer(**forward_kwargs)[0]
         
         best_sd = {k: v.cpu() for k, v in layer.state_dict().items()}
         utils.clean()
 
         optim = torch.optim.Adam(layer.parameters(), lr=args.ft_lr)
-        best_loss = utils.calculate_mse_loss_mixtral(layer, valid_dl, device, attention_mask)
+        best_loss = utils.calculate_mse_loss_moe(layer, valid_dl, device, attention_mask, rotary_emb)
         glog.info(f'layer {name} initial loss {best_loss}')
         scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
         worse_ct = 0
@@ -62,12 +69,14 @@ def finetune_decoder_layer(layer, name, device, train_dl, valid_dl, orig_dtype,
         for epoch in range(args.ft_epochs):
             for bidx, (source, targets) in enumerate(train_dl):
                 targets = targets.to(device, non_blocking=True)
+                forward_kwargs['hidden_states'] = source.to(device)
                 with torch.autocast(device_type='cuda',
                                     dtype=orig_dtype,
                                     enabled=True):
-                    output = layer(source.to(device),
-                                   position_ids=position_ids,
-                                   attention_mask=attention_mask)[0]
+                    output = layer(**forward_kwargs)[0]
+                    # output = layer(source.to(device),
+                    #                position_ids=position_ids,
+                    #                attention_mask=attention_mask)[0]
                     loss = nn.MSELoss()(output, targets)
                     
                     if args.ft_bpp_loss:
@@ -107,7 +116,7 @@ def finetune_decoder_layer(layer, name, device, train_dl, valid_dl, orig_dtype,
                         f'layer {name} @ epoch {epoch} mse {avg_mse:.4g} bpp {avg_bpp:.2f} w '
                     )   
                 else:
-                    test_loss = utils.calculate_mse_loss_mixtral(layer, valid_dl, device, attention_mask)
+                    test_loss = utils.calculate_mse_loss_moe(layer, valid_dl, device, attention_mask, rotary_emb)
                     if test_loss < best_loss:
                         glog.info(
                             f'layer {name} @ epoch {epoch} new loss {test_loss} old loss {best_loss} BETTER'
@@ -133,7 +142,7 @@ def finetune_decoder_layer(layer, name, device, train_dl, valid_dl, orig_dtype,
 
 
 def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, ql_i, args,
-                                    device, pre_orig_emb, orig_emb, attention_mask):
+                                    device, pre_orig_emb, orig_emb, attention_mask, rotary_emb):
     """
     [리팩토링됨] 레이어를 그룹별로 묶어 압축하고, 각 그룹이 끝날 때만 파인튜닝을 수행합니다.
     """
@@ -336,7 +345,7 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
             glog.info(f"--- Layer {idx}: Finetuning after {stage_name} compression ---")
             with torch.enable_grad():
                 finetune_decoder_layer(mixed_layer, f'{idx}_{stage_name}', device,
-                                   train_dl, valid_dl, orig_dtype, args, attention_mask)
+                                   train_dl, valid_dl, orig_dtype, args, attention_mask, rotary_emb)
             glog.info(f"--- Layer {idx}: Finished finetuning after {stage_name} ---")
         else:
             glog.info(f"--- Layer {idx}: Skipping finetuning for {stage_name} ---")

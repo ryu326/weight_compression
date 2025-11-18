@@ -74,6 +74,7 @@ def compress_linear(W, H, comp_model, Qlevel, args, device='cpu'):
 def comp_W(W, H, model, args, **kwargs):    
     bs = min(W.shape[1], 4096*4096 // W.shape[0]) if args.comp_batch_size == -1 else args.comp_batch_size
     (m, n) = W.shape
+    glog.info(f'{W.shape}')
     W_hat = torch.zeros_like(W)
     W_ldl = torch.zeros_like(W) if args.ldlq else None
     num_pixels = 0
@@ -175,7 +176,27 @@ def model_foward_one_batch(w, model, args, **kwargs):
     (m, n) = w.shape if w is not None else kwargs.get('shape', None)
     
     blks = model.input_size
-    assert (m if args.direction == 'col' else n) % blks == 0
+    # assert (m if args.direction == 'col' else n) % blks == 0
+    original_m, original_n = m, n
+    pad_len = 0    
+    if args.direction == 'col':
+        # Col 방향일 때는 m(행)이 blks의 배수여야 함
+        if m % blks != 0:
+            pad_len = blks - (m % blks)
+            # w shape: (m, n) -> pad bottom rows: (last_dim_left, last_dim_right, 2nd_last_left, 2nd_last_right)
+            # (0, 0, 0, pad_len)
+            if w is not None:
+                w = F.pad(w, (0, 0, 0, pad_len))
+            m = m + pad_len  # m 업데이트
+    else:
+        # Row 방향일 때는 n(열)이 blks의 배수여야 함
+        if n % blks != 0:
+            pad_len = blks - (n % blks)
+            # w shape: (m, n) -> pad right cols
+            if w is not None:
+                w = F.pad(w, (0, pad_len))
+            n = n + pad_len  # n 업데이트
+    
     
     sc = kwargs.get('sc', None)  # (1, n)
     sc = sc.repeat(m, 1) if sc is not None else None #(m, n)
@@ -249,10 +270,23 @@ def model_foward_one_batch(w, model, args, **kwargs):
         elif hasattr(model, 'bits'):
             nbits += model.bits * num_pixels
             
+    # if args.direction == 'col':
+    #     w_hat = w_hat.reshape(n, m).transpose(0, 1).contiguous()
+    # else:
+    #     w_hat = w_hat.reshape(m, n)
+    
+    # --- [수정 시작] Unpadding Logic ---
     if args.direction == 'col':
+        # 현재 w_hat은 (n, m) 형태 (padding 포함)
         w_hat = w_hat.reshape(n, m).transpose(0, 1).contiguous()
+        # 복원된 w_hat은 (m, n). 여기서 m은 패딩된 크기.
+        if pad_len > 0:
+            w_hat = w_hat[:original_m, :]
     else:
         w_hat = w_hat.reshape(m, n)
+        if pad_len > 0:
+            w_hat = w_hat[:, :original_n]
+    # --- [수정 끝] ---
 
     if args.use_codes:
         del out_dec['x_hat']
