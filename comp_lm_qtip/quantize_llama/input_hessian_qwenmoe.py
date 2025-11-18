@@ -117,10 +117,12 @@ def main(args):
                 tmp_input = dev_emb[di].cuda()
                 
                 # 순전파 호출 (Mixtral과 동일한 인자 사용)
+                position_embeddings = model.model.rotary_emb(dev_emb[di].cuda(), position_ids)                
                 dev_emb[di] = layer(dev_emb[di].cuda(),
                                     position_ids=position_ids,
                                     attention_mask=attention_mask,
                                     use_cache=False,
+                                    position_embeddings=position_embeddings, ##
                                     output_attentions=False)[0].cpu()
                 tmp_input = tmp_input.cpu()
                 del tmp_input

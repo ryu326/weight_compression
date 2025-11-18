@@ -31,7 +31,7 @@ def calculate_mse_loss(layer, dataloader, device):
     layer.train()
     return (total_loss / ct).cpu().item()
 
-def calculate_mse_loss_mixtral(layer, dataloader, device, attention_mask): # 1. attention_mask 인자 추가
+def calculate_mse_loss_moe(layer, dataloader, device, attention_mask, rotary_emb): # 1. attention_mask 인자 추가
     layer.eval()
     total_loss = 0
     ct = 0
@@ -48,9 +48,20 @@ def calculate_mse_loss_mixtral(layer, dataloader, device, attention_mask): # 1. 
             target = target.to(device, non_blocking=True)
             
             # 3. layer 호출 시 attention_mask 전달
-            output = layer(source.to(device),
-                           position_ids=position_ids,
-                           attention_mask=attention_mask)[0]
+            forward_kwargs = {
+                "hidden_states": source.to(device),
+                "position_ids": position_ids,
+                "attention_mask": attention_mask
+            }
+            # [수정] Qwen용 Position Embeddings 계산 및 추가
+            if rotary_emb is not None:
+                position_embeddings = rotary_emb(source.to(device), position_ids)
+                forward_kwargs["position_embeddings"] = position_embeddings
+
+            output = layer(**forward_kwargs)[0]            
+            # output = layer(source.to(device),
+            #                position_ids=position_ids,
+            #                attention_mask=attention_mask)[0]
                            
             total_loss += nn.MSELoss()(output, target)
             ct += 1
