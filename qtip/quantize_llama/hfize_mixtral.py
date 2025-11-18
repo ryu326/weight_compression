@@ -42,11 +42,12 @@ def load_or_copy_quip(parent_module, attr_name, original_module,
             saved_layer = torch.load(quantized_file_path, map_location=cpu)
             utils.unpack_quip(target_module, saved_layer)
         else:
-            glog.warning(f"Quantized file not found: {quantized_file_path}. Copying original weights.")
-            # 파일이 없으면 원본 가중치로 대체
-            target_module.weight.copy_(original_module.weight)
-            if original_module.bias is not None and target_module.bias is not None:
-                target_module.bias.copy_(original_module.bias)
+            raise
+            # glog.warning(f"Quantized file not found: {quantized_file_path}. Copying original weights.")
+            # # 파일이 없으면 원본 가중치로 대체
+            # target_module.weight.copy_(original_module.weight)
+            # if original_module.bias is not None and target_module.bias is not None:
+            #     target_module.bias.copy_(original_module.bias)
     else:
         # skip_list에 있으면 모듈 자체를 원본으로 교체
         glog.info(f"Skipping {layer_key}, replacing with original module.")
@@ -82,12 +83,9 @@ def main(args):
     
     cpu = torch.device('cpu')
     if os.path.exists(f'{args.quantized_path}/lmhead.pt'):
-        lmhead_data = torch.load(f'{args.quantized_path}/lmhead.pt',
-                                 map_location=cpu)
-        model.lm_head.weight.copy_(lmhead_data['lm_head'].to(
-            model.lm_head.weight.dtype))
-        model.model.norm.weight.copy_(lmhead_data['norm'].to(
-            model.model.norm.weight.dtype))
+        lmhead_data = torch.load(f'{args.quantized_path}/lmhead.pt', map_location=cpu)
+        model.lm_head.weight.copy_(lmhead_data['lm_head'].to(model.lm_head.weight.dtype))
+        model.model.norm.weight.copy_(lmhead_data['norm'].to(model.model.norm.weight.dtype))
 
     for ii in range(len(model.model.layers)):
         layer = model.model.layers[ii]

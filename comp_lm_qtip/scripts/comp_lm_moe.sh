@@ -129,7 +129,7 @@ for j in "${!model_names[@]}"; do
             if [ "$HF/$SAVE_NAME" != "$HF" ]; then
                 echo "Cleaning up temporary files for $SAVE_NAME"
                 rm -rf "$HF/$SAVE_NAME"
-                rm -rf "$CKPT/$SAVE_NAME"
+                # rm -rf "$CKPT/$SAVE_NAME"
             fi
         done
     done
