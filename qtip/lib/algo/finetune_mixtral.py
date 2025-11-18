@@ -79,7 +79,7 @@ def finetune_decoder_layer(layer, name, device, train_dl, valid_dl, orig_dtype,
                     optim.zero_grad()
 
             if epoch % args.ft_valid_freq == (args.ft_valid_freq - 1):
-                test_loss = utils.calculate_mse_loss_mixtral(layer, valid_dl, device, attention_mask)
+                test_loss = utils.calculate_mse_loss_moe(layer, valid_dl, device, attention_mask, rotary_emb)
                 if test_loss < best_loss:
                     glog.info(
                         f'layer {name} @ epoch {epoch} new loss {test_loss} old loss {best_loss} BETTER'
