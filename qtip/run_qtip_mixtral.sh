@@ -20,7 +20,7 @@ LOG="./log"
 RES="../hf_model_comp_results/qtip"
 
 # --- 환경 변수 설정 ---
-export CUDA_VISIBLE_DEVICES=3,4,5,6,7
+export CUDA_VISIBLE_DEVICES=4,5,6,7
 export WANDB_SILENT=true
 export HF_HOME=/home/jgryu/.cache/huggingface
 
@@ -65,7 +65,7 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
         echo "           Running Experiment Type: [$exp_type]"
         echo "------------------------------------------------------------"
 
-        for K in 2 3 4; do
+        for K in 5 6; do
             NAME="${model_key}/${exp_type}/${K}bit"
             SAVE_PATH="$CKPT/$NAME"
             LOG_FILE="${LOG}/${NAME}.log"
@@ -75,19 +75,19 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
             mkdir -p $SAVE_PATH
             mkdir -p $(dirname "$LOG_FILE")
 
-            echo "### [Stage: Quantize | K=$K] ###" | tee $LOG_FILE
-            python -m quantize_llama.quantize_finetune_mixtral \
-                --save_path $SAVE_PATH \
-                --codebook bitshift \
-                --base_model $base_model \
-                --in_hess_path $HESS \
-                --scale_override 0.9 \
-                --ft_epochs $ft_epochs \
-                --td_x 16 --td_y 16 --L 16 --K $K --V 2 \
-                --decode_mode quantlut_sym --tlut_bits 9 2>&1 | tee -a $LOG_FILE
+            # echo "### [Stage: Quantize | K=$K] ###" | tee $LOG_FILE
+            # python -m quantize_llama.quantize_finetune_moe \
+            #     --save_path $SAVE_PATH \
+            #     --codebook bitshift \
+            #     --base_model $base_model \
+            #     --in_hess_path $HESS \
+            #     --scale_override 0.9 \
+            #     --ft_epochs $ft_epochs \
+            #     --td_x 16 --td_y 16 --L 16 --K $K --V 2 \
+            #     --decode_mode quantlut_sym --tlut_bits 9 2>&1 | tee -a $LOG_FILE
 
             echo "### [Stage: Hfize | K=$K] ###" | tee -a $LOG_FILE
-            python -m quantize_llama.hfize_mixtral \
+            python -m quantize_llama.hfize_moe \
                 --quantized_path $SAVE_PATH \
                 --hf_output_path $HF_PATH \
                 --base_model $base_model 2>&1 | tee -a $LOG_FILE
@@ -103,6 +103,7 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
                 --hf_path "${HF_PATH}" \
                 --output_path "${RES}/${NAME}" \
                 --seqlen 2048 \
+                --max_mem_ratio 0.2 \
                 $MANIFEST_FLAG 2>&1 | tee -a "$LOG_FILE"
 
             # echo "### [Stage: Eval Zero-shot | K=$K] ###" | tee -a "$LOG_FILE"

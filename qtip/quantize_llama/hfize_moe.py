@@ -188,8 +188,8 @@ def main(args):
     
     # 로드 테스트
     glog.info('Testing load from saved path...')
-    model, _ = model_from_hf_path(args.hf_output_path)
-    glog.info('successfully loaded hfized model')
+    # model, _ = model_from_hf_path(args.hf_output_path)
+    # glog.info('successfully loaded hfized model')
 
 
 if __name__ == '__main__':

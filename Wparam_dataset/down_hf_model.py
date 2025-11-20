@@ -37,8 +37,9 @@ model_list = [
     # 'llava-hf/llava-v1.6-vicuna-13b-hf',
     # 'facebook/dinov2-large-imagenet1k-1-layer',
     # 'facebook/dinov2-base-imagenet1k-1-layer',
-    'Qwen/Qwen3-30B-A3B',
+    # 'Qwen/Qwen3-30B-A3B',
     # 'mistralai/Mixtral-8x7B-v0.1',
+    'openai/gpt-oss-20b'
 ]
 
 # cache_directory = "./hf_model/cache"
