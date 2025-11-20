@@ -7,9 +7,13 @@ import accelerate
 import torch
 import transformers
 
-from model.llama import LlamaForCausalLM
-from transformers import LlamaConfig
-
+try:
+    from model.llama import LlamaForCausalLM
+    from transformers import LlamaConfig
+except:
+    LlamaForCausalLM = None
+    LlamaConfig = None
+    
 try:
     from transformers import Qwen2ForCausalLM
 except ImportError:
