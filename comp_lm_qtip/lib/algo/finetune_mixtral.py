@@ -64,7 +64,7 @@ def finetune_decoder_layer(layer, name, device, train_dl, valid_dl, orig_dtype,
         # --------- 사전 설정 ----------
         k, tau = 5, 0.5                 # SoftAdapt 창 길이·민감도
         loss_hist = {'mse': [], 'bpp': []}
-        initial_w = utils.get_initial_weights(layer, train_dl, device)
+        # initial_w = utils.get_initial_weights(layer, train_dl, device)
         
         for epoch in range(args.ft_epochs):
             for bidx, (source, targets) in enumerate(train_dl):
@@ -79,25 +79,25 @@ def finetune_decoder_layer(layer, name, device, train_dl, valid_dl, orig_dtype,
                     #                attention_mask=attention_mask)[0]
                     loss = nn.MSELoss()(output, targets)
                     
-                    if args.ft_bpp_loss:
-                        mse_loss = loss
-                        bpp_loss = sum(m.bpp_loss for m in layer.modules()
-                           if isinstance(m, CompLinear2))
+                    # if args.ft_bpp_loss:
+                    #     mse_loss = loss
+                    #     bpp_loss = sum(m.bpp_loss for m in layer.modules()
+                    #        if isinstance(m, CompLinear2))
 
-                        loss_hist['mse'].append(mse_loss.detach())
-                        loss_hist['bpp'].append(bpp_loss.detach())
-                        if len(loss_hist['mse']) > k:
-                            loss_hist['mse'].pop(0)
-                            loss_hist['bpp'].pop(0)
-                        if len(loss_hist['mse']) == k:
-                            mse_ma  = torch.stack(loss_hist['mse']).mean()
-                            bpp_ma  = torch.stack(loss_hist['bpp']).mean()
-                            r_mse   = (loss - mse_ma) / mse_ma
-                            r_bpp   = (bpp_loss - bpp_ma) / bpp_ma
-                            w = torch.softmax(torch.stack([r_mse, r_bpp]) / tau, dim=0)
-                        else:
-                            w = initial_w
-                        loss = w[0] * mse_loss + w[1] * bpp_loss   
+                    #     loss_hist['mse'].append(mse_loss.detach())
+                    #     loss_hist['bpp'].append(bpp_loss.detach())
+                    #     if len(loss_hist['mse']) > k:
+                    #         loss_hist['mse'].pop(0)
+                    #         loss_hist['bpp'].pop(0)
+                    #     if len(loss_hist['mse']) == k:
+                    #         mse_ma  = torch.stack(loss_hist['mse']).mean()
+                    #         bpp_ma  = torch.stack(loss_hist['bpp']).mean()
+                    #         r_mse   = (loss - mse_ma) / mse_ma
+                    #         r_bpp   = (bpp_loss - bpp_ma) / bpp_ma
+                    #         w = torch.softmax(torch.stack([r_mse, r_bpp]) / tau, dim=0)
+                    #     else:
+                    #         w = initial_w
+                    #     loss = w[0] * mse_loss + w[1] * bpp_loss   
                         # glog.info(
                         #     f'layer {name} @ epoch {epoch} bidx {bidx} loss {loss.item():.2f} mse {mse_loss.item():.4g} bpp {bpp_loss.item():.2f} w {w}'
                         # )                          

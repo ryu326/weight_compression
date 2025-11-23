@@ -152,21 +152,18 @@ parser.add_argument('--fp_tol', type=float, default=1e-5)
 def check_exist_moe(idx, args, model_config):
     suffix = ['q', 'k', 'v', 'o', 'layernorm']
     suffix.append('gate')
-    if hasattr(model_config, 'num_local_experts'):
-        # num_experts = model_config.num_local_experts
-        num_experts = getattr(model_config, 'num_local_experts', getattr(model_config, 'num_experts', 0))
+    # num_experts = model_config.num_local_experts
+    num_experts = getattr(model_config, 'num_local_experts', getattr(model_config, 'num_experts', 0))
         
-        for i in range(num_experts):
-            suffix.append(f'expert{i}_w1')
-            suffix.append(f'expert{i}_w2')
-            suffix.append(f'expert{i}_w3')
-    else:
-        glog.warning("model_config에 num_local_experts가 없습니다.")
-        return False
-
+    for i in range(num_experts):
+        suffix.append(f'expert{i}_w1')
+        suffix.append(f'expert{i}_w2')
+        suffix.append(f'expert{i}_w3')
+    
     for s in suffix:
         test = f'{args.save_path}/{idx}_{s}.pt'
         if not os.path.exists(test):
+            exit()
             return False
     return True
 
@@ -293,7 +290,7 @@ def main(args):
 
     dtype_ = torch.float64 if args.use_fp64 else torch.float32
 
-    model = MixtralForCausalLM.from_pretrained(args.base_model,
+    model = AutoModelForCausalLM.from_pretrained(args.base_model,
                                                  torch_dtype='auto',
                                                  low_cpu_mem_usage=True,
                                                  local_files_only=True,)

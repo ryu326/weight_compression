@@ -97,7 +97,7 @@ def main(args):
     glog.info(f"Loading target model from {args.base_model}...")
     model = CustomModelClass.from_pretrained(args.base_model,
                                                torch_dtype='auto',
-                                               low_cpu_mem_usage=True,
+                                               low_cpu_mem_usage=False,
                                                config=model_config)
     
     glog.info(f"Loading original model from {args.base_model} for fallback...")
@@ -181,13 +181,15 @@ def main(args):
         glog.info(f'loaded layer {ii}')
             
     glog.info(f'saving model to {args.hf_output_path}...')
-    model.save_pretrained(args.hf_output_path, safe_serialization=True)
+    model.save_pretrained(args.hf_output_path, safe_serialization=True, max_shard_size="100MB")
     tokenizer.save_pretrained(args.hf_output_path) # 토크나이저도 같이 저장
 
-    del model
+    model.cuda()
+    
+    # del model
     
     # 로드 테스트
-    glog.info('Testing load from saved path...')
+    # glog.info('Testing load from saved path...')
     # model, _ = model_from_hf_path(args.hf_output_path)
     # glog.info('successfully loaded hfized model')
 
