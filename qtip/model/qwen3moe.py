@@ -176,8 +176,8 @@ class Qwen3MoeAttention(nn.Module):
 
         if f"{layer_idx}_q" not in config.quip_params["skip_list"]:
             self.q_proj = QuantizedLinear(
-                self.hidden_size,
-                self.num_attention_heads * self.head_dim,
+                config.hidden_size,
+                config.num_attention_heads * self.head_dim,
                 td_x,
                 td_y,
                 L,
@@ -190,13 +190,13 @@ class Qwen3MoeAttention(nn.Module):
             )
         else:
             self.q_proj = nn.Linear(
-                self.hidden_size, self.num_attention_heads * self.head_dim, dtype=config.torch_dtype, bias=config.attention_bias
+                config.hidden_size, config.num_attention_heads * self.head_dim, dtype=config.torch_dtype, bias=config.attention_bias
             )
 
         if f"{layer_idx}_k" not in config.quip_params["skip_list"]:
             self.k_proj = QuantizedLinear(
-                self.hidden_size,
-                self.num_key_value_heads * self.head_dim,
+                config.hidden_size,
+                config.num_key_value_heads * self.head_dim,
                 td_x,
                 td_y,
                 L,
@@ -209,16 +209,16 @@ class Qwen3MoeAttention(nn.Module):
             )
         else:
             self.k_proj = nn.Linear(
-                self.hidden_size,
-                self.num_key_value_heads * self.head_dim,
+                config.hidden_size,
+                config.num_key_value_heads * self.head_dim,
                 dtype=config.torch_dtype,
                 bias=config.attention_bias
             )
 
         if f"{layer_idx}_v" not in config.quip_params["skip_list"]:
             self.v_proj = QuantizedLinear(
-                self.hidden_size,
-                self.num_key_value_heads * self.head_dim,
+                config.hidden_size,
+                config.num_key_value_heads * self.head_dim,
                 td_x,
                 td_y,
                 L,
@@ -231,16 +231,16 @@ class Qwen3MoeAttention(nn.Module):
             )
         else:
             self.v_proj = nn.Linear(
-                self.hidden_size,
-                self.num_key_value_heads * self.head_dim,
+                config.hidden_size,
+                config.num_key_value_heads * self.head_dim,
                 dtype=config.torch_dtype,
                 bias=config.attention_bias,
             )
 
         if f"{layer_idx}_o" not in config.quip_params["skip_list"]:
             self.o_proj = QuantizedLinear(
-                self.num_attention_heads * self.head_dim,
-                self.hidden_size,
+                config.num_attention_heads * self.head_dim,
+                config.hidden_size,
                 td_x,
                 td_y,
                 L,
@@ -253,7 +253,7 @@ class Qwen3MoeAttention(nn.Module):
             )
         else:
             self.o_proj = nn.Linear(
-                self.num_attention_heads * self.head_dim, self.hidden_size, dtype=config.torch_dtype, bias=config.attention_bias
+                config.num_attention_heads * self.head_dim, config.hidden_size, dtype=config.torch_dtype, bias=config.attention_bias
             )
         
         self.q_norm = Qwen3MoeRMSNorm(self.head_dim, eps=config.rms_norm_eps)  # unlike olmo, only on the head dim!
@@ -401,8 +401,8 @@ class Qwen3MoeSparseMoeBlock(nn.Module):
         decode_mode = config.quip_params["decode_mode"]
 
         self.gate = QuantizedLinear(
-            self.hidden_size,
-            self.num_experts,
+            config.hidden_size,
+            config.num_experts,
             td_x,
             td_y,
             L,

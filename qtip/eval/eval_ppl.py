@@ -27,7 +27,8 @@ parser.add_argument("--output_path", default=None, type=str)
 def main(args):
     # datasets = ['wikitext2', 'c4', 'ptb']
     datasets = ['wikitext2','c4']
-    model, model_str = model_from_hf_path(args.hf_path, max_mem_ratio=args.max_mem_ratio)
+    # model, model_str = model_from_hf_path(args.hf_path, max_mem_ratio=args.max_mem_ratio)
+    model, model_str = model_from_hf_path(args.hf_path, device_map = 'auto')
 
     if args.manifest_model:
         # manifest the model in BF/FP16 for faster inference
@@ -37,10 +38,16 @@ def main(args):
                 module.mode = 'train-fixW'
     result = {}
     for dataset in datasets:
-        input_tok = gptq_data_utils.get_test_tokens(dataset,
-                                                    seed=args.seed,
-                                                    seqlen=args.seqlen,
-                                                    model=model_str)
+        try:
+            input_tok = gptq_data_utils.get_test_tokens(dataset,
+                                                        seed=args.seed,
+                                                        seqlen=args.seqlen,
+                                                        model=model_str)
+        except:
+            input_tok = gptq_data_utils.get_test_tokens(dataset,
+                                                seed=args.seed,
+                                                seqlen=args.seqlen,
+                                                model="/workspace/Weight_compression/Wparam_dataset/hf_model/models--Qwen--Qwen3-30B-A3B/snapshots/ad44e777bcd18fa416d9da3bd8f70d33ebb85d39")
         nsamples = input_tok.numel() // args.seqlen
         input_tok = input_tok[0, :(args.seqlen * nsamples)].view(
             nsamples, args.seqlen)

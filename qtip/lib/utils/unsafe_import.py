@@ -6,6 +6,7 @@ import os
 import accelerate
 import torch
 import transformers
+import glog
 
 try:
     from model.llama import LlamaForCausalLM
@@ -42,10 +43,7 @@ def model_from_hf_path(path, max_mem_ratio=0.7, device_map=None):
     model_type = bad_config.model_type.lower()
     
     no_split_modules = []
-
     if is_quantized:
-        # --- [수정] 양자화된 모델 로딩 로직 분기 ---
-        
         # 1. Qwen 계열 확인
         if 'qwen' in model_type or 'qwen' in path.lower():
             # MoE 모델인지 확인 (config type 혹은 이름으로 유추)
@@ -115,35 +113,86 @@ def model_from_hf_path(path, max_mem_ratio=0.7, device_map=None):
             no_split_modules = ['LlamaDecoderLayer']
 
     if device_map is None:
+        glog.info("Start computing device map")
         mmap = {
             i: f"{torch.cuda.mem_get_info(i)[1]*max_mem_ratio/(1 << 30)}GiB"
             for i in range(torch.cuda.device_count())
         }
         
-        # 임시 모델 로드 (구조 파악용)
-        # trust_remote_code=True 추가
-        model = model_cls.from_pretrained(path,
-                                          torch_dtype='auto',
-                                          low_cpu_mem_usage=True,
-                                          attn_implementation='sdpa',
-                                          trust_remote_code=True)
+        print("Computing device_map with meta skeleton...")
         
-        # no_split_module_classes 적용
+        # 1. Config 불러오기
+        try:
+            # AutoConfig 혹은 특정 Config 클래스 사용
+            if 'qwen' in model_type and 'moe' in model_type and Qwen3MoeConfig:
+                 config = Qwen3MoeConfig.from_pretrained(path, trust_remote_code=True)
+            elif 'mixtral' in model_type and MixtralConfig:
+                 config = MixtralConfig.from_pretrained(path)
+            elif 'llama' in model_type and LlamaConfig:
+                 config = LlamaConfig.from_pretrained(path)
+            else:
+                 config = transformers.AutoConfig.from_pretrained(path, trust_remote_code=True)
+        except:
+            config = transformers.AutoConfig.from_pretrained(path, trust_remote_code=True)
+
+        # 2. 가중치 로드 없이 껍데기(Skeleton)만 생성 (Meta Device)
+        # 중요: 실제 weights를 읽지 않으므로 순식간에 끝납니다.
+        with accelerate.init_empty_weights():
+            # model_cls가 AutoModel이 아니라 커스텀 클래스인 경우 config로 초기화
+            # 대부분의 HF 모델은 model_cls(config)를 지원합니다.
+            try:
+                meta_model = model_cls(config)
+            except Exception as e:
+                # 커스텀 모델이 config init을 지원하지 않는 예외적 경우 fallback
+                print(f"Warning: Skeleton load failed ({e}). Fallback to AutoModel structure.")
+                meta_model = transformers.AutoModelForCausalLM.from_config(config)
+
+        # 3. Skeleton 모델로 device_map 계산
         device_map = accelerate.infer_auto_device_map(
-            model,
+            meta_model,
             no_split_module_classes=no_split_modules, 
-            max_memory=mmap)
+            max_memory=mmap,
+        )
         
-        del model
+        glog.info("End computing device map")
+        del meta_model
+
+
+    # if device_map is None:
+    #     glog.info("Start computing device map")
+    #     mmap = {
+    #         i: f"{torch.cuda.mem_get_info(i)[1]*max_mem_ratio/(1 << 30)}GiB"
+    #         for i in range(torch.cuda.device_count())
+    #     }
+        
+    #     # 임시 모델 로드 (구조 파악용)
+    #     # trust_remote_code=True 추가
+    #     model = model_cls.from_pretrained(path,
+    #                                       torch_dtype='bfloat16',
+    #                                       low_cpu_mem_usage=True,
+    #                                       attn_implementation='sdpa')
+        
+    #     # no_split_module_classes 적용
+    #     device_map = accelerate.infer_auto_device_map(
+    #         model,
+    #         no_split_module_classes=no_split_modules, 
+    #         max_memory=mmap)
+        
+    #     del model
+    #     glog.info("End computing device map")
         torch.cuda.empty_cache()
     # 최종 모델 로드
+    glog.info("Start model loading")
     model = model_cls.from_pretrained(path,
-                                      torch_dtype='auto',
-                                      low_cpu_mem_usage=True,
-                                      attn_implementation='sdpa',
-                                      device_map=device_map,
-                                      trust_remote_code=True)
-
+                                    torch_dtype='bfloat16',
+                                    #   low_cpu_mem_usage=True,
+                                    #   attn_implementation='sdpa',
+                                    use_safetensors=True,
+                                    device_map=device_map,
+                                    # trust_remote_code=True,
+                                    )
+                                    #   offload_folder="offload_temp") very slow
+    glog.info("End model loading")
     return model, model_str
 
 # def model_from_hf_path(path, max_mem_ratio=0.7, device_map=None):

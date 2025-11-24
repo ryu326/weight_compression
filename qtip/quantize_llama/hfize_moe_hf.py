@@ -2,11 +2,12 @@ import argparse
 import os
 import torch
 import glog
-from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig, Glm3MoeForCausalLM
+from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig
 
 from lib import utils
 from lib.codebook import bitshift
 from lib.linear.quantized_linear import QuantizedLinear
+from tqdm import tqdm
 
 torch.set_grad_enabled(False)
 
@@ -39,11 +40,17 @@ def initialize_codebook(quant_layer):
     quant_layer.rcp = rcp
     quant_layer.built_codebook_class = True
 
-def get_What(quip_params, orig_layer_weight, saved_layer_data):
+def get_What(quip_params, orig_layer_weight, saved_layer_data, layer_name):
     """
     양자화된 데이터를 기반으로 복원된 가중치(W_hat)를 계산하여 반환합니다.
+    layer_name이 'gate'인 경우 td_x를 // 2로 처리합니다.
     """
     td_x = quip_params['td_x']
+    
+    # [수정됨] gate 레이어에 대한 예외 처리
+    if layer_name == 'gate':
+        td_x = td_x // 2
+
     td_y = quip_params['td_y']
     L = quip_params['L']
     K = quip_params['K']
@@ -51,7 +58,7 @@ def get_What(quip_params, orig_layer_weight, saved_layer_data):
     tlut_bits = quip_params['tlut_bits']
     decode_mode = quip_params['decode_mode']
     
-    # 임시 QuantizedLinear 생성 (계산을 위해)
+    # 임시 QuantizedLinear 생성
     quant_layer = QuantizedLinear(orig_layer_weight.shape[1],
                     orig_layer_weight.shape[0],
                     td_x, td_y, L, K, V, tlut_bits, decode_mode,
@@ -76,46 +83,37 @@ def get_What(quip_params, orig_layer_weight, saved_layer_data):
     SV = quant_layer.SV
     scale = quant_layer.codebook_class.scale
 
-    # W 복원: Diag(SV*scale) @ hatW @ Diag(SU)
+    target_dtype = hatW.dtype     
+    SV = SV.to(target_dtype)
+    SU = SU.to(target_dtype)
+
     W_reconstructed = torch.diag(SV * scale) @ hatW @ torch.diag(SU)
 
     return W_reconstructed
 
-def load_layernorm(layer, ln_data):
-    """
-    저장된 LayerNorm 데이터를 실제 모델의 LayerNorm 속성에 매핑하여 로드합니다.
-    Qwen/Mixtral/LLaMA 등 모델마다 속성명이 다를 수 있음을 고려합니다.
-    """
-    # 매핑 정의: {저장된_키: [가능한_모델_속성명_후보]}
-    # 보통 QUIP 저장 포맷은 layer_norm1, layer_norm2를 사용
-    mappings = [
-        ('layer_norm1', ['input_layernorm', 'input_norm', 'attention_norm']),
-        ('layer_norm2', ['post_attention_layernorm', 'post_attention_norm', 'ffn_norm'])
-    ]
+# def load_layernorm(layer, ln_data):
+#     """
+#     저장된 LayerNorm 데이터를 실제 모델의 LayerNorm 속성에 매핑하여 로드합니다.
+#     Qwen/Mixtral/LLaMA 등 모델마다 속성명이 다를 수 있음을 고려합니다.
+#     """
+#     # 매핑 정의: {저장된_키: [가능한_모델_속성명_후보]}
+#     # 보통 QUIP 저장 포맷은 layer_norm1, layer_norm2를 사용
+#     mappings = [
+#         ('layer_norm1', ['input_layernorm', 'input_norm', 'attention_norm']),
+#         ('layer_norm2', ['post_attention_layernorm', 'post_attention_norm', 'ffn_norm'])
+#     ]
 
-    for key, attr_candidates in mappings:
-        if key in ln_data:
-            src_tensor = ln_data[key]
-            # 모델에서 해당 속성을 찾아서 복사
-            for attr in attr_candidates:
-                if hasattr(layer, attr):
-                    target_ln = getattr(layer, attr)
-                    target_ln.weight.data.copy_(src_tensor.to(target_ln.weight.dtype))
-                    break
+#     for key, attr_candidates in mappings:
+#         if key in ln_data:
+#             src_tensor = ln_data[key]
+#             # 모델에서 해당 속성을 찾아서 복사
+#             for attr in attr_candidates:
+#                 if hasattr(layer, attr):
+#                     target_ln = getattr(layer, attr)
+#                     target_ln.weight.data.copy_(src_tensor.to(target_ln.weight.dtype))
+#                     break
 
 def load_proj_or_restore(module, attr_name, idx, layer_suffix, path_prefix, skip_list, quip_params):
-    """
-    속성 이름(attr_name)에 해당하는 레이어를 복원하거나 원본을 유지합니다.
-    
-    Args:
-        module: 부모 모듈 (예: layer.self_attn 또는 layer.mlp.experts[0])
-        attr_name: 모듈 내 속성 이름 (예: 'q_proj', 'gate_proj')
-        idx: 레이어 인덱스
-        layer_suffix: 파일명에 사용될 접미사 (예: 'q', 'expert0_w1')
-        path_prefix: 양자화 파일 경로
-        skip_list: 스킵할 레이어 리스트
-        quip_params: 복원 파라미터
-    """
     full_key = f'{idx}_{layer_suffix}'
     target_layer = getattr(module, attr_name)
     
@@ -125,23 +123,16 @@ def load_proj_or_restore(module, attr_name, idx, layer_suffix, path_prefix, skip
             glog.error(f"File not found: {filepath}")
             raise FileNotFoundError(filepath)
             
-        # CPU로 로드 (메모리 절약)
         saved = torch.load(filepath, map_location='cpu', weights_only=False)
         
-        # W_hat 계산 (orig_weight는 shape/dtype 참조용으로 사용)
-        W_hat = get_What(quip_params, target_layer.weight.data, saved)
+        W_hat = get_What(quip_params, target_layer.weight.data, saved, layer_name=layer_suffix)
         
-        # 복원된 가중치를 모델에 덮어쓰기
         target_layer.weight.data.copy_(W_hat.to(target_layer.weight.dtype))
         
-        # Bias 처리 (만약 저장된 데이터에 bias가 있다면)
         if 'bias' in saved and saved['bias'] is not None:
              if target_layer.bias is not None:
                  target_layer.bias.data.copy_(saved['bias'].to(target_layer.bias.dtype))
     else:
-        # skip_list에 있는 경우:
-        # 이미 base_model을 로드했으므로, 아무것도 안 하면 원본 가중치가 유지됨.
-        # glog.info(f"Skipping restoration for {full_key} (keeping original weights)")
         pass
 
 
@@ -214,7 +205,8 @@ def main(args):
         }
 
     num_layers = len(model.model.layers)
-    for ii in range(num_layers):
+    pbar = tqdm(range(num_layers), desc="Restoring Layers")
+    for ii in pbar:
         layer = model.model.layers[ii]
         
         # 5-1. LayerNorm 복원

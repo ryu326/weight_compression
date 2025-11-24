@@ -17,7 +17,10 @@ import eval.gptq_data_utils as gptq_data_utils
 # from lib.utils.unsafe_import import model_from_hf_path
 
 import transformers
-from model.llama import LlamaForCausalLM
+try:
+    from model.llama import LlamaForCausalLM
+except:
+    LlamaForCausalLM = None
 # from transformers import LlamaForCausalLM as OrigLlama
 
 
