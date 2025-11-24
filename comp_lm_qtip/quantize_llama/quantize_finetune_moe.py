@@ -163,7 +163,6 @@ def check_exist_moe(idx, args, model_config):
     for s in suffix:
         test = f'{args.save_path}/{idx}_{s}.pt'
         if not os.path.exists(test):
-            exit()
             return False
     return True
 
@@ -177,7 +176,7 @@ def compress_moe_decoder(layer, idx, comp_model, q_level, args, device, pre_orig
     if check_exist_moe(idx, args, model_config):
         glog.info(f"Layer {idx}의 파일이 이미 존재하므로 스킵합니다.")
         return
-
+        
     if skip_list is None:
         skip_list = []
 
