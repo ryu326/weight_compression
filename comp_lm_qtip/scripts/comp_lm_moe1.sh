@@ -32,7 +32,7 @@ mkdir -p $CKPT
 mkdir -p $HF
 mkdir -p $LOG
 mkdir -p $RES
-export CUDA_VISIBLE_DEVICES=5,6,7
+export CUDA_VISIBLE_DEVICES=2,3,4
 # export HF_HOME=/workspace/hf_cache/huggingface_nwc
 export HF_HOME=/home/jgryu/.cache/huggingface
 
@@ -41,7 +41,7 @@ export HF_HOME=/home/jgryu/.cache/huggingface
 # export HF_METRICS_CACHE=$HF_HOME/metrics
 
 # 모든 실험에 공통으로 적용될 Lambda 값
-lmbda_values=(30 50 100)
+lmbda_values=(300 1000 10000)
 ##########################################################################
 ##                        MAIN EXECUTION LOOP                           ##
 ##########################################################################

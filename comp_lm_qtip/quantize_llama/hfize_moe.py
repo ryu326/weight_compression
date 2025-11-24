@@ -5,7 +5,7 @@ import json
 import glog
 import torch
 from torch import nn
-from transformers import AutoTokenizer, AutoConfig, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoConfig, AutoModelForCausalLM, Glm4MoeForCausalLM
 
 try:
     from transformers import MixtralForCausalLM

@@ -3,22 +3,18 @@
 # ##                       EXPERIMENT CONFIGURATION                       ##
 # ##########################################################################
 comp_model_bases=(
+    "/home/jgryu/workspace/weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16_seed3_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed3.0"
     # "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16"
-    # "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16"
-    # "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16"
-    # "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16"
+    # "/home/jgryu/workspace/weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16_seed2_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
     # "/home/jgryu/workspace/weight_compression/NWC/checkpoint/nwc_id/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/rateloss_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
-    # "/home/jgryu/workspace/weight_compression/NWC/checkpoint/nwc_id/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/rateloss_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
-    # "/home/jgryu/workspace/weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/double_check_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
     # '/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100'
     # '/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Llama-2-7b-hf__row_256_scaleH0.0001_rnormed_scale_cond(col_std).pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size8192_total_iter200000_lr0.0001_seed100'
     # "/workspace/Weight_compression/NWC/checkpoint/nwc_ql_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__col_1024_scaleH0.0001_rnormed_scale_cond(col_std).pt/rdloss_size16_encdim512_M16_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
     # "/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_synthetic__gaussian_llama8b_col_1024.pt/rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
     # "/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/ablation_ql_rdloss_ql_v2_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
-    # "/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
 )
 quantize_flags=(
-    # "--direction col --ql --Q 4 --col_normalize --ldlq --comp_batch_size 128 --ft_epochs 5"
+    "--direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 128 --ft_epochs 5"
     # "--direction col --ql --Q 4 --col_normalize --ldlq --comp_batch_size 128 --ft_epochs 5"
     # "--direction col --ql --Q 4 --layer_normalize --ldlq --comp_batch_size 128"
     # "--direction col --row_normalize --ldlq --comp_batch_size 128"
@@ -75,14 +71,14 @@ quantize_flags=(
     # "--direction row --comp_batch_size 4096 --whiten --in_hess_eig_path /workspace/Weight_compression/Wparam_dataset/quip_hess_eig_reg0.0001/llama3_8b_6144"
 )
 experiment_names=(
+    "ql_ldlq128_rnorm_ft_seed3"
     # "ql_ldlq128_rnorm_70b_targetbit"
     # "ql_ldlq128_rnorm_double_check"
     # "ql_ldlq128_rnorm_codes_test"
-    # "ql_ldlq128_lnorm"
-    "uniform_ql_ldlq128_rnorm/ql0"
-    "uniform_ql_ldlq128_rnorm/ql1"
-    "uniform_ql/ql0"
-    "uniform_ql/ql1"
+    # "uniform_ql_ldlq128_rnorm/ql0"
+    # "uniform_ql_ldlq128_rnorm/ql1"
+    # "uniform_ql/ql0"
+    # "uniform_ql/ql1"
 )
 ##########################################################################
 ##                           MODEL CONFIGURATION                        ##
@@ -113,7 +109,7 @@ mkdir -p $CKPT
 mkdir -p $HF
 mkdir -p $LOG
 mkdir -p $RES
-export CUDA_VISIBLE_DEVICES=3,4
+export CUDA_VISIBLE_DEVICES=3,4,5,6,7
 # export HF_HOME=/workspace/hf_cache/huggingface_nwc
 export HF_HOME=/home/jgryu/.cache/huggingface
 
@@ -122,7 +118,7 @@ export HF_HOME=/home/jgryu/.cache/huggingface
 # export HF_METRICS_CACHE=$HF_HOME/metrics
 
 # 모든 실험에 공통으로 적용될 Lambda 값
-lmbda_values=(50 100 300 1000 10000)
+lmbda_values=(30 50 100 300 1000)
 ##########################################################################
 ##                        MAIN EXECUTION LOOP                           ##
 ##########################################################################
@@ -193,13 +189,13 @@ for j in "${!model_names[@]}"; do
 
                 # --datasets wikitext2,c4 \
 
-            # echo "################## Running benchmark evaluation | lmbda=${lmbda} | Exp: ${exp_name} | Model: ${model_name} ##################"
-            # python -m eval.eval_zeroshot_hf \
-            #     --tasks arc_challenge,arc_easy,piqa,winogrande,boolq,hellaswag,mmlu \
-            #     --batch_size 10 \
-            #     --hf_path $HF/$SAVE_NAME \
-            #     --output_path $RES/${SAVE_NAME}_common_mmlu \
-            #     2>&1 | tee -a $LOG/$SAVE_NAME.log
+            echo "################## Running benchmark evaluation | lmbda=${lmbda} | Exp: ${exp_name} | Model: ${model_name} ##################"
+            python -m eval.eval_zeroshot_hf \
+                --tasks arc_challenge,arc_easy,piqa,winogrande,boolq,hellaswag,mmlu \
+                --batch_size 16 \
+                --hf_path $HF/$SAVE_NAME \
+                --output_path $RES/${SAVE_NAME}_common_mmlu \
+                2>&1 | tee -a $LOG/$SAVE_NAME.log
 
                 # --tasks arc_challenge,arc_easy,piqa,winogrande,boolq,hellaswag,mmlu \
                 # --tasks arc_challenge,arc_easy,piqa,winogrande,hellaswag,mmlu \
@@ -209,7 +205,7 @@ for j in "${!model_names[@]}"; do
             if [ "$HF/$SAVE_NAME" != "$HF" ]; then
                 echo "Cleaning up temporary files for $SAVE_NAME"
                 rm -rf "$HF/$SAVE_NAME"
-                rm -rf "$CKPT/$SAVE_NAME"
+                # rm -rf "$CKPT/$SAVE_NAME"
             fi
         done
     done

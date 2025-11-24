@@ -125,7 +125,7 @@ def main(args):
         if os.path.exists(f'{args.quantized_path}/{ii}_layernorm.pt'):
             # layernorm 데이터는 GPU에 있는 레이어에 직접 복사합니다.
             ln_data = torch.load(f'{args.quantized_path}/{ii}_layernorm.pt',
-                                 map_location=device)
+                                 map_location=device, weights_only=False)
             layer.input_layernorm.weight.copy_(ln_data['input_layernorm'].to(
                 layer.input_layernorm.weight.dtype))
             layer.post_attention_layernorm.weight.copy_(
@@ -149,21 +149,34 @@ def main(args):
                 # --- *** 수정된 부분 (3) *** ---
                 # 레이어 데이터를 CPU가 아닌 GPU로 바로 로드합니다.
                 saved_layer_data = torch.load(f'{args.quantized_path}/{layer_key}.pt',
-                                         map_location=device)
+                                         map_location=device, weights_only=False)
                 
                 proj_layer = getattr(sub_module, attr_name)
                 orig_proj_layer = getattr(orig_sub_module, attr_name)
                 
                 utils.unpack_quip(proj_layer, saved_layer_data)
                 
-                proj_layer.has_kernel = False
+                # proj_layer.has_kernel = False
+                glog.info(f'{layer_key} has_kernel: {proj_layer.has_kernel }')
                 initialize_codebook(proj_layer)
                 
                 mse = get_and_calc_mse(proj_layer, orig_proj_layer.weight.data)
                 
-                comp_result[f'{layer_key}.pt'] = {'mse': mse, 'num_pixels': orig_proj_layer.weight.data.numel()}
-                glog.info(f'{layer_key}, {mse}')
-                # print(layer_key, mse)
+                result_data = {
+                    'mse': mse, 
+                    'num_pixels': orig_proj_layer.weight.data.numel()
+                }
+                
+                # 2. saved_layer_data를 순회하며 2차원 텐서가 아닌 값을 추가
+                for key, val in saved_layer_data.items():
+                    if torch.is_tensor(val):
+                        if val.numel() == 1:
+                            result_data[key] = val.item()
+                    else:
+                        # 텐서가 아닌 값(int, str 등)은 그대로 저장
+                        result_data[key] = val
+
+                comp_result[f'{layer_key}.pt'] = result_data
             else:
                 orig_proj_layer = getattr(orig_sub_module, attr_name)
                 setattr(sub_module, attr_name, orig_proj_layer)
@@ -177,7 +190,7 @@ def main(args):
         # del model.model.layers[ii], orig_model.model.layers[ii]
         # glog.info(f'loaded and processed layer {ii}')
 
-    mse_file_path = f'{args.output_path}_MSE.json'
+    mse_file_path = f'{args.output_path}_MSE_data.json'
     with open(mse_file_path, 'w') as f:
         json.dump(comp_result, f, indent=2)
     glog.info(f"MSE results saved to {mse_file_path}")

@@ -4,22 +4,21 @@
 # ##########################################################################
 comp_model_bases=(
     # '/home/jgryu/workspace/weight_compression/NWC/checkpoint/nwc_lattice/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/mseloss_size8_encdim256_M8_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100'
-    # '/home/jgryu/workspace/weight_compression/NWC/checkpoint/nwc_lattice/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/mseloss_size8_encdim256_M8_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100'
     # "/home/jgryu/workspace/weight_compression/NWC/checkpoint/nwc_vq/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/vqloss_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
-    "/home/jgryu/workspace/weight_compression/NWC/checkpoint/nwc_vq/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/vqloss_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
-    "/home/jgryu/workspace/weight_compression/NWC/checkpoint/nwc_vq/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/vqloss_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
+    # "/home/jgryu/workspace/weight_compression/NWC/checkpoint/nwc_vq/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/vqloss_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
+    "/home/jgryu/workspace/weight_compression/NWC/checkpoint/nwc_vq/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/vqloss_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter100000_lr0.0001_seed100"
 )
 quantize_flags=(
     # "--direction col --row_normalize --ldlq --comp_batch_size 128"
     "--direction col --row_normalize --comp_batch_size 1024"
-    "--direction col --comp_batch_size 1024"
+    # "--direction col --comp_batch_size 1024"
 )
 experiment_names=(
     # "lattice_ldlq_rnorm"
     # "lattice_rnorm"
     # "lattice"
-    "vq_rnorm"
-    "vq"
+    "vq_rnorm/e_dim1"
+    # "vq"
 )
 ##########################################################################
 ##                           MODEL CONFIGURATION                        ##
@@ -50,7 +49,7 @@ mkdir -p $CKPT
 mkdir -p $HF
 mkdir -p $LOG
 mkdir -p $RES
-export CUDA_VISIBLE_DEVICES=0,1
+export CUDA_VISIBLE_DEVICES=4,5,6,7
 export WANDB_SILENT=true
 export HF_HOME=/home/jgryu/.cache/huggingface
 
@@ -59,10 +58,14 @@ export HF_HOME=/home/jgryu/.cache/huggingface
 lmbda_values=(
     # "3.0bit_K64_e_dim2"
     # "2.0bit_K256_e_dim4"
-    "2.5bit_K32_e_dim4"
+    # "2.5bit_K32_e_dim4"
     # "3.5bit_K128_e_dim2"
     # "4.0bit_K256_e_dim2"
-    "4.5bit_K512_e_dim2"
+    # "4.5bit_K512_e_dim2"
+    "3.0bit_K8_e_dim1"
+    "4.0bit_K16_e_dim1"
+    "5.0bit_K32_e_dim1"
+    "6.0bit_K64_e_dim1"
 )
 ##########################################################################
 ##                        MAIN EXECUTION LOOP                           ##
