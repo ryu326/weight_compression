@@ -11,8 +11,11 @@ from lm_eval.models.huggingface import HFLM
 from transformers import AutoTokenizer
 import transformers
 import accelerate
-from model.llama import LlamaForCausalLM
-
+try:
+    from model.llama import LlamaForCausalLM
+except:
+    LlamaForCausalLM = None
+    
 os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:512'
 
 parser = argparse.ArgumentParser()

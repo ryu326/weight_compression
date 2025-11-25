@@ -33,7 +33,7 @@ mkdir -p $CKPT
 mkdir -p $HF
 mkdir -p $LOG
 mkdir -p $RES
-export CUDA_VISIBLE_DEVICES=0,1,2
+export CUDA_VISIBLE_DEVICES=0,1,2,3
 # export HF_HOME=/workspace/hf_cache/huggingface_nwc
 # export HF_HOME=/home/jgryu/.cache/huggingface
 export HF_HOME=/workspace/Weight_compression/hf_cache/
@@ -43,7 +43,7 @@ export HF_HOME=/workspace/Weight_compression/hf_cache/
 # export HF_METRICS_CACHE=$HF_HOME/metrics
 
 # 모든 실험에 공통으로 적용될 Lambda 값
-lmbda_values=(10000)
+lmbda_values=(30 50 100 300 1000 10000)
 ##########################################################################
 ##                        MAIN EXECUTION LOOP                           ##
 ##########################################################################
@@ -84,13 +84,13 @@ for j in "${!model_names[@]}"; do
             mkdir -p $(dirname "$LOG/$SAVE_NAME.log")
             
             # taskset -c 0-63 \
-            python -m quantize_llama.quantize_finetune_moe --save_path $CKPT/$SAVE_NAME \
-                --base_model $lm_model_path \
-                --comp_model_path $comp_model \
-                --in_hess_path $HESS \
-                --devset_size 384 --ft_valid_size 128 --batch_size 8 \
-                ${current_quantize_flags} \
-                2>&1 | tee $LOG/$SAVE_NAME.log
+            # python -m quantize_llama.quantize_finetune_moe --save_path $CKPT/$SAVE_NAME \
+            #     --base_model $lm_model_path \
+            #     --comp_model_path $comp_model \
+            #     --in_hess_path $HESS \
+            #     --devset_size 384 --ft_valid_size 128 --batch_size 8 \
+            #     ${current_quantize_flags} \
+            #     2>&1 | tee $LOG/$SAVE_NAME.log
 
                 # --devset_size 48 --ft_valid_size 16 --batch_size 1 \
                 # --devset_size 384 --ft_valid_size 128 --batch_size 8 \
@@ -105,24 +105,24 @@ for j in "${!model_names[@]}"; do
             # SAVE_NAME=${model_name}/${exp_name}/lmbda${lmbda}_skip1down
 
 
-            echo "################## Running PPL evaluation | lmbda=${lmbda} | Exp: ${exp_name} | Model: ${model_name} ##################"
-            echo "Running evaluation for directory: $HF/$SAVE_NAME"
-            python -m eval.eval_ppl_hf \
-                --hf_path $HF/${SAVE_NAME} \
-                --seqlen 2048 \
-                --output_path ${RES}/${SAVE_NAME} \
-                --datasets wikitext2,c4 \
-                --no_use_cuda_graph 2>&1 | tee -a $LOG/${SAVE_NAME}_eval.log
+            # echo "################## Running PPL evaluation | lmbda=${lmbda} | Exp: ${exp_name} | Model: ${model_name} ##################"
+            # echo "Running evaluation for directory: $HF/$SAVE_NAME"
+            # python -m eval.eval_ppl_hf \
+            #     --hf_path $HF/${SAVE_NAME} \
+            #     --seqlen 2048 \
+            #     --output_path ${RES}/${SAVE_NAME} \
+            #     --datasets wikitext2,c4 \
+            #     --no_use_cuda_graph 2>&1 | tee -a $LOG/${SAVE_NAME}_eval.log
 
                 # --datasets wikitext2,c4 \
 
-            # echo "################## Running benchmark evaluation | lmbda=${lmbda} | Exp: ${exp_name} | Model: ${model_name} ##################"
-            # python -m eval.eval_zeroshot_hf \
-            #     --tasks arc_challenge,arc_easy,piqa,winogrande,boolq,hellaswag,mmlu \
-            #     --batch_size 10 \
-            #     --hf_path $HF/$SAVE_NAME \
-            #     --output_path $RES/${SAVE_NAME}_common_mmlu \
-            #     2>&1 | tee -a $LOG/$SAVE_NAME.log
+            echo "################## Running benchmark evaluation | lmbda=${lmbda} | Exp: ${exp_name} | Model: ${model_name} ##################"
+            python -m eval.eval_zeroshot_hf \
+                --tasks arc_challenge,arc_easy,piqa,winogrande,boolq,hellaswag,mmlu \
+                --batch_size 16 \
+                --hf_path $HF/$SAVE_NAME \
+                --output_path $RES/${SAVE_NAME}_common_mmlu \
+                2>&1 | tee -a $LOG/$SAVE_NAME.log
 
                 # --tasks arc_challenge,arc_easy,piqa,winogrande,boolq,hellaswag,mmlu \
                 # --tasks arc_challenge,arc_easy,piqa,winogrande,hellaswag,mmlu \
