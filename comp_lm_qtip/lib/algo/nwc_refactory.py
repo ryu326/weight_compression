@@ -19,13 +19,20 @@ sys.path.append('/workspace/Weight_compression')
 import wandb
 from NWC.loss import *
 import glog
-
+import time
 
 def compress_linear(W, H, comp_model, Qlevel, args, device='cpu'):
 
     comp_model = comp_model.to(device)
     # comp_model.scale = comp_model.scale.to(device)
     # comp_model.shift = comp_model.shift.to(device)
+    
+    W = W.to(device)
+    H = H.to(device)
+    if torch.cuda.is_available():
+        torch.cuda.synchronize()
+    start_time = time.time()
+    
     Wr, Hr, metadata = utils.standardize_W(W, H, args, device)
     if args.col_normalize or args.row_normalize or args.row_normalize2 or args.layer_normalize:
         # comp_model.scale = torch.tensor(1).to(device)
@@ -44,6 +51,13 @@ def compress_linear(W, H, comp_model, Qlevel, args, device='cpu'):
     metadata['qlevel'] = Qlevel  
 
     res = comp_W(Wr, Hr, comp_model, args, **metadata)
+    
+    if torch.cuda.is_available():
+        torch.cuda.synchronize()
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    glog.info(f"Total Compression Time: {elapsed_time*1000:.4f} ms")
+    
     assert torch.isnan(res['hatWr']).any() == False
     
     # if args.fp_iter:
@@ -119,7 +133,7 @@ def comp_W(W, H, model, args, **kwargs):
         W_hat[:, s:e] = x_hat
         num_pixels += n_pixels
         bpp_loss_sum += bpp_loss_
-    
+
     return {'hatWr': W_hat,
             'Wr_ldlq': W_ldl,
             'bpp_loss_sum': bpp_loss_sum.item(),
@@ -129,7 +143,7 @@ def comp_W(W, H, model, args, **kwargs):
             'bpp': bpp_sum / num_pixels,
             'codes': codes,
             'bpp_loss_for_train': bpp_loss_sum / num_pixels,
-            'y_list': y_list
+            'y_list': y_list,
             }   
 
 def comp_W_from_y(Wshape, y_in_list, y_in_idx, model, args, **kwargs):    

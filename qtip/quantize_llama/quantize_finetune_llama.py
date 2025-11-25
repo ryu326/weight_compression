@@ -74,13 +74,15 @@ def quantize_llama_decoder(layer, idx, cb, args, device, pre_orig_emb,
         
     # layer name, save_name, input hessian file, output hessian file
     quant_order = []
-    for thing in [('self_attn.v_proj', 'v', 'qkv', 'v', 'col'),
+    for thing in [
+                ('self_attn.v_proj', 'v', 'qkv', 'v', 'col'),
                   ('self_attn.q_proj', 'q', 'qkv', 'q', 'col'),
                   ('self_attn.k_proj', 'k', 'qkv', 'k', 'col'),
                   ('self_attn.o_proj', 'o', 'o', 'o', 'row'),
                   ('mlp.up_proj', 'up', 'up', 'up', 'col'),
                   ('mlp.gate_proj', 'gate', 'up', 'gate', 'col'),
-                  ('mlp.down_proj', 'down', 'down', 'down', 'row')]:
+                  ('mlp.down_proj', 'down', 'down', 'down', 'row')
+                ]:
         if f'{idx}_{thing[1]}' not in skip_list:
             quant_order.append(thing)
         else:

@@ -13,8 +13,9 @@ MODELS_TO_RUN=(
 )
 
 EXP_TYPES_TO_RUN=(
-    "ft1"
+    # "ft1"
     # "noft"
+    "ft1_only"
 )
 
 CKPT="../hf_model_comp/quip-sharp/ckpt"
@@ -22,7 +23,7 @@ HF="../hf_model_comp/quip-sharp/hf"
 LOG="./log"
 RES="../hf_model_comp_results/quip-sharp"
 
-export CUDA_VISIBLE_DEVICES=2,3,4,5,6,7
+export CUDA_VISIBLE_DEVICES=3
 export WANDB_SILENT=true
 export HF_HOME=/home/jgryu/.cache/huggingface
 
@@ -78,7 +79,7 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
         echo "------------------------------------------------------------"
 
         for K in 4; do
-            NAME="${model_key}/${exp_type}_e2e/${K}bit"
+            NAME="${model_key}/${exp_type}/${K}bit"
             CKPT_PATH="${CKPT}/${NAME}"
             HF_PATH="${HF}/${NAME}"
             
@@ -97,7 +98,7 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
                 CODEBOOK="E8P12RVQ4B"
             fi
 
-            # echo "[Stage: Quantize with Finetuning] K=$K" | tee $LOG_FILE
+            echo "[Stage: Quantize with Finetuning] K=$K" | tee $LOG_FILE
             # python -m quantize_llama.quantize_finetune_llama \
             #     --save_path $CKPT_PATH \
             #     --codebook $CODEBOOK \
@@ -117,19 +118,19 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
                 --quantized_path ${CKPT_PATH} \
                 --hf_output_path $HF_PATH 2>&1 | tee -a $LOG_FILE
 
-            echo "[Stage: End-to-End Finetuning] K=$K" | tee $LOG_FILE
-            python -m quantize_llama.finetune_e2e_llama_qtip \
-                --base_model $base_model \
-                --hf_path $HF_PATH \
-                --devset_size 384 \
-                --ft_valid_size 128 \
-                --ft_epochs 8 \
-                --ft_bs 1 \
-                --ctx_size 4096 \
-                --ft_update_freq 2 \
-                --batch_size 8 \
-                --ckpt_path ${CKPT_PATH} \
-                --hf_output_path $E2E_OUT_HF 2>&1 | tee -a $LOG_FILE
+            # echo "[Stage: End-to-End Finetuning] K=$K" | tee $LOG_FILE
+            # python -m quantize_llama.finetune_e2e_llama_qtip \
+            #     --base_model $base_model \
+            #     --hf_path $HF_PATH \
+            #     --devset_size 384 \
+            #     --ft_valid_size 128 \
+            #     --ft_epochs 8 \
+            #     --ft_bs 1 \
+            #     --ctx_size 4096 \
+            #     --ft_update_freq 2 \
+            #     --batch_size 8 \
+            #     --ckpt_path ${CKPT_PATH} \
+            #     --hf_output_path $E2E_OUT_HF 2>&1 | tee -a $LOG_FILE
 
 
                 # --resume_ckpt /home/jgryu/workspace/weight_compression/hf_model_comp/quip-sharp/ckpt/llama3_8b/hf_ft1_e2e/checkpoints/checkpoint_epoch_4.pt \
@@ -141,33 +142,33 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
             # python -m quantize_llama.finetune_e2e_llama --base_model meta-llama/Llama-2-7b-hf --hf_path $HF/2_7b_2bit --devset_size 384 --ft_valid_size 128 --ft_epochs 8  --ft_bs 1 --ctx_size 4096 --ft_update_freq 2 --ft_train_mode --ckpt_path $CKPT/2_7b_2bit >> $LOG/2_7b_2bit 2>&1
 
 
-            if [ "$HF_PATH" != "$HF" ] && [ "$exp_type" != "e2e" ]; then
-                echo "Cleaning up temporary files for $NAME"
-                rm -rf "$HF_PATH"
-            fi
+            # if [ "$HF_PATH" != "$HF" ] && [ "$exp_type" != "e2e" ]; then
+            #     echo "Cleaning up temporary files for $NAME"
+            #     rm -rf "$HF_PATH"
+            # fi
 
-            echo "[Stage: Convert to HF format] K=$K" | tee -a $LOG_FILE
-            python -m quantize_llama.hfize_llama \
-                --quantized_path ${CKPT_PATH} \
-                --hf_output_path $HF_PATH 2>&1 | tee -a $LOG_FILE
+            # echo "[Stage: Convert to HF format] K=$K" | tee -a $LOG_FILE
+            # python -m quantize_llama.hfize_llama \
+            #     --quantized_path ${CKPT_PATH} \
+            #     --hf_output_path $HF_PATH 2>&1 | tee -a $LOG_FILE
 
-            echo "### [Stage: Eval PPL | K=$K] ###" | tee -a $LOG_FILE
-            python -m eval.eval_ppl \
-                --hf_path $HF_PATH \
-                --output_path ${RES}/${NAME} \
-                --no_use_cuda_graph \
-                --seqlen 2048  2>&1 | tee -a $LOG_FILE
+            # echo "### [Stage: Eval PPL | K=$K] ###" | tee -a $LOG_FILE
+            # python -m eval.eval_ppl \
+            #     --hf_path $HF_PATH \
+            #     --output_path ${RES}/${NAME} \
+            #     --no_use_cuda_graph \
+            #     --seqlen 2048  2>&1 | tee -a $LOG_FILE
 
-            echo "### [Stage: Eval Zero-shot | K=$K] ###" | tee -a $LOG_FILE
-            python -m eval.eval_zeroshot_ \
-                --tasks arc_challenge,arc_easy,boolq,piqa,winogrande,hellaswag,mmlu \
-                --batch_size 8  --hf_path ${HF_PATH} \
-                --output_path ${RES}/${NAME}_common_mmlu 2>&1 | tee -a $LOG_FILE
+            # echo "### [Stage: Eval Zero-shot | K=$K] ###" | tee -a $LOG_FILE
+            # python -m eval.eval_zeroshot_ \
+            #     --tasks arc_challenge,arc_easy,boolq,piqa,winogrande,hellaswag,mmlu \
+            #     --batch_size 8  --hf_path ${HF_PATH} \
+            #     --output_path ${RES}/${NAME}_common_mmlu 2>&1 | tee -a $LOG_FILE
 
-            if [ "$HF_PATH" != "$HF" ] && [ "$exp_type" != "e2e" ]; then
-                echo "Cleaning up temporary files for $NAME"
-                rm -rf "$HF_PATH"
-            fi
+            # if [ "$HF_PATH" != "$HF" ] && [ "$exp_type" != "e2e" ]; then
+            #     echo "Cleaning up temporary files for $NAME"
+            #     rm -rf "$HF_PATH"
+            # fi
         done
     done
 done

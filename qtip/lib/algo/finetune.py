@@ -17,6 +17,7 @@ from lib.linear import QuantizedLinear
 
 from . import ldlq
 
+import time ## ryu
 
 @contextmanager
 def use_tf32():
@@ -120,8 +121,8 @@ def quantize_finetune_decoder_layer(mixed_layer, quant_order, idx, cb, args,
         SU = (torch.randn(n, device=device).sign() + 1e-5).sign().to(dtype_)
         SV = (torch.randn(m, device=device).sign() + 1e-5).sign().to(dtype_)
 
-        # in_hess_path = f'{args.in_hess_path}/{idx}_{in_hess_name}.pt'
-        in_hess_path = f'{args.in_hess_path}/lang_{idx}_{in_hess_name}.pt'
+        in_hess_path = f'{args.in_hess_path}/{idx}_{in_hess_name}.pt'
+        # in_hess_path = f'{args.in_hess_path}/lang_{idx}_{in_hess_name}.pt'
         H_data = torch.load(in_hess_path, map_location=torch.device('cpu'))
         HR = utils.flat_to_sym(H_data['flatH'], H_data['n'])
         if 'mu' in H_data:
@@ -131,6 +132,12 @@ def quantize_finetune_decoder_layer(mixed_layer, quant_order, idx, cb, args,
         del H_data
 
         HR = utils.regularize_H(HR, args.sigma_reg)
+
+        W = W.to(device)
+        HR = HR.to(device)
+        if torch.cuda.is_available():
+            torch.cuda.synchronize()
+        start_time = time.time()
 
         if args.split_for_tp:
             if rcp == 'col':
@@ -207,6 +214,12 @@ def quantize_finetune_decoder_layer(mixed_layer, quant_order, idx, cb, args,
         else:
             packed = packed.view(torch.int16)
 
+        if torch.cuda.is_available():
+            torch.cuda.synchronize()
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        glog.info(f"Total Compression Time: {elapsed_time*1000:.4f} ms")
+
         if rcp == 'col':
             Wr = (Wr.reshape(args.tp_rank, m * n // args.tp_rank) *
                   Wscale.unsqueeze(-1)).reshape(m, n)
@@ -261,7 +274,8 @@ def quantize_finetune_decoder_layer(mixed_layer, quant_order, idx, cb, args,
                 rcp_int,
                 'tp_rank':
                 args.tp_rank,
-                'bias':bias ## ryu
+                'bias':bias, ## ryu
+                'time': elapsed_time
             }, save_path)
 
         del HRr, Wr, hatWr, LRr, Qidxs

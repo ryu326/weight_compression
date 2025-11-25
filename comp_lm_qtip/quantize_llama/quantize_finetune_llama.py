@@ -180,7 +180,8 @@ def compress_llama_decoder(layer, idx, comp_model, q_level, args, device, pre_or
                   ('self_attn.o_proj', 'o', 'o', 'o', 'row'),
                   ('mlp.up_proj', 'up', 'up', 'up', 'col'),
                   ('mlp.gate_proj', 'gate', 'up', 'gate', 'col'),
-                  ('mlp.down_proj', 'down', 'down', 'down', 'row')]:
+                  ('mlp.down_proj', 'down', 'down', 'down', 'row')
+                ]:
         if f'{idx}_{thing[1]}' not in skip_list:
             quant_order.append(thing)
         else:

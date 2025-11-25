@@ -6,7 +6,7 @@ import torch
 from tqdm import tqdm
 
 from lib import utils
-
+import time
 
 def RHT_H(H, SU):
     return utils.matmul_hadUt(utils.matmul_hadUt(H * SU).T * SU)
@@ -370,6 +370,13 @@ def quantize(H_orig, W_orig, rank, codebook_orig, args, device='cpu'):
     assert (torch.all(torch.isfinite(W.cpu())))
 
     # incoherence preprocessing
+    
+    W = W[:4096,:]
+    if torch.cuda.is_available():
+        torch.cuda.synchronize()
+    start_time = time.time()
+    
+    
     incoh_out = incoherence_preprocess(H, W, args)
     if incoh_out is None:
         if args.use_fp64:
@@ -440,6 +447,13 @@ def quantize(H_orig, W_orig, rank, codebook_orig, args, device='cpu'):
                                      codebook,
                                      args,
                                      buf_cols=128)
+
+    if torch.cuda.is_available():
+        torch.cuda.synchronize()
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    glog.info(f'shape of W: {W.shape}')
+    glog.info(f"Total Compression Time: {elapsed_time*1000:.4f} ms")
 
     Wr = Wr.cpu()
     Hr = Hr.cpu()

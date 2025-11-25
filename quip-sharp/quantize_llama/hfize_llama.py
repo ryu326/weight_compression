@@ -58,6 +58,43 @@ def main(args):
         utils.unpack_quip(layer.self_attn.qkv_proj, saved_layer, codebook_id,
                           codesz)
 
+        target_layer = layer.self_attn.qkv_proj
+        
+        # 1. 측정을 위해 임시로 GPU로 이동 (QuIP 커널은 CUDA에서 동작하므로 필수)
+        device = torch.device("cuda")
+        target_layer.to(device)
+        
+        # 2. 전체 가중치를 복원하기 위한 단위 행렬(Identity Matrix) 생성
+        #    입력 차원(in_features) 크기의 단위 행렬을 넣으면 전체 가중치가 출력됨
+        in_feat = target_layer.in_features
+        dummy_input = torch.eye(in_feat, dtype=torch.float16, device=device)
+        
+        # 3. Warmup (초기화 오버헤드 제거 및 커널 컴파일)
+        #    작은 배치로 한 번 실행하여 codebook_class 빌드 등을 트리거
+        with torch.no_grad():
+            _ = target_layer(dummy_input[:32, :])
+        torch.cuda.synchronize()
+
+        # 4. 시간 측정
+        start_event = torch.cuda.Event(enable_timing=True)
+        end_event = torch.cuda.Event(enable_timing=True)
+
+        start_event.record()
+        with torch.no_grad():
+            # W_hat * I = W_hat (전체 매트릭스 디코딩 효과)
+            _ = target_layer(dummy_input)
+        end_event.record()
+        
+        torch.cuda.synchronize()
+        
+        latency_ms = start_event.elapsed_time(end_event)
+        glog.info(f"[Layer {ii}] QKV W_hat Decoding Latency: {latency_ms:.4f} ms")
+
+        # 5. 메모리 정리 및 CPU 원복 (메인 로직 흐름 유지)
+        del dummy_input
+        target_layer.to(cpu)
+        torch.cuda.empty_cache()
+
         saved_layer = torch.load(f'{args.quantized_path}/{ii}_o.pt',
                                  map_location=cpu)
         utils.unpack_quip(layer.self_attn.o_proj, saved_layer, codebook_id,

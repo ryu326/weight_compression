@@ -26,7 +26,8 @@ parser.add_argument("--output_path", default=None, type=str)
 
 def main(args):
     # datasets = ['wikitext2', 'c4', 'ptb']
-    datasets = ['wikitext2','c4']
+    # datasets = ['wikitext2','c4']
+    datasets = ['c4']
     # model, model_str = model_from_hf_path(args.hf_path, max_mem_ratio=args.max_mem_ratio)
     model, model_str = model_from_hf_path(args.hf_path, device_map = 'auto')
 

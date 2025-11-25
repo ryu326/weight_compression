@@ -127,7 +127,7 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
             echo "### [Stage: Eval Zero-shot | K=$K] ###" | tee -a "$LOG_FILE"
             python -m eval.eval_zeroshot \
                 --tasks arc_challenge,arc_easy,boolq,piqa,winogrande,hellaswag,mmlu \
-                --batch_size 1 \
+                --batch_size 8 \
                 --hf_path "${HF_PATH}" \
                 --output_path "${RES}/${NAME}_common_mmlu" \
                 $MANIFEST_FLAG 2>&1 | tee -a "$LOG_FILE"

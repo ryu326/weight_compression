@@ -20,6 +20,7 @@ import logging
 import numpy as np
 from lib.algo import quip
 import glog
+import time
 
 def setup_logging(log_file):
     # Remove any pre-existing handlers
@@ -336,6 +337,10 @@ def standardize_W(W, H, args, device):
     layer_mean = None
     row_std, col_std = None, None
     scale_cond = None
+
+    if torch.cuda.is_available():
+        torch.cuda.synchronize()
+    start_time = time.time()
 
     # 전처리 및 표준화 단계
     if args.incoh_mode != 'none':
