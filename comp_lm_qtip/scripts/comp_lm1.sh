@@ -3,7 +3,9 @@
 # ##                       EXPERIMENT CONFIGURATION                       ##
 # ##########################################################################
 comp_model_bases=(
-    "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16"
+    "/home/jgryu/workspace/weight_compression/NWC/checkpoint2/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/rdloss_ql_size4_encdim16_M4_Q4_R0_m0_batch_size8192_total_iter200000_lr0.0001_seed100"
+    "/home/jgryu/workspace/weight_compression/NWC/checkpoint2/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/rdloss_ql_size4_encdim64_M4_Q4_R0_m0_batch_size8192_total_iter200000_lr0.0001_seed100"
+    # "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16"
     # "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16"
     # "/home/jgryu/workspace/weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/double_check_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
     # '/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100'
@@ -15,11 +17,15 @@ comp_model_bases=(
 )
 quantize_flags=(
     # "--direction col --ql --Q 4 --row_normalize"
-    "--direction col --ql --Q 4 --layer_normalize"
+    # "--direction col --ql --Q 4 --layer_normalize"
+    "--direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 128"
+    "--direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 128"
 )
 experiment_names=(
     # "ql_rnorm"
-    "ql_lnorm"
+    # "ql_lnorm"
+    "ql_ldlq128_rnorm_size4_encdim16"
+    "ql_ldlq128_rnorm_size4_encdim64"
 )
 ##########################################################################
 ##                           MODEL CONFIGURATION                        ##
@@ -50,7 +56,7 @@ mkdir -p $CKPT
 mkdir -p $HF
 mkdir -p $LOG
 mkdir -p $RES
-export CUDA_VISIBLE_DEVICES=7
+export CUDA_VISIBLE_DEVICES=2,3
 # export HF_HOME=/workspace/hf_cache/huggingface_nwc
 export HF_HOME=/home/jgryu/.cache/huggingface
 
@@ -60,7 +66,7 @@ export HF_HOME=/home/jgryu/.cache/huggingface
 
 # 모든 실험에 공통으로 적용될 Lambda 값
 # lmbda_values=(50 100 300 1000 10000)
-lmbda_values=(30)
+lmbda_values=(30.0 50.0 100.0 300.0 1000.0 10000.0)
 ##########################################################################
 ##                        MAIN EXECUTION LOOP                           ##
 ##########################################################################

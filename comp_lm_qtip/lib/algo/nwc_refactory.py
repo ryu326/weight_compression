@@ -3,9 +3,9 @@ import math
 # import utils
 from lib import utils
 import os
-from lib.algo import quip
-from lib.algo import code_optimize
-from lib.algo import optimize_qmap
+# from lib.algo import quip
+# from lib.algo import code_optimize
+# from lib.algo import optimize_qmap
 import numpy as np
 import torch.nn as nn
 import torch.optim as optim
@@ -15,17 +15,18 @@ from tqdm import tqdm
 import copy
 from torch.utils.data import TensorDataset, DataLoader
 import sys
-sys.path.append('/workspace/Weight_compression')
+sys.path.append('/home/jgryu/workspace/weight_compression')
 import wandb
-from NWC.loss import *
+from NWC.loss import get_loss_fn
 import glog
 import time
 
 def compress_linear(W, H, comp_model, Qlevel, args, device='cpu'):
 
-    comp_model = comp_model.to(device)
-    # comp_model.scale = comp_model.scale.to(device)
-    # comp_model.shift = comp_model.shift.to(device)
+    # comp_model = comp_model.to(device)
+    comp_model = copy.deepcopy(comp_model).to(device)
+    comp_model.scale = comp_model.scale.to(device)
+    comp_model.shift = comp_model.shift.to(device)
     
     W = W.to(device)
     H = H.to(device)
@@ -49,6 +50,11 @@ def compress_linear(W, H, comp_model, Qlevel, args, device='cpu'):
                 assert torch.all(Qlevel == Qlevel[0]), "Qlevel의 모든 값이 동일하지 않습니다."
     
     metadata['qlevel'] = Qlevel  
+
+    if args.perlayer_ft_epochs > 0:
+        # Pass metadata (scale_cond, qlevel) to helper
+        with torch.enable_grad():
+            comp_model = fine_tune_comp_model(Wr, Hr, comp_model, args, device=device, **metadata)
 
     res = comp_W(Wr, Hr, comp_model, args, **metadata)
     
@@ -124,7 +130,7 @@ def comp_W(W, H, model, args, **kwargs):
         ql = qlevel[s:e] if qlevel is not None else None
         sc = scale_cond[:, s:e] if scale_cond is not None else None
  
-        x_hat, n_pixels, bpp_loss_, out, out_enc, nbits = model_foward_one_batch(w.clone(), model, args, ql = ql, sc = sc)
+        x_hat, n_pixels, bpp_loss_, out, out_enc, nbits, in_data = model_foward_one_batch(w.clone(), model, args, ql = ql, sc = sc)
         if args.ft_y:
             y_list.append((out['y'], s, e))
 
@@ -165,7 +171,7 @@ def comp_W_from_y(Wshape, y_in_list, y_in_idx, model, args, **kwargs):
 
         sc = scale_cond[:, s:e] if scale_cond is not None else None
  
-        x_hat, n_pixels, bpp_loss_, out, out_enc, nbits = model_foward_one_batch(None, model, args, ql = ql, sc = sc, y_in = y_in, shape = (m, e-s))
+        x_hat, n_pixels, bpp_loss_, out, out_enc, nbits, in_data = model_foward_one_batch(None, model, args, ql = ql, sc = sc, y_in = y_in, shape = (m, e-s))
 
         codes.append(out_enc)
         bpp_sum += nbits
@@ -183,7 +189,7 @@ def comp_W_from_y(Wshape, y_in_list, y_in_idx, model, args, **kwargs):
             'bpp_loss_for_train': bpp_loss_sum / num_pixels,
             }   
 
-def model_foward_one_batch(w, model, args, **kwargs):
+def model_foward_one_batch(w, model, args, one_batch = True, **kwargs):
     y_in = kwargs.get('y_in', None)
     mode = kwargs.get('mode', 'init')
     ql = kwargs.get('ql', None)  # (n, )
@@ -228,12 +234,18 @@ def model_foward_one_batch(w, model, args, **kwargs):
     
     data = {}
     if w is not None:
-        w = w.reshape(1, -1, blks)
+        if one_batch:
+            w = w.reshape(1, -1, blks)
+        else:
+            w = w.reshape(w.shape[0], -1, blks)
     data['weight_block'] = w
     # assert torch.isnan(w).any() == False
     
     if ql is not None:
-        data['q_level'] = ql.reshape(1, m*n//blks)
+        if one_batch:
+            data['q_level'] = ql.reshape(1, m*n//blks)
+        else:
+            data['q_level'] = ql.reshape(ql.shape[0], m//blks)[:, 0:1]
     # if qm is not None:
     #     data['qmap'] = qm.reshape(1, w.shape[1])
     if hasattr(model, 'pe') and model.pe:
@@ -243,7 +255,10 @@ def model_foward_one_batch(w, model, args, **kwargs):
         data['depth'] = torch.full((1, 1), depth, dtype=torch.long).to(w.device)
         data['ltype'] = torch.full((1, 1), ltype, dtype=torch.long).to(w.device)
     if sc is not None:
-        sc =  sc.reshape(1, -1, blks)       
+        if one_batch:
+            sc = sc.reshape(1, -1, blks)
+        else:
+            sc =  sc.reshape(sc.shape[0], -1, blks)       
         if hasattr(model, 'scale_cond') and model.scale_cond:
             assert torch.all(sc == sc[..., :1])
             sc = sc[..., 0] #(1,  m*n//blks)
@@ -302,14 +317,181 @@ def model_foward_one_batch(w, model, args, **kwargs):
             w_hat = w_hat[:, :original_n]
     # --- [수정 끝] ---
 
-    if args.use_codes:
-        del out_dec['x_hat']
-    else:
-        del out['x_hat']
+    # if args.use_codes:
+    #     del out_dec['x_hat']
+    # else:
+    #     del out['x_hat']
     torch.cuda.empty_cache()
     
-    return w_hat, num_pixels, bpp_loss_sum, out, out_enc, nbits
+    return w_hat, num_pixels, bpp_loss_sum, out, out_enc, nbits, data
 
+def block_LDL(H, b, check_nan=True):
+    n = H.shape[0]
+    assert (n % b == 0)
+    m = n // b
+    # try:
+    #     L = torch.linalg.cholesky(H)
+    # except:
+    #     return None
+    L = torch.linalg.cholesky(H)
+    DL = torch.diagonal(L.reshape(m, b, m, b), dim1=0, dim2=2).permute(2, 0, 1)
+    D = (DL @ DL.permute(0, 2, 1)).cpu()
+    DL = torch.linalg.inv(DL)
+    L = L.view(n, m, b)
+    for i in range(m):
+        L[:, i, :] = L[:, i, :] @ DL[i, :, :]
+
+    if check_nan and L.isnan().any():
+        return None
+
+    L = L.reshape(n, n)
+    return (L, D.to(DL.device))
+
+def configure_optimizers(net, args, other_parms):
+    """Separate parameters for the main optimizer and the auxiliary optimizer.
+    Return two optimizers"""
+
+    parameters = {n for n, p in net.named_parameters() if ".quantiles" not in n and p.requires_grad}
+    aux_parameters = {n for n, p in net.named_parameters() if ".quantiles" in n and p.requires_grad}
+
+    # print(aux_parameters)  # {'module.entropy_bottleneck_z.quantiles'}
+
+    params_dict = dict(net.named_parameters())
+
+    optimizer = optim.Adam(
+        list((params_dict[n] for n in sorted(parameters))) + other_parms,
+        lr=args.ft_comp_learning_rate,
+    )
+    aux_optimizer = optim.Adam(
+        (params_dict[n] for n in sorted(aux_parameters)),
+        lr=args.ft_comp_aux_learning_rate,
+    )
+    # optimizer, aux_optimizer = None, None
+    # code_optimizer = optim.Adam(
+    #     other_parms,
+    #     lr=args.code_optim_lr,
+    # )
+    return optimizer, aux_optimizer, None
+
+def fine_tune_comp_model(Wr, Hr, comp_model, args, device, **metadata):
+    """
+    Fine-tunes the compression model on the standardized weight matrix Wr with Shuffling.
+    """
+    if args.perlayer_ft_epochs <= 0:
+        return comp_model
+
+    glog.info(f"Finetuning Comp Model for {args.perlayer_ft_epochs} epochs on layer {args.layer_name}...")
+    
+    comp_model.train()
+    optimizer, aux_optimizer, _ = configure_optimizers(comp_model, args, [])
+    
+    train_std = Wr.std().item()
+    criterion = get_loss_fn(args, std=train_std, device=device)
+
+    bs = args.perlayer_ft_bs
+    (m, n) = Wr.shape
+
+    scale_cond = metadata.get('scale_cond', None)
+    qlevel = metadata.get('qlevel', None)
+    # qlevel shape 보정
+    qlevel = qlevel.reshape(n, ) if qlevel is not None else None
+    
+    loop = range(args.perlayer_ft_epochs)
+    if True:
+        loop = tqdm(loop, desc="Finetuning")
+            
+    best_epoch_loss = float('inf')
+    for epoch in loop:
+        # [Shuffling Logic]
+        # 매 Epoch마다 인덱스를 랜덤하게 섞습니다.
+        # direction이 COL이면 n(열)을 섞고, ROW여도 데이터 로딩 방식에 따라 n(열) 방향으로 처리되므로 n을 섞습니다.
+        # (앞선 코드에서 Wr을 Transpose해서 처리하는 로직이 있다면 그에 맞춰야 하지만, 
+        #  보통 Loop가 n을 기준으로 돌기 때문에 n 차원을 섞습니다.)
+        
+        indices = torch.randperm(n, device=Wr.device)
+        
+        # 원본 데이터를 건드리지 않기 위해 셔플된 뷰 생성
+        Wr_shuffled = Wr[:, indices]
+        
+        qlevel_shuffled = None
+        if qlevel is not None:
+            qlevel_shuffled = qlevel[indices]
+            
+        scale_cond_shuffled = None
+        if scale_cond is not None:
+            # scale_cond가 (1, n) 형태라고 가정
+            scale_cond_shuffled = scale_cond[:, indices]
+
+        epoch_loss_sum = 0.0
+        epoch_recon_sum = 0.0
+        epoch_bpp_sum = 0.0
+        epoch_aux_sum = 0.0
+        num_batches = 0
+
+        for i, s in enumerate(range(0, n, bs)):
+            e = min(s + bs, n)
+            
+            optimizer.zero_grad()
+            aux_optimizer.zero_grad()
+            
+            w = Wr_shuffled[:, s:e]
+            
+            ql = qlevel_shuffled[s:e] if qlevel_shuffled is not None else None
+            sc = scale_cond_shuffled[:, s:e] if scale_cond_shuffled is not None else None
+            
+            x_hat, n_pixels, bpp_loss_, out, out_enc, nbits, in_data = model_foward_one_batch(
+                w.clone(), comp_model, args, one_batch=False, ql=ql, sc=sc
+            )
+
+            loss_out = criterion(data=in_data, output=out)
+            loss = loss_out["loss"]
+            loss.backward()
+            
+            # Gradient Clipping
+            torch.nn.utils.clip_grad_norm_(comp_model.parameters(), 1.0)
+        
+            optimizer.step()
+        
+            # Aux Loss (Entropy Model Update)
+            aux_loss = comp_model.aux_loss()
+            aux_loss.backward()
+            aux_optimizer.step()
+
+            # [Logging] 배치의 Loss 누적
+            current_bs = e - s
+            epoch_loss_sum += loss.item()
+            epoch_recon_sum += loss_out.get('recon_loss', torch.tensor(0)).item()
+            epoch_bpp_sum += loss_out.get('bpp_loss', torch.tensor(0)).item()
+            epoch_aux_sum += aux_loss.item()
+            num_batches += 1
+            
+        # [Logging] 에폭 종료 후 평균 계산 및 출력
+        avg_loss = epoch_loss_sum / num_batches
+        avg_recon = epoch_recon_sum / num_batches
+        avg_bpp = epoch_bpp_sum / num_batches
+        avg_aux = epoch_aux_sum / num_batches
+
+        # Better / Worse 판단
+        if avg_loss < best_epoch_loss:
+            status = "Better"
+            best_epoch_loss = avg_loss
+        else:
+            status = "Worse"
+
+        # 매 에폭마다 glog 출력
+        glog.info(
+            f"Layer: {args.layer_name} | Epoch {epoch+1}/{args.perlayer_ft_epochs} "
+            f"({100. * (epoch+1) / args.perlayer_ft_epochs:.1f}%): "
+            f"[{status}] "
+            f"\tLoss: {avg_loss:.6f}"
+            f"\trecon_loss: {avg_recon:.6f}"
+            f"\tbpp_loss: {avg_bpp:.6f}"
+            f"\taux_loss: {avg_aux:.6f}"
+        )
+
+    comp_model.eval()
+    comp_model.update()
+    return comp_model
 
 # def model_foward_one_batch2(w, model, args, **kwargs):
 #     y_in = kwargs.get('y_in', None)
@@ -390,7 +572,6 @@ def model_foward_one_batch(w, model, args, **kwargs):
 #     torch.cuda.empty_cache()
     
 #     return w_hat, num_pixels, bpp_loss_sum, out, out_enc, nbits
-
 
 # def code_optimize(w, comp_model, init_out, args, **kwargs):
 #     ql = kwargs.get('ql', None).reshape(w.shape[0], 1)
@@ -498,28 +679,6 @@ def model_foward_one_batch(w, model, args, **kwargs):
 #     return best_y, best_w_hat.reshape(ori_shape), bpp_loss, num_pixels, best_rnorm, best_cnorm, best_qs
     # return y, out['x_hat'].reshape(ori_shape)
 
-
-def block_LDL(H, b, check_nan=True):
-    n = H.shape[0]
-    assert (n % b == 0)
-    m = n // b
-    # try:
-    #     L = torch.linalg.cholesky(H)
-    # except:
-    #     return None
-    L = torch.linalg.cholesky(H)
-    DL = torch.diagonal(L.reshape(m, b, m, b), dim1=0, dim2=2).permute(2, 0, 1)
-    D = (DL @ DL.permute(0, 2, 1)).cpu()
-    DL = torch.linalg.inv(DL)
-    L = L.view(n, m, b)
-    for i in range(m):
-        L[:, i, :] = L[:, i, :] @ DL[i, :, :]
-
-    if check_nan and L.isnan().any():
-        return None
-
-    L = L.reshape(n, n)
-    return (L, D.to(DL.device))
 
 # def describe_distribution(x):
 #     assert isinstance(x, torch.Tensor), "Input must be a PyTorch tensor"

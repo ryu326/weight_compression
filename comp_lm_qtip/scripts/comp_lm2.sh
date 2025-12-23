@@ -3,16 +3,44 @@
 # ##                       EXPERIMENT CONFIGURATION                       ##
 # ##########################################################################
 comp_model_bases=(
-    "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16"
+    "/home/jgryu/workspace/weight_compression/NWC/checkpoint2/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/rdloss_ql_size4_encdim16_M4_Q4_R0_m0_batch_size8192_total_iter200000_lr0.0001_seed100"
+    # "/home/jgryu/workspace/weight_compression/NWC/checkpoint2/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100/n_rb1"
+    # "/home/jgryu/workspace/weight_compression/NWC/checkpoint2/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100/n_rb2"
+    # "../NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
+    # "../NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
+    # "/home/jgryu/workspace/weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/n_res_1_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
+    # "/home/jgryu/workspace/weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16_seed3_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed3.0"
+    # "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16"
+    # "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16"
+    # "/home/jgryu/workspace/weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16_seed2_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
+    # "/home/jgryu/workspace/weight_compression/NWC/checkpoint/nwc_id/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/rateloss_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
     # '/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100'
     # '/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Llama-2-7b-hf__row_256_scaleH0.0001_rnormed_scale_cond(col_std).pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size8192_total_iter200000_lr0.0001_seed100'
     # "/workspace/Weight_compression/NWC/checkpoint/nwc_ql_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__col_1024_scaleH0.0001_rnormed_scale_cond(col_std).pt/rdloss_size16_encdim512_M16_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
     # "/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_synthetic__gaussian_llama8b_col_1024.pt/rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
+    # "/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/ablation_ql_rdloss_ql_v2_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
 )
 quantize_flags=(
-    # "--direction col --scaleH --row_normalize --ql --ql_search --ql_search_value 0"
-    "--direction col --scaleH --row_normalize --ql --ql_search --ql_search_value 1"
+    "--direction col --ql --Q 4 --row_normalize --perlayer_ft_epochs 400 --perlayer_ft_bs 512 --initialize_codec"
+    # "--direction col --ql --Q 4 --row_normalize --perlayer_ft_epochs 50 --perlayer_ft_bs 256"
+    # "--direction row --scaleH --row_normalize --scale_cond --ldlq --comp_batch_size 128"
+    # "--direction row --row_normalize --scale_cond --ldlq --comp_batch_size 128"
+    # "--direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 128"
+    # "--direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 128"
+    # "--direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 128 --ft_epochs 5"
+    # "--direction col --ql --Q 4 --col_normalize --ldlq --comp_batch_size 128 --ft_epochs 5"
+    # "--direction col --ql --Q 4 --layer_normalize --ldlq --comp_batch_size 128"
+    # "--direction col --row_normalize --ldlq --comp_batch_size 128"
+    # "--direction col --ldlq --comp_batch_size 128"
+    # "--direction col --comp_batch_size 128"
+    # "--direction col --row_normalize"
+    # "--direction col --ql --Q 4 --row_normalize --ql_search --ql_search_value 0 --ldlq --comp_batch_size 128"
+    # "--direction col --ql --Q 4 --row_normalize --ql_search --ql_search_value 1 --ldlq --comp_batch_size 128"
+    # "--direction col --ql --Q 4 --ql_search --ql_search_value 0"
+    # "--direction col --ql --Q 4 --ql_search --ql_search_value 1"
+    # "--direction col --scaleH --row_normalize --ql --ql_search --ql_search_value 1"
     # "--direction col --scaleH --row_normalize --ql --ql_search --ql_search_value 2"
+    # "--direction col --scaleH --row_normalize --ql --ql_search --ql_search_value 3"
     # "--direction col --scaleH --row_normalize --ql --ql_search --ql_search_value 3"
     # "--direction row --scaleH --row_normalize --scale_cond --ldlq --comp_batch_size 128 --scale_cond_ub 31.6"
     # "--direction row --scaleH --row_normalize --scale_cond --ldlq --comp_batch_size 128"
@@ -20,11 +48,10 @@ quantize_flags=(
     # "--direction row --scaleH --row_normalize --scale_cond --ldlq --comp_batch_size 128"
     # "--direction row --scaleH --row_normalize --scale_cond --ldlq --comp_batch_size 128"
     # "--direction row --scaleH --row_normalize --scale_cond --ldlq --comp_batch_size 128 --ft_epochs 5 --ft_metadata"
-    # "--direction row --row_normalize --scale_cond --ldlq --comp_batch_size 128"
+    # "--direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 128"
     # "--direction row --scaleH --row_normalize --ldlq --comp_batch_size 128 --scale_cond"
     # "--direction row --scaleH --row_normalize --ldlq --comp_batch_size 128 --scale_cond"
     # "--direction col --ql --Q 4 --row_normalize"
-    # "--direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 128"
     # "--direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 128"
     # "--direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 32"
     # "--direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 128 --ft_epochs 5"
@@ -57,31 +84,37 @@ quantize_flags=(
     # "--direction row --comp_batch_size 4096 --whiten --in_hess_eig_path /workspace/Weight_compression/Wparam_dataset/quip_hess_eig_reg0.0001/llama3_8b_6144"
 )
 experiment_names=(
-    # "scaleH_rnorm_ldlq128_scale_cond(col_std)/(uniform31.6)size128_encdim1024_M256"
-    # "scaleH_rnorm_ldlq128_scale_cond(col_std)/size128_encdim1024_M256"
-    # "scaleH_rnorm_ldlq128_scale_cond(col_std)/(8B_trained)size128_encdim1024_M256"
-    # "ql_scale_cond_scaleH_rnorm_ldlq(col_std)"
-    # "ql_gaussian_rnorm"
-    # "uniform_ql_rnorm/ql0"
-    "uniform_ql_rnorm/ql1"
-    # "uniform_ql_rnorm/ql2"
-    # "uniform_ql_rnorm/ql3"
+    ql_rnorm_size4_encdim16_perlayer400_initialize
+    # ql_rnorm_perlayer50
+    # "ql_ldlq128_rnorm_nres1"
+    # "ql_ldlq128_rnorm_nres2"
+    # "scaleH_std_ldlq128_scale_cond(col)/size128_encdim1024_M256_double_check"
+    # "scaleH_std_ldlq128_scale_cond(col)/size128_encdim1024_M256_uniform_scaleh"
+    # "ql_ldlq128_rnorm_nres1"
+    # "ql_ldlq128_rnorm_ft_seed3"
+    # "ql_ldlq128_rnorm_70b_targetbit"
+    # "ql_ldlq128_rnorm_double_check"
+    # "ql_ldlq128_rnorm_codes_test"
+    # "uniform_ql_ldlq128_rnorm/ql0"
+    # "uniform_ql_ldlq128_rnorm/ql1"
+    # "uniform_ql/ql0"
+    # "uniform_ql/ql1"
 )
 ##########################################################################
 ##                           MODEL CONFIGURATION                        ##
 ##########################################################################
 model_names=(
-    # "meta-llama--Meta-Llama-3-8B"
-    "meta-llama--Llama-2-7b-hf"
+    "meta-llama--Meta-Llama-3-8B"
+    # "meta-llama--Llama-2-7b-hf"
     # "meta-llama--Llama-3.2-3B"
-    "meta-llama--Llama-2-13b-hf"
+    # "meta-llama--Llama-2-13b-hf"
     # "meta-llama--Llama-2-70b-hf_"
 )
 hess_paths=(
-    # "../Wparam_dataset/quip_hess/llama3_8b_6144"
-    "../Wparam_dataset/quip_hess/Hessians-Llama-2-7b-6144"
+    "../Wparam_dataset/quip_hess/llama3_8b_6144"
+    # "../Wparam_dataset/quip_hess/Hessians-Llama-2-7b-6144"
     # "../Wparam_dataset/quip_hess/meta-llama--Llama-3.2-3B-256"
-    "../Wparam_dataset/quip_hess/Hessians-Llama-2-13b-6144"
+    # "../Wparam_dataset/quip_hess/Hessians-Llama-2-13b-6144"
     # "../Wparam_dataset/quip_hess/llama2_70b_relaxml_git/Hessians-Llama-2-70b-6144"
 )
 ############################################
@@ -96,14 +129,17 @@ mkdir -p $CKPT
 mkdir -p $HF
 mkdir -p $LOG
 mkdir -p $RES
-export CUDA_VISIBLE_DEVICES=2,3
-export WANDB_SILENT=true
+export CUDA_VISIBLE_DEVICES=2,3,6,7
+# export HF_HOME=/workspace/hf_cache/huggingface_nwc
 export HF_HOME=/home/jgryu/.cache/huggingface
 
-lmbda_values=(10 5)
-# lmbda_values=(10 20 30 50 100 300 1000)
-# lmbda_values=(30 300 10000)
-# lmbda_values=(99 82 88 66 77 93 71)
+# export TRANSFORMERS_CACHE=$HF_HOME
+# export HF_DATASETS_CACHE=$HF_HOME/datasets
+# export HF_METRICS_CACHE=$HF_HOME/metrics
+
+# 모든 실험에 공통으로 적용될 Lambda 값
+# lmbda_values=(1000.0)
+lmbda_values=(30.0 1000.0 50.0 100.0 300.0)
 ##########################################################################
 ##                        MAIN EXECUTION LOOP                           ##
 ##########################################################################
@@ -148,6 +184,7 @@ for j in "${!model_names[@]}"; do
                 --in_hess_path $HESS \
                 --devset_size 384 --ft_valid_size 128 --batch_size 8 \
                 ${current_quantize_flags} \
+                --perlayer_ft_lmbda $lmbda \
                 2>&1 | tee $LOG/$SAVE_NAME.log
 
                 # --devset_size 48 --ft_valid_size 16 --batch_size 1 \
@@ -176,10 +213,10 @@ for j in "${!model_names[@]}"; do
 
             # echo "################## Running benchmark evaluation | lmbda=${lmbda} | Exp: ${exp_name} | Model: ${model_name} ##################"
             # python -m eval.eval_zeroshot_hf \
-            #     --tasks arc_challenge,arc_easy,winogrande,boolq,hellaswag \
+            #     --tasks arc_challenge,arc_easy,piqa,winogrande,boolq,hellaswag,mmlu \
             #     --batch_size 16 \
             #     --hf_path $HF/$SAVE_NAME \
-            #     --output_path $RES/${SAVE_NAME}_seedlm \
+            #     --output_path $RES/${SAVE_NAME}_common_mmlu \
             #     2>&1 | tee -a $LOG/$SAVE_NAME.log
 
                 # --tasks arc_challenge,arc_easy,piqa,winogrande,boolq,hellaswag,mmlu \
@@ -209,29 +246,3 @@ done
 #     --batch_size 8  \
 #     --hf_path /workspace/Weight_compression/Wparam_dataset/hf_model/meta-llama--Llama-2-7b-hf \
 #     --output_path /workspace/Weight_compression/Wparam_dataset/hf_model/meta-llama--Llama-2-7b-hf_mmlu
-
-# export CUDA_VISIBLE_DEVICES=0,1,2,3
-# python -m eval.eval_zeroshot_hf \
-#     --tasks hellaswag,openbookqa,mathqa,sciq,pubmedqa \
-#     --batch_size 8  \
-#     --hf_path /workspace/Weight_compression/Wparam_dataset/hf_model/meta-llama--Meta-Llama-3-8B \
-#     --output_path /workspace/Weight_compression/Wparam_dataset/hf_model/meta-llama--Meta-Llama-3-8B_2
-
-# python -m eval.eval_zeroshot_hf \
-#     --tasks hellaswag,openbookqa,mathqa,sciq,pubmedqa \
-#     --batch_size 8  \
-#     --hf_path /workspace/Weight_compression/Wparam_dataset/hf_model/meta-llama--Llama-3.2-3B \
-#     --output_path /workspace/Weight_compression/Wparam_dataset/hf_model/meta-llama--Llama-3.2-3B_2
-
-# python -m eval.eval_zeroshot_hf \
-#     --tasks hellaswag,openbookqa,mathqa,sciq,pubmedqa \
-#     --batch_size 8  \
-#     --hf_path /workspace/Weight_compression/Wparam_dataset/hf_model/meta-llama--Llama-2-7b-hf \
-#     --output_path /workspace/Weight_compression/Wparam_dataset/hf_model/meta-llama--Llama-2-7b-hf_2
-
-
-# # python -m eval.eval_zeroshot_hf \
-# #     --tasks hellaswag,openbookqa,mathqa,sciq,pubmedqa \
-# #     --batch_size 4  \
-# #     --hf_path $HF/$SAVE_NAME \
-# #     --output_path ${RES}/${SAVE_NAME}_2

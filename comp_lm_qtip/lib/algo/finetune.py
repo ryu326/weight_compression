@@ -160,18 +160,19 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
         in_hess_path = f'{args.in_hess_path}/{idx}_{in_hess_name}.pt'
         # in_hess_path = f'{args.in_hess_path}/lang_{idx}_{in_hess_name}.pt'
         args.in_hess_name = in_hess_name
-        
-        H_data = torch.load(in_hess_path, map_location=torch.device('cpu'))
-        HR = utils.flat_to_sym(H_data['flatH'], H_data['n'])
-        n_h = H_data['n']
-        if 'mu' in H_data:
-            mu = H_data['mu']
-            HR += mu[None, :] * mu[:, None]
-            del mu
-        del H_data
-        # HR = utils.regularize_H(HR, args.sigma_reg)
-        HR = utils.regularize_H2(HR, n_h, args.sigma_reg)
-        
+        try:
+            H_data = torch.load(in_hess_path, map_location=torch.device('cpu'))
+            HR = utils.flat_to_sym(H_data['flatH'], H_data['n'])
+            n_h = H_data['n']
+            if 'mu' in H_data:
+                mu = H_data['mu']
+                HR += mu[None, :] * mu[:, None]
+                del mu
+            del H_data
+            # HR = utils.regularize_H(HR, args.sigma_reg)
+            HR = utils.regularize_H2(HR, n_h, args.sigma_reg)
+        except:
+            HR = torch.eye(W.shape[1])
         # comp_model.to(dtype_) ## TODO: check if this is needed
         args.layer_idx = idx
         args.layer_name = name

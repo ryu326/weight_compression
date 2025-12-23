@@ -157,7 +157,6 @@ def check_exist(idx, args):
             return False
     return True
 
-
 class Config:
     def __init__(self, **entries):
         self.__dict__.update(entries)
@@ -257,6 +256,7 @@ def main(args):
     comp_model.load_state_dict(ckpt["state_dict"], strict = False)
     comp_model.scale = scale
     comp_model.shift = shift
+    comp_model.update()
     print(comp_model.scale, comp_model.shift)
     
     q_level = None

@@ -107,7 +107,6 @@ parser.add_argument('--code_optim_lmbda', type=int, default=None)
 parser.add_argument('--code_optim_test', action='store_true', default=False)
 parser.add_argument('--code_optim_model', type=str, default='nwc_ql_sga')
 parser.add_argument('--optim_qs', action='store_true', default=False)
-parser.add_argument('--loss', type=str, default='rdloss_ql')
 parser.add_argument('--Q', type=int, default=4)
 parser.add_argument('--use_codes', action='store_true', default=False)
 parser.add_argument('--qmap_uniform', type=float, default=None)
@@ -148,6 +147,13 @@ parser.add_argument('--scale_cond', action='store_true', default=False)
 parser.add_argument('--fp_iter', action='store_true', default=False)
 parser.add_argument('--fp_iter_max', type=int, default=None)
 parser.add_argument('--fp_tol', type=float, default=1e-5)
+parser.add_argument('--perlayer_ft_epochs', type=int, default=0)
+parser.add_argument('--perlayer_ft_bs', type=int, default=0)
+parser.add_argument('--perlayer_ft_lmbda', type=float, default=0)
+parser.add_argument('--initialize_codec', action='store_true', default=False)
+parser.add_argument("--loss", type=str, default='rdloss_ql')
+parser.add_argument("--use_hyper", action='store_true', default=False)
+
 def check_exist(idx, args):
     suffix = ['q', 'k', 'v', 'o', 'up', 'down', 'layernorm']
     for _ in suffix:
@@ -169,8 +175,7 @@ def compress_llama_decoder(layer, idx, comp_model, q_level, args, device, pre_or
         skip_list = []
 
     ql_i =  q_level[idx] if q_level is not None else None
-        
-    
+
     # layer name, save_name, input hessian file, output hessian file
     quant_order = []
     for thing in [
@@ -287,7 +292,8 @@ def main(args):
             shift, scale = utils.get_model_weight_stats(model, args, config.input_size)
         print('shift: ', shift, ' scale:', scale)
 
-        comp_model.load_state_dict(ckpt["state_dict"], strict = False)
+        if not args.initialize_codec:
+            comp_model.load_state_dict(ckpt["state_dict"], strict = False)
         # comp_model.scale = scale
         # comp_model.shift = shift
         try: ## scale_cond

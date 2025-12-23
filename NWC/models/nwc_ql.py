@@ -598,6 +598,156 @@ class NWC_ql(CompressionModel, AsinhCompandingMixin):
             
     #         return {"x_hat": x_hat}, timings
 
+    def forward_latency(self, data, scale = None, shift = None, y_in = None):
+        # 시간 측정을 위한 Event 생성
+        starter = torch.cuda.Event(enable_timing=True)
+        enc_ender = torch.cuda.Event(enable_timing=True)
+        ent_ender = torch.cuda.Event(enable_timing=True)
+        dec_ender = torch.cuda.Event(enable_timing=True)
+
+        # 1. Encoding 시작
+        starter.record()
+
+        if y_in is not None:
+            y = y_in
+        else:
+            x = data['weight_block']  # (B, -1, input_size)            
+            if not self.scale_cond:
+                q_level = data['q_level'] # (B, -1)
+                q_embed = self.quality_embedding(q_level) # (B, -1, encdim)
+                scale = scale if scale is not None else self.scale 
+                shift = shift if shift is not None else self.shift 
+                x_shift = (x - shift) / scale
+            else : 
+                scale_cond = data['scale_cond'] 
+                q_embed = self.quality_embedding(scale_cond) 
+                x_shift = x / scale_cond.unsqueeze(-1)
+            
+            if self.pe:
+                d_embed = self.depth_embedding(data['depth']) 
+                l_embed = self.ltype_embedding(data['ltype']) 
+                x_shift = x_shift + d_embed + l_embed
+            
+            x_shift = self._compand(x_shift)
+                        
+            y = self.g_a(x_shift, q_embed)
+        
+        # 1. Encoding 종료 / Entropy 시작
+        enc_ender.record()
+        
+        if self.use_hyper == True:
+            z = self.h_a(y)
+            
+            perm = list(range(z.dim()))
+            perm[-1], perm[1] = perm[1], perm[-1]
+            z = z.permute(*perm).contiguous()
+            
+            z_hat, z_likelihoods = self.entropy_bottleneck(z)
+            z_hat = z_hat.permute(*perm).contiguous()
+            
+            means_hat = self.h_s_means(z_hat)
+            scales_hat = self.h_s_scales(z_hat)
+            
+            perm = list(range(y.dim()))
+            perm[-1], perm[1] = perm[1], perm[-1]
+            y = y.permute(*perm).contiguous()
+            
+            scales_hat = scales_hat.permute(*perm).contiguous()
+            means_hat = means_hat.permute(*perm).contiguous()
+            
+            y_hat, y_likelihoods = self.gaussian_conditional(y, scales_hat, means=means_hat)
+            y_hat = y_hat.permute(*perm).contiguous()
+            
+            # 2. Entropy Model 종료 / Decoding 시작
+            ent_ender.record()
+
+            x_hat = self.g_s(y_hat, q_embed)
+            
+            x_hat = self._inv_compand(x_hat)
+            
+            if not self.scale_cond:
+                x_hat = scale * x_hat + shift
+            else:
+                x_hat = x_hat * scale_cond.unsqueeze(-1)   
+            
+            # 3. Decoding 종료
+            dec_ender.record()
+            
+            # 시간 계산 (동기화 필요)
+            torch.cuda.synchronize()
+            enc_time = starter.elapsed_time(enc_ender) # ms 단위
+            ent_time = enc_ender.elapsed_time(ent_ender)
+            dec_time = ent_ender.elapsed_time(dec_ender)
+
+            return {
+                # "x": x,
+                "x_hat": x_hat,
+                "likelihoods": {'y': y_likelihoods, 'z': z_likelihoods},
+                "latency": {
+                    "encoding": enc_time,
+                    "entropy": ent_time,
+                    "decoding": dec_time,
+                    "total": enc_time + ent_time + dec_time
+                }
+            }
+
+        else:
+            perm = list(range(y.dim()))
+            perm[-1], perm[1] = perm[1], perm[-1]
+            y_hat = y.permute(*perm).contiguous()
+            
+            y_hat, y_likelihoods = self.entropy_bottleneck(y_hat)
+            
+            # ####### STE quant ########
+            if self.mode == 'ste':
+                perm_ = np.arange(len(y_hat.shape))
+                perm_[0], perm_[1] = perm_[1], perm_[0]
+                inv_perm = np.arange(len(y_hat.shape))[np.argsort(perm_)]
+                y_hat = y_hat.permute(*perm_).contiguous()
+                shape = y_hat.size()
+                y_hat = y_hat.reshape(y_hat.size(0), 1, -1)        
+                y_offset = self.entropy_bottleneck._get_medians()
+                y_tmp = y_hat - y_offset
+                y_hat = ste_round(y_tmp) + y_offset        
+                y_hat = y_hat.reshape(shape)
+                y_hat = y_hat.permute(*inv_perm).contiguous()
+            # ####################
+            
+            y_hat = y_hat.permute(*perm).contiguous()        
+            
+            # 2. Entropy Model 종료 / Decoding 시작
+            ent_ender.record()
+
+            x_hat = self.g_s(y_hat, q_embed)
+            
+            x_hat = self._inv_compand(x_hat)
+            
+            if not self.scale_cond:
+                x_hat = scale * x_hat + shift
+            else:
+                x_hat = x_hat * scale_cond.unsqueeze(-1)        
+
+            # 3. Decoding 종료
+            dec_ender.record()
+
+            # 시간 계산 (동기화 필요)
+            torch.cuda.synchronize()
+            enc_time = starter.elapsed_time(enc_ender) # ms 단위
+            ent_time = enc_ender.elapsed_time(ent_ender)
+            dec_time = ent_ender.elapsed_time(dec_ender)
+                
+            return {
+                # "x": x,
+                "x_hat": x_hat,
+                "likelihoods": y_likelihoods,
+                "latency": {
+                    "encoding": enc_time,
+                    "entropy": ent_time,
+                    "decoding": dec_time,
+                    "total": enc_time + ent_time + dec_time
+                }
+            }
+
     def fast_decompress(self, enc_data: dict) -> tuple[dict, dict]:
             timings = {}
             total_start_time = time.perf_counter()

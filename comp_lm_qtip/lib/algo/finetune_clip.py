@@ -16,7 +16,9 @@ from lib import utils
 # from lib.linear import QuantizedLinear
 
 # from . import ldlq
-from .archive import nwc
+# from .archive import nwc
+# from .archive import nwc
+from . import nwc_refactory as nwc
 
 @contextmanager
 def use_tf32():
@@ -52,18 +54,20 @@ def compress_finetune_decoder_layer_clip(mixed_layer, quant_order, idx, comp_mod
         W = orig_linear.weight.to(dtype_)
         in_hess_path = f'{args.in_hess_path}/{idx}_{in_hess_name}.pt'
         
-        H_data = torch.load(in_hess_path, map_location=torch.device('cpu'))
-        HR = utils.flat_to_sym(H_data['flatH'], H_data['n'])
-        n_h = H_data['n']
-        if 'mu' in H_data:
-            mu = H_data['mu']
-            HR += mu[None, :] * mu[:, None]
-            del mu
-        del H_data
+        try:
+            H_data = torch.load(in_hess_path, map_location=torch.device('cpu'))
+            HR = utils.flat_to_sym(H_data['flatH'], H_data['n'])
+            n_h = H_data['n']
+            if 'mu' in H_data:
+                mu = H_data['mu']
+                HR += mu[None, :] * mu[:, None]
+                del mu
+            del H_data
 
-        # HR = utils.regularize_H(HR, args.sigma_reg)
-        HR = utils.regularize_H2(HR, n_h, args.sigma_reg)
-        
+            # HR = utils.regularize_H(HR, args.sigma_reg)
+            HR = utils.regularize_H2(HR, n_h, args.sigma_reg)
+        except:
+            HR = torch.eye(W.shape[1])
         comp_model.to(dtype_)
         args.layer_idx = idx
         args.layer_name = name

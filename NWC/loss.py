@@ -495,8 +495,10 @@ class RateDistortionLoss_qmap_v2(nn.Module):
         return out 
 
 def get_loss_fn(args, std=None, device = None):
-    if hasattr(args, 'code_optim_lr'):
+    if hasattr(args, 'code_optim_lmbda'):
         args.lmbda = args.code_optim_lmbda
+    if hasattr(args, 'perlayer_ft_lmbda'):
+        args.lmbda = args.perlayer_ft_lmbda
     # if args.loss == "nmse":
     #     return VQVAE_loss(NormalizedMSELoss(std))
     # elif args.loss == "enmse":

@@ -7,8 +7,8 @@ import torch
 from transformers import AutoTokenizer
 
 from lib import codebook, utils
-from lib.utils.unsafe_import import model_from_hf_path
-from model.llama import LlamaForCausalLM
+# from lib.utils.unsafe_import import model_from_hf_path
+# from model.llama import LlamaForCausalLM
 from transformers import LlamaForCausalLM as OrigLlama
 from torch import nn
 import json

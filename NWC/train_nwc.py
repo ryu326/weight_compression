@@ -55,7 +55,8 @@ def parse_args(argv):
     parser.add_argument("--architecture", default=None, type=str)
     parser.add_argument("--loss", default="rdloss", type=str)
     parser.add_argument("--checkpoint", default=None, type=str)
-    parser.add_argument("--lmbda", type=float, default=None)
+    # parser.add_argument("--lmbda", type=float, default=None)
+    parser.add_argument("--lmbda", type=int, default=None)
     parser.add_argument("--lmbda_min", type=float, default=None)
     parser.add_argument("--lmbda_max", type=float, default=None)
     parser.add_argument("--dataset_stat_type", type=str, choices=['scaler', 'channel'], default='scaler')
@@ -582,20 +583,23 @@ def before_main(argvs):
     ])
 
     subfolder = '_'.join(filter(None, [
-        args.run_name,
         args.loss,
         f"size{args.input_size}",
         f"encdim{args.dim_encoder}",
         f"M{args.M}",
         f"Q{args.Q}",
+        f"nRB{args.n_resblock}"
         f"R{args.R}",
         f"m{args.m}",
         f"batch_size{args.batch_size}",
         f"total_iter{args.iter}",
         f"lr{args.learning_rate}",
         f"seed{args.seed}",
-    ]))
+    ]))    
 
+    if args.run_name:
+        subfolder = os.path.join(subfolder, args.run_name)
+    
     if args.lmbda is not None:
         folder_name = os.path.join(folder_name, subfolder, f"lmbda{args.lmbda}_")
     elif args.lmbda_min is not None:
@@ -613,8 +617,9 @@ def before_main(argvs):
             bits= 4
         folder_name = os.path.join(folder_name, subfolder, f"{bits}bit_{args.lattice}_")
     
-    if args.seed is not None:
-        save_path = os.path.join("./checkpoint", args.save_dir, args.architecture, folder_name)
+    # if args.seed is not None:
+    if True:
+        save_path = os.path.join("./checkpoint2", args.save_dir, args.architecture, folder_name)
 
         if os.path.exists(save_path):
             logger = logger_setup(log_file_name="logs", log_file_folder_name=save_path)
