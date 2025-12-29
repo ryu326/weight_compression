@@ -3,14 +3,17 @@
 # ##                       EXPERIMENT CONFIGURATION                       ##
 # ##########################################################################
 comp_model_bases=(
-    "/home/jgryu/workspace/weight_compression/NWC/checkpoint2/n_rb1"
-    "/home/jgryu/workspace/weight_compression/NWC/checkpoint2/n_rb2"
+    "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16"
+    "/home/jgryu/workspace/weight_compression/NWC/checkpoint2/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100/n_rb1"
+    "/home/jgryu/workspace/weight_compression/NWC/checkpoint2/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100/n_rb2"
 )
 quantize_flags=(
     "--direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 128"
     "--direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 128"
+    "--direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 128"
 )
 experiment_names=(
+    "ql_ldlq128_rnorm_nres4"
     "ql_ldlq128_rnorm_nres1"
     "ql_ldlq128_rnorm_nres2"
 )
@@ -29,7 +32,7 @@ hess_paths=(
 CKPT="../hf_model_comp/comp_qtip/ckpt"
 HF="../hf_model_comp/comp_qtip/hf"
 LOG="./log"
-RES="../hf_model_comp_results"
+RES="../hf_model_comp_results_v2"
 
 mkdir -p $CKPT
 mkdir -p $HF
@@ -37,14 +40,14 @@ mkdir -p $LOG
 mkdir -p $RES
 
 # 사용할 GPU 목록 설정 (여기서 정의한 GPU들을 돌아가며 사용합니다)
-export CUDA_VISIBLE_DEVICES=3,4,5,6,7
+export CUDA_VISIBLE_DEVICES=2,3,4,5,6,7
 IFS=',' read -r -a GPU_LIST <<< "$CUDA_VISIBLE_DEVICES"
 NUM_GPUS=${#GPU_LIST[@]}
 
 export HF_HOME=/home/jgryu/.cache/huggingface
 
 # 모든 실험에 공통으로 적용될 Lambda 값
-lmbda_values=(30.0 50.0 100.0 300.0 10000.0)
+lmbda_values=(30 50 100 300 1000 10000)
 
 ##########################################################################
 ##                        MAIN EXECUTION LOOP                           ##
@@ -94,7 +97,7 @@ for j in "${!model_names[@]}"; do
                 echo "################## Running compression | lmbda=${lmbda} | GPU: $CURRENT_GPU ##################"
                 # taskset은 CPU 코어 할당입니다. 병렬 실행 시 충돌을 막기 위해 제거하거나 범위를 나누는 것이 좋으나, 
                 # OS 스케줄링에 맡기기 위해 여기서는 그대로 두되 필요시 조정하십시오.
-                taskset -c 0-63 \
+                # taskset -c 0-63 \
                 python -m quantize_llama.quantize_finetune_llama --save_path $CKPT/$SAVE_NAME \
                     --base_model $lm_model_path \
                     --comp_model_path $comp_model \
@@ -114,12 +117,20 @@ for j in "${!model_names[@]}"; do
                     --seqlen 2048 \
                     --output_path ${RES}/${SAVE_NAME} \
                     --datasets wikitext2,c4 \
-                    --no_use_cuda_graph >> "$LOG/$SAVE_NAME.log" 2>&1
+                    --no_use_cuda_graph >> "$LOG/$SAVE_NAME.log" 2>&1                
+
+                echo "################## Running benchmark evaluation | lmbda=${lmbda} | GPU: $CURRENT_GPU ##################"
+                python -m eval.eval_zeroshot_hf \
+                    --tasks arc_challenge,arc_easy,piqa,winogrande,boolq,hellaswag,mmlu \
+                    --batch_size 4 \
+                    --hf_path $HF/$SAVE_NAME \
+                    --output_path $RES/${SAVE_NAME}_common_mmlu \
+                    2>&1 | tee -a $LOG/$SAVE_NAME.log
 
                 if [ "$HF/$SAVE_NAME" != "$HF" ]; then
                     echo "Cleaning up temporary files for $SAVE_NAME"
                     rm -rf "$HF/$SAVE_NAME"
-                    # rm -rf "$CKPT/$SAVE_NAME"
+                    rm -rf "$CKPT/$SAVE_NAME"
                 fi
                 
                 echo "<<< [GPU $CURRENT_GPU] Finished lmbda=${lmbda}"

@@ -1,79 +1,102 @@
-
-# (lmbdas=(10000)
-# for lmbda in "${lmbdas[@]}"; do
-#     echo "=== Running with λ=${lmbda} ==="
-#     CUDA_VISIBLE_DEVICES=2  python -u train_nwc.py \
-#         --architecture nwc_ql  --dataset block_seq_ql_random \
-#         --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
-#         --iter 200000 --input_size 16 --M 16 --Q 4 --dim_encoder 512 --batch_size 2048 \
-#         --loss rdloss_ql \
-#         --run_name n_rb2 --n_resblock 2 \
-#         --lmbda $lmbda
-# done
-# ) > ./logs/run2.log 2>&1 &
-
-# (lmbdas=(10000)
-# for lmbda in "${lmbdas[@]}"; do
-#     echo "=== Running with λ=${lmbda} ==="
-#     CUDA_VISIBLE_DEVICES=3  python -u train_nwc.py \
-# done
-# ) > ./logs/run3.log 2>&1 &
-
-(lmbdas=(30 100 1000)
+####### GPU 2 #######
+(lmbdas=(300)
 for lmbda in "${lmbdas[@]}"; do
     echo "=== Running with λ=${lmbda} ==="
-    CUDA_VISIBLE_DEVICES=4  python -u train_nwc.py \
-        --architecture nwc_ql  --dataset block_seq_ql_random \
-        --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
+    CUDA_VISIBLE_DEVICES=2  python -u train_nwc.py \
+        --architecture nwc_ql  --dataset2 8b_cnormed_col1024_seq_ql_random \
         --iter 200000 --input_size 16 --M 16 --Q 4 --dim_encoder 512 --batch_size 2048 \
         --loss rdloss_ql \
         --no_layernorm \
-        --run_name noLN \
+        --run_name noLN_cnormed \
+        --lmbda $lmbda
+done
+) > ./logs/run2.log 2>&1 &
+
+####### GPU 3 #######
+(lmbdas=(100)
+for lmbda in "${lmbdas[@]}"; do
+    echo "=== Running with λ=${lmbda} ==="
+    CUDA_VISIBLE_DEVICES=3  python -u train_nwc.py \
+        --architecture nwc_ql  --dataset2 8b_cnormed_col1024_seq_ql_random \
+        --iter 200000 --input_size 16 --M 16 --Q 4 --dim_encoder 512 --batch_size 2048 \
+        --loss rdloss_ql \
+        --no_layernorm \
+        --run_name noLN_cnormed \
+        --lmbda $lmbda
+done
+) > ./logs/run3.log 2>&1 &
+
+####### GPU 4 #######
+(lmbdas=(30)
+for lmbda in "${lmbdas[@]}"; do
+    echo "=== Running with λ=${lmbda} ==="
+    CUDA_VISIBLE_DEVICES=4  python -u train_nwc.py \
+        --architecture nwc_ql  --dataset2 8b_cnormed_col1024_seq_ql_random \
+        --iter 200000 --input_size 16 --M 16 --Q 4 --dim_encoder 512 --batch_size 2048 \
+        --loss rdloss_ql \
+        --no_layernorm \
+        --run_name noLN_cnormed \
         --lmbda $lmbda
 done
 ) > ./logs/run4.log 2>&1 &
 
-(lmbdas=(50 300 10000)
+####### GPU 5 #######
+(lmbdas=(50)
 for lmbda in "${lmbdas[@]}"; do
     echo "=== Running with λ=${lmbda} ==="
     CUDA_VISIBLE_DEVICES=5  python -u train_nwc.py \
-        --architecture nwc_ql  --dataset block_seq_ql_random \
-        --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
+        --architecture nwc_ql  --dataset2 8b_cnormed_col1024_seq_ql_random \
         --iter 200000 --input_size 16 --M 16 --Q 4 --dim_encoder 512 --batch_size 2048 \
         --loss rdloss_ql \
         --no_layernorm \
-        --run_name noLN \
+        --run_name noLN_cnormed \
         --lmbda $lmbda
 done
 ) > ./logs/run5.log 2>&1 &
 
-(lmbdas=(30 100 1000)
+####### GPU 6 #######
+(lmbdas=(1000)
 for lmbda in "${lmbdas[@]}"; do
     echo "=== Running with λ=${lmbda} ==="
     CUDA_VISIBLE_DEVICES=6  python -u train_nwc.py \
-        --architecture nwc_ql  --dataset block_seq_ql_random \
-        --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/rnormed_col_1024.pt \
+        --architecture nwc_ql  --dataset2 8b_cnormed_col1024_seq_ql_random \
         --iter 200000 --input_size 16 --M 16 --Q 4 --dim_encoder 512 --batch_size 2048 \
         --loss rdloss_ql \
         --no_layernorm \
-        --run_name noLN_rnorm \
+        --run_name noLN_cnormed \
         --lmbda $lmbda
 done
 ) > ./logs/run6.log 2>&1 &
 
-(lmbdas=(50 300 10000)
+####### GPU 7 #######
+(lmbdas=(10000)
 for lmbda in "${lmbdas[@]}"; do
     echo "=== Running with λ=${lmbda} ==="
     CUDA_VISIBLE_DEVICES=7  python -u train_nwc.py \
-        --architecture nwc_ql  --dataset block_seq_ql_random \
-        --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/rnormed_col_1024.pt \
+        --architecture nwc_ql  --dataset2 8b_cnormed_col1024_seq_ql_random \
         --iter 200000 --input_size 16 --M 16 --Q 4 --dim_encoder 512 --batch_size 2048 \
         --loss rdloss_ql \
         --no_layernorm \
-        --run_name noLN_rnorm \
+        --run_name noLN_cnormed \
         --lmbda $lmbda
 done
 ) > ./logs/run7.log 2>&1 &
+
+        # --architecture nwc_ql  --dataset block_seq_ql_random \
+        # --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
+        # --iter 200000 --input_size 16 --M 16 --Q 4 --dim_encoder 512 --batch_size 2048 \
+        # --loss rdloss_ql \
+        # --no_layernorm \
+        # --run_name noLN \
+        # --lmbda $lmbda
+
+        #     --architecture nwc_ql  --dataset block_seq_ql_random \
+        # --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/rnormed_col_1024.pt \
+        # --iter 200000 --input_size 16 --M 16 --Q 4 --dim_encoder 512 --batch_size 2048 \
+        # --loss rdloss_ql \
+        # --no_layernorm \
+        # --run_name noLN_rnorm \
+        # --lmbda $lmbda
 
         # --architecture nwc_ql  --dataset block_seq_ql_random \
         # --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \

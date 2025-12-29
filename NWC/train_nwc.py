@@ -33,6 +33,7 @@ def parse_args(argv):
     parser.add_argument("--iter", default=2000000, type=int)
     parser.add_argument("--dataset", type=str, default=None)
     parser.add_argument("--dataset_path", type=str, default=None)
+    parser.add_argument("--dataset2", type=str, default=None)
     parser.add_argument("-lr", "--learning_rate", default=1e-4, type=float)
     parser.add_argument("--aux_learning_rate",
         default=1e-3,
@@ -245,6 +246,7 @@ def main(args):
         logger.info(f"num of gpus: {gpu_num}")
         logger.info(args)
 
+    # import ipdb; ipdb.set_trace()
     ########################################
 
     best_mse = float("inf")
@@ -576,11 +578,16 @@ def before_main(argvs):
     if args.uniform_scale_max is not None:
         args.dataset += f'{args.uniform_scale_max}'
     
-    folder_name = '_'.join([
-        args.dataset,
-        args.dataset_stat_type,
-        '__'.join(args.dataset_path.split('/')[-2:])
-    ])
+    if args.dataset != None:
+        folder_name = '_'.join([
+            args.dataset,
+            args.dataset_stat_type,
+            '__'.join(args.dataset_path.split('/')[-2:])
+        ])
+    elif args.dataset2 != None:
+        folder_name = '_'.join([
+            args.dataset2,
+        ])
 
     subfolder = '_'.join(filter(None, [
         args.loss,

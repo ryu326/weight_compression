@@ -120,7 +120,7 @@ def compute_bpp(out_net):
 def create_exp_folder(save_path):
     try:
         os.mkdir(save_path)
-        os.mkdir(f"{save_path}/figures")
+        # os.mkdir(f"{save_path}/figures")
     except:
         os.makedirs(save_path)
-        os.makedirs(f"{save_path}/figures")
+        # os.makedirs(f"{save_path}/figures")
