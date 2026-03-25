@@ -1,10 +1,10 @@
 import torch
 from transformers import CLIPVisionModelWithProjection, ViTForImageClassification, AutoModelForCausalLM
-from transformers import AutoModel, AutoTokenizer, AutoProcessor
+from transformers import AutoModel, AutoTokenizer, AutoProcessor, GptOssForCausalLM
 from tqdm import tqdm
 from huggingface_hub import snapshot_download
 from transformers import LlavaForConditionalGeneration
-from transformers import AutoImageProcessor, AutoModelForImageClassification
+from transformers import AutoImageProcessor, AutoModelForImageClassification, Gemma3ForConditionalGeneration
 model_list = [
     # 'meta-llama/Llama-2-7b-hf',
     # 'meta-llama/Llama-2-13b-hf',
@@ -39,7 +39,11 @@ model_list = [
     # 'facebook/dinov2-base-imagenet1k-1-layer',
     # 'Qwen/Qwen3-30B-A3B',
     # 'mistralai/Mixtral-8x7B-v0.1',
-    'openai/gpt-oss-20b'
+    # 'openai/gpt-oss-20b'
+    # 'google/gemma-3-4b-pt',
+    # 'google/gemma-3-12b-pt'
+    'meta-llama/Llama-3.2-1B',
+    'meta-llama/Llama-3.1-8B',
 ]
 
 # cache_directory = "./hf_model/cache"
@@ -48,7 +52,7 @@ cache_directory = '/home/jgryu/.cache/huggingface/hub'
 for model_name in tqdm(model_list):
     print(model_name)
     
-    max_it = 10
+    max_it = 100
     while max_it:
         try:
             tokenizer = AutoTokenizer.from_pretrained(model_name, cache_dir = cache_directory, trust_remote_code=True)

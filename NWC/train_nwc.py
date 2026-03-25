@@ -83,6 +83,7 @@ def parse_args(argv):
     parser.add_argument("--e_dim", type=int, default=None)
     parser.add_argument("--vq_beta", type=float, default=0.25)
     parser.add_argument("--lattice", type=str, default=None)
+    parser.add_argument("--dim_proj", type=int, default=None)
     
     args = parser.parse_args(argv)
     return args

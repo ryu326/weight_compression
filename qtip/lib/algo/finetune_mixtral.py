@@ -42,7 +42,7 @@ def finetune_decoder_layer(layer, name, device, train_dl, valid_dl, orig_dtype,
             "position_ids": position_ids,
             "attention_mask": attention_mask
         }
-        # [수정] Qwen용 Position Embeddings 계산 및 추가
+        # Qwen/GPT-OSS용 Position Embeddings 계산 및 추가
         if rotary_emb is not None:
             position_embeddings = rotary_emb(source.to(device), position_ids)
             forward_kwargs["position_embeddings"] = position_embeddings
@@ -98,6 +98,7 @@ def finetune_decoder_layer(layer, name, device, train_dl, valid_dl, orig_dtype,
 
     del optim, train_dl, valid_dl
 
+    # layer.load_state_dict(best_sd)
     layer = layer.cpu()
     layer.load_state_dict(best_sd)
     utils.clean()
@@ -127,9 +128,9 @@ def quantize_finetune_decoder_layer(mixed_layer, quant_order, idx, cb, args,
         # 1. 원본 td_x 값을 저장 (td_y가 아닌 td_x를 수정하고 있었음)
         original_td_x = args.td_x
         
-        if name == 'gate':
-            args.td_x = max(1, args.td_x // 2)
-            glog.info(f"Layer {idx}_{name}: Halving td_x to {args.td_x}")
+        # if name == 'gate':
+        #     args.td_x = max(1, args.td_x // 2)
+        #     glog.info(f"Layer {idx}_{name}: Halving td_x to {args.td_x}")
 
         # 3. 수정된 td_x/td_y를 기반으로 has_kernel을 결정
         has_kernel = utils.has_kernel(args.decode_mode, args.L, args.K, args.V,
@@ -212,7 +213,10 @@ def quantize_finetune_decoder_layer(mixed_layer, quant_order, idx, cb, args,
         diag = torch.arange(n, device=LRr.device)
         LRr[diag, diag] = 0
 
-        hatWr, Qidxs = ldlq.LDLQ(Wr, LRr, cb_device, args, for_kernel=has_kernel)
+        try:
+            hatWr, Qidxs = ldlq.LDLQ(Wr, LRr, cb_device, args, for_kernel=has_kernel)
+        except:
+            hatWr, Qidxs = ldlq.LDLQ(Wr, LRr, cb_device, args, for_kernel=has_kernel, buf_cols=64)
 
         Qidxs = Qidxs.cpu()
         packed = cb_device.pack_trellis(
@@ -347,45 +351,89 @@ def quantize_finetune_decoder_layer(mixed_layer, quant_order, idx, cb, args,
     # 1. quant_order를 그룹으로 분리
     attn_layers = [q for q in quant_order if 'self_attn' in q[0]]
     gate_layers = [q for q in quant_order if q[1] == 'gate'] # 'gate' save_name 기준
-    w1_layers = [q for q in quant_order if 'w1' in q[1]] # 'expert..._w1' save_name 기준
-    w3_layers = [q for q in quant_order if 'w3' in q[1]]
-    w2_layers = [q for q in quant_order if 'w2' in q[1]]
-
-    # # --- STAGE 1: Attention Layers ---
-    # glog.info(f"--- Layer {idx}: Processing {len(attn_layers)} Attention Layers ---")
-    # for (linear_attr, name, in_hess_name, out_hess_name, rcp) in attn_layers:
-    #     _quantize_and_replace_layer(linear_attr, name, in_hess_name, out_hess_name, rcp)
-    # _finetune_if_needed("Attention")
-
-    # # --- STAGE 2: Gate Layer ---
-    # glog.info(f"--- Layer {idx}: Processing {len(gate_layers)} Gate Layer ---")
-    # for (linear_attr, name, in_hess_name, out_hess_name, rcp) in gate_layers:
-    #     _quantize_and_replace_layer(linear_attr, name, in_hess_name, out_hess_name, rcp)
-    # _finetune_if_needed("Gate")
     
+    w1_layers = [q for q in quant_order if 'w1' in q[1]] # Mixtral/Qwen
+    w3_layers = [q for q in quant_order if 'w3' in q[1]] # Mixtral/Qwen
+    w2_layers = [q for q in quant_order if 'w2' in q[1]] # Mixtral/Qwen (Down)
+    
+    gate_up_layers = [q for q in quant_order if 'gate_up' in q[1]] # GPT-OSS (Gate+Up)
+    down_layers = [q for q in quant_order if 'down' in q[1]]       # GPT-OSS (Down)
+
+    # --- STAGE 1: Attention + Router (Gate) ---
     combined_attn_gate = attn_layers + gate_layers
     glog.info(f"--- Layer {idx}: Processing {len(combined_attn_gate)} Attention + Gate Layers ---")
     for (linear_attr, name, in_hess_name, out_hess_name, rcp) in combined_attn_gate:
         _quantize_and_replace_layer(linear_attr, name, in_hess_name, out_hess_name, rcp)
     _finetune_if_needed("Attention_and_Gate")
 
-    # --- STAGE 3: W1 Experts ---
-    glog.info(f"--- Layer {idx}: Processing {len(w1_layers)} W1 Expert Layers ---")
-    for (linear_attr, name, in_hess_name, out_hess_name, rcp) in w1_layers:
-        _quantize_and_replace_layer(linear_attr, name, in_hess_name, out_hess_name, rcp)
-    _finetune_if_needed("W1_Experts")
+    # --- STAGE 2: W1 Experts (Mixtral/Qwen) ---
+    if len(w1_layers) > 0:
+        glog.info(f"--- Layer {idx}: Processing {len(w1_layers)} W1 Expert Layers ---")
+        for (linear_attr, name, in_hess_name, out_hess_name, rcp) in w1_layers:
+            _quantize_and_replace_layer(linear_attr, name, in_hess_name, out_hess_name, rcp)
+        _finetune_if_needed("W1_Experts")
 
-    # --- STAGE 4: W3 Experts ---
-    glog.info(f"--- Layer {idx}: Processing {len(w3_layers)} W3 Expert Layers ---")
-    for (linear_attr, name, in_hess_name, out_hess_name, rcp) in w3_layers:
-        _quantize_and_replace_layer(linear_attr, name, in_hess_name, out_hess_name, rcp)
-    _finetune_if_needed("W3_Experts")
+    # --- STAGE 3: W3 Experts (Mixtral/Qwen) ---
+    if len(w3_layers) > 0:
+        glog.info(f"--- Layer {idx}: Processing {len(w3_layers)} W3 Expert Layers ---")
+        for (linear_attr, name, in_hess_name, out_hess_name, rcp) in w3_layers:
+            _quantize_and_replace_layer(linear_attr, name, in_hess_name, out_hess_name, rcp)
+        _finetune_if_needed("W3_Experts")
+        
+    # --- STAGE 2.5: Gate_Up Experts (GPT-OSS) ---
+    # GPT-OSS는 W1(gate)+W3(up)이 합쳐져 있으므로 별도 단계로 처리
+    if len(gate_up_layers) > 0:
+        glog.info(f"--- Layer {idx}: Processing {len(gate_up_layers)} Gate_Up Expert Layers (GPT-OSS) ---")
+        for (linear_attr, name, in_hess_name, out_hess_name, rcp) in gate_up_layers:
+            _quantize_and_replace_layer(linear_attr, name, in_hess_name, out_hess_name, rcp)
+        _finetune_if_needed("Gate_Up_Experts")
 
-    # --- STAGE 5: W2 Experts ---
-    glog.info(f"--- Layer {idx}: Processing {len(w2_layers)} W2 Expert Layers ---")
-    for (linear_attr, name, in_hess_name, out_hess_name, rcp) in w2_layers:
-        _quantize_and_replace_layer(linear_attr, name, in_hess_name, out_hess_name, rcp)
-    _finetune_if_needed("W2_Experts")
+    # --- STAGE 4: W2 / Down Experts ---
+    # Mixtral/Qwen의 W2와 GPT-OSS의 Down은 동일한 Output Projection 역할
+    combined_output_experts = w2_layers + down_layers
+    if len(combined_output_experts) > 0:
+        glog.info(f"--- Layer {idx}: Processing {len(combined_output_experts)} Output Expert Layers (W2/Down) ---")
+        for (linear_attr, name, in_hess_name, out_hess_name, rcp) in combined_output_experts:
+            _quantize_and_replace_layer(linear_attr, name, in_hess_name, out_hess_name, rcp)
+        _finetune_if_needed("Output_Experts")
+
+    glog.info(f"--- Layer {idx}: All quantization stages complete. ---")
+
+    # # # --- STAGE 1: Attention Layers ---
+    # # glog.info(f"--- Layer {idx}: Processing {len(attn_layers)} Attention Layers ---")
+    # # for (linear_attr, name, in_hess_name, out_hess_name, rcp) in attn_layers:
+    # #     _quantize_and_replace_layer(linear_attr, name, in_hess_name, out_hess_name, rcp)
+    # # _finetune_if_needed("Attention")
+
+    # # # --- STAGE 2: Gate Layer ---
+    # # glog.info(f"--- Layer {idx}: Processing {len(gate_layers)} Gate Layer ---")
+    # # for (linear_attr, name, in_hess_name, out_hess_name, rcp) in gate_layers:
+    # #     _quantize_and_replace_layer(linear_attr, name, in_hess_name, out_hess_name, rcp)
+    # # _finetune_if_needed("Gate")
+    
+    # combined_attn_gate = attn_layers + gate_layers
+    # glog.info(f"--- Layer {idx}: Processing {len(combined_attn_gate)} Attention + Gate Layers ---")
+    # for (linear_attr, name, in_hess_name, out_hess_name, rcp) in combined_attn_gate:
+    #     _quantize_and_replace_layer(linear_attr, name, in_hess_name, out_hess_name, rcp)
+    # _finetune_if_needed("Attention_and_Gate")
+
+    # # --- STAGE 3: W1 Experts ---
+    # glog.info(f"--- Layer {idx}: Processing {len(w1_layers)} W1 Expert Layers ---")
+    # for (linear_attr, name, in_hess_name, out_hess_name, rcp) in w1_layers:
+    #     _quantize_and_replace_layer(linear_attr, name, in_hess_name, out_hess_name, rcp)
+    # _finetune_if_needed("W1_Experts")
+
+    # # --- STAGE 4: W3 Experts ---
+    # glog.info(f"--- Layer {idx}: Processing {len(w3_layers)} W3 Expert Layers ---")
+    # for (linear_attr, name, in_hess_name, out_hess_name, rcp) in w3_layers:
+    #     _quantize_and_replace_layer(linear_attr, name, in_hess_name, out_hess_name, rcp)
+    # _finetune_if_needed("W3_Experts")
+
+    # # --- STAGE 5: W2 Experts ---
+    # glog.info(f"--- Layer {idx}: Processing {len(w2_layers)} W2 Expert Layers ---")
+    # for (linear_attr, name, in_hess_name, out_hess_name, rcp) in w2_layers:
+    #     _quantize_and_replace_layer(linear_attr, name, in_hess_name, out_hess_name, rcp)
+    # _finetune_if_needed("W2_Experts")
 
     glog.info(f"--- Layer {idx}: All quantization stages complete. ---")
 

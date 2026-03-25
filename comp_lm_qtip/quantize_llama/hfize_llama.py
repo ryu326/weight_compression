@@ -4,7 +4,7 @@ import time
 
 import glog
 import torch
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, AutoModelForCausalLM
 
 from lib import codebook, utils
 # from lib.utils.unsafe_import import model_from_hf_path
@@ -12,6 +12,10 @@ from lib import codebook, utils
 from transformers import LlamaForCausalLM as OrigLlama
 from torch import nn
 import json
+try:
+    from model.llama import LlamaForCausalLM as LocalLlama
+except Exception:
+    LocalLlama = None
 
 torch.set_grad_enabled(False)
 
@@ -22,6 +26,16 @@ parser.add_argument('--skip_list', type=str, default='')
 parser.add_argument('--use_codes', action='store_true')
 parser.add_argument('--W_key', type=str, default='')
 parser.add_argument('--sep_rnorm', action='store_true')
+parser.add_argument('--base_model', type=str)
+
+
+def _is_gemma3_config(config):
+    return getattr(config, 'model_type', '') in ('gemma3', 'gemma3_text')
+
+
+def _get_text_model(model):
+    return model.language_model if hasattr(model, 'language_model') else model.model
+
 
 def main(args):
     assert os.path.exists(args.quantized_path)
@@ -30,19 +44,35 @@ def main(args):
     comp_config = saved_config['quant_args']
     glog.info(model_config)
 
-    tokenizer = AutoTokenizer.from_pretrained(model_config._name_or_path)
-    
-    model_cls = LlamaForCausalLM if args.sep_rnorm else OrigLlama
-    
-    model = model_cls.from_pretrained(model_config._name_or_path,
-                                      torch_dtype='auto',
-                                      low_cpu_mem_usage=True,
-                                      config=model_config)
+    _name_or_path = args.base_model
+    tokenizer = AutoTokenizer.from_pretrained(_name_or_path)
+    is_gemma3 = _is_gemma3_config(model_config)
+    if is_gemma3:
+        model = AutoModelForCausalLM.from_pretrained(
+            _name_or_path,
+            torch_dtype='auto',
+            low_cpu_mem_usage=True,
+            config=model_config)
+        orig_model = AutoModelForCausalLM.from_pretrained(
+            _name_or_path,
+            torch_dtype='auto',
+            low_cpu_mem_usage=True,
+            config=model_config)
+    else:
+        model_cls = OrigLlama
+        if args.sep_rnorm and LocalLlama is not None:
+            model_cls = LocalLlama
+        model = model_cls.from_pretrained(_name_or_path,
+                                          torch_dtype='auto',
+                                          low_cpu_mem_usage=True,
+                                          config=model_config)
+        orig_model = OrigLlama.from_pretrained(_name_or_path,
+                                               torch_dtype='auto',
+                                               low_cpu_mem_usage=True,
+                                               config=model_config)
 
-    orig_model = OrigLlama.from_pretrained(model_config._name_or_path,
-                                           torch_dtype='auto',
-                                           low_cpu_mem_usage=True,
-                                           config=model_config)
+    text_model = _get_text_model(model)
+    orig_text_model = _get_text_model(orig_model)
 
     skip_list = args.skip_list.split(',') if args.skip_list else []
     glog.info(f'skipping {skip_list}')
@@ -65,12 +95,12 @@ def main(args):
         lmhead_data = torch.load(f'{args.quantized_path}/lmhead.pt',
                                  map_location=cpu, weights_only=False)
         model.lm_head.weight.copy_(lmhead_data['lm_head'].to(model.lm_head.weight.dtype))
-        model.model.norm.weight.copy_(lmhead_data['norm'].to(model.model.norm.weight.dtype))
+        text_model.norm.weight.copy_(lmhead_data['norm'].to(text_model.norm.weight.dtype))
     else:
         glog.info("lmhead.pt not found. Asserting model and orig_model heads/norms are identical...")
         assert torch.equal(model.lm_head.weight, orig_model.lm_head.weight), "LM heads do not match!"
-        assert torch.equal(model.model.norm.weight, orig_model.model.norm.weight), "Final norms do not match!"
-        assert torch.equal(model.model.embed_tokens.weight, orig_model.model.embed_tokens.weight), "Embeddings do not match!"
+        assert torch.equal(text_model.norm.weight, orig_text_model.norm.weight), "Final norms do not match!"
+        assert torch.equal(text_model.embed_tokens.weight, orig_text_model.embed_tokens.weight), "Embeddings do not match!"
         glog.info("Assert OK: Heads and norms are identical.")
         
         
@@ -84,9 +114,9 @@ def main(args):
         ('down', 'mlp', 'down_proj'),
     ]
 
-    for ii in range(len(model.model.layers)):
-        layer = model.model.layers[ii]
-        orig_layer = orig_model.model.layers[ii]
+    for ii in range(len(text_model.layers)):
+        layer = text_model.layers[ii]
+        orig_layer = orig_text_model.layers[ii]
 
         if os.path.exists(f'{args.quantized_path}/{ii}_layernorm.pt'):
             ln_data = torch.load(f'{args.quantized_path}/{ii}_layernorm.pt',
@@ -96,6 +126,14 @@ def main(args):
             layer.post_attention_layernorm.weight.copy_(
                 ln_data['post_attention_layernorm'].to(
                     layer.post_attention_layernorm.weight.dtype))
+            if hasattr(layer, 'pre_feedforward_layernorm') and 'pre_feedforward_layernorm' in ln_data:
+                layer.pre_feedforward_layernorm.weight.copy_(
+                    ln_data['pre_feedforward_layernorm'].to(
+                        layer.pre_feedforward_layernorm.weight.dtype))
+            if hasattr(layer, 'post_feedforward_layernorm') and 'post_feedforward_layernorm' in ln_data:
+                layer.post_feedforward_layernorm.weight.copy_(
+                    ln_data['post_feedforward_layernorm'].to(
+                        layer.post_feedforward_layernorm.weight.dtype))
         
         # --- 개선점: 정의된 가중치 타입 리스트를 순회하며 반복 작업 처리 ---
         for name, submodule_name, proj_name in weight_types:

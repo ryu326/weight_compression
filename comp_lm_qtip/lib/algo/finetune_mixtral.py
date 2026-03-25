@@ -39,10 +39,12 @@ def finetune_decoder_layer(layer, name, device, train_dl, valid_dl, orig_dtype,
         attention_mask = attention_mask.to(device=device, dtype=next(layer.parameters()).dtype)
 
         source = next(iter(train_dl))[0]
+        target_dtype = next(layer.parameters()).dtype  # 현재 레이어의 가중치 타입 확인
+
         position_ids = torch.arange(source.shape[1], device=device).unsqueeze(0)
         # manifest tensor parallel attributes in layer
         forward_kwargs = {
-            "hidden_states": source.to(device),
+            "hidden_states": source.to(device).to(target_dtype),
             "position_ids": position_ids,
             "attention_mask": attention_mask
         }
@@ -69,7 +71,7 @@ def finetune_decoder_layer(layer, name, device, train_dl, valid_dl, orig_dtype,
         for epoch in range(args.ft_epochs):
             for bidx, (source, targets) in enumerate(train_dl):
                 targets = targets.to(device, non_blocking=True)
-                forward_kwargs['hidden_states'] = source.to(device)
+                forward_kwargs['hidden_states'] = source.to(device).to(target_dtype)
                 with torch.autocast(device_type='cuda',
                                     dtype=orig_dtype,
                                     enabled=True):
@@ -172,6 +174,7 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
         
         ql = ql_i[linear_attr] if ql_i is not None else None
         orig_linear = attrgetter(linear_attr)(mixed_layer)
+        orig_linear = orig_linear.float()
         W = orig_linear.weight.to(dtype_)
         in_hess_path = f'{args.in_hess_path}/{idx}_{in_hess_name}.pt'
         args.in_hess_name = in_hess_name
@@ -355,9 +358,12 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
     # 1. quant_order를 그룹으로 분리
     attn_layers = [q for q in quant_order if 'self_attn' in q[0]]
     gate_layers = [q for q in quant_order if q[1] == 'gate'] # 'gate' save_name 기준
-    w1_layers = [q for q in quant_order if 'w1' in q[1]] # 'expert..._w1' save_name 기준
-    w3_layers = [q for q in quant_order if 'w3' in q[1]]
-    w2_layers = [q for q in quant_order if 'w2' in q[1]]
+    
+    w1_layers = [q for q in quant_order if 'w1' in q[1]] # Mixtral/Qwen
+    w3_layers = [q for q in quant_order if 'w3' in q[1]] # Mixtral/Qwen
+    w2_layers = [q for q in quant_order if 'w2' in q[1]] # Mixtral/Qwen (Down)
+    gate_up_layers = [q for q in quant_order if 'gate_up' in q[1]] # GPT-OSS (Gate+Up)
+    down_layers = [q for q in quant_order if 'down' in q[1]]       # GPT-OSS (Down)
 
     # --- STAGE 1: Attention + Gate Layers (수정됨) ---
     combined_attn_gate = attn_layers + gate_layers
@@ -367,22 +373,35 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
     _finetune_if_needed("Attention_and_Gate") # <--- 파인튜닝을 한 번만 호출
 
     # --- STAGE 2: W1 Experts ---
-    glog.info(f"--- Layer {idx}: Processing {len(w1_layers)} W1 Expert Layers ---")
-    for (linear_attr, name, in_hess_name, out_hess_name, rcp) in w1_layers:
-        _compress_and_replace_layer(linear_attr, name, in_hess_name, out_hess_name, rcp)
-    _finetune_if_needed("W1_Experts")
+    if len(w1_layers) > 0:
+        glog.info(f"--- Layer {idx}: Processing {len(w1_layers)} W1 Expert Layers ---")
+        for (linear_attr, name, in_hess_name, out_hess_name, rcp) in w1_layers:
+            _compress_and_replace_layer(linear_attr, name, in_hess_name, out_hess_name, rcp)
+        _finetune_if_needed("W1_Experts")
 
     # --- STAGE 3: W3 Experts ---
-    glog.info(f"--- Layer {idx}: Processing {len(w3_layers)} W3 Expert Layers ---")
-    for (linear_attr, name, in_hess_name, out_hess_name, rcp) in w3_layers:
-        _compress_and_replace_layer(linear_attr, name, in_hess_name, out_hess_name, rcp)
-    _finetune_if_needed("W3_Experts")
+    if len(w3_layers) > 0:
+        glog.info(f"--- Layer {idx}: Processing {len(w3_layers)} W3 Expert Layers ---")
+        for (linear_attr, name, in_hess_name, out_hess_name, rcp) in w3_layers:
+            _compress_and_replace_layer(linear_attr, name, in_hess_name, out_hess_name, rcp)
+        _finetune_if_needed("W3_Experts")
+
+    # --- STAGE 2.5: Gate_Up Experts (GPT-OSS) ---
+    # GPT-OSS는 W1(gate)+W3(up)이 합쳐져 있으므로 별도 단계로 처리
+    if len(gate_up_layers) > 0:
+        glog.info(f"--- Layer {idx}: Processing {len(gate_up_layers)} Gate_Up Expert Layers (GPT-OSS) ---")
+        for (linear_attr, name, in_hess_name, out_hess_name, rcp) in gate_up_layers:
+            _compress_and_replace_layer(linear_attr, name, in_hess_name, out_hess_name, rcp)
+        _finetune_if_needed("Gate_Up_Experts")
+
 
     # --- STAGE 4: W2 Experts ---
-    glog.info(f"--- Layer {idx}: Processing {len(w2_layers)} W2 Expert Layers ---")
-    for (linear_attr, name, in_hess_name, out_hess_name, rcp) in w2_layers:
-        _compress_and_replace_layer(linear_attr, name, in_hess_name, out_hess_name, rcp)
-    _finetune_if_needed("W2_Experts")
+    combined_output_experts = w2_layers + down_layers
+    if len(combined_output_experts) > 0:
+        glog.info(f"--- Layer {idx}: Processing {len(combined_output_experts)} Output Expert Layers (W2/Down) ---")
+        for (linear_attr, name, in_hess_name, out_hess_name, rcp) in combined_output_experts:
+            _compress_and_replace_layer(linear_attr, name, in_hess_name, out_hess_name, rcp)
+        _finetune_if_needed("Output_Experts")
 
     glog.info(f"--- Layer {idx}: All compression stages complete. ---")
 

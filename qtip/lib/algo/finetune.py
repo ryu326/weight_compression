@@ -11,6 +11,12 @@ import torch
 from torch import multiprocessing as mp
 from torch import nn
 from transformers import AutoModelForCausalLM
+try:
+    from transformers.masking_utils import (create_causal_mask,
+                                            create_sliding_window_causal_mask)
+except Exception:
+    create_causal_mask = None
+    create_sliding_window_causal_mask = None
 
 from lib import codebook, utils
 from lib.linear import QuantizedLinear
@@ -27,6 +33,58 @@ def use_tf32():
     torch.set_float32_matmul_precision(fp32_matmul_precision)
 
 
+def _is_gemma3_layer(layer):
+    return getattr(getattr(layer, "config", None), "model_type",
+                   "") in ("gemma3", "gemma3_text")
+
+
+def _bidirectional_window_overlay(sliding_window):
+    def inner_mask(batch_idx, head_idx, q_idx, kv_idx):
+        return abs(q_idx - kv_idx) < sliding_window
+
+    return inner_mask
+
+
+def _build_gemma3_attention_masks(config, input_embeds, position_ids,
+                                  cache_position):
+    if create_causal_mask is None or create_sliding_window_causal_mask is None:
+        raise RuntimeError(
+            "Gemma3 masking utils are unavailable. "
+            "Please upgrade transformers to >=4.57."
+        )
+    mask_kwargs = {
+        "config": config,
+        "input_embeds": input_embeds,
+        "attention_mask": None,
+        "cache_position": cache_position,
+        "past_key_values": None,
+        "position_ids": position_ids,
+    }
+    sliding_mask_kwargs = mask_kwargs.copy()
+    if getattr(config, "use_bidirectional_attention", False):
+        mask_kwargs["or_mask_function"] = lambda *args: torch.tensor(
+            True, dtype=torch.bool)
+        sliding_mask_kwargs["or_mask_function"] = _bidirectional_window_overlay(
+            config.sliding_window)
+
+    try:
+        return {
+            "full_attention": create_causal_mask(**mask_kwargs),
+            "sliding_attention": create_sliding_window_causal_mask(
+                **sliding_mask_kwargs),
+        }
+    except RuntimeError as exc:
+        if ('Please clone()' in str(exc)
+                and getattr(config, "_attn_implementation", "") == "sdpa"):
+            config._attn_implementation = "eager"
+            return {
+                "full_attention": create_causal_mask(**mask_kwargs),
+                "sliding_attention": create_sliding_window_causal_mask(
+                    **sliding_mask_kwargs),
+            }
+        raise
+
+
 def finetune_decoder_layer(layer, name, device, train_dl, valid_dl, orig_dtype,
                            args):
     with use_tf32():
@@ -34,15 +92,80 @@ def finetune_decoder_layer(layer, name, device, train_dl, valid_dl, orig_dtype,
 
         source = next(iter(train_dl))[0]
         position_ids = torch.arange(source.shape[1], device=device).unsqueeze(0)
+        is_gemma3 = _is_gemma3_layer(layer)
+        gemma3_ctx = None
+        layer_dtype = next(layer.parameters()).dtype
+        if is_gemma3:
+            try:
+                from transformers.models.gemma3.modeling_gemma3 import \
+                    Gemma3RotaryEmbedding
+            except Exception as exc:
+                raise RuntimeError(
+                    "Gemma3 support requires transformers with "
+                    "Gemma3RotaryEmbedding available.") from exc
+            config = layer.config
+            rotary_emb = Gemma3RotaryEmbedding(config=config, device=device)
+            local_config = copy.deepcopy(config)
+            local_config.rope_theta = local_config.rope_local_base_freq
+            local_config.rope_scaling = {"rope_type": "default"}
+            rotary_emb_local = Gemma3RotaryEmbedding(config=local_config,
+                                                     device=device)
+            cache_position = torch.arange(source.shape[1], device=device)
+            dummy_input = source[:1].to(device=device, dtype=layer_dtype)
+            position_embeddings_global = rotary_emb(dummy_input, position_ids)
+            position_embeddings_local = rotary_emb_local(
+                dummy_input, position_ids)
+            causal_mask_mapping = _build_gemma3_attention_masks(
+                config, dummy_input, position_ids, cache_position)
+            gemma3_ctx = {
+                "cache_position": cache_position,
+                "position_ids": position_ids,
+                "position_embeddings_global": position_embeddings_global,
+                "position_embeddings_local": position_embeddings_local,
+                "causal_mask_mapping": causal_mask_mapping,
+            }
+
+        def _forward_layer(input_states):
+            input_states = input_states.to(device=device, dtype=layer_dtype)
+            if not is_gemma3:
+                return layer(input_states,
+                             position_ids=position_ids)[0]
+            layer_attention_mask = gemma3_ctx["causal_mask_mapping"][
+                layer.attention_type]
+            return layer(
+                input_states,
+                position_ids=gemma3_ctx["position_ids"],
+                attention_mask=layer_attention_mask,
+                use_cache=False,
+                cache_position=gemma3_ctx["cache_position"],
+                position_embeddings_global=gemma3_ctx[
+                    "position_embeddings_global"],
+                position_embeddings_local=gemma3_ctx[
+                    "position_embeddings_local"],
+                output_attentions=False)[0]
+
         # manifest tensor parallel attributes in layer
-        output = layer(source.to(device),
-                       position_ids=position_ids)[0]
+        output = _forward_layer(source)
         
         best_sd = {k: v.cpu() for k, v in layer.state_dict().items()}
         utils.clean()
 
         optim = torch.optim.Adam(layer.parameters(), lr=args.ft_lr)
-        best_loss = utils.calculate_mse_loss(layer, valid_dl, device)
+        def _calculate_mse_loss_local(dataloader):
+            layer.eval()
+            total_loss = 0
+            ct = 0
+            with torch.no_grad():
+                for source, target in dataloader:
+                    target = target.to(device, non_blocking=True)
+                    total_loss += nn.MSELoss()(_forward_layer(source), target)
+                    ct += 1
+            layer.train()
+            return (total_loss / ct).cpu().item()
+
+        best_loss = _calculate_mse_loss_local(
+            valid_dl) if is_gemma3 else utils.calculate_mse_loss(
+                layer, valid_dl, device)
         glog.info(f'layer {name} initial loss {best_loss}')
         scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
         worse_ct = 0
@@ -53,8 +176,7 @@ def finetune_decoder_layer(layer, name, device, train_dl, valid_dl, orig_dtype,
                 with torch.autocast(device_type='cuda',
                                     dtype=orig_dtype,
                                     enabled=True):
-                    output = layer(source.to(device),
-                                   position_ids=position_ids)[0]
+                    output = _forward_layer(source)
                     loss = nn.MSELoss()(output, targets)
                 scaler.scale(loss).backward()
                 if bidx % args.ft_update_freq == args.ft_update_freq - 1 or bidx == len(
@@ -64,7 +186,9 @@ def finetune_decoder_layer(layer, name, device, train_dl, valid_dl, orig_dtype,
                     optim.zero_grad()
 
             if epoch % args.ft_valid_freq == (args.ft_valid_freq - 1):
-                test_loss = utils.calculate_mse_loss(layer, valid_dl, device)
+                test_loss = _calculate_mse_loss_local(
+                    valid_dl) if is_gemma3 else utils.calculate_mse_loss(
+                        layer, valid_dl, device)
                 if test_loss < best_loss:
                     glog.info(
                         f'layer {name} @ epoch {epoch} new loss {test_loss} old loss {best_loss} BETTER'

@@ -100,6 +100,7 @@ parser.add_argument('--channelwise_scale', action='store_true', default=False)
 parser.add_argument('--row_normalize', action='store_true', default=False)
 parser.add_argument('--row_normalize2', action='store_true', default=False)
 parser.add_argument('--col_normalize', action='store_true', default=False)
+parser.add_argument('--global_normalize', action='store_true', default=False)
 parser.add_argument('--code_optim', action='store_true', default=False)
 parser.add_argument('--code_optim_it', type=int, default=False)
 parser.add_argument('--code_optim_lr', type=float, default=5e-3)
@@ -107,7 +108,6 @@ parser.add_argument('--code_optim_lmbda', type=int, default=None)
 parser.add_argument('--code_optim_test', action='store_true', default=False)
 parser.add_argument('--code_optim_model', type=str, default='nwc_ql_sga')
 parser.add_argument('--optim_qs', action='store_true', default=False)
-parser.add_argument('--loss', type=str, default='rdloss_ql')
 parser.add_argument('--Q', type=int, default=4)
 parser.add_argument('--use_codes', action='store_true', default=False)
 parser.add_argument('--qmap_uniform', type=float, default=None)
@@ -148,18 +148,41 @@ parser.add_argument('--scale_cond', action='store_true', default=False)
 parser.add_argument('--fp_iter', action='store_true', default=False)
 parser.add_argument('--fp_iter_max', type=int, default=None)
 parser.add_argument('--fp_tol', type=float, default=1e-5)
+parser.add_argument('--perlayer_ft_epochs', type=int, default=0)
+parser.add_argument('--perlayer_ft_bs', type=int, default=0)
+parser.add_argument('--perlayer_ft_lmbda', type=float, default=0)
+parser.add_argument('--initialize_codec', action='store_true', default=False)
+parser.add_argument("--loss", type=str, default='rdloss_ql')
+parser.add_argument("--use_hyper", action='store_true', default=False)
+parser.add_argument('--patch', action='store_true', default=False)
+parser.add_argument('--ecsq', action='store_true', default=False)
+parser.add_argument('--R_target', type=float, default=None)
+
 
 def check_exist_moe(idx, args, model_config):
     suffix = ['q', 'k', 'v', 'o', 'layernorm']
     suffix.append('gate')
-    # num_experts = model_config.num_local_experts
-    num_experts = getattr(model_config, 'num_local_experts', getattr(model_config, 'num_experts', 0))
-        
-    for i in range(num_experts):
-        suffix.append(f'expert{i}_w1')
-        suffix.append(f'expert{i}_w2')
-        suffix.append(f'expert{i}_w3')
     
+    model_type = getattr(model_config, 'model_type', '').lower()
+    is_gpt_oss = 'gpt_oss' in model_type
+    
+    if hasattr(model_config, 'num_local_experts'):
+        num_experts = getattr(model_config, 'num_local_experts', getattr(model_config, 'num_experts', 0))
+        
+        for i in range(num_experts):
+            if is_gpt_oss:
+                # GPT-OSS는 gate_up(w1+w3)과 down(w2)만 존재
+                suffix.append(f'expert{i}_gate_up')
+                suffix.append(f'expert{i}_down')
+            else:
+                # Mixtral/Qwen 등은 w1, w2, w3 존재
+                suffix.append(f'expert{i}_w1')
+                suffix.append(f'expert{i}_w2')
+                suffix.append(f'expert{i}_w3')
+    else:
+        glog.warning("model_config에 num_local_experts가 없습니다.")
+        return False
+
     for s in suffix:
         test = f'{args.save_path}/{idx}_{s}.pt'
         if not os.path.exists(test):
@@ -198,6 +221,7 @@ def compress_moe_decoder(layer, idx, comp_model, q_level, args, device, pre_orig
         
     model_type = model_config.model_type.lower()
     is_qwen = 'qwen' in model_type
+    is_gpt_oss = 'gpt_oss' in model_type # [수정] GPT-OSS 플래그 추가
     
     if is_qwen:
         # Qwen: layer.mlp.experts.{i}.[gate_proj, up_proj, down_proj]
@@ -205,36 +229,48 @@ def compress_moe_decoder(layer, idx, comp_model, q_level, args, device, pre_orig
         expert_prefix = 'mlp.experts'
         # Qwen 실제 레이어 이름 매핑 (w1: gate, w3: up, w2: down)
         layer_name_map = {'w1': 'gate_proj', 'w3': 'up_proj', 'w2': 'down_proj'}
+        expert_layers_config = [
+            ('w1', 'w3', 'col'), # w1 uses w3 hessian
+            ('w3', 'w3', 'col'),
+            ('w2', 'w2', 'row')
+        ]
+        gate_thing = (gate_module_name, 'gate', 'gate', 'gate', 'col')
+
+    elif is_gpt_oss:
+        # GPT-OSS 경로 매핑
+        gate_module_name = 'mlp.router.gate'      # GptOssMLP -> GptOssTopKRouter -> gate
+        expert_prefix = 'mlp.experts.experts'     # GptOssMLP -> GptOssExperts -> experts (List)
+        layer_name_map = {'gate_up': 'gate_up_proj', 'down': 'down_proj'}
+        expert_layers_config = [
+            ('gate_up', 'gate_up', 'col'), # gate_up_proj
+            ('down', 'down', 'row')        # down_proj
+        ]
+        gate_thing = (gate_module_name, 'gate', 'router', 'gate', 'col')
     else:
         # Mixtral: layer.block_sparse_moe.experts.{i}.[w1, w3, w2]
         gate_module_name = 'block_sparse_moe.gate'
         expert_prefix = 'block_sparse_moe.experts'
-        # Mixtral 실제 레이어 이름 매핑
         layer_name_map = {'w1': 'w1', 'w3': 'w3', 'w2': 'w2'}
+        expert_layers_config = [
+            ('w1', 'w3', 'col'),
+            ('w3', 'w3', 'col'),
+            ('w2', 'w2', 'row')
+        ]
+        gate_thing = (gate_module_name, 'gate', 'gate', 'gate', 'col')
 
-    # (1) Router Gate
-    gate_thing = (gate_module_name, 'gate', 'gate', 'gate', 'col')
+
     if f'{idx}_{gate_thing[1]}' not in skip_list:
         quant_order.append(gate_thing)
     else:
         attrgetter(gate_thing[0])(layer).weight.requires_grad = False
         print(f'skipping {idx}_{gate_thing[1]}')
-    # attrgetter('block_sparse_moe.gate')(layer).weight.requires_grad = False
-
-    expert_layers_config = [
-        ('w1', 'w3', 'col'), # w1 uses w3 hessian
-        ('w3', 'w3', 'col'),
-        ('w2', 'w2', 'row')
-    ]
 
     # num_experts = model_config.num_local_experts
     num_experts = getattr(model_config, 'num_local_experts', getattr(model_config, 'num_experts', 0))
     for i in range(num_experts):
         for logical_name, hess_src, rcp in expert_layers_config:
             
-            # 실제 레이어 속성 이름 (예: gate_proj 또는 w1)
             attr_name = layer_name_map[logical_name]
-            # 전체 모듈 경로 (예: mlp.experts.0.gate_proj)
             full_module_name = f"{expert_prefix}.{i}.{attr_name}"
             
             # 저장 키 및 Hessian 키 (예: expert0_w1, expert0_w3)
@@ -288,11 +324,15 @@ def main(args):
     #     args.skip_list = list(skip_set)
 
     dtype_ = torch.float64 if args.use_fp64 else torch.float32
+    from lib.utils import model_from_hf_path_gptoss
+    model, model_str = model_from_hf_path_gptoss(args.base_model, 
+                                        device_map='cpu', 
+                                        gptoss_replace_version = 'v1.1')
 
-    model = AutoModelForCausalLM.from_pretrained(args.base_model,
-                                                 torch_dtype='auto',
-                                                 low_cpu_mem_usage=True,
-                                                 local_files_only=True,)
+    # model = AutoModelForCausalLM.from_pretrained(args.base_model,
+    #                                              torch_dtype='auto',
+    #                                              low_cpu_mem_usage=True,
+    #                                              local_files_only=True,)
 
     # save configs
     all_config = {'quant_args': args, 'model_config': model.config}
@@ -316,91 +356,7 @@ def main(args):
 
 
     #################### load comp model ####################
-    if args.comp_model_path is not None:
-        config = os.path.join(os.path.dirname(args.comp_model_path), 'config.json')
-        with open(config, 'r', encoding='utf-8') as file:
-            config = json.load(file)
-        config = Config(**config)
-        
-        shift, scale = torch.empty(()), torch.empty(())
-        if config.architecture == 'nwc_ql' and not hasattr(config, "Q"):
-            config.Q = 4
-        if not hasattr(config, "no_layernorm"):
-            config.no_layernorm = False
-        
-        if args.code_optim:
-            config.architecture = args.code_optim_model
-        comp_model = get_model(config.architecture, config, scale=scale, shift=shift)
-        comp_model.config = config
-        ckpt = torch.load(args.comp_model_path, weights_only=False)
-        if (args.use_train_scale or args.layerwise_cdt or args.layer_normalize \
-              or args.row_normalize or args.col_normalize or args.scaleH):
-            try:
-                scale = ckpt["state_dict"]["scale"]
-                shift = ckpt["state_dict"]["shift"]
-                print('Use train scale and shift')
-                print('shift: ', shift, ' scale:', scale)
-                if args.scale_std is not None:
-                    print(f"Scale scale *{args.scale_std}")
-                    scale = args.scale_std * scale
-                    print('shift: ', shift, ' scale:', scale)
-            except:
-                scale, shift  = torch.zeros(1), torch.zeros(1)
-        else:
-            if 'scale' in ckpt["state_dict"]:
-                del ckpt["state_dict"]['scale']
-            if 'shift' in ckpt["state_dict"]:
-                del ckpt["state_dict"]['shift']
-            shift, scale = utils.get_model_weight_stats(model, args, config.input_size)
-        print('shift: ', shift, ' scale:', scale)
-
-        comp_model.load_state_dict(ckpt["state_dict"], strict = False)
-        # comp_model.scale = scale
-        # comp_model.shift = shift
-        try: ## scale_cond
-            comp_model.scale.copy_(scale)
-            comp_model.shift.copy_(shift)
-        except:
-            pass
-        comp_model.eval()
-        if hasattr(comp_model, "update") and callable(getattr(comp_model, "update", None)):
-            comp_model.update()
-        if args.ste:
-            comp_model.mode = 'ste'
-    elif args.nic_model is not None:
-        if args.nic_model == 'tcm':
-            from nic_models.TCM.models import TCM
-            comp_model = TCM(config=[2,2,2,2,2,2], head_dim=[8, 16, 32, 32, 16, 8], drop_path_rate=0.0, N=64, M=320)
-            
-            dictory = {}
-            print("Loading TCM", args.nic_checkpoint)
-            checkpoint = torch.load(args.nic_checkpoint)
-            for k, v in checkpoint["state_dict"].items():
-                dictory[k.replace("module.", "")] = v
-            comp_model.load_state_dict(dictory)
-            
-        elif args.nic_model == 'ftic':
-            from nic_models.FTIC.models import FrequencyAwareTransFormer
-            comp_model = FrequencyAwareTransFormer()
-            
-            dictory = {}
-            print("Loading FTIC", args.nic_checkpoint)
-            checkpoint = torch.load(args.nic_checkpoint)
-            for k, v in checkpoint.items():
-                dictory[k.replace("module.", "")] = v
-            comp_model.load_state_dict(dictory,strict=True)
-        elif args.nic_model == 'illm':
-            comp_model = torch.hub.load("facebookresearch/NeuralCompression", f"msillm_quality_{args.illm_quality}", trust_repo=True)
-            comp_model = comp_model.to('cpu')
-            comp_model.eval()
-            comp_model.update()
-            comp_model.update_tensor_devices("compress")
-        else:
-            raise NotImplementedError(f'Not implemented nic model {args.nic_model}')
-        comp_model.eval()
-        comp_model.update()
-    elif args.handcraft_mode is not None:
-        comp_model = None
+    comp_model = utils.load_comp_model(args, model)
     #################### load comp model ####################
 
     q_level = None
@@ -429,7 +385,6 @@ def main(args):
     sliding_window = getattr(model.config, 'sliding_window', None)
     if sliding_window is None:
         glog.warning("Sliding window config가 없습니다. Causal mask를 사용합니다.")
-        sliding_window = None # _prepare_4d... 함수는 None을 처리합니다.
 
     attention_mask = _prepare_4d_causal_attention_mask(
         None, (args.batch_size, args.ctx_size),
@@ -465,8 +420,8 @@ def main(args):
         }
         # Qwen 모델인 경우에만 position_embeddings 계산 및 추가
         rotary_emb = None
-        if "qwen" in all_config['model_config'].model_type.lower():
-            # rotary_emb 호출 (Qwen 전용)
+        model_type_lower = all_config['model_config'].model_type.lower()
+        if "qwen" in model_type_lower or "gpt_oss" in model_type_lower:
             position_embeddings = model.model.rotary_emb(
                 orig_emb_cache[cur_device][0:1].to(cur_device), 
                 position_ids

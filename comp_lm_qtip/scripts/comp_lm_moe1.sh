@@ -6,19 +6,23 @@ comp_model_bases=(
     "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16"
 )
 quantize_flags=(
-    "--direction col --ql --Q 4 --col_normalize --ldlq --comp_batch_size 128 --ft_epochs 5"
+    "--direction col --ql --Q 4 --col_normalize --ldlq --comp_batch_size 64 --ft_epochs 5"
+    # "--direction col --ql --Q 4 --col_normalize --ldlq --comp_batch_size 64 --ft_epochs 0"
 )
 experiment_names=(
-    "ql_ldlq128_rnorm_ft"
+    "ql_ldlq64_rnorm_ft"
+    # "ql_ldlq64_rnorm"
 )
 ##########################################################################
 ##                           MODEL CONFIGURATION                        ##
 ##########################################################################
 model_names=(
-    "mistralai/Mixtral-8x7B-v0.1"
+    # "mistralai/Mixtral-8x7B-v0.1"
+    "openai/gpt-oss-20b"
 )
 hess_paths=(
-    "/home/jgryu/workspace/weight_compression/Wparam_dataset/quip_hess/Mixtral-8x7B-v0.1_256"
+    # "/home/jgryu/workspace/weight_compression/Wparam_dataset/quip_hess/Mixtral-8x7B-v0.1_256"
+    "/home/jgryu/workspace/weight_compression/Wparam_dataset/quip_hess/gpt-oss-20b_1024"
 )
 ############################################5
 ##              SCRIPT SETUP              ##
@@ -32,7 +36,7 @@ mkdir -p $CKPT
 mkdir -p $HF
 mkdir -p $LOG
 mkdir -p $RES
-export CUDA_VISIBLE_DEVICES=2,3,4
+export CUDA_VISIBLE_DEVICES=7
 # export HF_HOME=/workspace/hf_cache/huggingface_nwc
 export HF_HOME=/home/jgryu/.cache/huggingface
 
@@ -41,7 +45,7 @@ export HF_HOME=/home/jgryu/.cache/huggingface
 # export HF_METRICS_CACHE=$HF_HOME/metrics
 
 # 모든 실험에 공통으로 적용될 Lambda 값
-lmbda_values=(300 1000 10000)
+lmbda_values=(30 50)
 ##########################################################################
 ##                        MAIN EXECUTION LOOP                           ##
 ##########################################################################
@@ -76,21 +80,23 @@ for j in "${!model_names[@]}"; do
         for lmbda in "${lmbda_values[@]}"; do
             SAVE_NAME=${model_name}/${exp_name}/lmbda${lmbda}
 
-            # echo "################## Running compression | lmbda=${lmbda} | Exp: ${exp_name} | Model: ${model_name} ##################"
-            # comp_model=$comp_model_base/lmbda${lmbda}_*/best_loss*.pth.tar
-            # mkdir -p $(dirname "$LOG/$SAVE_NAME.log")
+            echo "################## Running compression | lmbda=${lmbda} | Exp: ${exp_name} | Model: ${model_name} ##################"
+            comp_model=$comp_model_base/lmbda${lmbda}_*/best_loss*.pth.tar
+            mkdir -p $(dirname "$LOG/$SAVE_NAME.log")
             
             # taskset -c 0-63 \
             # python -m quantize_llama.quantize_finetune_moe --save_path $CKPT/$SAVE_NAME \
             #     --base_model $lm_model_path \
             #     --comp_model_path $comp_model \
             #     --in_hess_path $HESS \
-            #     --devset_size 384 --ft_valid_size 128 --batch_size 8 \
+            #     --devset_size 384 --ft_valid_size 128 \
+            #     --batch_size 4 --ft_bs 1 \
             #     ${current_quantize_flags} \
             #     2>&1 | tee $LOG/$SAVE_NAME.log
 
                 # --devset_size 48 --ft_valid_size 16 --batch_size 1 \
                 # --devset_size 384 --ft_valid_size 128 --batch_size 8 \
+                # --devset_size 4 --ft_valid_size 2 \
 
             
             echo "################## Running hfize | lmbda=${lmbda} | Exp: ${exp_name} | Model: ${model_name} ##################"
@@ -102,24 +108,24 @@ for j in "${!model_names[@]}"; do
             # SAVE_NAME=${model_name}/${exp_name}/lmbda${lmbda}_skip1down
 
 
-            # echo "################## Running PPL evaluation | lmbda=${lmbda} | Exp: ${exp_name} | Model: ${model_name} ##################"
-            # echo "Running evaluation for directory: $HF/$SAVE_NAME"
-            # python -m eval.eval_ppl_hf \
-            #     --hf_path $HF/${SAVE_NAME} \
-            #     --seqlen 2048 \
-            #     --output_path ${RES}/${SAVE_NAME} \
-            #     --datasets wikitext2,c4 \
-            #     --no_use_cuda_graph 2>&1 | tee -a $LOG/$SAVE_NAME.log
+            echo "################## Running PPL evaluation | lmbda=${lmbda} | Exp: ${exp_name} | Model: ${model_name} ##################"
+            echo "Running evaluation for directory: $HF/$SAVE_NAME"
+            python -m eval.eval_ppl_hf \
+                --hf_path $HF/${SAVE_NAME} \
+                --seqlen 2048 \
+                --output_path ${RES}/${SAVE_NAME} \
+                --datasets wikitext2,c4 \
+                --no_use_cuda_graph 2>&1 | tee -a $LOG/$SAVE_NAME.log
 
                 # --datasets wikitext2,c4 \
 
-            echo "################## Running benchmark evaluation | lmbda=${lmbda} | Exp: ${exp_name} | Model: ${model_name} ##################"
-            python -m eval.eval_zeroshot_hf \
-                --tasks arc_challenge,arc_easy,piqa,winogrande,boolq,hellaswag,mmlu \
-                --batch_size 8 \
-                --hf_path $HF/$SAVE_NAME \
-                --output_path $RES/${SAVE_NAME}_common_mmlu \
-                2>&1 | tee -a $LOG/${SAVE_NAME}_eval.log
+            # echo "################## Running benchmark evaluation | lmbda=${lmbda} | Exp: ${exp_name} | Model: ${model_name} ##################"
+            # python -m eval.eval_zeroshot_hf \
+            #     --tasks arc_challenge,arc_easy,piqa,winogrande,boolq,hellaswag,mmlu \
+            #     --batch_size 8 \
+            #     --hf_path $HF/$SAVE_NAME \
+            #     --output_path $RES/${SAVE_NAME}_common_mmlu \
+            #     2>&1 | tee -a $LOG/${SAVE_NAME}_eval.log
 
                 # --tasks arc_challenge,arc_easy,piqa,winogrande,boolq,hellaswag,mmlu \
                 # --tasks arc_challenge,arc_easy,piqa,winogrande,hellaswag,mmlu \
@@ -129,7 +135,19 @@ for j in "${!model_names[@]}"; do
             if [ "$HF/$SAVE_NAME" != "$HF" ]; then
                 echo "Cleaning up temporary files for $SAVE_NAME"
                 rm -rf "$HF/$SAVE_NAME"
-                # rm -rf "$CKPT/$SAVE_NAME"
+            fi                
+            # ft_epochs 값 추출
+            if [[ "$current_quantize_flags" =~ --ft_epochs[[:space:]]+([0-9]+) ]]; then
+                ft_epochs=${BASH_REMATCH[1]}
+            else
+                ft_epochs=0
+            fi                
+            # ft_epochs가 0보다 크면 CKPT 디렉토리를 삭제하지 않음
+            if [ "$ft_epochs" -le 0 ]; then
+                echo "Cleaning up checkpoint files for $SAVE_NAME (ft_epochs=$ft_epochs)"
+                rm -rf "$CKPT/$SAVE_NAME"
+            else
+                echo "Keeping checkpoint files for $SAVE_NAME (ft_epochs=$ft_epochs > 0)"
             fi
         done
     done

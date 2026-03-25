@@ -18,7 +18,7 @@ os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:512'
 parser = argparse.ArgumentParser()
 parser.add_argument('--seed', default=0, type=int)
 parser.add_argument('--hf_path', default='hfized/quantized_hada_70b', type=str)
-parser.add_argument('--batch_size', type=int, default=1, help='batch size')
+parser.add_argument('--batch_size', type=int, default=0, help='batch size')
 parser.add_argument("--tasks", type=str)
 parser.add_argument("--output_path", default=None, type=str)
 parser.add_argument('--num_fewshot', type=int, default=0)
@@ -28,11 +28,26 @@ parser.add_argument('--fewshot_as_multiturn', action='store_true')
 parser.add_argument('--manifest_model', action='store_true')
 parser.add_argument('--max_mem_ratio', type=float, default=0.7)
 
+def _is_gemma3_model(config): 
+    return getattr(config, "model_type", "") in ("gemma3", "gemma3_text")
 
 def main(args):
     model, model_str = model_from_hf_path(args.hf_path, max_mem_ratio=args.max_mem_ratio, device_map='balanced')
     # model, model_str = model_from_hf_path(args.hf_path, max_mem_ratio=args.max_mem_ratio, device_map='auto')
     # model, model_str = model_from_hf_path(args.hf_path, max_mem_ratio=args.max_mem_ratio, device_map=None)
+
+    if _is_gemma3_model(getattr(model, "config", None)):
+        glog.info("Gemma3 detected -> forcing attn_implementation='eager'")
+        try:
+            # preferred: switch at runtime (Transformers attention interface)
+            if hasattr(model, "set_attn_implementation"):
+                model.set_attn_implementation("eager")
+            # fallback: set config field
+            if hasattr(model, "config"):
+                setattr(model.config, "_attn_implementation", "eager")
+                setattr(model.config, "attn_implementation", "eager")
+        except Exception as e:
+            glog.warning(f"Failed to set eager attention: {e}")
 
     # manifest for faster inference
     # use for codebooks without kernel support
@@ -48,9 +63,10 @@ def main(args):
 
     task_names = args.tasks.split(",")
 
+    batch_size = args.batch_size if args.batch_size > 0 else 'auto'
     lm_eval_model = HFLM(model,
                          tokenizer=tokenizer,
-                         batch_size=args.batch_size)
+                         batch_size=batch_size)
 
     results = evaluator.simple_evaluate(
         model=lm_eval_model,

@@ -37,6 +37,8 @@ def calculate_mse_loss_moe(layer, dataloader, device, attention_mask, rotary_emb
     ct = 0
     position_ids = None
     
+    target_dtype = next(layer.parameters()).dtype  # 현재 레이어의 가중치 타입 확인
+
     # 2. 어텐션 마스크를 한 번만 device로 이동
     attention_mask = attention_mask.to(device)
     
@@ -49,7 +51,7 @@ def calculate_mse_loss_moe(layer, dataloader, device, attention_mask, rotary_emb
             
             # 3. layer 호출 시 attention_mask 전달
             forward_kwargs = {
-                "hidden_states": source.to(device),
+                "hidden_states": source.to(device).to(target_dtype),
                 "position_ids": position_ids,
                 "attention_mask": attention_mask
             }

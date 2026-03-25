@@ -33,6 +33,13 @@ try:
 except ImportError:
     Qwen3MoeConfig = None
     Qwen3MoeForCausalLM = None
+    
+try:
+    from transformers import GptOssConfig
+    from model.gptoss_standard_moe_v11 import GptOssForCausalLM
+except:
+    GptOssForCausalLM = None
+    GptOssConfig = None
 
 def model_from_hf_path(path, max_mem_ratio=0.7, device_map=None):
 
@@ -79,19 +86,14 @@ def model_from_hf_path(path, max_mem_ratio=0.7, device_map=None):
                 model_str = MixtralConfig.from_pretrained(path)._name_or_path
             else:
                 model_str = path
-
-            # [수정] 사용자 정의 Mixtral 사용 (임포트 보장됨)
             model_cls = MixtralForCausalLM 
-            
             no_split_modules = ['MixtralDecoderLayer']
-            
         # 3. Llama 확인
         elif 'llama' in model_type:
             model_str = LlamaConfig.from_pretrained(path)._name_or_path
             # [수정] 사용자 정의 Llama 사용 (임포트 보장됨)
             model_cls = LlamaForCausalLM
             no_split_modules = ['LlamaDecoderLayer']
-            
         else:
             raise Exception(f"Unsupported quantized model type: {model_type}")
             
@@ -111,6 +113,9 @@ def model_from_hf_path(path, max_mem_ratio=0.7, device_map=None):
                  no_split_modules = ['Qwen2DecoderLayer']
         elif 'llama' in model_type:
             no_split_modules = ['LlamaDecoderLayer']
+        elif "gpt_oss" in model_type:
+            model_cls = GptOssForCausalLM 
+            no_split_modules = ['GptOssDecoderLayer']
 
     # if device_map is None:
     #     glog.info("Start computing device map")

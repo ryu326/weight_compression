@@ -134,6 +134,10 @@ class QuantizedLinear(nn.Module):
                 raise Exception
 
             self.built_codebook_class = True
+            
+        # if input.numel() == 0:
+        #     # 입력과 같은 장치, 같은 dtype을 가진 [0, out_features] 텐서 생성
+        #     return torch.zeros(0, self.out_features, device=input.device, dtype=input.dtype)
 
         result = self.codebook_class(input,
                                      self.trellis,

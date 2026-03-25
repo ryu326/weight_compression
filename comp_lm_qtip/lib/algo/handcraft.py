@@ -67,7 +67,7 @@ def compress_linear(W, H, args, device='cpu'):
         'codes': None,
     }
     
-    return out, None, None, None, None, None
+    return out
 
 def quantize_to_uint8(weight: torch.Tensor, quant_type: str = 'per_tensor', group_size: int = -1):
     device = weight.device

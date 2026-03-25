@@ -91,3 +91,6 @@ def {name}_cuda(
     {kernel_name}(out, compressed.reshape(-1).view(torch.int32), x.to(torch.float16).T, codebook.reshape(-1))
     return out.T
     """)
+
+# Register ANS-uniform torch.ops wrappers when my_kernels is available.
+from . import ans_ops  # noqa: F401,E402

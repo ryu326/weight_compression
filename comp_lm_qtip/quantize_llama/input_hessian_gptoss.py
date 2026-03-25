@@ -12,62 +12,52 @@ import numpy
 import torch
 import torch.distributed as dist
 import torch.multiprocessing as mp
-
-# [수정] 커스텀 모델 클래스 처리를 위한 import
-from transformers import (AutoModelForCausalLM, AutoTokenizer, PreTrainedTokenizerFast)
-
-try:
-    from transformers import GptOssForCausalLM
-except ImportError:
-    # 명시적으로 import가 안 되면 AutoModel로 대체하되 아래에서 trust_remote_code=True 사용
-    GptOssForCausalLM = None
-
+from transformers import (AutoModelForCausalLM, AutoTokenizer,
+                          PreTrainedTokenizerFast, Qwen3MoeForCausalLM, GptOssForCausalLM)
 from transformers.modeling_attn_mask_utils import \
     _prepare_4d_causal_attention_mask
+from model.gptoss_standard_moe import GptOssForCausalLM as GptOssForCausalLM_standard
 
 from lib import utils
+from lib.utils.load_hf import model_from_hf_path_gptoss
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--batch_size', default=2, type=int)
-parser.add_argument('--large_batch_size', default=512, type=int)
+parser.add_argument('--large_batch_size', default=256, type=int)
 parser.add_argument('--devset_size', default=8192, type=int)
 parser.add_argument('--ctx_size', default=4096, type=int)
-parser.add_argument('--base_model', default='', type=str)
-parser.add_argument('--save_path', default='hessians/gptoss_moe', type=str)
+parser.add_argument('--base_model',
+                    default='meta-llama/Llama-2-70b-hf',
+                    type=str)
+parser.add_argument('--save_path', default='hessians/llama2_70b', type=str)
 parser.add_argument('--sample_proc', default=32, type=int)
+parser.add_argument('--gptoss_replace_version', type=str, default=None)
 
 
 def main(args):
     print("loading model...")
+    print("loaded model!")
     gpu_id = int(os.environ["LOCAL_RANK"])
-    
-    # 토크나이저 (trust_remote_code 옵션 추가 권장)
-    tokenizer = AutoTokenizer.from_pretrained(args.base_model, trust_remote_code=True)
-    if tokenizer.pad_token is None:
-        tokenizer.pad_token = tokenizer.eos_token
-
-    print("loaded model definition!")
+    # tokenizer = AutoTokenizer.from_pretrained(args.base_model, use_fast=False)
+    tokenizer = AutoTokenizer.from_pretrained(args.base_model)
+    tokenizer.pad_token = tokenizer.eos_token
 
     print("loading dataset...")
     devset = utils.sample_rp1t_concat(tokenizer,
                                       args.devset_size,
                                       args.ctx_size,
                                       nproc=args.sample_proc)
-    devset = torch.split(devset, args.large_batch_size)
 
+    cache_directory = '/home/jgryu/.cache/huggingface/hub'
+               
+    devset = torch.split(devset, args.large_batch_size)
     for lbi in range(len(devset)):
-        # [수정] 모델 로딩: trust_remote_code=True 필수
-        try:
-            model = GptOssForCausalLM.from_pretrained(args.base_model,
-                                                        torch_dtype="auto",
-                                                        low_cpu_mem_usage=True,
-                                                        trust_remote_code=True)
-        except Exception:
-            model = AutoModelForCausalLM.from_pretrained(args.base_model,
-                                                        torch_dtype="auto",
-                                                        low_cpu_mem_usage=True,
-                                                        trust_remote_code=True)
-            
+        
+        assert args.gptoss_replace_version == 'v1'
+        model, model_str = model_from_hf_path_gptoss(args.base_model, 
+                                                device_map='cpu', 
+                                                gptoss_replace_version = args.gptoss_replace_version)
+
         print(f'processing split {lbi}')
         dev_emb = model.model.embed_tokens(devset[lbi].view(
             -1, args.batch_size, args.ctx_size))
@@ -77,8 +67,8 @@ def main(args):
         position_ids = torch.arange(args.ctx_size, dtype=torch.int64)[None, :] + \
             torch.zeros(args.batch_size, args.ctx_size, dtype=torch.int64)
         
-        # Sliding window 처리
-        if hasattr(model.config, 'sliding_window') and model.config.sliding_window is not None:
+        # Qwen 모델도 sliding_window를 지원하므로 이 로직은 유효합니다.
+        if hasattr(model.config, 'sliding_window'):
             attention_mask = _prepare_4d_causal_attention_mask(
                 None, (args.batch_size, args.ctx_size),
                 dev_emb[0],
@@ -90,7 +80,6 @@ def main(args):
 
         position_ids = position_ids.cuda()
         attention_mask = attention_mask.cuda()
-        
         transformer_layer_index = 0
         
         while len(model.model.layers) > 0:
@@ -99,37 +88,53 @@ def main(args):
             layer = layer.cuda()
             save_pfx = f'/dev/shm/{transformer_layer_index}'
             
-            # --- [요청사항 반영] Q, O만 유지 (K, V 제거) ---
-            done_qkv = utils.register_input_H_hook(layer.self_attn.q_proj, f'{save_pfx}_qkv', gpu_id)
-            done_o = utils.register_input_H_hook(layer.self_attn.o_proj, f'{save_pfx}_o', gpu_id)
+            # 1. Self Attention Hooks (GptOssAttention 구조에 맞춤)
+            # q_proj, k_proj, v_proj가 보통 같은 입력을 받으므로 q_proj에만 걸어도 Input X는 확보됨
+            done_qkv = utils.register_input_H_hook(layer.self_attn.q_proj,
+                                                   f'{save_pfx}_qkv', gpu_id)
+            done_o = utils.register_input_H_hook(layer.self_attn.o_proj,
+                                                 f'{save_pfx}_o', gpu_id)
             
-            # --- MLP Hooks (GptOss 구조에 맞춤) ---
-            # 1. Router
-            done_router = utils.register_input_H_hook(layer.mlp.router, f'{save_pfx}_router', gpu_id)
+            # 2. Router Hook 수정
+            # GptOssMLP -> self.router (GptOssTopKRouter) -> self.gate (Linear)
+            done_router = utils.register_input_H_hook(layer.mlp.router.gate,
+                                                    f'{save_pfx}_router', gpu_id)
             
-            # 2. Experts (Fused)
-            # GptOssExperts는 개별 expert 리스트가 아닌 통짜 모듈이므로 전체 입력 수집
-            done_experts = utils.register_input_H_hook(layer.mlp.experts, f'{save_pfx}_experts_fused', gpu_id)
+            done_experts_gate_up = []
+            done_experts_down = []
 
+            # 3. Experts Loop 수정
+            # GptOssMLP -> self.experts (GptOssExperts) -> self.experts (ModuleList)
+            # Qwen/Mixtral과 달리 expert 객체 자체가 리스트가 아니라, 내부 멤버변수가 리스트임
+            for expert_idx, expert_layer in enumerate(layer.mlp.experts.experts):
+                
+                # [수정 요청 반영] Gate/Up Fused Layer
+                # GptOssLayer -> self.gate_up_proj (Linear)
+                done_gate_up = utils.register_input_H_hook(
+                    expert_layer.gate_up_proj,
+                    f'{save_pfx}_expert{expert_idx}_gate_up', gpu_id
+                )
+                done_experts_gate_up.append(done_gate_up)
+
+                # Down Projection
+                # GptOssLayer -> self.down_proj (Linear)
+                done_down = utils.register_input_H_hook(
+                    expert_layer.down_proj,
+                    f'{save_pfx}_expert{expert_idx}_down', gpu_id
+                )
+                done_experts_down.append(done_down)
+                
             for di in range(len(dev_emb)):
                 tmp_input = dev_emb[di].cuda()
                 
-                # GptOss의 Forward 방식에 맞게 position_embeddings 계산 후 전달
-                position_embeddings = model.model.rotary_emb(tmp_input, position_ids)
-                
-                layer_out = layer(
-                    tmp_input,
-                    attention_mask=attention_mask,
-                    position_ids=position_ids,
-                    use_cache=False,
-                    position_embeddings=position_embeddings
-                )
-                
-                if isinstance(layer_out, tuple):
-                    dev_emb[di] = layer_out[0].cpu()
-                else:
-                    dev_emb[di] = layer_out.cpu()
-
+                # 순전파 호출
+                position_embeddings = model.model.rotary_emb(dev_emb[di].cuda(), position_ids)                
+                dev_emb[di] = layer(dev_emb[di].cuda(),
+                                    position_ids=position_ids,
+                                    attention_mask=attention_mask,
+                                    use_cache=False,
+                                    position_embeddings=position_embeddings,
+                                    output_attentions=False)[0].cpu()
                 tmp_input = tmp_input.cpu()
                 del tmp_input
                 utils.clean()
@@ -138,13 +143,18 @@ def main(args):
             del layer, model.model.layers[0]
             utils.clean()
             
-            # --- [요청사항 반영] Hook 리스트에서 k, v 제거 ---
+            # 4. 훅 리스트 생성 (키 이름 변경: w3/w2 -> gate_up/down)
             hook_fns = [
-                ('q', done_qkv),
+                ('qkv', done_qkv),
                 ('o', done_o),
-                ('router', done_router),
-                ('experts_fused', done_experts) 
+                ('router', done_router)
             ]
+            
+            for expert_idx in range(len(done_experts_gate_up)):
+                # Fused Gate+Up
+                hook_fns.append( (f'expert{expert_idx}_gate_up', done_experts_gate_up[expert_idx]) )
+                # Down
+                hook_fns.append( (f'expert{expert_idx}_down', done_experts_down[expert_idx]) )
 
             for key, fn in hook_fns:
                 fn()
@@ -152,17 +162,20 @@ def main(args):
                 
             dist.barrier()
             
+            # 5. 데이터 집계 및 저장 (로직 동일)
             if gpu_id == 0:
                 for key, fn in hook_fns:
-                    save_path_file = f"{args.save_path}/{transformer_layer_index}_{key}.pt"
-                    if os.path.exists(save_path_file):
-                        data = torch.load(save_path_file, map_location=torch.device('cpu'))
+                    save_path = f"{args.save_path}/{transformer_layer_index}_{key}.pt"
+                    # ... (이하 저장 로직 기존과 동일) ...
+                    if os.path.exists(save_path):
+                        data = torch.load(save_path, map_location=torch.device('cpu'))
                         data['flatH'] = data['flatH'].to(torch.float64) * data['ct']
                     else:
                         data = None
                     gi = 0
                     gi_path = f"/dev/shm/{transformer_layer_index}_{key}_{gi}.pt"
                     while os.path.exists(gi_path):
+                        # print(gi_path)
                         d2 = torch.load(gi_path, map_location=torch.device('cpu'))
                         if data is not None:
                             data['flatH'] += utils.sym_to_flat(d2['H'])
@@ -180,9 +193,9 @@ def main(args):
                     if data is not None:
                         data['flatH'] /= data['ct']
                         data['flatH'] = data['flatH'].float()
-                        torch.save(data, save_path_file)
+                        torch.save(data, save_path)
                         del data
-                    utils.clean()
+                        utils.clean()
 
             dist.barrier()
 
@@ -190,6 +203,7 @@ def main(args):
             transformer_layer_index += 1
 
         del position_ids, attention_mask
+
         del dev_emb
         utils.clean()
         del model
@@ -197,6 +211,7 @@ def main(args):
 
 
 if __name__ == "__main__":
+    #mp.set_start_method('spawn')
     torch.set_grad_enabled(False)
     args = parser.parse_args()
     os.makedirs(args.save_path, exist_ok=True)

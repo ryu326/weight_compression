@@ -15,6 +15,7 @@ from .nwc_lora import LoRACompressionModel
 from .nwc_id import NWC_id
 from .nwc_vq import NWC_vq
 from .nwc_lattice import NWC_lattice
+from .nwc_ql_row import NWC_ql_row
 # from .nwc_ql_cdt import NWC_conditional, NWC_conditional2
 # from .nwc_ql_cdt_ln import NWC_conditional_ln
 # from .nwc_hess import SimpleVAECompressionModel_hess
@@ -319,6 +320,16 @@ def get_model(model_class, opts, scale, shift):
             scale=scale,
             shift=shift,
             lattice = opts.lattice
+            )
+    elif model_class == "nwc_ql_row":
+        model = NWC_ql_row(
+            input_size=opts.input_size,
+            dim_encoder=opts.dim_encoder,
+            n_resblock=opts.n_resblock,
+            M = opts.M,
+            Q = opts.Q,
+            norm = (not opts.no_layernorm),
+            dim_proj = opts.dim_proj
             )
     else:
         raise

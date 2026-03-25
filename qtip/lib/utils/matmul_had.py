@@ -5,10 +5,67 @@ from lib import utils
 
 torch._dynamo.config.cache_size_limit = 256
 
+_HAD180_CACHE = None
+def get_had180():
+    """
+    180차원 Hadamard 행렬 생성 (Correct Paley Construction Type I)
+    N = 180 = 179 + 1 (179 is prime, 179 ≡ 3 mod 4)
+    
+    구성 방식: H = S + I
+    (S는 Skew-Hadamard Matrix)
+    """
+    global _HAD180_CACHE
+    
+    if _HAD180_CACHE is not None:
+        return _HAD180_CACHE
+    
+    p = 179
+    
+    # 1. Legendre Symbol (이차 잉여) 계산
+    # legendre[i] = 1 (이차잉여), -1 (비이차잉여), 0 (0인 경우)
+    legendre = [0] * p
+    for i in range(1, p):
+        # 오일러 판정법: a^((p-1)/2) mod p
+        val = pow(i, (p - 1) // 2, p)
+        if val == p - 1: # mod p 에서 -1
+            legendre[i] = -1
+        else:
+            legendre[i] = val
 
+    # 2. Jacobsthal Matrix Q 생성
+    # Q_ij = legendre((i - j) % p)
+    # p=179 ≡ 3 (mod 4) 이므로 Q는 Skew-symmetric (Q^T = -Q)
+    indices = torch.arange(p).view(-1, 1) - torch.arange(p).view(1, -1)
+    indices = indices % p
+    
+    leg_tensor = torch.tensor(legendre, dtype=torch.float32)
+    Q = leg_tensor[indices]
+
+    # 3. Skew-Hadamard Matrix S 구성
+    # S = | 0   1^T |
+    #     | -1   Q  |
+    S = torch.zeros((p + 1, p + 1), dtype=torch.float32)
+    
+    # 첫 행은 1 (S_00은 0)
+    S[0, 1:] = 1.0
+    # 첫 열은 -1 (S_00은 0)
+    S[1:, 0] = -1.0
+    # 나머지 블록은 Q
+    S[1:, 1:] = Q
+
+    # 4. 최종 Hadamard Matrix H = S + I
+    # (Skew-Hadamard 행렬에 단위행렬을 더하면 Hadamard 행렬이 됨)
+    I = torch.eye(p + 1, dtype=torch.float32)
+    H = S + I
+
+    return H
 def get_hadK(n, transpose=False):
     hadK, K = None, None
-    if n % 172 == 0:  # llama-2-7b up
+    if n % 180 == 0: # gpt oss 20b
+        assert (is_pow2(n // 180))
+        K = 180
+        hadK = get_had180().T if transpose else get_had180()
+    elif n % 172 == 0:  # llama-2-7b up
         assert (is_pow2(n // 172))
         K = 172
         hadK = get_had172().T if transpose else get_had172()

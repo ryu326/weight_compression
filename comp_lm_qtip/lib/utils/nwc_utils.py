@@ -22,6 +22,118 @@ from lib.algo import quip
 import glog
 import time
 
+import sys
+notebook_dir = os.path.dirname(os.path.abspath("__file__"))
+project_root = os.path.abspath(os.path.join(notebook_dir, ".."))
+if project_root not in sys.path:
+    sys.path.append(project_root)
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+from NWC.models import get_model
+
+class Config:
+    def __init__(self, **entries):
+        self.__dict__.update(entries)
+
+def load_comp_model(args, model):
+    
+    args.normalization_search = getattr(args, 'normalization_search', False)
+    
+    if args.comp_model_path is not None:
+        config = os.path.join(os.path.dirname(args.comp_model_path), 'config.json')
+        with open(config, 'r', encoding='utf-8') as file:
+            config = json.load(file)
+        config = Config(**config)
+        
+        shift, scale = torch.empty(()), torch.empty(())
+        if config.architecture == 'nwc_ql' and not hasattr(config, "Q"):
+            config.Q = 4
+        if not hasattr(config, "no_layernorm"):
+            config.no_layernorm = False
+        
+        if args.code_optim:
+            config.architecture = args.code_optim_model
+        comp_model = get_model(config.architecture, config, scale=scale, shift=shift)
+        comp_model.config = config
+        ckpt = torch.load(args.comp_model_path, weights_only=False)
+        if (args.use_train_scale or args.layerwise_cdt or args.layer_normalize \
+              or args.row_normalize or args.col_normalize or args.scaleH or args.normalization_search):
+            try:
+                scale = ckpt["state_dict"]["scale"]
+                shift = ckpt["state_dict"]["shift"]
+                glog.info('Training scale and shift: ')
+                glog.info(f'scale: {scale}, shift: {shift}')
+            except:
+                glog.info('No training scale and shift found in checkpoint')
+                
+            glog.info('Using normalized scale and shift: ')
+            scale, shift = torch.ones(1, dtype=torch.float32), torch.zeros(1, dtype=torch.float32)
+        else:
+            if 'scale' in ckpt["state_dict"]:
+                del ckpt["state_dict"]['scale']
+            if 'shift' in ckpt["state_dict"]:
+                del ckpt["state_dict"]['shift']
+            shift, scale = get_model_weight_stats(model, args, config.input_size)
+            
+        if args.scale_std is not None:
+            glog.info(f"Scale scale *{args.scale_std}")
+            scale = args.scale_std * scale
+            glog.info(f'scale: {scale}, shift: {shift}')
+            
+        glog.info(f'scale: {scale}, shift: {shift}')
+
+        if not args.initialize_codec:
+            comp_model.load_state_dict(ckpt["state_dict"], strict = False)
+
+        try: ## scale_cond
+            comp_model.scale.copy_(scale)
+            comp_model.shift.copy_(shift)
+        except:
+            comp_model.scale = scale.to(torch.float32)
+            comp_model.shift = shift.to(torch.float32)
+            
+        glog.info(f'scale: {comp_model.scale} shift: {comp_model.shift}')
+        comp_model.eval()
+        if hasattr(comp_model, "update") and callable(getattr(comp_model, "update", None)):
+            comp_model.update()
+        if args.ste:
+            comp_model.mode = 'ste'
+    elif args.nic_model is not None:
+        if args.nic_model == 'tcm':
+            from nic_models.TCM.models import TCM
+            comp_model = TCM(config=[2,2,2,2,2,2], head_dim=[8, 16, 32, 32, 16, 8], drop_path_rate=0.0, N=64, M=320)
+            
+            dictory = {}
+            glog.info("Loading TCM", args.nic_checkpoint)
+            checkpoint = torch.load(args.nic_checkpoint)
+            for k, v in checkpoint["state_dict"].items():
+                dictory[k.replace("module.", "")] = v
+            comp_model.load_state_dict(dictory)
+            
+        elif args.nic_model == 'ftic':
+            from nic_models.FTIC.models import FrequencyAwareTransFormer
+            comp_model = FrequencyAwareTransFormer()
+            
+            dictory = {}
+            glog.info("Loading FTIC", args.nic_checkpoint)
+            checkpoint = torch.load(args.nic_checkpoint)
+            for k, v in checkpoint.items():
+                dictory[k.replace("module.", "")] = v
+            comp_model.load_state_dict(dictory,strict=True)
+        elif args.nic_model == 'illm':
+            comp_model = torch.hub.load("facebookresearch/NeuralCompression", f"msillm_quality_{args.illm_quality}", trust_repo=True)
+            comp_model = comp_model.to('cpu')
+            comp_model.eval()
+            comp_model.update()
+            comp_model.update_tensor_devices("compress")
+        else:
+            raise NotImplementedError(f'Not implemented nic model {args.nic_model}')
+        comp_model.eval()
+        comp_model.update()
+    elif args.handcraft_mode is not None or args.ecsq:
+        comp_model = None
+        
+    return comp_model
+    
 def setup_logging(log_file):
     # Remove any pre-existing handlers
     for handler in logging.root.handlers[:]:
@@ -228,8 +340,8 @@ def get_ql_from_H(H, comp_model, args):
                 Qlevel[indices] = value
                 start += count
         # unique_vals, counts = torch.unique(Qlevel, return_counts=True)
-        # print(unique_vals)
-        # print(counts)    
+        # glog.info(unique_vals)
+        # glog.info(counts)    
         
     if args.ql_invH == True:
         assert comp_model.Q == 4
@@ -326,10 +438,21 @@ def compute_U_from_H(H: torch.Tensor):
     U = U_unit - torch.eye(n, device=device, dtype=dtype)
     return U, D
 
+def _check(tag, t, args):
+    if t is None:
+        return
+    if not torch.isfinite(t).all():
+        msg = (f"[NaN] {tag}: layer={args.layer_idx} name={args.layer_name} "
+               f"min={t.min().item()} max={t.max().item()}")
+        glog.error(msg)
+        raise RuntimeError(msg)
 
-def standardize_W(W, H, args, device):
+def standardize_W(W, H, args, device, comp_model = None):
     Wr = W.to(device)
     Hr = H.to(device)
+    
+    _check("Wr(init)", Wr, args)
+    _check("Hr(init)", Hr, args)
 
     SU, SV, scaleWH = None, None, None
     scaleH = None
@@ -351,7 +474,7 @@ def standardize_W(W, H, args, device):
         diagH = torch.clamp(diagH, min=1e-8)
         # scaleH = diagH.sqrt().to(torch.float16)
         scaleH = diagH.sqrt().to(torch.float32)
-        # print(scaleH.max(), scaleH.min(), scaleH.mean())
+        # glog.info(scaleH.max(), scaleH.min(), scaleH.mean())
         if args.lb_scaleH is not None:
             scaleH = torch.clamp(scaleH, min=args.lb_scaleH)
         if args.smooth_scaleH_alpha is not None:
@@ -359,7 +482,7 @@ def standardize_W(W, H, args, device):
             scaleH = scaleH ** args.smooth_scaleH_alpha
 
 
-        # print(scaleH.max(), scaleH.min(), scaleH.mean())
+        # glog.info(scaleH.max(), scaleH.min(), scaleH.mean())
         Wr = Wr * scaleH[None, :]
         Hr = Hr / scaleH[None, :]
         Hr = Hr / scaleH[:, None]
@@ -389,7 +512,13 @@ def standardize_W(W, H, args, device):
 
         Wr = (Wr @ U) * sqrtLam                                              # [out, k]
         scale_cond = Wr.std(dim = 0, keepdim=True)
-
+        
+    if args.global_normalize and args.patch:
+        assert comp_model.scale.item() != 1
+        assert comp_model.scale.item() != 0
+        assert comp_model.shift.item() != 0
+        Wr = Wr / comp_model.scale 
+        
     if args.layer_normalize:
         layer_std = Wr.std()
         layer_mean = Wr.mean()
@@ -397,8 +526,9 @@ def standardize_W(W, H, args, device):
     
     if args.row_normalize:
         row_std = Wr.std(dim=1, keepdim=True).to(torch.float32)
+        # row_std = row_std.clamp_min(1e-6)
         Wr /= row_std
-    
+        
     if args.row_normalize2:
         diagH = torch.diag(Hr)
         diagH = torch.clamp(diagH, min=1e-8)
@@ -411,6 +541,12 @@ def standardize_W(W, H, args, device):
     if args.col_normalize:
         col_std = Wr.std(dim=0, keepdim=True).to(torch.float16)
         Wr /= col_std
+        
+        if not torch.isfinite(col_std).all() or (col_std == 0).any():
+            glog.error(f"[col_std] layer={args.layer_idx} name={args.layer_name} "
+                    f"min={col_std.min().item()} zeros={(col_std==0).sum().item()}")
+        _check("Wr(col_normalize)", Wr, args)
+        
         
     if args.scale_cond:
         # assert args.scaleH == True
@@ -464,9 +600,17 @@ def standardize_W(W, H, args, device):
         'inv_sqrtLam': inv_sqrtLam,
     }
     
+    if not torch.isfinite(Wr).all():
+        glog.error(f"[NaN] Wr not finite: layer={args.layer_idx} name={args.layer_name}")
+        raise RuntimeError(f"Wr became NaN at layer={args.layer_idx} name={args.layer_name}")
+    if not torch.isfinite(Hr).all():
+        glog.error(f"[NaN] Hr not finite: layer={args.layer_idx} name={args.layer_name}")
+    if args.row_normalize and row_std is not None:
+        glog.error(f"[row_std] min={row_std.min().item()} finite={torch.isfinite(row_std).all().item()}")
+
     return Wr, Hr, metadata
 
-def de_standardize_Wr(W_hat, metadata, args):
+def de_standardize_Wr(W_hat, metadata, args, comp_model = None):
 
     SU = metadata.get('SU')
     SV = metadata.get('SV')
@@ -476,21 +620,28 @@ def de_standardize_Wr(W_hat, metadata, args):
     layer_mean = metadata.get('layer_mean')
     layer_std = metadata.get('layer_std')
     scaleH = metadata.get('scaleH')
+    args.normalization_search = getattr(args, 'normalization_search', False)
     
     # 표준화의 역순으로 역연산 수행
-    if args.col_normalize and col_std is not None:
+    if (args.normalization_search or args.col_normalize) and col_std is not None:
         W_hat = W_hat * col_std
 
     if args.row_normalize2 and row_std is not None:
         W_hat = W_hat * row_std
 
-    if args.row_normalize and row_std is not None:
-        # print(W_hat.device, row_std.device)
+    if (args.row_normalize or args.normalization_search) and row_std is not None:
+        # glog.info(W_hat.device, row_std.device)
         W_hat = W_hat * row_std
         
     if args.layer_normalize and layer_std is not None and layer_mean is not None:
         W_hat = W_hat * layer_std + layer_mean
-        
+
+    if args.global_normalize and args.patch:
+        assert comp_model.scale.item() != 1
+        assert comp_model.scale.item() != 0
+        assert comp_model.shift.item() != 0
+        W_hat = W_hat * comp_model.scale 
+
     if hasattr(args, 'whiten') and args.whiten:
         inv_sqrtLam = metadata.get('inv_sqrtLam')
         U = metadata.get('U')
@@ -597,40 +748,40 @@ if __name__ == '__main__':
     A = torch.randn(4, 4, dtype=torch.float64)
     H = A.T @ A + torch.eye(4, dtype=torch.float64) * 1e-3
     
-    print("입력 행렬 H:")
-    print(H)
-    print("-" * 30)
-    print(f"PyTorch 버전: {torch.__version__}")
+    glog.info("입력 행렬 H:")
+    glog.info(H)
+    glog.info("-" * 30)
+    glog.info(f"PyTorch 버전: {torch.__version__}")
     if hasattr(torch.linalg, "ldl"):
-        print("`torch.linalg.ldl` 사용 가능. ldl 경로로 테스트합니다.")
+        glog.info("`torch.linalg.ldl` 사용 가능. ldl 경로로 테스트합니다.")
     else:
-        print("`torch.linalg.ldl` 사용 불가. Cholesky 대체 경로로 테스트합니다.")
-    print("-" * 30)
+        glog.info("`torch.linalg.ldl` 사용 불가. Cholesky 대체 경로로 테스트합니다.")
+    glog.info("-" * 30)
 
     # 함수를 호출하여 U와 D 계산
     U, D = compute_U_from_H(H)
 
     if U is not None:
-        print("\n계산된 순상삼각행렬 U:")
-        print(U)
+        glog.info("\n계산된 순상삼각행렬 U:")
+        glog.info(U)
 
-        print("\n계산된 대각행렬 D:")
-        print(D)
-        print("-" * 30)
+        glog.info("\n계산된 대각행렬 D:")
+        glog.info(D)
+        glog.info("-" * 30)
 
         # 결과 검증
         n = H.shape[-1]
         I = torch.eye(n, device=H.device, dtype=H.dtype)
         H_reconstructed = (U + I) @ D @ (U + I).T
         
-        print("복원된 행렬 H_reconstructed:")
-        print(H_reconstructed)
+        glog.info("복원된 행렬 H_reconstructed:")
+        glog.info(H_reconstructed)
         
         is_close = torch.allclose(H, H_reconstructed)
-        print(f"\n원본 H와 복원된 H가 일치하는가? {is_close}")
+        glog.info(f"\n원본 H와 복원된 H가 일치하는가? {is_close}")
 
         if not is_close:
             diff = torch.max(torch.abs(H - H_reconstructed))
-            print(f"최대 오차: {diff.item()}")
+            glog.info(f"최대 오차: {diff.item()}")
     else:
-        print("행렬 분해에 실패했습니다.")
+        glog.info("행렬 분해에 실패했습니다.")

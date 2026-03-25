@@ -5,7 +5,7 @@ import json
 import glog
 import torch
 from torch import nn
-from transformers import AutoTokenizer, AutoConfig, AutoModelForCausalLM, Glm4MoeForCausalLM
+from transformers import AutoTokenizer, AutoConfig, AutoModelForCausalLM
 
 try:
     from transformers import MixtralForCausalLM
@@ -17,7 +17,16 @@ try:
 except ImportError:
     Qwen3MoeForCausalLM = None
 
+try:
+    from model.gptoss_standard_moe_v11 import GptOssForCausalLM as GptOssForCausalLM_v11
+    from transformers import GptOssForCausalLM
+except ImportError:
+    GptOssForCausalLM = None
+
 from lib import utils
+
+from lib.utils.load_hf import model_from_hf_path_gptoss
+
 
 torch.set_grad_enabled(False)
 
@@ -39,22 +48,16 @@ def get_model_specific_structure(model_type, layer, layer_idx):
     parent_module: 해당 레이어를 포함하는 부모 모듈 객체
     proj_attr_name: 부모 모듈 내의 속성 이름 (예: 'q_proj', 'gate_proj')
     """
-    # 1. Self Attention (모든 모델 공통)
     target_modules = [
         ('q', layer.self_attn, 'q_proj'),
         ('k', layer.self_attn, 'k_proj'),
         ('v', layer.self_attn, 'v_proj'),
         ('o', layer.self_attn, 'o_proj'),
     ]
-
     model_type = model_type.lower()
-
     # 2. MLP / MoE Structure (모델별 분기)
     if 'mixtral' in model_type:
-        # --- Mixtral Structure ---
-        # Router
         target_modules.append(('gate', layer.block_sparse_moe, 'gate')) 
-        
         # Experts
         # 저장 파일 형식: {layer}_expert{i}_{w1|w2|w3}.pt
         # Mixtral 실제 이름: experts[i].w1, w2, w3
@@ -66,17 +69,11 @@ def get_model_specific_structure(model_type, layer, layer_idx):
             target_modules.append((f'expert{i}_w2', expert, 'w2')) 
 
     elif 'qwen' in model_type:
-        # --- Qwen MoE Structure ---
-        # Qwen2/3 MoE: mlp.gate, mlp.experts
         mlp = layer.mlp
-        
-        # Router
         target_modules.append(('gate', mlp, 'gate')) 
-
         # Experts
         # 저장 파일 형식: {layer}_expert{i}_{w1|w2|w3}.pt (통일됨)
         # Qwen 실제 이름: gate_proj(w1), up_proj(w3), down_proj(w2)
-        
         if hasattr(mlp, 'experts'):
             num_experts = len(mlp.experts)
             for i in range(num_experts):
@@ -87,9 +84,17 @@ def get_model_specific_structure(model_type, layer, layer_idx):
                 target_modules.append((f'expert{i}_w3', expert, 'up_proj'))
                 # Mapping: 저장된 w2 -> 모델의 down_proj
                 target_modules.append((f'expert{i}_w2', expert, 'down_proj'))
-    
+    elif "gpt_oss" in model_type:
+        mlp = layer.mlp
+        target_modules.append(('gate', mlp.router, 'gate')) 
+        
+        num_experts = len(mlp.experts.experts)
+        for i in range(num_experts):
+            expert = mlp.experts.experts[i]
+            target_modules.append((f'expert{i}_gate_up', expert, 'gate_up_proj'))
+            target_modules.append((f'expert{i}_down', expert, 'down_proj'))
+        
     # (Llama 등 Dense 모델은 요청에 따라 제외됨)
-
     return target_modules
 
 
@@ -115,19 +120,28 @@ def main(args):
         elif 'qwen' in model_type and Qwen3MoeForCausalLM:
             model_cls = Qwen3MoeForCausalLM
 
+    is_gpt_oss = "gpt_oss" in model_config.model_type.lower()
+    if is_gpt_oss:
+        glog.info(f"GPT-OSS model standard moe")
+        model = GptOssForCausalLM_v11.from_pretrained(
+            model_config._name_or_path,
+            torch_dtype='auto',
+            low_cpu_mem_usage=True,
+            trust_remote_code=True, # Qwen 등 일부 모델은 필요할 수 있음
+            device_map="cpu" # 복원 중에는 CPU 사용 권장 (OOM 방지)
+        )
+        orig_model, _ = model_from_hf_path_gptoss(args.hf_path, device_map='cpu',
+                                                 sep_rnorm = False, 
+                                                 gptoss_replace_version='v1.1')        
+    else:
+        model = model_cls.from_pretrained(model_config._name_or_path,
+                                        torch_dtype='auto',
+                                        low_cpu_mem_usage=True,
+                                        config=model_config,
+                                        trust_remote_code=True)
+        
     glog.info(f"Loading model with class: {model_cls.__name__}")
 
-    model = model_cls.from_pretrained(model_config._name_or_path,
-                                      torch_dtype='auto',
-                                      low_cpu_mem_usage=True,
-                                      config=model_config,
-                                      trust_remote_code=True)
-
-    orig_model = AutoModelForCausalLM.from_pretrained(model_config._name_or_path,
-                                           torch_dtype='auto',
-                                           low_cpu_mem_usage=True,
-                                           config=model_config,
-                                           trust_remote_code=True)
 
     skip_list = args.skip_list.split(',') if args.skip_list else []
     glog.info(f'Skip list: {skip_list}')
@@ -137,7 +151,7 @@ def main(args):
         'bpp': 0,
         'ppl': 0,
         'num_pixels': 0
-    }    
+    }
     try:
         with open(os.path.join(args.quantized_path, 'config.json'), 'r') as f:
             saved_config_json = json.load(f)
@@ -230,13 +244,16 @@ def main(args):
                     # 복원된 가중치 복사
                     proj_layer.weight.copy_(W_hat.to(proj_layer.weight.dtype))
                     
-                    # [중요] Bias 복사 (요청 반영)
                     if 'bias' in saved_layer and saved_layer['bias'] is not None:
                         if proj_layer.bias is not None:
                             proj_layer.bias.data.copy_(saved_layer['bias'].to(proj_layer.bias.dtype))
                         else:
                             # 원래 bias가 없던 레이어라면 Parameter 생성
                             proj_layer.bias = nn.Parameter(saved_layer['bias'].to(proj_layer.weight.dtype))
+                            
+                    if is_gpt_oss:
+                        proj_layer.bias.copy_()
+                        
 
             else:
                 glog.info(f'### skipping {skip_key} ###')

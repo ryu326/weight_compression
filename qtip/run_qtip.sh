@@ -8,15 +8,16 @@ MODELS_TO_RUN=(
     # "llama3_8b"
     # "llama2_7b"
     # "llama3.2_3b"
-    "llama2_13b"
+    # "llama2_13b"
     # "llama3.2_1b_inst"
     # "llama3.2_3b_inst"
+    "gemma3_4b"
 )
 
 # 각 모델에 대해 수행할 실험 타입 목록 ('ft', 'noft')
 EXP_TYPES_TO_RUN=(
     "ft1"
-    # "noft"
+    "noft"
 )
 
 CKPT="../hf_model_comp/qtip/ckpt"
@@ -25,7 +26,7 @@ LOG="./log"
 RES="../hf_model_comp_results/qtip"
 
 # --- 환경 변수 설정 ---
-export CUDA_VISIBLE_DEVICES=4,5,6,7
+export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5
 export WANDB_SILENT=true
 export TRANSFORMERS_NO_TORCHVISION=1
 export HF_HOME=/home/jgryu/.cache/huggingface
@@ -46,6 +47,7 @@ MODEL_PATHS=(
     ["llama3.2_3b"]="../Wparam_dataset/hf_model/meta-llama--Llama-3.2-3B"
     ["llama3.2_3b_inst"]="../Wparam_dataset/hf_model/meta-llama--Llama-3.2-3B-Instruct"
     ["llama3.2_1b_inst"]="../Wparam_dataset/hf_model/meta-llama--Llama-3.2-1B-Instruct"
+    ["gemma3_4b"]="google/gemma-3-4b-pt"
 )
 
 declare -A HESS_PATHS
@@ -57,6 +59,7 @@ HESS_PATHS=(
     ["llama3.2_3b"]="../Wparam_dataset/quip_hess/meta-llama--Llama-3.2-3B-256"
     ["llama3.2_3b_inst"]="../Wparam_dataset/quip_hess/Llama-3.2-3B-Instruct-Hessians"
     ["llama3.2_1b_inst"]="../Wparam_dataset/quip_hess/Llama-3.2-1B-Instruct-Hessians"
+    ["gemma3_4b"]="../Wparam_dataset/quip_hess/google/gemma-3-4b-pt_1024"
 )
 
 # [원본 보존] 헤시안 계산 스크립트 (필요시 주석 해제하여 사용)
@@ -93,7 +96,7 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
         echo "           Running Experiment Type: [$exp_type]"
         echo "------------------------------------------------------------"
 
-        for K in 4 5 6; do
+        for K in 2 3 4 5 6; do
             NAME="${model_key}/${exp_type}/${K}bit"
             SAVE_PATH="$CKPT/$NAME"
             LOG_FILE="${LOG}/${NAME}.log"
@@ -109,45 +112,47 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
             #     --hf_output_path $PTH_PATH \
             #     --base_model $base_model 2>&1 | tee -a $LOG_FILE
 
-            # echo "### [Stage: Quantize | K=$K] ###" | tee $LOG_FILE
-            # python -m quantize_llama.quantize_finetune_llama \
-            #     --save_path $SAVE_PATH \
-            #     --codebook bitshift \
-            #     --base_model $base_model \
-            #     --in_hess_path $HESS \
-            #     --scale_override 0.9 \
-            #     --ft_epochs $ft_epochs \
-            #     --td_x 16 --td_y 16 --L 16 --K $K --V 2 \
-            #     --decode_mode quantlut_sym --tlut_bits 9 2>&1 | tee -a $LOG_FILE
+            echo "### [Stage: Quantize | K=$K] ###" | tee $LOG_FILE
+            python -m quantize_llama.quantize_finetune_llama \
+                --save_path $SAVE_PATH \
+                --codebook bitshift \
+                --base_model $base_model \
+                --in_hess_path $HESS \
+                --scale_override 0.9 \
+                --ft_epochs $ft_epochs \
+                --td_x 16 --td_y 16 --L 16 --K $K --V 2 \
+                --decode_mode quantlut_sym --tlut_bits 9 2>&1 | tee -a $LOG_FILE
+
+                # --devset_size 4 --ft_valid_size 2 --batch_size 4 --ft_bs 4 \
+
+            # echo "### [Stage: Hfize | K=$K] ###" | tee -a $LOG_FILE
+            # python -m quantize_llama.hfize_llama \
+            #     --quantized_path $SAVE_PATH \
+            #     --hf_output_path $HF_PATH \
+            #     --base_model $base_model 2>&1 | tee -a $LOG_FILE
+
+            # MANIFEST_FLAG=""
+            # if [ "$K" -ge 5 ]; then
+            #     MANIFEST_FLAG="--manifest_model"
+            # fi
+
 
             echo "### [Stage: Hfize | K=$K] ###" | tee -a $LOG_FILE
-            python -m quantize_llama.hfize_llama \
+            python -m quantize_llama.hfize_llama_hf \
                 --quantized_path $SAVE_PATH \
                 --hf_output_path $HF_PATH \
                 --base_model $base_model 2>&1 | tee -a $LOG_FILE
 
-            # python -m quantize_llama.hfize_llama_cal_mse \
-            #     --quantized_path $SAVE_PATH \
-            #     --hf_output_path $HF_PATH \
-            #     --output_path ${RES}/${NAME} \
-            #     --base_model $base_model 2>&1 | tee -a $LOG_FILE
-
-            MANIFEST_FLAG=""
-            if [ "$K" -ge 5 ]; then
-                MANIFEST_FLAG="--manifest_model"
-            fi
-
-            # echo "### [Stage: Eval PPL | K=$K] ###" | tee -a "$LOG_FILE"
-            # python -m eval.eval_ppl \
-            #     --hf_path "${HF_PATH}" \
-            #     --output_path "${RES}/${NAME}" \
-            #     --seqlen 2048 \
-            #     $MANIFEST_FLAG 2>&1 | tee -a "$LOG_FILE"
+            echo "### [Stage: Eval PPL | K=$K] ###" | tee -a "$LOG_FILE"
+            python -m eval.eval_ppl \
+                --hf_path "${HF_PATH}" \
+                --output_path "${RES}/${NAME}" \
+                --seqlen 2048 \
+                $MANIFEST_FLAG 2>&1 | tee -a "$LOG_FILE"
 
             echo "### [Stage: Eval Zero-shot | K=$K] ###" | tee -a "$LOG_FILE"
             python -m eval.eval_zeroshot \
                 --tasks arc_challenge,arc_easy,boolq,piqa,winogrande,hellaswag,mmlu \
-                --batch_size 1 \
                 --hf_path "${HF_PATH}" \
                 --output_path "${RES}/${NAME}_common_mmlu" \
                 $MANIFEST_FLAG 2>&1 | tee -a "$LOG_FILE"

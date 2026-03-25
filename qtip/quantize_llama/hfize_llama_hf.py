@@ -19,6 +19,10 @@ parser.add_argument('--base_model', type=str, required=True, help='Path or name 
 
 # --- Helper Functions ---
 
+def get_text_model(model):
+    return model.language_model if hasattr(model, 'language_model') else model.model
+
+
 def has_kernel(decode_mode, L, K, V, tlut_bits, td_x, td_y):
     if decode_mode != 'quantlut_sym': return False
     if L != 16: return False
@@ -70,7 +74,7 @@ def get_What(quip_params, orig_layer_weight, saved_layer_data, layer_name):
     
     if torch.cuda.is_available():
         torch.cuda.synchronize()
-    start_time = time.time()
+    # start_time = time.time()
     quant_layer.codebook_class.cache_hatW(quant_layer.trellis, quant_layer.had_left,
                                        quant_layer.had_right, quant_layer.K_left,
                                        quant_layer.K_right, len(quant_layer.SV),
@@ -79,9 +83,9 @@ def get_What(quip_params, orig_layer_weight, saved_layer_data, layer_name):
 
     if torch.cuda.is_available():
         torch.cuda.synchronize()
-    end_time = time.time()
-    elapsed_time = end_time - start_time
-    glog.info(f"{layer_name} Total Compression Time: {elapsed_time*1000:.4f} ms")
+    # end_time = time.time()
+    # elapsed_time = end_time - start_time
+    # glog.info(f"{layer_name} Total Compression Time: {elapsed_time*1000:.4f} ms")
     
     hatW = quant_layer.codebook_class.hatW
     SU = quant_layer.SU
@@ -152,6 +156,7 @@ def main(args):
         trust_remote_code=True, 
         device_map="cpu" # 복원 중 OOM 방지를 위해 CPU 유지
     )
+    text_model = get_text_model(model)
 
     # 3. LM Head & Global Norm 복원
     lmhead_path = f'{args.quantized_path}/lmhead.pt'
@@ -159,19 +164,19 @@ def main(args):
         lmhead_data = torch.load(lmhead_path, map_location='cpu')
         model.lm_head.weight.data.copy_(lmhead_data['lm_head'].to(model.lm_head.weight.dtype))
         
-        # LLaMA는 보통 model.model.norm (LlamaModel -> norm)
-        norm_module = model.model.norm if hasattr(model.model, 'norm') else getattr(model, 'norm', None)
+        # LLaMA/Gemma3 text model norm
+        norm_module = text_model.norm if hasattr(text_model, 'norm') else getattr(model, 'norm', None)
         if norm_module:
              norm_module.weight.data.copy_(lmhead_data['norm'].to(norm_module.weight.dtype))
         glog.info("Loaded LM Head and Final Norm")
 
     # 4. Layer별 복원 루프 (LLaMA Dense Structure)
     quip_params = model_config.quip_params
-    num_layers = len(model.model.layers)
+    num_layers = len(text_model.layers)
     
     pbar = tqdm(range(num_layers), desc="Restoring Layers")
     for ii in pbar:
-        layer = model.model.layers[ii]
+        layer = text_model.layers[ii]
         
         # 4-1. LayerNorm 복원
         ln_path = f'{args.quantized_path}/{ii}_layernorm.pt'
@@ -182,6 +187,12 @@ def main(args):
                 layer.input_layernorm.weight.copy_(ln_data['input_layernorm'].to(layer.input_layernorm.weight.dtype))
             if hasattr(layer, 'post_attention_layernorm'):
                 layer.post_attention_layernorm.weight.copy_(ln_data['post_attention_layernorm'].to(layer.post_attention_layernorm.weight.dtype))
+            if hasattr(layer, 'pre_feedforward_layernorm') and 'pre_feedforward_layernorm' in ln_data:
+                layer.pre_feedforward_layernorm.weight.copy_(
+                    ln_data['pre_feedforward_layernorm'].to(layer.pre_feedforward_layernorm.weight.dtype))
+            if hasattr(layer, 'post_feedforward_layernorm') and 'post_feedforward_layernorm' in ln_data:
+                layer.post_feedforward_layernorm.weight.copy_(
+                    ln_data['post_feedforward_layernorm'].to(layer.post_feedforward_layernorm.weight.dtype))
 
         # 4-2. Self Attention 복원
         # 일반적으로 QuIP 체크포인트에서 suffix는 q, k, v, o 로 저장됨

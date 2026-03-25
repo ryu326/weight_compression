@@ -15,6 +15,7 @@ import json
 import eval.gptq_data_utils as gptq_data_utils
 # from lib.utils import gptq_data_utils
 # from lib.utils.unsafe_import import model_from_hf_path
+from lib.utils.load_hf import model_from_hf_path_gptoss
 
 import transformers
 try:
@@ -22,7 +23,6 @@ try:
 except:
     LlamaForCausalLM = None
 # from transformers import LlamaForCausalLM as OrigLlama
-
 
 def model_from_hf_path(path,
                        use_cuda_graph=True,
@@ -53,12 +53,30 @@ parser.add_argument('--no_use_flash_attn', action='store_true')
 parser.add_argument('--datasets', type=str, default='wikitext2,c4,ptb')
 parser.add_argument("--output_path", default=None, type=str)
 parser.add_argument('--sep_rnorm', action='store_true')
+parser.add_argument('--gptoss_replace_version', type=str, default=None)
+
+def _make_jsonable_config(config):
+    if config is None:
+        return None
+    if hasattr(config, "to_dict"):
+        try:
+            return config.to_dict()
+        except Exception:
+            pass
+    try:
+        json.dumps(config)
+        return config
+    except TypeError:
+        return str(config)
 
 def main(args):
     # datasets = ['wikitext2', 'c4']
     datasets = (args.datasets).split(',')
-    model, model_str = model_from_hf_path(
-        args.hf_path, sep_rnorm = args.sep_rnorm)
+    # model, model_str = model_from_hf_path(args.hf_path, 
+    #                                       sep_rnorm = args.sep_rnorm)
+    model, model_str = model_from_hf_path_gptoss(args.hf_path, device_map='auto',
+                                                 sep_rnorm = args.sep_rnorm, 
+                                                 gptoss_replace_version=args.gptoss_replace_version)
 
     for dataset in datasets:
         try:
@@ -114,9 +132,12 @@ def main(args):
         except:
             comp_result = {}
             comp_result['ppl'] = {}
+            comp_result['model_cofig'] = _make_jsonable_config(model.config)
+            
         if not isinstance(comp_result['ppl'], dict):
             comp_result['ppl'] = {}
         comp_result['ppl'][dataset] = ppl
+        comp_result['ppl']['seqlen'] = args.seqlen
         
         output_path = args.hf_path      
         os.makedirs(os.path.dirname(output_path), exist_ok=True)

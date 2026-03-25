@@ -11,6 +11,12 @@ import torch
 from torch import multiprocessing as mp
 from torch import nn
 from transformers import AutoModelForCausalLM
+try:
+    from transformers.masking_utils import (create_causal_mask,
+                                            create_sliding_window_causal_mask)
+except Exception:
+    create_causal_mask = None
+    create_sliding_window_causal_mask = None
 
 from lib import utils
 # from lib.linear import QuantizedLinear
@@ -21,6 +27,7 @@ from lib.linear import CompLinear, CompLinear2, CompLinear3
 # from . import nwc
 from . import nwc_refactory as nwc
 from . import handcraft
+from . import ecsq
 # from . import nic
 import copy
 
@@ -32,6 +39,57 @@ def use_tf32():
     torch.set_float32_matmul_precision(fp32_matmul_precision)
 
 
+def _is_gemma3_layer(layer):
+    return getattr(getattr(layer, "config", None), "model_type",
+                   "") in ("gemma3", "gemma3_text")
+
+
+def _bidirectional_window_overlay(sliding_window):
+    def inner_mask(batch_idx, head_idx, q_idx, kv_idx):
+        return abs(q_idx - kv_idx) < sliding_window
+
+    return inner_mask
+
+
+def _build_gemma3_attention_masks(config, input_embeds, position_ids,
+                                  cache_position):
+    if create_causal_mask is None or create_sliding_window_causal_mask is None:
+        raise RuntimeError(
+            "Gemma3 masking utils are unavailable. "
+            "Please upgrade transformers to >=4.57."
+        )
+    mask_kwargs = {
+        "config": config,
+        "input_embeds": input_embeds,
+        "attention_mask": None,
+        "cache_position": cache_position,
+        "past_key_values": None,
+        "position_ids": position_ids,
+    }
+    sliding_mask_kwargs = mask_kwargs.copy()
+    if getattr(config, "use_bidirectional_attention", False):
+        mask_kwargs["or_mask_function"] = lambda *args: torch.tensor(
+            True, dtype=torch.bool)
+        sliding_mask_kwargs["or_mask_function"] = _bidirectional_window_overlay(
+            config.sliding_window)
+
+    try:
+        return {
+            "full_attention": create_causal_mask(**mask_kwargs),
+            "sliding_attention": create_sliding_window_causal_mask(
+                **sliding_mask_kwargs),
+        }
+    except RuntimeError as exc:
+        if ('Please clone()' in str(exc)
+                and getattr(config, "_attn_implementation", "") == "sdpa"):
+            config._attn_implementation = "eager"
+            return {
+                "full_attention": create_causal_mask(**mask_kwargs),
+                "sliding_attention": create_sliding_window_causal_mask(
+                    **sliding_mask_kwargs),
+            }
+        raise
+
 def finetune_decoder_layer(layer, name, device, train_dl, valid_dl, orig_dtype,
                            args):
     with use_tf32():
@@ -39,15 +97,114 @@ def finetune_decoder_layer(layer, name, device, train_dl, valid_dl, orig_dtype,
 
         source = next(iter(train_dl))[0]
         position_ids = torch.arange(source.shape[1], device=device).unsqueeze(0)
+        is_gemma3 = _is_gemma3_layer(layer)
+        gemma3_ctx = None
+        layer_dtype = next(layer.parameters()).dtype
+        if is_gemma3:
+            try:
+                from transformers.models.gemma3.modeling_gemma3 import \
+                    Gemma3RotaryEmbedding
+            except Exception as exc:
+                raise RuntimeError(
+                    "Gemma3 support requires transformers with "
+                    "Gemma3RotaryEmbedding available.") from exc
+            config = layer.config
+            rotary_emb = Gemma3RotaryEmbedding(config=config, device=device)
+            local_config = copy.deepcopy(config)
+            local_config.rope_theta = local_config.rope_local_base_freq
+            local_config.rope_scaling = {"rope_type": "default"}
+            rotary_emb_local = Gemma3RotaryEmbedding(config=local_config,
+                                                     device=device)
+            cache_position = torch.arange(source.shape[1], device=device)
+            dummy_input = source[:1].to(device=device, dtype=layer_dtype)
+            position_embeddings_global = rotary_emb(dummy_input, position_ids)
+            position_embeddings_local = rotary_emb_local(
+                dummy_input, position_ids)
+            causal_mask_mapping = _build_gemma3_attention_masks(
+                config, dummy_input, position_ids, cache_position)
+            gemma3_ctx = {
+                "cache_position": cache_position,
+                "position_ids": position_ids,
+                "position_embeddings_global": position_embeddings_global,
+                "position_embeddings_local": position_embeddings_local,
+                "causal_mask_mapping": causal_mask_mapping,
+            }
+
+        def _forward_layer(input_states):
+            input_states = input_states.to(device=device, dtype=layer_dtype)
+            if not is_gemma3:
+                return layer(input_states,
+                             position_ids=position_ids)[0]
+            layer_attention_mask = gemma3_ctx["causal_mask_mapping"][
+                layer.attention_type]
+            return layer(
+                input_states,
+                position_ids=gemma3_ctx["position_ids"],
+                attention_mask=layer_attention_mask,
+                use_cache=False,
+                cache_position=gemma3_ctx["cache_position"],
+                position_embeddings_global=gemma3_ctx[
+                    "position_embeddings_global"],
+                position_embeddings_local=gemma3_ctx[
+                    "position_embeddings_local"],
+                output_attentions=False)[0]
+
         # manifest tensor parallel attributes in layer
-        output = layer(source.to(device),
-                       position_ids=position_ids)[0]
+        output = _forward_layer(source)
         
         best_sd = {k: v.cpu() for k, v in layer.state_dict().items()}
         utils.clean()
 
         optim = torch.optim.Adam(layer.parameters(), lr=args.ft_lr)
-        best_loss = utils.calculate_mse_loss(layer, valid_dl, device)
+
+        def _calculate_mse_loss_local(dataloader):
+            layer.eval()
+            total_loss = 0
+            ct = 0
+            with torch.no_grad():
+                for source, target in dataloader:
+                    target = target.to(device, non_blocking=True)
+                    total_loss += nn.MSELoss()(_forward_layer(source), target)
+                    ct += 1
+            layer.train()
+            return (total_loss / ct).cpu().item()
+
+        def _calculate_test_loss_local(dataloader):
+            layer.eval()
+            total_mse = 0.0
+            total_bpp = 0.0
+            ct = 0
+            with torch.no_grad():
+                for source, target in dataloader:
+                    target = target.to(device, non_blocking=True)
+                    output = _forward_layer(source)
+                    mse_loss = nn.MSELoss()(output, target)
+                    bpp_loss = sum(
+                        m.bpp_loss for m in layer.modules()
+                        if hasattr(m, 'bpp_loss'))
+                    total_mse += mse_loss
+                    total_bpp += bpp_loss
+                    ct += 1
+            layer.train()
+            return (total_mse / ct).cpu().item(), (total_bpp / ct).cpu().item()
+
+        def _get_initial_weights_local(dataloader):
+            layer.eval()
+            source, target = next(iter(dataloader))
+            target = target.to(device)
+            output = _forward_layer(source)
+            l_mse = nn.MSELoss()(output, target)
+            l_bpp = sum(
+                m.bpp_loss for m in layer.modules() if hasattr(m, 'bpp_loss'))
+            epsilon = 1e-8
+            w_mse = l_bpp / (l_mse + l_bpp + epsilon)
+            w_bpp = l_mse / (l_mse + l_bpp + epsilon)
+            layer.train()
+            return torch.tensor([w_mse, w_bpp], device=device)
+
+        best_loss = _calculate_mse_loss_local(
+            valid_dl) if is_gemma3 else utils.calculate_mse_loss(
+                layer, valid_dl, device)
         glog.info(f'layer {name} initial loss {best_loss}')
         scaler = torch.cuda.amp.GradScaler(enabled=(orig_dtype==torch.float16))
         worse_ct = 0
@@ -55,7 +212,9 @@ def finetune_decoder_layer(layer, name, device, train_dl, valid_dl, orig_dtype,
         # --------- 사전 설정 ----------
         k, tau = 5, 0.5                 # SoftAdapt 창 길이·민감도
         loss_hist = {'mse': [], 'bpp': []}
-        initial_w = utils.get_initial_weights(layer, train_dl, device)
+        initial_w = _get_initial_weights_local(
+            train_dl) if is_gemma3 else utils.get_initial_weights(
+                layer, train_dl, device)
         
         for epoch in range(args.ft_epochs):
             for bidx, (source, targets) in enumerate(train_dl):
@@ -63,8 +222,7 @@ def finetune_decoder_layer(layer, name, device, train_dl, valid_dl, orig_dtype,
                 with torch.autocast(device_type='cuda',
                                     dtype=orig_dtype,
                                     enabled=True):
-                    output = layer(source.to(device),
-                                   position_ids=position_ids)[0]
+                    output = _forward_layer(source)
                     loss = nn.MSELoss()(output, targets)
                     
                     if args.ft_bpp_loss:
@@ -99,12 +257,19 @@ def finetune_decoder_layer(layer, name, device, train_dl, valid_dl, orig_dtype,
 
             if epoch % args.ft_valid_freq == (args.ft_valid_freq - 1):
                 if args.ft_bpp_loss:
-                    avg_mse, avg_bpp = utils.calculate_test_loss(layer, valid_dl, device)
+                    if is_gemma3:
+                        avg_mse, avg_bpp = _calculate_test_loss_local(
+                            valid_dl)
+                    else:
+                        avg_mse, avg_bpp = utils.calculate_test_loss(
+                            layer, valid_dl, device)
                     glog.info(
                         f'layer {name} @ epoch {epoch} mse {avg_mse:.4g} bpp {avg_bpp:.2f} w '
                     )   
                 else:
-                    test_loss = utils.calculate_mse_loss(layer, valid_dl, device)
+                    test_loss = _calculate_mse_loss_local(
+                        valid_dl) if is_gemma3 else utils.calculate_mse_loss(
+                            layer, valid_dl, device)
                     if test_loss < best_loss:
                         glog.info(
                             f'layer {name} @ epoch {epoch} new loss {test_loss} old loss {best_loss} BETTER'
@@ -160,48 +325,163 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
         in_hess_path = f'{args.in_hess_path}/{idx}_{in_hess_name}.pt'
         # in_hess_path = f'{args.in_hess_path}/lang_{idx}_{in_hess_name}.pt'
         args.in_hess_name = in_hess_name
-        try:
-            H_data = torch.load(in_hess_path, map_location=torch.device('cpu'))
-            HR = utils.flat_to_sym(H_data['flatH'], H_data['n'])
-            n_h = H_data['n']
-            if 'mu' in H_data:
-                mu = H_data['mu']
-                HR += mu[None, :] * mu[:, None]
-                del mu
-            del H_data
-            # HR = utils.regularize_H(HR, args.sigma_reg)
-            HR = utils.regularize_H2(HR, n_h, args.sigma_reg)
-        except:
-            HR = torch.eye(W.shape[1])
+        # try:
+        H_data = torch.load(in_hess_path, map_location=torch.device('cpu'))
+        HR = utils.flat_to_sym(H_data['flatH'], H_data['n'])
+        n_h = H_data['n']
+        if 'mu' in H_data:
+            mu = H_data['mu']
+            HR += mu[None, :] * mu[:, None]
+            del mu
+        del H_data
+        # HR = utils.regularize_H(HR, args.sigma_reg)
+        HR = utils.regularize_H2(HR, n_h, args.sigma_reg)
+        # except:
+        #     HR = torch.eye(W.shape[1])
         # comp_model.to(dtype_) ## TODO: check if this is needed
         args.layer_idx = idx
         args.layer_name = name
 
-        if args.handcraft_mode is not None:
-            glog.info(f'Using handcraft compression method {args.handcraft_mode}')
-            out, SU, SV, scaleWH, ft_result, optimize_out = handcraft.compress_linear(W.clone(), HR, args, 'cpu')
-        elif args.nic_model is not None:
-            out, SU, SV, scaleWH, ft_result, optimize_out = nic.compress_linear(W.clone(), comp_model, args, device = device)
-        else:
-            # glog.info(f'Using NWC compression method')
-            W, HR = W.to(device), HR.to(device) ## W_hat, HR 다 device에 있다고 가정
-            out = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+        # ===== helper: 1회 압축 실행 + metric 계산 =====
+        def _run_compress_and_eval(W0, HR0, norm_tag: str):
+            extras = {}
+            if args.handcraft_mode is not None:
+                glog.info(f'Using handcraft compression method {args.handcraft_mode}')
+                W_cpu = W0.detach().to('cpu')
+                HR_cpu = HR0.detach().to('cpu')
+                out = handcraft.compress_linear(W_cpu.clone(), HR_cpu, args, 'cpu')
+                W_dev, HR_dev = W_cpu, HR_cpu
 
-        glog.info(f'------------------------------------')
-        trWHW = torch.trace(W @ HR @ W.T)
-        hatWr = out['hatWr'].to(dtype_)
-        W_hat = utils.de_standardize_Wr(hatWr, out['metadata'], args)
-        assert torch.isnan(W_hat).any() == False
+            elif args.nic_model is not None:
+                W_dev = W0.detach().to(device)
+                HR_dev = HR0.detach().to(device)
+                out, ft_result = nic.compress_linear(W_dev.clone(), comp_model, args, device=device)
+            elif args.ecsq:
+                W_dev = W0.detach().to(device)
+                HR_dev = HR0.detach().to(device)
+                out = ecsq.uniform_ecsq_gpu(W_dev.clone(), HR_dev, args, device=device)
+            else:
+                W_dev = W0.detach().to(device)
+                HR_dev = HR0.detach().to(device)
+                out = nwc.compress_linear(W_dev.clone(), HR_dev, comp_model, ql, args, device)
+            # ===== metric 계산 =====
+            trWHW = torch.trace(W_dev @ HR_dev @ W_dev.T)
+            hatWr = out['hatWr'].to(dtype_)
+            W_hat = utils.de_standardize_Wr(hatWr, out['metadata'], args, comp_model)
+            assert torch.isnan(W_hat).any() == False
+            if W_hat.device != W_dev.device:
+                W_hat = W_hat.to(W_dev.device)
+
+            bpp_loss = out['bpp_loss']
+            bpp = out['bpp']
+            err = torch.trace((W_dev - W_hat) @ HR_dev @ ((W_dev - W_hat).T))
+            proxy_err = err / trWHW
+            mse = torch.mean((W_dev - W_hat) ** 2).item()
+
+            glog.info(
+                f'{idx}_{name} [{norm_tag}] optm proxy err {proxy_err.item():.5f} err {err.item():.3f} '
+                f'tr(WHW.T) {trWHW.item():.1f} bpp_loss {bpp_loss:.4f} bpp {bpp:.4f} mse {mse:.4g} '
+                f'(row_norm={args.row_normalize}, col_norm={args.col_normalize})'
+            )
+
+            return dict(
+                out=out,
+                W=W_dev,
+                W_hat=W_hat,
+                hatWr=hatWr,
+                HR=HR_dev,
+                proxy_err=float(proxy_err.item()),
+                err=float(err.item()),
+                trWHW=float(trWHW.item()),
+                bpp_loss=float(bpp_loss),
+                bpp=float(bpp),
+                mse=float(mse),
+                row_norm=bool(args.row_normalize),
+                col_norm=bool(args.col_normalize),
+            )
+
+        # ===== normalization_search 처리 =====
+        orig_row_norm = getattr(args, "col_normalize", False)
+        orig_col_norm = getattr(args, "col_normalize", False)
+
+        if args.normalization_search:
+            glog.info('normalization_search=True: try row-only vs col-only and pick smaller proxy_err')
+
+            candidates = [
+                ("row_only", True,  False),
+                ("col_only", False, True),
+            ]
+
+            best = None
+            for tag, rnorm, cnorm in candidates:
+                args.row_normalize = rnorm
+                args.col_normalize = cnorm
+
+                res = _run_compress_and_eval(W, HR, tag)
+
+                if (best is None) or (res["proxy_err"] < best["proxy_err"]):
+                    best = res
+
+            if best is None:
+                # 둘 다 실패하면 원래 설정으로 1회 실행
+                args.row_normalize = orig_row_norm
+                args.col_normalize = orig_col_norm
+                best = _run_compress_and_eval(W, HR, "fallback_orig")
+
+            # 선택된 설정을 args에 반영(이후 저장/로깅/후처리가 선택 결과 기준으로 진행됨)
+            args.row_normalize = best["row_norm"]
+            args.col_normalize = best["col_norm"]
+
+            out = best["out"]
+            W_hat = best["W_hat"]
+            hatWr = best["hatWr"]
+
+            glog.info(
+                f'normalization_search selected: row_norm={args.row_normalize}, col_norm={args.col_normalize}, '
+                f'proxy_err={best["proxy_err"]:.5f}'
+            )
+
+        else:
+            best = _run_compress_and_eval(W, HR, "single")
+
+            out = best["out"]
+            W_hat = best["W_hat"]
+            hatWr = best["hatWr"]
+
+        glog.info('------------------------------------')
+        # (여기 아래는 기존 후처리/저장 로직을 그대로 두시면, 선택된 out이 사용됩니다)
+        glog.info('------------------------------------')
+
+            
+        # if args.handcraft_mode is not None:
+        #     glog.info(f'Using handcraft compression method {args.handcraft_mode}')
+        #     out = handcraft.compress_linear(W.clone(), HR, args, 'cpu')
+        # elif args.nic_model is not None:
+        #     out, ft_result = nic.compress_linear(W.clone(), comp_model, args, device = device)
+        # elif args.ecsq:
+        #     # out = ecsq.uniform_ecsq(W.clone(), HR, args, device = device)
+        #     out = ecsq.uniform_ecsq_gpu(W.clone(), HR, args, device = device)
+        #     W, HR = W.to(device), HR.to(device) ## W_hat, HR 다 device에 있다고 가정
+        # else:
+        #     # glog.info(f'Using NWC compression method')
+        #     W, HR = W.to(device), HR.to(device) ## W_hat, HR 다 device에 있다고 가정
+        #     out = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+
+        # glog.info(f'------------------------------------')
+        # trWHW = torch.trace(W @ HR @ W.T)
+        # hatWr = out['hatWr'].to(dtype_)
+        # W_hat = utils.de_standardize_Wr(hatWr, out['metadata'], args, comp_model)
+        # assert torch.isnan(W_hat).any() == False
         
-        bpp_loss = out['bpp_loss']
-        bpp = out['bpp']        
-        err = torch.trace((W - W_hat) @ HR @ ((W - W_hat).T))
-        proxy_err =  err / trWHW
-        mse =  torch.mean((W - W_hat) ** 2).item()        
-        glog.info(
-            f'{idx}_{name} optm proxy err {proxy_err.item():.5f} err {err.item():.3f} tr(WHW.T) {trWHW.item():.1f} bpp_loss {bpp_loss:.4f} bpp {bpp:.4f} mse {mse:.4g}'
-        )
-        glog.info(f'------------------------------------')
+        # bpp_loss = out['bpp_loss']
+        # bpp = out['bpp']        
+        # err = torch.trace((W - W_hat) @ HR @ ((W - W_hat).T))
+        # proxy_err =  err / trWHW
+        # mse =  torch.mean((W - W_hat) ** 2).item()        
+        # glog.info(
+        #     f'{idx}_{name} optm proxy err {proxy_err.item():.5f} err {err.item():.3f} tr(WHW.T) {trWHW.item():.1f} bpp_loss {bpp_loss:.4f} bpp {bpp:.4f} mse {mse:.4g}'
+        # )
+        # glog.info(f'------------------------------------')
 
         metadata = out['metadata']
          # if args.ft_comp_model2 and args.layer_name in ['v', 'o', 'k', 'q']:
@@ -314,12 +594,13 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
                 'W_hat': W_hat if not args.use_codes else None,
                 'hatWr': hatWr if not args.use_codes else None,
                 'codes': out['codes'],
-                'bpp_loss': bpp_loss,
-                'bpp': bpp,
-                'proxy_err': proxy_err.item(),
-                'err': err.item(),
-                'tr(WHW.T)': trWHW.item(),
-                'mse': mse,
+                'bpp_loss': best['bpp_loss'],
+                'bpp': best['bpp'],
+                'proxy_err': best['proxy_err'],
+                'err': best['err'],
+                'tr(WHW.T)': best['trWHW'],
+                'mse': best['mse'],
+                'mse_normed': out['mse_normed'].item() if isinstance(out['mse_normed'], torch.Tensor) else out['mse_normed'],
                 'bpp_sum': out['bpp_sum'],
                 'bpp_loss_sum': out['bpp_loss_sum'],
                 'direction': args.direction,

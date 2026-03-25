@@ -127,6 +127,7 @@ class bitshift_codebook(nn.Module):
                     tlut = torch.erfinv((torch.arange(1 << tlut_bits) + 0.5) /
                                         (1 << tlut_bits) * 2 -
                                         1) * torch.tensor(2.0).sqrt()
+                    # tlut = tlut.unsqueeze(-1) ## ryu
                 elif V == 2:
                     n = 2**tlut_bits
                     tlut = torch.zeros(n)
@@ -136,7 +137,8 @@ class bitshift_codebook(nn.Module):
                         dim=-1)
                 else:
                     raise Exception
-                self.register_buffer('tlut', tlut.unsqueeze(-1))
+                self.register_buffer('tlut', tlut.unsqueeze(-1)) 
+                # self.register_buffer('tlut', tlut) ## ryu
                 self.register_buffer(
                     'lut',
                     quantlut(self.tlut, L, tlut_bits).T.contiguous())
@@ -156,6 +158,20 @@ class bitshift_codebook(nn.Module):
                         tlut = torch.tensor(clusters[0])
                         tlut = (tlut /
                                 tlut.std(unbiased=False)) * 0.9682458365518543
+                        torch.save(tlut, fname)
+                    else:
+                        tlut = torch.load(fname)
+                elif V == 1: ## ryu
+                    fname = f'/tmp/kmeans_{tlut_bits}_{V}.pt'
+                    if not os.path.exists(fname):
+                        # 1. 초기 Centroid 설정 (Shape: [N, 1])
+                        tlut = torch.randn(2**tlut_bits, 1)
+                        import scipy
+                        # 2. 1차원 가우시안 데이터 생성 (Shape: [100만, 1])
+                        data = torch.randn(1 << 20, 1)
+                        clusters = scipy.cluster.vq.kmeans(data.numpy(), tlut)
+                        tlut = torch.tensor(clusters[0])
+                        tlut = (tlut / tlut.std(unbiased=False)) 
                         torch.save(tlut, fname)
                     else:
                         tlut = torch.load(fname)

@@ -5,23 +5,24 @@
 
 # 실험을 수행할 모델 목록 (아래 'MODEL CONFIGURATION'에 정의된 이름 사용)
 MODELS_TO_RUN=(
-    "mixtral"
+    # "mixtral"
     # "qwen3moe"
+    "gptoss"
 )
 
 # 각 모델에 대해 수행할 실험 타입 목록 ('ft', 'noft')
 EXP_TYPES_TO_RUN=(
-    # "noft"
-    "ft1"
+    # "ft1"
+    "noft"
 )
 
 CKPT="../hf_model_comp/qtip/ckpt"
 HF="../hf_model_comp/qtip/hf"
 LOG="./log"
-RES="../hf_model_comp_results/qtip"
+RES="../hf_model_comp_results_v2/qtip"
 
 # --- 환경 변수 설정 ---
-export CUDA_VISIBLE_DEVICES=2,3
+export CUDA_VISIBLE_DEVICES=0,1
 export WANDB_SILENT=true
 export HF_HOME=/home/jgryu/.cache/huggingface
 # export HF_HOME=/workspace/Weight_compression/hf_cache/
@@ -35,12 +36,14 @@ declare -A MODEL_PATHS
 MODEL_PATHS=(
     ["mixtral"]="mistralai/Mixtral-8x7B-v0.1"
     ["qwen3moe"]="/workspace/Weight_compression/Wparam_dataset/hf_model/models--Qwen--Qwen3-30B-A3B/snapshots/ad44e777bcd18fa416d9da3bd8f70d33ebb85d39"
+    ["gptoss"]="openai/gpt-oss-20b"
 )
 
 declare -A HESS_PATHS
 HESS_PATHS=(
-    ["mixtral"]="/home/jgryu/workspace/weight_compression/Wparam_dataset/quip_hess/Mixtral-8x7B-v0.1_256"
+    ["mixtral"]="/home/jgryu/workspace/weight_compression/Wparam_dataset/quip_hess/Mixtral-8x7B-v0.1_1024"
     ["qwen3moe"]="../Wparam_dataset/quip_hess/Qwen3-30B-A3B"
+    ["gptoss"]="/home/jgryu/workspace/weight_compression/Wparam_dataset/quip_hess/gpt-oss-20b_1024"
 )
 
 ##########################################################################
@@ -69,10 +72,10 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
         echo "           Running Experiment Type: [$exp_type]"
         echo "------------------------------------------------------------"
 
-        for K in 5; do
+        for K in 3 4 5 6 7; do
             NAME="${model_key}/${exp_type}/${K}bit"
             SAVE_PATH="$CKPT/$NAME"
-            LOG_FILE="${LOG}/${NAME}_eval3.log"
+            LOG_FILE="${LOG}/${NAME}.log"
             HF_PATH="$HF/${NAME}_hf_form"
             # PTH_PATH="../complexity_test/8b_qtip_${exp_type}_${K}bit.pth"
 
@@ -88,6 +91,7 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
             #     --scale_override 0.9 \
             #     --ft_epochs $ft_epochs \
             #     --td_x 16 --td_y 16 --L 16 --K $K --V 2 \
+            #     --batch_size 4 --ft_bs 1 \
             #     --decode_mode quantlut_sym --tlut_bits 9 2>&1 | tee -a $LOG_FILE
 
             if [ "$K" -ge 1 ]; then
@@ -108,7 +112,7 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
             #     --quantized_path $SAVE_PATH \
             #     --hf_output_path $HF_PATH \
             #     --base_model $base_model \
-                # 2>&1 | tee -a $LOG_FILE
+            #     2>&1 | tee -a $LOG_FILE
 
             MANIFEST_FLAG=""
             if [ "$K" -ge 1 ]; then
@@ -123,11 +127,9 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
                 $MANIFEST_FLAG 2>&1 | tee -a "$LOG_FILE"
                 # --max_mem_ratio 0.2 \
 
-
             echo "### [Stage: Eval Zero-shot | K=$K] ###" | tee -a "$LOG_FILE"
             python -m eval.eval_zeroshot \
                 --tasks arc_challenge,arc_easy,boolq,piqa,winogrande,hellaswag,mmlu \
-                --batch_size 4 \
                 --hf_path "${HF_PATH}" \
                 --output_path "${RES}/${NAME}_common_mmlu" \
                 $MANIFEST_FLAG 2>&1 | tee -a "$LOG_FILE"

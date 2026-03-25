@@ -29,19 +29,57 @@ def get_datasets(args):
         train_dataset, test_dataset, train_std, test_std = get_datasets_block_seq_scale_cond(args.dataset_path, args.input_size, args)
     elif args.dataset != None and args.dataset.startswith('block_seq_scale_cond_uniform'):
         train_dataset, test_dataset, train_std, test_std = get_datasets_block_seq_scale_cond(args.dataset_path, args.input_size, args, True, args.uniform_scale_max)
-    elif args.dataset2 == '8b_cnormed_col1024_seq_ql_random':
+    else:
         assert args.dataset == None
         assert args.dataset_path == None
+
+    if args.dataset2 == '8b_cnormed_col1024_seq_ql_random':
         train_dataset, test_dataset, train_std, test_std = get_datasets_8b_cnormed_col1024_seq_ql_random(args.input_size, args.Q, args)
+    elif args.dataset2 == '8b_rnormed_patch1024_16_ql_random':
+        train_dataset, test_dataset, train_std, test_std = get_datasets_8b_rnormed_patch1024_16_ql_random(args.input_size, args.Q, args)
+    elif args.dataset2 == '8b_patch1024_16_ql_random':
+        train_dataset, test_dataset, train_std, test_std = get_datasets_8b_patch1024_16_ql_random(args.input_size, args.Q, args)
     return train_dataset, test_dataset, train_std, test_std
 
 
 def get_datasets_8b_cnormed_col1024_seq_ql_random(input_size, Q, args, return_idx_ltype=False):
     from .datasets_weight_block_seq_qlevel_random import Weight_Vector_Dataset
     
-    data, dataset_stats = get_cnormed_weight_from_hf('/home/jgryu/workspace/weight_compression/Wparam_dataset/hf_model/meta-llama--Meta-Llama-3-8B', 'col', 1024)
+    data, dataset_stats = get_normed_weight_from_hf(
+        '/home/jgryu/workspace/weight_compression/Wparam_dataset/hf_model/meta-llama--Meta-Llama-3-8B', 
+        'col', 1024, 'col')
 
     train_dataset = Weight_Vector_Dataset(data["train"], dataset_stats["train"], input_size, Q, args, return_idx_ltype = return_idx_ltype)
     valid_dataset = Weight_Vector_Dataset(data["val"], dataset_stats["val"], input_size, Q, args, split='val', return_idx_ltype=return_idx_ltype)
+
+    return train_dataset, valid_dataset, dataset_stats["train"]["std"], dataset_stats["val"]["std"]
+
+def get_datasets_8b_rnormed_patch1024_16_ql_random(input_size, Q, args, return_idx_ltype=False):
+    from .datasets_weight_patch_qlevel_random import Weight_Patch_Dataset
+    
+    data, dataset_stats = get_normed_patch_weight_from_hf(
+        hf_path ='/home/jgryu/workspace/weight_compression/Wparam_dataset/hf_model/meta-llama--Meta-Llama-3-8B', 
+        direction = 'row', 
+        L = 1024, 
+        I = 16,
+        normalize = 'row')
+
+    train_dataset = Weight_Patch_Dataset(data["train"], dataset_stats["train"], input_size, Q, args, return_idx_ltype = return_idx_ltype)
+    valid_dataset = Weight_Patch_Dataset(data["val"], dataset_stats["val"], input_size, Q, args, split='val', return_idx_ltype=return_idx_ltype)
+
+    return train_dataset, valid_dataset, dataset_stats["train"]["std"], dataset_stats["val"]["std"]
+
+def get_datasets_8b_patch1024_16_ql_random(input_size, Q, args, return_idx_ltype=False):
+    from .datasets_weight_patch_qlevel_random import Weight_Patch_Dataset
+    
+    data, dataset_stats = get_normed_patch_weight_from_hf(
+        hf_path ='/home/jgryu/workspace/weight_compression/Wparam_dataset/hf_model/meta-llama--Meta-Llama-3-8B', 
+        direction = 'row', 
+        L = 1024, 
+        I = 16,
+        normalize = None)
+
+    train_dataset = Weight_Patch_Dataset(data["train"], dataset_stats["train"], input_size, Q, args, return_idx_ltype = return_idx_ltype)
+    valid_dataset = Weight_Patch_Dataset(data["val"], dataset_stats["val"], input_size, Q, args, split='val', return_idx_ltype=return_idx_ltype)
 
     return train_dataset, valid_dataset, dataset_stats["train"]["std"], dataset_stats["val"]["std"]

@@ -59,14 +59,23 @@ def check_exist_mixtral(idx, args, model_config):
     """Mixtral 레이어에 필요한 모든 파일이 존재하는지 확인"""
     suffix = ['q', 'k', 'v', 'o', 'layernorm']
     suffix.append('gate')
+    
+    model_type = getattr(model_config, 'model_type', '').lower()
+    is_gpt_oss = 'gpt_oss' in model_type
+    
     if hasattr(model_config, 'num_local_experts'):
-        # num_experts = model_config.num_local_experts
         num_experts = getattr(model_config, 'num_local_experts', getattr(model_config, 'num_experts', 0))
         
         for i in range(num_experts):
-            suffix.append(f'expert{i}_w1')
-            suffix.append(f'expert{i}_w2')
-            suffix.append(f'expert{i}_w3')
+            if is_gpt_oss:
+                # GPT-OSS는 gate_up(w1+w3)과 down(w2)만 존재
+                suffix.append(f'expert{i}_gate_up')
+                suffix.append(f'expert{i}_down')
+            else:
+                # Mixtral/Qwen 등은 w1, w2, w3 존재
+                suffix.append(f'expert{i}_w1')
+                suffix.append(f'expert{i}_w2')
+                suffix.append(f'expert{i}_w3')
     else:
         glog.warning("model_config에 num_local_experts가 없습니다.")
         return False
@@ -105,6 +114,7 @@ def quantize_moe_decoder(layer, idx, cb, args, device, pre_orig_emb,
     # 2. MoE Layers (모델 타입별 분기)
     model_type = model_config.model_type.lower()
     is_qwen = 'qwen' in model_type
+    is_gpt_oss = 'gpt_oss' in model_type # [수정] GPT-OSS 플래그 추가
     
     if is_qwen:
         # Qwen: layer.mlp.experts.{i}.[gate_proj, up_proj, down_proj]
@@ -112,38 +122,49 @@ def quantize_moe_decoder(layer, idx, cb, args, device, pre_orig_emb,
         expert_prefix = 'mlp.experts'
         # Qwen 실제 레이어 이름 매핑 (w1: gate, w3: up, w2: down)
         layer_name_map = {'w1': 'gate_proj', 'w3': 'up_proj', 'w2': 'down_proj'}
+        expert_layers_config = [
+            ('w1', 'w3', 'col'), # w1 uses w3 hessian
+            ('w3', 'w3', 'col'),
+            ('w2', 'w2', 'row')
+        ]
+        gate_thing = (gate_module_name, 'gate', 'gate', 'gate', 'col')
+        
+    elif is_gpt_oss:
+        # GPT-OSS 경로 매핑
+        gate_module_name = 'mlp.router.gate'      # GptOssMLP -> GptOssTopKRouter -> gate
+        expert_prefix = 'mlp.experts.experts'     # GptOssMLP -> GptOssExperts -> experts (List)
+        layer_name_map = {'gate_up': 'gate_up_proj', 'down': 'down_proj'}
+        expert_layers_config = [
+            ('gate_up', 'gate_up', 'col'), # gate_up_proj
+            ('down', 'down', 'row')        # down_proj
+        ]
+        gate_thing = (gate_module_name, 'gate', 'router', 'gate', 'col')
     else:
         # Mixtral: layer.block_sparse_moe.experts.{i}.[w1, w3, w2]
         gate_module_name = 'block_sparse_moe.gate'
         expert_prefix = 'block_sparse_moe.experts'
-        # Mixtral 실제 레이어 이름 매핑
         layer_name_map = {'w1': 'w1', 'w3': 'w3', 'w2': 'w2'}
+        expert_layers_config = [
+            ('w1', 'w3', 'col'),
+            ('w3', 'w3', 'col'),
+            ('w2', 'w2', 'row')
+        ]
+        gate_thing = (gate_module_name, 'gate', 'gate', 'gate', 'col')
 
     # (1) Router Gate
-    gate_thing = (gate_module_name, 'gate', 'gate', 'gate', 'col')
+    # gate_thing = (gate_module_name, 'gate', 'gate', 'gate', 'col')
     if f'{idx}_{gate_thing[1]}' not in skip_list:
         quant_order.append(gate_thing)
     else:
         attrgetter(gate_thing[0])(layer).weight.requires_grad = False
         print(f'skipping {idx}_{gate_thing[1]}')
-        
-# (3) Experts Loop (간소화됨)
-    # 처리할 레이어 목록: (논리적 이름, Hessian 소스 이름, RCP 타입)
-    # w1(gate)은 w3(up)의 Hessian을 공유합니다.
-    expert_layers_config = [
-        ('w1', 'w3', 'col'), # w1 uses w3 hessian
-        ('w3', 'w3', 'col'),
-        ('w2', 'w2', 'row')
-    ]
 
     # num_experts = model_config.num_local_experts
     num_experts = getattr(model_config, 'num_local_experts', getattr(model_config, 'num_experts', 0))
     for i in range(num_experts):
         for logical_name, hess_src, rcp in expert_layers_config:
             
-            # 실제 레이어 속성 이름 (예: gate_proj 또는 w1)
             attr_name = layer_name_map[logical_name]
-            # 전체 모듈 경로 (예: mlp.experts.0.gate_proj)
             full_module_name = f"{expert_prefix}.{i}.{attr_name}"
             
             # 저장 키 및 Hessian 키 (예: expert0_w1, expert0_w3)
@@ -179,13 +200,15 @@ def main(args):
                                     V=args.V,
                                     tlut_bits=args.tlut_bits,
                                     decode_mode=args.decode_mode)
+    from lib.utils import model_from_hf_path_gptoss
+    model, model_str = model_from_hf_path_gptoss(args.base_model, 
+                                        device_map='cpu', 
+                                        gptoss_replace_version = 'v1.1')
     
-    # [통합] AutoModelForCausalLM 사용
-    # MixtralForCausalLM, Qwen3MoeForCausalLM 등을 자동으로 로드
-    model = AutoModelForCausalLM.from_pretrained(args.base_model,
-                                                 torch_dtype='auto',
-                                                 low_cpu_mem_usage=True,
-                                                 trust_remote_code=True) # Qwen 등 최신 모델을 위해 권장
+    # model = AutoModelForCausalLM.from_pretrained(args.base_model,
+    #                                              torch_dtype='auto',
+    #                                              low_cpu_mem_usage=True,
+    #                                              trust_remote_code=True) # Qwen 등 최신 모델을 위해 권장
 
     glog.info(f"Loaded model type: {model.config.model_type}")
 
@@ -273,8 +296,8 @@ def main(args):
 
         # Qwen 모델인 경우에만 position_embeddings 계산 및 추가
         rotary_emb = None
-        if "qwen" in all_config['model_config'].model_type.lower():
-            # rotary_emb 호출 (Qwen 전용)
+        model_type_lower = all_config['model_config'].model_type.lower()
+        if "qwen" in model_type_lower or "gpt_oss" in model_type_lower:
             position_embeddings = model.model.rotary_emb(
                 orig_emb_cache[cur_device][0:1].to(cur_device), 
                 position_ids

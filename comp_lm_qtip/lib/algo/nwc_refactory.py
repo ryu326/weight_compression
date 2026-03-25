@@ -20,6 +20,7 @@ import wandb
 from NWC.loss import get_loss_fn
 import glog
 import time
+from einops import rearrange
 
 def compress_linear(W, H, comp_model, Qlevel, args, device='cpu'):
 
@@ -30,24 +31,41 @@ def compress_linear(W, H, comp_model, Qlevel, args, device='cpu'):
     
     W = W.to(device)
     H = H.to(device)
-    if torch.cuda.is_available():
-        torch.cuda.synchronize()
-    start_time = time.time()
+
+    # === NaN/Inf 체크: HR(H) ===
+    if not torch.isfinite(H).all():
+        glog.error(f"[NaN] HR not finite: layer={args.layer_idx} name={args.layer_name} "
+                   f"min={H.min().item()} max={H.max().item()}")
+        # 필요하면 조기 중단
+        # raise ValueError("HR has NaN/Inf")
+
+    # standardize_W 이후 qlevel 체크는 아래에서
+
+        # 필요하면 조기 중단
     
-    Wr, Hr, metadata = utils.standardize_W(W, H, args, device)
-    if args.col_normalize or args.row_normalize or args.row_normalize2 or args.layer_normalize:
-        # comp_model.scale = torch.tensor(1).to(device)
-        # comp_model.shift = torch.tensor(0).to(device)
-        try:
-            comp_model.scale.copy_(torch.tensor(1))
-            comp_model.shift.copy_(torch.tensor(0))
-        except:
-            pass
+    Wr, Hr, metadata = utils.standardize_W(W, H, args, device, comp_model)
+
+    # if args.col_normalize or args.row_normalize or args.row_normalize2 or args.layer_normalize:
+    #     # comp_model.scale = torch.tensor(1).to(device)
+    #     # comp_model.shift = torch.tensor(0).to(device)
+    #     try:
+    #         comp_model.scale.copy_(torch.tensor(1))
+    #         comp_model.shift.copy_(torch.tensor(0))
+    #     except:
+    #         pass
+    glog.info(f'scale: {comp_model.scale} shift: {comp_model.shift}')
     if Qlevel is None:
         if args.ql or args.ql_invH:
             Qlevel = utils.get_ql_from_H(Hr, comp_model, args).to(device)
             if args.ql_search:
                 assert torch.all(Qlevel == Qlevel[0]), "Qlevel의 모든 값이 동일하지 않습니다."
+
+    # === NaN/Inf 체크: qlevel ===
+    if Qlevel is not None and not torch.isfinite(Qlevel.float()).all():
+        glog.error(f"[NaN] qlevel not finite: layer={args.layer_idx} name={args.layer_name} "
+                   f"min={Qlevel.min().item()} max={Qlevel.max().item()}")
+        # raise ValueError("qlevel has NaN/Inf")
+
     
     metadata['qlevel'] = Qlevel  
 
@@ -60,9 +78,9 @@ def compress_linear(W, H, comp_model, Qlevel, args, device='cpu'):
     
     if torch.cuda.is_available():
         torch.cuda.synchronize()
-    end_time = time.time()
-    elapsed_time = end_time - start_time
-    glog.info(f"Total Compression Time: {elapsed_time*1000:.4f} ms")
+    # end_time = time.time()
+    # elapsed_time = end_time - start_time
+    # glog.info(f"Total Compression Time: {elapsed_time*1000:.4f} ms")
     
     assert torch.isnan(res['hatWr']).any() == False
     
@@ -87,6 +105,10 @@ def compress_linear(W, H, comp_model, Qlevel, args, device='cpu'):
     for key in bpp_keys:
         if res.get(key) is not None:
             res[key] += total_metadata_bpp
+    
+    mse =  torch.mean((Wr - res['hatWr']) ** 2).item()        
+    res['mse_normed'] = mse/comp_model.scale.item() 
+    # res['mse_normed'] = mse
     
     utils.clean()
     return res
@@ -115,7 +137,8 @@ def comp_W(W, H, model, args, **kwargs):
     
     if args.ldlq:
         bs = 128 if args.comp_batch_size == -1 else args.comp_batch_size
-        ldl_bs = 128 if args.comp_batch_size < 128 else args.comp_batch_size
+        # ldl_bs = 128 if args.comp_batch_size < 128 else args.comp_batch_size
+        ldl_bs = 128 if args.comp_batch_size == -1 else args.comp_batch_size
         L, D = block_LDL(H, ldl_bs)
         assert n % bs == 0
     
@@ -133,6 +156,14 @@ def comp_W(W, H, model, args, **kwargs):
         x_hat, n_pixels, bpp_loss_, out, out_enc, nbits, in_data = model_foward_one_batch(w.clone(), model, args, ql = ql, sc = sc)
         if args.ft_y:
             y_list.append((out['y'], s, e))
+
+        # glog.info(f"Debug w: {w}")
+        # glog.info(f"Debug x_hat: {x_hat}")
+        # glog.info(f"Debug ql: {ql}")
+        # breakpoint()
+        # print(w)
+        # print(x_hat)
+        # sys.exit()
 
         codes.append(out_enc)
         bpp_sum += nbits
@@ -196,33 +227,39 @@ def model_foward_one_batch(w, model, args, one_batch = True, **kwargs):
     (m, n) = w.shape if w is not None else kwargs.get('shape', None)
     
     blks = model.input_size
+    
+    # if w is not None and not torch.isfinite(w).all():
+    #     glog.error(f"[NaN] w input not finite: layer={args.layer_idx} name={args.layer_name}")
+
     # assert (m if args.direction == 'col' else n) % blks == 0
     original_m, original_n = m, n
     pad_len = 0    
-    if args.direction == 'col':
-        # Col 방향일 때는 m(행)이 blks의 배수여야 함
-        if m % blks != 0:
-            pad_len = blks - (m % blks)
-            # w shape: (m, n) -> pad bottom rows: (last_dim_left, last_dim_right, 2nd_last_left, 2nd_last_right)
-            # (0, 0, 0, pad_len)
-            if w is not None:
-                w = F.pad(w, (0, 0, 0, pad_len))
-            m = m + pad_len  # m 업데이트
-    else:
-        # Row 방향일 때는 n(열)이 blks의 배수여야 함
-        if n % blks != 0:
-            pad_len = blks - (n % blks)
-            # w shape: (m, n) -> pad right cols
-            if w is not None:
-                w = F.pad(w, (0, pad_len))
-            n = n + pad_len  # n 업데이트
-    
+    # if args.direction == 'col':
+    #     # Col 방향일 때는 m(행)이 blks의 배수여야 함
+    #     if m % blks != 0:
+    #         pad_len = blks - (m % blks)
+    #         # w shape: (m, n) -> pad bottom rows: (last_dim_left, last_dim_right, 2nd_last_left, 2nd_last_right)
+    #         # (0, 0, 0, pad_len)
+    #         if w is not None:
+    #             w = F.pad(w, (0, 0, 0, pad_len))
+    #         m = m + pad_len  # m 업데이트
+    # else:
+    #     # Row 방향일 때는 n(열)이 blks의 배수여야 함
+    #     if n % blks != 0:
+    #         pad_len = blks - (n % blks)
+    #         # w shape: (m, n) -> pad right cols
+    #         if w is not None:
+    #             w = F.pad(w, (0, pad_len))
+    #         n = n + pad_len  # n 업데이트
     
     sc = kwargs.get('sc', None)  # (1, n)
     sc = sc.repeat(m, 1) if sc is not None else None #(m, n)
     
     if ql is not None:
-        ql = ql.reshape(1, n).expand(m//blks, n)
+        if args.patch:
+            ql = ql.reshape(n//blks, blks)  #(n/blks, blks)
+        else:
+            ql = ql.reshape(1, n).expand(m//blks, n)
     elif args.ql_search_value is not None:
         ql = torch.full((m//blks, n), args.ql_search_value, dtype=torch.int32, device=w.device)
     
@@ -234,7 +271,14 @@ def model_foward_one_batch(w, model, args, one_batch = True, **kwargs):
     
     data = {}
     if w is not None:
-        if one_batch:
+        if args.patch:
+            w = rearrange(
+                w, 
+                '(h p1) (w p2) -> (h w) p1 p2', 
+                p1=w.shape[0], 
+                p2=blks
+            )
+        elif one_batch:
             w = w.reshape(1, -1, blks)
         else:
             w = w.reshape(w.shape[0], -1, blks)
@@ -242,10 +286,13 @@ def model_foward_one_batch(w, model, args, one_batch = True, **kwargs):
     # assert torch.isnan(w).any() == False
     
     if ql is not None:
-        if one_batch:
+        if args.patch:
+            data['q_level'] = ql
+        elif one_batch:
             data['q_level'] = ql.reshape(1, m*n//blks)
         else:
             data['q_level'] = ql.reshape(ql.shape[0], m//blks)[:, 0:1]
+            
     # if qm is not None:
     #     data['qmap'] = qm.reshape(1, w.shape[1])
     if hasattr(model, 'pe') and model.pe:
@@ -287,6 +334,9 @@ def model_foward_one_batch(w, model, args, one_batch = True, **kwargs):
         else:
             out = model(data)
         w_hat = out['x_hat']
+        
+        # if not torch.isfinite(w_hat).all():
+        #     glog.error(f"[NaN] w_hat not finite: layer={args.layer_idx} name={args.layer_name}")
             
         if "likelihoods" in out:
             if isinstance(out["likelihoods"], dict):
@@ -305,17 +355,25 @@ def model_foward_one_batch(w, model, args, one_batch = True, **kwargs):
     #     w_hat = w_hat.reshape(m, n)
     
     # --- [수정 시작] Unpadding Logic ---
-    if args.direction == 'col':
-        # 현재 w_hat은 (n, m) 형태 (padding 포함)
-        w_hat = w_hat.reshape(n, m).transpose(0, 1).contiguous()
-        # 복원된 w_hat은 (m, n). 여기서 m은 패딩된 크기.
-        if pad_len > 0:
-            w_hat = w_hat[:original_m, :]
+    if args.patch:
+        w_hat = rearrange(
+            w_hat, 
+            '(h w) p1 p2 -> (h p1) (w p2)', 
+            h=1,
+            p2=blks
+        )
+        w_hat = w_hat.T if (w_hat is not None and transpose) else w_hat
     else:
-        w_hat = w_hat.reshape(m, n)
-        if pad_len > 0:
-            w_hat = w_hat[:, :original_n]
-    # --- [수정 끝] ---
+        if args.direction == 'col':
+            # 현재 w_hat은 (n, m) 형태 (padding 포함)
+            w_hat = w_hat.reshape(n, m).transpose(0, 1).contiguous()
+            # 복원된 w_hat은 (m, n). 여기서 m은 패딩된 크기.
+            # if pad_len > 0:
+            #     w_hat = w_hat[:original_m, :]
+        else:
+            w_hat = w_hat.reshape(m, n)
+            # if pad_len > 0:
+            #     w_hat = w_hat[:, :original_n]
 
     # if args.use_codes:
     #     del out_dec['x_hat']
@@ -327,7 +385,7 @@ def model_foward_one_batch(w, model, args, one_batch = True, **kwargs):
 
 def block_LDL(H, b, check_nan=True):
     n = H.shape[0]
-    assert (n % b == 0)
+    assert (n % b == 0), f"오류 발생: 행렬 크기({n})가 블록 크기({b})로 나누어 떨어지지 않습니다."
     m = n // b
     # try:
     #     L = torch.linalg.cholesky(H)

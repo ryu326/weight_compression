@@ -1,13 +1,38 @@
+##### GPU 0 #######
+(lmbdas=(30)
+for lmbda in "${lmbdas[@]}"; do
+    echo "=== Running with λ=${lmbda} ==="
+    CUDA_VISIBLE_DEVICES=0  python -u train_nwc.py \
+        --architecture nwc_ql  --dataset block_seq_ql_random \
+        --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
+        --iter 200000 --input_size 64 --M 64 --Q 4 --dim_encoder 2048 --batch_size 2048 \
+        --loss rdloss_ql \
+        --lmbda $lmbda
+done
+) > ./logs/run0.log 2>&1 &
+
+####### GPU 1 #######
+(lmbdas=(50)
+for lmbda in "${lmbdas[@]}"; do
+    echo "=== Running with λ=${lmbda} ==="
+    CUDA_VISIBLE_DEVICES=1  python -u train_nwc.py \
+        --architecture nwc_ql  --dataset block_seq_ql_random \
+        --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
+        --iter 200000 --input_size 64 --M 64 --Q 4 --dim_encoder 2048 --batch_size 2048 \
+        --loss rdloss_ql \
+        --lmbda $lmbda
+done
+) > ./logs/run1.log 2>&1 &
+
 ####### GPU 2 #######
-(lmbdas=(300)
+(lmbdas=(75)
 for lmbda in "${lmbdas[@]}"; do
     echo "=== Running with λ=${lmbda} ==="
     CUDA_VISIBLE_DEVICES=2  python -u train_nwc.py \
-        --architecture nwc_ql  --dataset2 8b_cnormed_col1024_seq_ql_random \
-        --iter 200000 --input_size 16 --M 16 --Q 4 --dim_encoder 512 --batch_size 2048 \
+        --architecture nwc_ql  --dataset block_seq_ql_random \
+        --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
+        --iter 200000 --input_size 64 --M 64 --Q 4 --dim_encoder 2048 --batch_size 2048 \
         --loss rdloss_ql \
-        --no_layernorm \
-        --run_name noLN_cnormed \
         --lmbda $lmbda
 done
 ) > ./logs/run2.log 2>&1 &
@@ -17,70 +42,139 @@ done
 for lmbda in "${lmbdas[@]}"; do
     echo "=== Running with λ=${lmbda} ==="
     CUDA_VISIBLE_DEVICES=3  python -u train_nwc.py \
-        --architecture nwc_ql  --dataset2 8b_cnormed_col1024_seq_ql_random \
-        --iter 200000 --input_size 16 --M 16 --Q 4 --dim_encoder 512 --batch_size 2048 \
+        --architecture nwc_ql  --dataset block_seq_ql_random \
+        --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
+        --iter 200000 --input_size 64 --M 64 --Q 4 --dim_encoder 2048 --batch_size 2048 \
         --loss rdloss_ql \
-        --no_layernorm \
-        --run_name noLN_cnormed \
         --lmbda $lmbda
 done
 ) > ./logs/run3.log 2>&1 &
 
 ####### GPU 4 #######
-(lmbdas=(30)
+(lmbdas=(300)
 for lmbda in "${lmbdas[@]}"; do
     echo "=== Running with λ=${lmbda} ==="
     CUDA_VISIBLE_DEVICES=4  python -u train_nwc.py \
-        --architecture nwc_ql  --dataset2 8b_cnormed_col1024_seq_ql_random \
-        --iter 200000 --input_size 16 --M 16 --Q 4 --dim_encoder 512 --batch_size 2048 \
+        --architecture nwc_ql  --dataset block_seq_ql_random \
+        --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
+        --iter 200000 --input_size 64 --M 64 --Q 4 --dim_encoder 2048 --batch_size 2048 \
         --loss rdloss_ql \
-        --no_layernorm \
-        --run_name noLN_cnormed \
         --lmbda $lmbda
 done
 ) > ./logs/run4.log 2>&1 &
 
 ####### GPU 5 #######
-(lmbdas=(50)
+(lmbdas=(1000)
 for lmbda in "${lmbdas[@]}"; do
     echo "=== Running with λ=${lmbda} ==="
     CUDA_VISIBLE_DEVICES=5  python -u train_nwc.py \
-        --architecture nwc_ql  --dataset2 8b_cnormed_col1024_seq_ql_random \
-        --iter 200000 --input_size 16 --M 16 --Q 4 --dim_encoder 512 --batch_size 2048 \
+        --architecture nwc_ql  --dataset block_seq_ql_random \
+        --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
+        --iter 200000 --input_size 64 --M 64 --Q 4 --dim_encoder 2048 --batch_size 2048 \
         --loss rdloss_ql \
-        --no_layernorm \
-        --run_name noLN_cnormed \
         --lmbda $lmbda
 done
 ) > ./logs/run5.log 2>&1 &
 
 ####### GPU 6 #######
-(lmbdas=(1000)
+(lmbdas=(10000)
 for lmbda in "${lmbdas[@]}"; do
     echo "=== Running with λ=${lmbda} ==="
     CUDA_VISIBLE_DEVICES=6  python -u train_nwc.py \
-        --architecture nwc_ql  --dataset2 8b_cnormed_col1024_seq_ql_random \
-        --iter 200000 --input_size 16 --M 16 --Q 4 --dim_encoder 512 --batch_size 2048 \
+        --architecture nwc_ql  --dataset block_seq_ql_random \
+        --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
+        --iter 200000 --input_size 64 --M 64 --Q 4 --dim_encoder 2048 --batch_size 2048 \
         --loss rdloss_ql \
-        --no_layernorm \
-        --run_name noLN_cnormed \
         --lmbda $lmbda
 done
 ) > ./logs/run6.log 2>&1 &
 
 ####### GPU 7 #######
-(lmbdas=(10000)
+(lmbdas=(2000)
 for lmbda in "${lmbdas[@]}"; do
     echo "=== Running with λ=${lmbda} ==="
     CUDA_VISIBLE_DEVICES=7  python -u train_nwc.py \
-        --architecture nwc_ql  --dataset2 8b_cnormed_col1024_seq_ql_random \
+        --architecture nwc_ql  --dataset block_seq_ql_random \
+        --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \
         --iter 200000 --input_size 16 --M 16 --Q 4 --dim_encoder 512 --batch_size 2048 \
         --loss rdloss_ql \
-        --no_layernorm \
-        --run_name noLN_cnormed \
         --lmbda $lmbda
 done
 ) > ./logs/run7.log 2>&1 &
+
+        # --architecture nwc_ql_row  --dataset2 8b_patch1024_16_ql_random \
+        # --input_size 16 --M 16 --Q 4 --n_resblock 2 --dim_proj 4 --dim_encoder 512 \
+        # --iter 200000  --batch_size 128 \
+        # --loss rdloss_ql_patch \
+        # --run_name LN \
+        # --lmbda $lmbda
+
+        # --architecture nwc_ql_row  --dataset2 8b_patch1024_16_ql_random \
+        # --input_size 16 --M 16 --Q 4 --n_resblock 2 --dim_proj 4 --dim_encoder 512 \
+        # --iter 200000  --batch_size 128 \
+        # --loss rdloss_ql_patch \
+        # --run_name LN \
+        # --lmbda $lmbda
+
+        # --architecture nwc_ql_row  --dataset2 8b_patch1024_16_ql_random \
+        # --input_size 16 --M 16 --Q 4 --n_resblock 2 --dim_proj 4 --dim_encoder 512 \
+        # --iter 200000  --batch_size 128 \
+        # --loss rdloss_ql_patch \
+        # --no_layernorm \
+        # --run_name noLN \
+        # --lmbda $lmbda
+
+        # --architecture nwc_ql_row  --dataset2 8b_rnormed_patch1024_16_ql_random \
+        # --input_size 16 --M 16 --Q 4 --n_resblock 2 --dim_proj 4 --dim_encoder 512 \
+        # --iter 200000  --batch_size 128 \
+        # --loss rdloss_ql_patch \
+        # --no_layernorm \
+        # --run_name noLN \
+        # --lmbda $lmbda
+
+        # --architecture nwc_ql_row  --dataset2 8b_rnormed_patch1024_16_ql_random \
+        # --input_size 16 --M 16 --Q 4 --n_resblock 2 --dim_proj 4 --dim_encoder 512 \
+        # --iter 200000  --batch_size 128 \
+        # --loss rdloss_ql_patch \
+        # --run_name LN \
+        # --lmbda $lmbda
+
+        # --architecture nwc_ql_row  --dataset2 8b_patch1024_16_ql_random \
+        # --input_size 16 --M 16 --Q 4 --n_resblock 2 --dim_proj 2 --dim_encoder 512 \
+        # --iter 200000  --batch_size 128 \
+        # --loss rdloss_ql_patch \
+        # --no_layernorm \
+        # --run_name noLN \
+        # --lmbda $lmbda
+
+        # --architecture nwc_ql_row  --dataset2 8b_patch1024_16_ql_random \
+        # --input_size 16 --M 16 --Q 4 --n_resblock 2 --dim_proj 2 --dim_encoder 512 \
+        # --iter 200000  --batch_size 128 \
+        # --loss rdloss_ql_patch \
+        # --run_name LN \
+        # --lmbda $lmbda
+
+
+        # --architecture nwc_ql_row  --dataset2 8b_rnormed_patch1024_16_ql_random \
+        # --input_size 16 --M 16 --Q 4 --n_resblock 2 --dim_proj 2 --dim_encoder 512 \
+        # --iter 200000  --batch_size 128 \
+        # --loss rdloss_ql_patch \
+        # --lmbda $lmbda
+
+        # --architecture nwc_ql_row  --dataset2 8b_rnormed_patch1024_16_ql_random \
+        # --input_size 16 --M 16 --Q 4 --n_resblock 2 --dim_proj 2 --dim_encoder 512 \
+        # --iter 200000  --batch_size 128 \
+        # --loss rdloss_ql_patch \
+        # --no_layernorm \
+        # --run_name noLN \
+        # --lmbda $lmbda
+
+        # --architecture nwc_ql  --dataset2 8b_cnormed_col1024_seq_ql_random \
+        # --iter 200000 --input_size 16 --M 16 --Q 4 --dim_encoder 512 --batch_size 2048 \
+        # --loss rdloss_ql \
+        # --no_layernorm \
+        # --run_name noLN_cnormed \
+        # --lmbda $lmbda
 
         # --architecture nwc_ql  --dataset block_seq_ql_random \
         # --dataset_path ../Wparam_dataset/block_pt/meta-llama--Meta-Llama-3-8B/col_1024_gaussian_padding.pt \

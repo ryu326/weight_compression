@@ -28,7 +28,8 @@ class Weight_Vector_Dataset(Dataset):
         self.return_idx_ltype = return_idx_ltype
         
     def __len__(self):
-        if 'weight' in self.dataset:
+        if isinstance(self.dataset, dict) and "weight" in self.dataset:
+        # if 'weight' in self.dataset:
             return len(self.dataset['weight'])
         else:
             return len(self.dataset)
@@ -51,7 +52,8 @@ class Weight_Vector_Dataset(Dataset):
         q_level = random.choice(self.random_values)
 
         if self.return_idx_ltype == False:
-            if 'weight' in self.dataset:
+            if isinstance(self.dataset, dict) and "weight" in self.dataset:
+            # if 'weight' in self.dataset:
                 img = self.dataset['weight'][i].view(-1, self.input_size)
             else:
                 img = self.dataset[i].view(-1, self.input_size)

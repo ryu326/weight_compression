@@ -140,6 +140,36 @@ class RateDistortionLoss_ql(nn.Module):
         out["loss"] = self.lmbda * out["recon_loss"] + bpp_loss
         return out
 
+class RateDistortionLoss_ql_patch(nn.Module):
+
+    def __init__(self, std, coff, lmbda=1e-2):
+        super().__init__()
+        self.mse = nn.MSELoss()
+        self.lmbda = lmbda
+        self.std = std
+        self.coff = coff
+
+    def forward(self, data, output):
+        out = {}
+        w = data['weight_block']  # (B, 1024, 16)
+        num_pixels = w.numel() 
+        qlevel = data['q_level']  # (B, 16)
+
+        coff = self.coff[qlevel] # (B, 16)
+        coff = coff.unsqueeze(1) # # (B, 1, 16)
+
+        assert output["likelihoods"].dim() == coff.dim(), \
+            f"Shape mismatch: likelihoods {output['likelihoods'].shape} vs coff {coff.shape}"
+
+        out["recon_loss"] = self.mse(w, output["x_hat"]) / self.std**2
+
+        out["bpp_loss"] = torch.log(output["likelihoods"]).sum() / (-math.log(2) * num_pixels)
+        bpp_loss = torch.log(output["likelihoods"]) * coff
+        bpp_loss = bpp_loss.sum() / (-math.log(2) * num_pixels)
+        
+        out["loss"] = self.lmbda * out["recon_loss"] + bpp_loss
+        return out
+
 class RateLoss_ql(nn.Module):
     """Custom rate distortion loss with a Lagrangian parameter."""
 
@@ -514,7 +544,7 @@ def get_loss_fn(args, std=None, device = None):
             return RateDistortionLoss_hyper(std, lmbda= args.lmbda, args = args)
         else :
             return RateDistortionLoss(std, lmbda= args.lmbda, args = args)
-    elif args.loss == "rdloss_ql":
+    elif args.loss in ["rdloss_ql", 'rdloss_ql_patch', 'rateloss_ql']:
         # assert 'clip' in args.dataset_path.lower()
         if args.Q == 2:
             coff = torch.tensor([3.4, 0.05]).to(device)
@@ -524,9 +554,16 @@ def get_loss_fn(args, std=None, device = None):
             coff = torch.tensor([4.000, 1.707, 0.724, 0.307, 0.130, 0.055, 0.024, 0.010]).to(device)
         if args.Q == 16:
             coff = torch.tensor([4.000, 2.301, 1.324, 0.761, 0.438, 0.252, 0.145, 0.083, 0.048, 0.028, 0.016, 0.009, 0.005, 0.003, 0.0017, 0.001]).to(device)
-        if args.use_hyper:
-            return RateDistortionLoss_ql_hyper(std, coff, lmbda = args.lmbda)
-        return RateDistortionLoss_ql(std, coff, lmbda = args.lmbda)
+
+        if args.loss == "rdloss_ql":
+            if args.use_hyper:
+                return RateDistortionLoss_ql_hyper(std, coff, lmbda = args.lmbda)
+            return RateDistortionLoss_ql(std, coff, lmbda = args.lmbda)
+        elif args.loss == "rateloss_ql":
+            return RateLoss_ql(std, coff, lmbda_r = args.lmbda_r)
+        elif args.loss == 'rdloss_ql_patch':
+            return RateDistortionLoss_ql_patch(std, coff, lmbda = args.lmbda)
+
     elif args.loss == "rdloss_ql_mse":
         if args.Q == 2:
             raise NotImplementedError
@@ -548,16 +585,6 @@ def get_loss_fn(args, std=None, device = None):
         return RateDistortionLoss_qmap(std, args.lmbda_min, args.lmbda_max)
     elif args.loss == "rdloss_qmap2":
         return RateDistortionLoss_qmap_v2(std, lmbda = args.lmbda)
-    elif args.loss == "rateloss_ql":
-        if args.Q == 2:
-            coff = torch.tensor([3.4, 0.05]).to(device)
-        if args.Q == 4:
-            coff = torch.tensor([3.4, 1.2, 0.1, 0.05]).to(device)
-        if args.Q == 8:
-            coff = torch.tensor([4.000, 1.707, 0.724, 0.307, 0.130, 0.055, 0.024, 0.010]).to(device)
-        if args.Q == 16:
-            coff = torch.tensor([4.000, 2.301, 1.324, 0.761, 0.438, 0.252, 0.145, 0.083, 0.048, 0.028, 0.016, 0.009, 0.005, 0.003, 0.0017, 0.001]).to(device)
-        return RateLoss_ql(std, coff, lmbda_r = args.lmbda_r)
     elif args.loss == "rateloss":
         return RateLoss(std, lmbda_r = args.lmbda)
         

@@ -8,6 +8,8 @@ from lib import utils
 from lib.codebook import bitshift
 from lib.linear.quantized_linear import QuantizedLinear
 from tqdm import tqdm
+# from model.gptoss_standard_moe_v1 import GptOssForCausalLM
+from model.gptoss_standard_moe_v11 import GptOssForCausalLM
 
 torch.set_grad_enabled(False)
 
@@ -40,15 +42,14 @@ def initialize_codebook(quant_layer):
     quant_layer.rcp = rcp
     quant_layer.built_codebook_class = True
 
-def get_What(quip_params, orig_layer_weight, saved_layer_data, layer_name):
+def get_What(quip_params, orig_layer_weight, saved_layer_data, layer_name, half_x = False):
     """
     양자화된 데이터를 기반으로 복원된 가중치(W_hat)를 계산하여 반환합니다.
     layer_name이 'gate'인 경우 td_x를 // 2로 처리합니다.
     """
     td_x = quip_params['td_x']
     
-    # [수정됨] gate 레이어에 대한 예외 처리
-    if layer_name == 'gate':
+    if layer_name == 'gate' and half_x:
         td_x = td_x // 2
 
     td_y = quip_params['td_y']
@@ -125,8 +126,11 @@ def load_proj_or_restore(module, attr_name, idx, layer_suffix, path_prefix, skip
             
         saved = torch.load(filepath, map_location='cpu', weights_only=False)
         
-        W_hat = get_What(quip_params, target_layer.weight.data, saved, layer_name=layer_suffix)
-        
+        try:
+            W_hat = get_What(quip_params, target_layer.weight.data, saved, layer_name=layer_suffix)
+        except:
+            W_hat = get_What(quip_params, target_layer.weight.data, saved, layer_name=layer_suffix, half_x = True)
+            
         target_layer.weight.data.copy_(W_hat.to(target_layer.weight.dtype))
         
         if 'bias' in saved and saved['bias'] is not None:
@@ -155,19 +159,30 @@ def main(args):
 
     # 2. 모델 타입 감지 및 구조 설정
     is_qwen = "qwen" in model_config.model_type.lower()
-    glog.info(f"Detected Model Architecture: {'Qwen MoE' if is_qwen else 'Mixtral/Other MoE'}")
+    is_gpt_oss = "gpt_oss" in model_config.model_type.lower()
+    glog.info(f"Detected Model Architecture: {'GPT-OSS' if is_gpt_oss else ('Qwen MoE' if is_qwen else 'Mixtral/Other MoE')}")
 
     # 3. Base Model 로드 (원본 가중치 포함)
     # 커스텀 클래스 대신 AutoModel 사용. 원본 가중치를 로드한 상태에서 시작.
     glog.info(f"Loading base model from {args.base_model}...")
     tokenizer = AutoTokenizer.from_pretrained(args.base_model, trust_remote_code=True)
-    model = AutoModelForCausalLM.from_pretrained(
-        args.base_model,
-        torch_dtype='auto',
-        low_cpu_mem_usage=True,
-        trust_remote_code=True, # Qwen 등 일부 모델은 필요할 수 있음
-        device_map="cpu" # 복원 중에는 CPU 사용 권장 (OOM 방지)
-    )
+    
+    if is_gpt_oss:
+        model = GptOssForCausalLM.from_pretrained(
+            args.base_model,
+            torch_dtype='auto',
+            low_cpu_mem_usage=True,
+            trust_remote_code=True, # Qwen 등 일부 모델은 필요할 수 있음
+            device_map="cpu" # 복원 중에는 CPU 사용 권장 (OOM 방지)
+        )
+    else:
+        model = AutoModelForCausalLM.from_pretrained(
+            args.base_model,
+            torch_dtype='auto',
+            low_cpu_mem_usage=True,
+            trust_remote_code=True, # Qwen 등 일부 모델은 필요할 수 있음
+            device_map="cpu" # 복원 중에는 CPU 사용 권장 (OOM 방지)
+        )
 
     # 4. LM Head & Global Norm 복원
     lmhead_path = f'{args.quantized_path}/lmhead.pt'
@@ -187,17 +202,25 @@ def main(args):
     if is_qwen:
         # Qwen3/2 MoE: layer.mlp.gate, layer.mlp.experts (gate_proj, down_proj, up_proj)
         moe_attr = 'mlp' 
-        gate_attr = 'gate' # mlp.gate
+        # gate_attr = 'gate' # mlp.gate
         # 저장된 파일 suffix -> 모델 속성명 매핑
         expert_proj_map = {
             'w1': 'gate_proj',  # Qwen Gate
             'w2': 'down_proj',  # Qwen Down
             'w3': 'up_proj'     # Qwen Up
         }
+    elif is_gpt_oss:
+        # GPT-OSS
+        moe_attr = 'mlp'
+        # GPT-OSS는 expert_proj_map이 다름 (w1,w3 -> gate_up)
+        expert_proj_map = {
+            'gate_up': 'gate_up_proj', # saved_suffix : model_attr
+            'down': 'down_proj'
+        }
     else:
         # Mixtral: layer.block_sparse_moe.gate, layer.block_sparse_moe.experts (w1, w2, w3)
         moe_attr = 'block_sparse_moe'
-        gate_attr = 'gate'
+        # gate_attr = 'gate'
         expert_proj_map = {
             'w1': 'w1',
             'w2': 'w2',
@@ -228,18 +251,30 @@ def main(args):
         if hasattr(layer, moe_attr):
             moe_block = getattr(layer, moe_attr)
             
-            # Gate (Router) 복원
-            load_proj_or_restore(moe_block, gate_attr, ii, 'gate', args.quantized_path, quip_params['skip_list'], quip_params)
+            # --- [A] Gate (Router) 복원 ---
+            # GPT-OSS는 Router 모듈이 별도로 존재 (mlp.router.gate)
+            if is_gpt_oss and hasattr(moe_block, 'router'):
+                load_proj_or_restore(moe_block.router, 'gate', ii, 'gate', 
+                                   args.quantized_path, quip_params['skip_list'], quip_params)
+            else:
+                # Qwen/Mixtral은 MoE 블록 바로 아래에 gate 존재 (mlp.gate / block_sparse_moe.gate)
+                load_proj_or_restore(moe_block, 'gate', ii, 'gate', 
+                                   args.quantized_path, quip_params['skip_list'], quip_params)
             
-            # Experts 복원
-            # experts 리스트 접근
-            experts_list = moe_block.experts
+            # --- [B] Experts 복원 ---
+            # GPT-OSS는 experts 모듈 안에 다시 experts 리스트가 있음 (mlp.experts.experts)
+            if is_gpt_oss:
+                experts_container = moe_block.experts
+                experts_list = experts_container.experts if hasattr(experts_container, 'experts') else experts_container
+            else:
+                experts_list = moe_block.experts
+            
             num_experts = len(experts_list)
             
             for expert_idx in range(num_experts):
                 expert_module = experts_list[expert_idx]
                 
-                # 각 Expert 내부의 Projection 복원 (w1, w2, w3)
+                # 각 Expert 내부의 Projection 복원 (모델별 매핑 사용)
                 for suffix, proj_attr in expert_proj_map.items():
                     layer_suffix = f'expert{expert_idx}_{suffix}'
                     load_proj_or_restore(expert_module, proj_attr, ii, layer_suffix, 
