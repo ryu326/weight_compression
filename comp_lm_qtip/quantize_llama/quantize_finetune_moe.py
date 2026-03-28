@@ -157,6 +157,7 @@ parser.add_argument("--use_hyper", action='store_true', default=False)
 parser.add_argument('--patch', action='store_true', default=False)
 parser.add_argument('--ecsq', action='store_true', default=False)
 parser.add_argument('--R_target', type=float, default=None)
+parser.add_argument('--normalization_search', action='store_true', default=False)
 
 
 def check_exist_moe(idx, args, model_config):
@@ -338,7 +339,8 @@ def main(args):
     all_config = {'quant_args': args, 'model_config': model.config}
     comp_params = {'ft_rnorm': args.ft_rnorm,
                    'row_normalize' : args.row_normalize,
-                   'col_normalize': args.col_normalize}
+                   'col_normalize': args.col_normalize,
+                   'normalization_search': args.normalization_search}
     if hasattr(model.config, 'comp_params'):
         model.config.quip_params = comp_params
     else:

@@ -148,6 +148,7 @@ parser.add_argument('--scale_cond', action='store_true', default=False)
 parser.add_argument('--fp_iter', action='store_true', default=False)
 parser.add_argument('--fp_iter_max', type=int, default=None)
 parser.add_argument('--fp_tol', type=float, default=1e-5)
+parser.add_argument('--normalization_search', action='store_true', default=False)
 
 def check_exist_moe(idx, args, model_config):
     suffix = ['q', 'k', 'v', 'o', 'layernorm']
@@ -298,7 +299,8 @@ def main(args):
     all_config = {'quant_args': args, 'model_config': model.config}
     comp_params = {'ft_rnorm': args.ft_rnorm,
                    'row_normalize' : args.row_normalize,
-                   'col_normalize': args.col_normalize}
+                   'col_normalize': args.col_normalize,
+                   'normalization_search': args.normalization_search}
     if hasattr(model.config, 'comp_params'):
         model.config.quip_params = comp_params
     else:
