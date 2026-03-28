@@ -9,13 +9,26 @@
 
 comp_model_bases=(
     "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16"
+    "/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16_seed2_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
+    "/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16_seed2_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
+    "/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16_seed3_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed3.0"
+    "/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16_seed3_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed3.0"
 )
 quantize_flags=(
+    "--direction col --ql --Q 4 --normalization_search --ldlq --comp_batch_size 64 --ft_epochs 0"
+    "--direction col --ql --Q 4 --normalization_search --ldlq --comp_batch_size 64 --ft_epochs 0"
     "--direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 64 --ft_epochs 0"
+    "--direction col --ql --Q 4 --normalization_search --ldlq --comp_batch_size 64 --ft_epochs 0"
+    "--direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 64 --ft_epochs 0"
+    # "--direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 64 --ft_epochs 0"
     # "--direction col --ql --Q 4 --col_normalize --ldlq --comp_batch_size 64 --ft_epochs 5"
 )
 experiment_names=(
-    "ql_ldlq64_rnorm"
+    "ql_ldlq64_normalization_search"
+    "ql_ldlq64_normalization_search_seed2"
+    "ql_ldlq64_rnorm_seed2"
+    "ql_ldlq64_normalization_search_seed3"
+    "ql_ldlq64_rnorm_seed3"
     # "ql_ldlq64_rnorm_ft"
 )
 ##########################################################################
@@ -41,14 +54,15 @@ mkdir -p $LOG
 mkdir -p $RES
 
 # 사용할 GPU 목록 설정 (여기서 정의한 GPU들을 돌아가며 사용합니다)
-export CUDA_VISIBLE_DEVICES=0
+export CUDA_VISIBLE_DEVICES=4,5,6,7
 IFS=',' read -r -a GPU_LIST <<< "$CUDA_VISIBLE_DEVICES"
 NUM_GPUS=${#GPU_LIST[@]}
 
 export HF_HOME=/home/jgryu/.cache/huggingface
 
 # 모든 실험에 공통으로 적용될 Lambda 값
-lmbda_values=(30 50 100 300 1000 10000)
+lmbda_values=(100 300 1000 10000)
+# lmbda_values=(30 50 100 300 1000 10000)
 
 ##########################################################################
 ##                        MAIN EXECUTION LOOP                           ##
@@ -113,22 +127,22 @@ for j in "${!model_names[@]}"; do
                         --base_model $lm_model_path \
                         > "$LOG/${SAVE_NAME}_eval.log" 2>&1
 
-                # echo "################## Running PPL evaluation | lmbda=${lmbda} | GPU: $CURRENT_GPU ##################"
-                # python -m eval.eval_ppl_hf \
-                #     --hf_path $HF/${SAVE_NAME} \
-                #     --seqlen 2048 \
-                #     --output_path ${RES}/${SAVE_NAME} \
-                #     --datasets wikitext2,c4 \
-                #     --gptoss_replace_version standard \
-                #     --no_use_cuda_graph >> "$LOG/${SAVE_NAME}_eval.log" 2>&1                
+                echo "################## Running PPL evaluation | lmbda=${lmbda} | GPU: $CURRENT_GPU ##################"
+                python -m eval.eval_ppl_hf \
+                    --hf_path $HF/${SAVE_NAME} \
+                    --seqlen 2048 \
+                    --output_path ${RES}/${SAVE_NAME} \
+                    --datasets wikitext2,c4 \
+                    --gptoss_replace_version standard \
+                    --no_use_cuda_graph >> "$LOG/${SAVE_NAME}_eval.log" 2>&1                
 
-                # echo "################## Running benchmark evaluation | lmbda=${lmbda} | GPU: $CURRENT_GPU ##################"
-                # python -m eval.eval_zeroshot_hf \
-                #     --tasks arc_challenge,arc_easy,piqa,winogrande,boolq,hellaswag,mmlu \
-                #     --hf_path $HF/$SAVE_NAME \
-                #     --output_path $RES/${SAVE_NAME}_common_mmlu \
-                #     --gptoss_replace_version standard \
-                #     >> "$LOG/${SAVE_NAME}_eval.log" 2>&1 
+                echo "################## Running benchmark evaluation | lmbda=${lmbda} | GPU: $CURRENT_GPU ##################"
+                python -m eval.eval_zeroshot_hf \
+                    --tasks arc_challenge,arc_easy,piqa,winogrande,boolq,hellaswag,mmlu \
+                    --hf_path $HF/$SAVE_NAME \
+                    --output_path $RES/${SAVE_NAME}_common_mmlu \
+                    --gptoss_replace_version standard \
+                    >> "$LOG/${SAVE_NAME}_eval.log" 2>&1 
 
                 if [ "$HF/$SAVE_NAME" != "$HF" ]; then
                     echo "Cleaning up temporary files for $SAVE_NAME"

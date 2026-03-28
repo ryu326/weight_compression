@@ -30,10 +30,15 @@ def compress_linear(W, H, comp_model, Qlevel, args, device='cpu'):
     comp_model.shift = comp_model.shift.to(device)
     
     W = W.to(device)
-    H = H.to(device)
+    H = H.to(device) if H is not None else None
+    sigma_reg = getattr(args, "sigma_reg", 1e-2)
+
+    if H is not None:
+        n_h = H.shape[0]
+        H = utils.regularize_H2(H.clone(), n_h, sigma_reg)
 
     # === NaN/Inf 체크: HR(H) ===
-    if not torch.isfinite(H).all():
+    if H is not None and not torch.isfinite(H).all():
         glog.error(f"[NaN] HR not finite: layer={args.layer_idx} name={args.layer_name} "
                    f"min={H.min().item()} max={H.max().item()}")
         # 필요하면 조기 중단
@@ -55,7 +60,23 @@ def compress_linear(W, H, comp_model, Qlevel, args, device='cpu'):
     #         pass
     glog.info(f'scale: {comp_model.scale} shift: {comp_model.shift}')
     if Qlevel is None:
-        if args.ql or args.ql_invH:
+        if args.ql:
+            if Hr is None:
+                if args.ql_search_value is None:
+                    raise ValueError("--ql with H=None requires --ql_search_value.")
+                Qlevel = torch.full(
+                    (Wr.shape[1],),
+                    int(args.ql_search_value),
+                    dtype=torch.int32,
+                    device=Wr.device,
+                )
+            else:
+                Qlevel = utils.get_ql_from_H(Hr, comp_model, args).to(device)
+            if args.ql_search:
+                assert torch.all(Qlevel == Qlevel[0]), "Qlevel의 모든 값이 동일하지 않습니다."
+        elif args.ql_invH:
+            if Hr is None:
+                raise ValueError("Qlevel-from-H options require a Hessian matrix, but H is None.")
             Qlevel = utils.get_ql_from_H(Hr, comp_model, args).to(device)
             if args.ql_search:
                 assert torch.all(Qlevel == Qlevel[0]), "Qlevel의 모든 값이 동일하지 않습니다."
@@ -136,6 +157,8 @@ def comp_W(W, H, model, args, **kwargs):
     y_in_list = kwargs.get('y_in_list', None)
     
     if args.ldlq:
+        if H is None:
+            raise ValueError("LDLQ requires a Hessian matrix, but H is None.")
         bs = 128 if args.comp_batch_size == -1 else args.comp_batch_size
         # ldl_bs = 128 if args.comp_batch_size < 128 else args.comp_batch_size
         ldl_bs = 128 if args.comp_batch_size == -1 else args.comp_batch_size
@@ -256,12 +279,15 @@ def model_foward_one_batch(w, model, args, one_batch = True, **kwargs):
     sc = sc.repeat(m, 1) if sc is not None else None #(m, n)
     
     if ql is not None:
-        if args.patch:
+        ql = ql.reshape(-1)
+        if not args.patch and ql.numel() > 0 and torch.all(ql == ql[0]):
+            ql = ql[:1]
+        elif args.patch:
             ql = ql.reshape(n//blks, blks)  #(n/blks, blks)
         else:
             ql = ql.reshape(1, n).expand(m//blks, n)
     elif args.ql_search_value is not None:
-        ql = torch.full((m//blks, n), args.ql_search_value, dtype=torch.int32, device=w.device)
+        ql = torch.full((1,), args.ql_search_value, dtype=torch.int32, device=w.device)
     
     transpose = args.direction == 'col'
     w = w.T if (w is not None and transpose) else w
@@ -289,16 +315,22 @@ def model_foward_one_batch(w, model, args, one_batch = True, **kwargs):
         if args.patch:
             data['q_level'] = ql
         elif one_batch:
-            data['q_level'] = ql.reshape(1, m*n//blks)
+            data['q_level'] = ql.reshape(1, -1)
         else:
-            data['q_level'] = ql.reshape(ql.shape[0], m//blks)[:, 0:1]
+            data['q_level'] = ql.reshape(ql.shape[0], -1)
             
     # if qm is not None:
     #     data['qmap'] = qm.reshape(1, w.shape[1])
     if hasattr(model, 'pe') and model.pe:
         wtype_mapping = {'q': 0, 'k': 1, 'v': 2, 'o': 3, 'gate': 4, 'up': 5, 'down': 6}
         depth = args.layer_idx
-        ltype = wtype_mapping[args.layer_name]
+        ltype = wtype_mapping.get(args.layer_name, 0)
+        if args.layer_name not in wtype_mapping:
+            glog.warning(
+                "Unknown layer name '%s' for PE-enabled compression model. "
+                "Falling back to ltype=0.",
+                args.layer_name,
+            )
         data['depth'] = torch.full((1, 1), depth, dtype=torch.long).to(w.device)
         data['ltype'] = torch.full((1, 1), ltype, dtype=torch.long).to(w.device)
     if sc is not None:

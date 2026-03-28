@@ -8,6 +8,9 @@ export PATH="/opt/conda/bin:$PATH"  # PATH의 맨 앞에 base 경로 강제 삽�
 echo "Running with explicit python: $PYTHON_BIN"
 
 comp_model_bases=(
+    '/home/jgryu/workspace/weight_compression/NWC/checkpoint2/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/rdloss_ql_size16_encdim512_M16_Q2_nRB4R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100'
+    # '/home/jgryu/workspace/weight_compression/NWC/checkpoint2/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/rdloss_ql_size64_encdim2048_M64_Q4_nRB4R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100'
+    # '/home/jgryu/workspace/weight_compression/NWC/checkpoint2/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/rdloss_ql_size4_encdim64_M4_Q4_R0_m0_batch_size8192_total_iter200000_lr0.0001_seed100'
     # '/home/jgryu/workspace/weight_compression/NWC/checkpoint2/nwc_ql_row/8b_patch1024_16_ql_random/rdloss_ql_patch_size16_encdim512_M16_Q4_nRB2R0_m0_batch_size128_total_iter200000_lr0.0001_seed100/noLN'
     # '/home/jgryu/workspace/weight_compression/NWC/checkpoint2/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100/n_rb1'
     # '/home/jgryu/workspace/weight_compression/NWC/checkpoint2/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100/n_rb2'
@@ -30,12 +33,14 @@ comp_model_bases=(
     # "/home/jgryu/workspace/weight_compression/NWC/checkpoint2/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100/n_rb1"
     # "/home/jgryu/workspace/weight_compression/NWC/checkpoint2/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100/n_rb2"
     # "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16"
-    "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16"
 )
 quantize_flags=(
+    "--direction col --ql --Q 2 --row_normalize"
+    # "--direction col --ql --ql_random_uniform --Q 4 --row_normalize"
+    # "--direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 128"
     # "--direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 128 --ft_epochs 5"
     # "--direction col --ql --Q 4 --normalization_search --ldlq --comp_batch_size 128 --ft_epochs 5 --seed 5"
-    "--direction col --ql --Q 4 --normalization_search --ldlq --comp_batch_size 128 --ft_epochs 5 --seed 7"
+    # "--direction col --ql --Q 4 --normalization_search --ldlq --comp_batch_size 128 --ft_epochs 5 --seed 7"
     # "--direction col --ql --Q 4 --normalization_search --ldlq --comp_batch_size 128 --ft_epochs 0"
     # "--direction col --ql --Q 4 --normalization_search --ldlq --comp_batch_size 128 --ft_epochs 5"
     # "--direction row --ql --Q 4 --patch --row_normalize --ldlq --comp_batch_size 128 --ft_epochs 0"
@@ -57,8 +62,12 @@ quantize_flags=(
     # "--direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 128"
 )
 experiment_names=(
+    "ql_Q2_rnorm"
+    # "ql_random_uniform2_rnorm"
+    # "ql_ldlq128_rnorm_cs64"
+    # "ql_ldlq128_rnorm_cs4"
     # "ql_ldlq128_normalization_search_ft_calib_seed_5"
-    "ql_ldlq128_normalization_search_ft_calib_seed_7"
+    # "ql_ldlq128_normalization_search_ft_calib_seed_7"
     # "ql_ldlq128_rnorm_ft"
     # 'ql_ldlq128_normalization_search'
     # 'ql_ldlq128_normalization_search_ft'
@@ -105,14 +114,14 @@ mkdir -p $LOG
 mkdir -p $RES
 
 # 사용할 GPU 목록 설정 (여기서 정의한 GPU들을 돌아가며 사용합니다)
-export CUDA_VISIBLE_DEVICES=2,3,4,5,6,7
+export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 IFS=',' read -r -a GPU_LIST <<< "$CUDA_VISIBLE_DEVICES"
 NUM_GPUS=${#GPU_LIST[@]}
 
 export HF_HOME=/home/jgryu/.cache/huggingface
 
 # 모든 실험에 공통으로 적용될 Lambda 값
-lmbda_values=(30 50 100 300 1000 10000)
+lmbda_values=(30 50 75 100 300 320 1000 10000)
 # lmbda_values=(3000)
 # lmbda_values=(30.0 50.0 100.0 300.0 1000.0 10000.0)
 
@@ -190,18 +199,18 @@ for j in "${!model_names[@]}"; do
                     # --seqlen 2048 \
                     # --output_path ${RES}/${SAVE_NAME} \
 
-                echo "################## Running benchmark evaluation | lmbda=${lmbda} | GPU: $CURRENT_GPU ##################"
-                python -m eval.eval_zeroshot_hf \
-                    --tasks arc_challenge,arc_easy,piqa,winogrande,boolq,hellaswag,mmlu \
-                    --batch_size 4 \
-                    --hf_path $HF/$SAVE_NAME \
-                    --output_path $RES/${SAVE_NAME}_common_mmlu \
-                    >> "$LOG/$SAVE_NAME.log" 2>&1 
+                # echo "################## Running benchmark evaluation | lmbda=${lmbda} | GPU: $CURRENT_GPU ##################"
+                # python -m eval.eval_zeroshot_hf \
+                #     --tasks arc_challenge,arc_easy,piqa,winogrande,boolq,hellaswag,mmlu \
+                #     --batch_size 1 \
+                #     --hf_path $HF/$SAVE_NAME \
+                #     --output_path $RES/${SAVE_NAME}_common_mmlu \
+                #     >> "$LOG/$SAVE_NAME.log" 2>&1 
 
                 if [ "$HF/$SAVE_NAME" != "$HF" ]; then
                     echo "Cleaning up temporary files for $SAVE_NAME"
                     rm -rf "$HF/$SAVE_NAME"
-                    rm -rf "$CKPT/$SAVE_NAME" # !!!!!!!!!!!!!!!!!!!!!!
+                    # rm -rf "$CKPT/$SAVE_NAME" # !!!!!!!!!!!!!!!!!!!!!!
                 fi                
                 # ft_epochs 값 추출
                 if [[ "$current_quantize_flags" =~ --ft_epochs[[:space:]]+([0-9]+) ]]; then

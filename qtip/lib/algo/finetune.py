@@ -212,6 +212,21 @@ def finetune_decoder_layer(layer, name, device, train_dl, valid_dl, orig_dtype,
     utils.clean()
 
 
+def _load_input_hessian(args, in_hess_path, n, dtype):
+    if getattr(args, 'use_identity_hessian', False):
+        glog.info(f'using identity Hessian for {in_hess_path}')
+        return torch.eye(n, dtype=dtype)
+
+    H_data = torch.load(in_hess_path, map_location=torch.device('cpu'))
+    H = utils.flat_to_sym(H_data['flatH'], H_data['n'])
+    if 'mu' in H_data:
+        mu = H_data['mu']
+        H += mu[None, :] * mu[:, None]
+        del mu
+    del H_data
+    return H
+
+
 def quantize_finetune_decoder_layer(mixed_layer, quant_order, idx, cb, args,
                                     device, pre_orig_emb, orig_emb):
     torch.manual_seed(idx)
@@ -247,14 +262,7 @@ def quantize_finetune_decoder_layer(mixed_layer, quant_order, idx, cb, args,
 
         in_hess_path = f'{args.in_hess_path}/{idx}_{in_hess_name}.pt'
         # in_hess_path = f'{args.in_hess_path}/lang_{idx}_{in_hess_name}.pt'
-        H_data = torch.load(in_hess_path, map_location=torch.device('cpu'))
-        HR = utils.flat_to_sym(H_data['flatH'], H_data['n'])
-        if 'mu' in H_data:
-            mu = H_data['mu']
-            HR += mu[None, :] * mu[:, None]
-            del mu
-        del H_data
-
+        HR = _load_input_hessian(args, in_hess_path, n, dtype_)
         HR = utils.regularize_H(HR, args.sigma_reg)
 
         W = W.to(device)

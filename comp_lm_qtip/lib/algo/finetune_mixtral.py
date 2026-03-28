@@ -192,30 +192,109 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
         args.layer_idx = idx
         args.layer_name = name
 
-        if args.handcraft_mode is not None:
-            glog.info(f'Using handcraft compression method {args.handcraft_mode}')
-            out, SU, SV, scaleWH, ft_result, optimize_out = handcraft.compress_linear(W.clone(), HR, args, 'cpu')
-        elif args.nic_model is not None:
-            out, SU, SV, scaleWH, ft_result, optimize_out = nic.compress_linear(W.clone(), comp_model, args, device = device)
-        else:
-            W, HR = W.to(device), HR.to(device)
-            out = nwc.compress_linear(W.clone(), HR, comp_model, ql, args, device)
+        def _run_compress_and_eval(W0, HR0, norm_tag: str):
+            ft_result = None
 
-        glog.info(f'------------------------------------')
-        trWHW = torch.trace(W @ HR @ W.T)
-        hatWr = out['hatWr'].to(dtype_)
-        W_hat = utils.de_standardize_Wr(hatWr, out['metadata'], args)
-        assert torch.isnan(W_hat).any() == False
-        
-        bpp_loss = out['bpp_loss']
-        bpp = out['bpp']        
-        err = torch.trace((W - W_hat) @ HR @ ((W - W_hat).T))
-        proxy_err =  err / trWHW
-        mse =  torch.mean((W - W_hat) ** 2).item()        
-        glog.info(
-            f'{idx}_{name} optm proxy err {proxy_err.item():.5f} err {err.item():.3f} tr(WHW.T) {trWHW.item():.1f} bpp_loss {bpp_loss:.4f} bpp {bpp:.4f} mse {mse:.4g}'
-        )
-        glog.info(f'------------------------------------')
+            if args.handcraft_mode is not None:
+                glog.info(f'Using handcraft compression method {args.handcraft_mode}')
+                W_dev = W0.detach().to('cpu')
+                HR_dev = HR0.detach().to('cpu')
+                out, SU, SV, scaleWH, ft_result, optimize_out = handcraft.compress_linear(
+                    W_dev.clone(), HR_dev, args, 'cpu')
+            elif args.nic_model is not None:
+                W_dev = W0.detach()
+                HR_dev = HR0.detach()
+                out, SU, SV, scaleWH, ft_result, optimize_out = nic.compress_linear(
+                    W_dev.clone(), comp_model, args, device=device)
+            else:
+                W_dev = W0.detach().to(device)
+                HR_dev = HR0.detach().to(device)
+                out = nwc.compress_linear(W_dev.clone(), HR_dev, comp_model, ql, args, device)
+
+            glog.info(f'------------------------------------')
+            trWHW = torch.trace(W_dev @ HR_dev @ W_dev.T)
+            hatWr = out['hatWr'].to(dtype_)
+            W_hat = utils.de_standardize_Wr(hatWr, out['metadata'], args)
+            assert torch.isnan(W_hat).any() == False
+            if W_hat.device != W_dev.device:
+                W_hat = W_hat.to(W_dev.device)
+
+            bpp_loss = out['bpp_loss']
+            bpp = out['bpp']
+            err = torch.trace((W_dev - W_hat) @ HR_dev @ ((W_dev - W_hat).T))
+            proxy_err = err / trWHW
+            mse = torch.mean((W_dev - W_hat) ** 2).item()
+            glog.info(
+                f'{idx}_{name} [{norm_tag}] optm proxy err {proxy_err.item():.5f} '
+                f'err {err.item():.3f} tr(WHW.T) {trWHW.item():.1f} '
+                f'bpp_loss {bpp_loss:.4f} bpp {bpp:.4f} mse {mse:.4g} '
+                f'(row_norm={args.row_normalize}, col_norm={args.col_normalize})'
+            )
+            glog.info(f'------------------------------------')
+
+            return {
+                'out': out,
+                'W': W_dev,
+                'HR': HR_dev,
+                'hatWr': hatWr,
+                'W_hat': W_hat,
+                'trWHW': float(trWHW.item()),
+                'bpp_loss': float(bpp_loss),
+                'bpp': float(bpp),
+                'err': float(err.item()),
+                'proxy_err': float(proxy_err.item()),
+                'mse': float(mse),
+                'row_norm': bool(args.row_normalize),
+                'col_norm': bool(args.col_normalize),
+                'ft_result': ft_result,
+            }
+
+        orig_row_norm = getattr(args, 'row_normalize', False)
+        orig_col_norm = getattr(args, 'col_normalize', False)
+
+        if args.normalization_search:
+            glog.info('normalization_search=True: try row-only vs col-only and pick smaller proxy_err')
+
+            candidates = [
+                ('row_only', True, False),
+                ('col_only', False, True),
+            ]
+
+            best = None
+            for tag, rnorm, cnorm in candidates:
+                args.row_normalize = rnorm
+                args.col_normalize = cnorm
+
+                res = _run_compress_and_eval(W, HR, tag)
+                if (best is None) or (res['proxy_err'] < best['proxy_err']):
+                    best = res
+
+            if best is None:
+                args.row_normalize = orig_row_norm
+                args.col_normalize = orig_col_norm
+                best = _run_compress_and_eval(W, HR, 'fallback_orig')
+
+            args.row_normalize = best['row_norm']
+            args.col_normalize = best['col_norm']
+            glog.info(
+                f'normalization_search selected: row_norm={args.row_normalize}, '
+                f'col_norm={args.col_normalize}, proxy_err={best["proxy_err"]:.5f}'
+            )
+        else:
+            best = _run_compress_and_eval(W, HR, 'single')
+
+        out = best['out']
+        W = best['W']
+        HR = best['HR']
+        hatWr = best['hatWr']
+        W_hat = best['W_hat']
+        trWHW = best['trWHW']
+        bpp_loss = best['bpp_loss']
+        bpp = best['bpp']
+        err = best['err']
+        proxy_err = best['proxy_err']
+        mse = best['mse']
+        ft_result = best['ft_result']
 
         metadata = out['metadata']
         if args.ft_comp_model2 or args.code_optim:
@@ -325,9 +404,9 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
                 'codes': out['codes'],
                 'bpp_loss': bpp_loss,
                 'bpp': bpp,
-                'proxy_err': proxy_err.item(),
-                'err': err.item(),
-                'tr(WHW.T)': trWHW.item(),
+                'proxy_err': proxy_err,
+                'err': err,
+                'tr(WHW.T)': trWHW,
                 'mse': mse,
                 'bpp_sum': out['bpp_sum'],
                 'bpp_loss_sum': out['bpp_loss_sum'],

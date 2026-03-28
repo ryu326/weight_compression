@@ -313,6 +313,39 @@ def plot_ft_comp_result(ft_result, args, idx, name):
         
         
 def get_ql_from_H(H, comp_model, args):
+    Qlevel = torch.zeros((H.shape[1],), dtype=torch.int32, device=H.device)
+
+    if getattr(args, "ql_random_uniform", False):
+        if args.Q == 4:
+            top = np.array([0.1, 1, 10])
+            qlevels = [3, 2, 1]
+        elif args.Q == 2:
+            if args.ql_search_r is None:
+                raise ValueError("ql_random_uniform with Q=2 requires ql_search_r")
+            qlevel_value = args.ql_search_value if comp_model.Q == 4 else 1
+            if qlevel_value is None:
+                raise ValueError("ql_random_uniform with Q=2 and comp_model.Q=4 requires ql_search_value")
+            top = np.array([args.ql_search_r])
+            qlevels = [qlevel_value]
+        else:
+            raise ValueError(f"Unsupported Q for ql_random_uniform: {args.Q}")
+
+        topk = (top * H.shape[1] / 100).astype(int)
+        total = int(topk.sum())
+        if total > H.shape[1]:
+            raise ValueError(f"ql_random_uniform assigned count {total} exceeds tensor size {H.shape[1]}")
+
+        random_indices = torch.randperm(H.shape[1], device=H.device)[:total]
+        start = 0
+        for count, value in zip(topk, qlevels):
+            count = int(count)
+            if count <= 0:
+                continue
+            indices = random_indices[start:start + count]
+            Qlevel[indices] = int(value)
+            start += count
+        return Qlevel
+
     if args.ql == True:
         if args.Q == 4:
             top = np.array([0.1, 1, 10])
@@ -327,8 +360,8 @@ def get_ql_from_H(H, comp_model, args):
                 Qlevel[indices] = value
                 start += count
         elif args.Q == 2:
-            # top = np.array([0.1])
-            top = np.array([args.ql_search_r])
+            top = np.array([0.1])
+            # top = np.array([args.ql_search_r])
             qlevels = [args.ql_search_value] if comp_model.Q == 4 else [1]
             in_norm = torch.diag(H)
             topk = (top * len(in_norm)/100).astype(int)
@@ -449,7 +482,7 @@ def _check(tag, t, args):
 
 def standardize_W(W, H, args, device, comp_model = None):
     Wr = W.to(device)
-    Hr = H.to(device)
+    Hr = H.to(device) if H is not None else None
     
     _check("Wr(init)", Wr, args)
     _check("Hr(init)", Hr, args)
@@ -467,9 +500,13 @@ def standardize_W(W, H, args, device, comp_model = None):
 
     # 전처리 및 표준화 단계
     if args.incoh_mode != 'none':
+        if Hr is None:
+            raise ValueError("incoh_mode requires a Hessian matrix, but H is None.")
         Lhr, Hr, Wr, SU, SV, scaleWH = quip.incoherence_preprocess(Hr, Wr, args)
     
     if args.scaleH:
+        if Hr is None:
+            raise ValueError("scaleH requires a Hessian matrix, but H is None.")
         diagH = torch.diag(Hr)
         diagH = torch.clamp(diagH, min=1e-8)
         # scaleH = diagH.sqrt().to(torch.float16)
@@ -488,6 +525,8 @@ def standardize_W(W, H, args, device, comp_model = None):
         Hr = Hr / scaleH[:, None]
     
     if args.scaleHinv:
+        if Hr is None:
+            raise ValueError("scaleHinv requires a Hessian matrix, but H is None.")
         assert args.row_normalize == True
         Lhr = torch.linalg.cholesky(Hr)
         H_inv = torch.cholesky_inverse(Lhr)
@@ -502,6 +541,8 @@ def standardize_W(W, H, args, device, comp_model = None):
     U = None
     inv_sqrtLam = None
     if args.whiten:
+        if Hr is None:
+            raise ValueError("whiten requires a Hessian matrix, but H is None.")
         H_eig = torch.load(f'{args.in_hess_eig_path}/{args.layer_idx}_{args.in_hess_name}_eig.pt')
         U = H_eig['eigenvectors'].to(device)       # [n, k] (k=n이면 full)
         Lam = H_eig['eigenvalues'].to(device).flatten()  # [k]
@@ -530,6 +571,8 @@ def standardize_W(W, H, args, device, comp_model = None):
         Wr /= row_std
         
     if args.row_normalize2:
+        if Hr is None:
+            raise ValueError("row_normalize2 requires a Hessian matrix, but H is None.")
         diagH = torch.diag(Hr)
         diagH = torch.clamp(diagH, min=1e-8)
         scaleH = diagH.sqrt()
@@ -563,6 +606,8 @@ def standardize_W(W, H, args, device, comp_model = None):
         #     glog.info(f'{col_std.mean()} {col_std.min()} {col_std.max()}')
 
     if args.scale_cond0:
+        if Hr is None:
+            raise ValueError("scale_cond0 requires a Hessian matrix, but H is None.")
         assert args.scaleH == False
         assert args.col_normalize == False
         diagH = torch.diag(Hr)
@@ -603,10 +648,15 @@ def standardize_W(W, H, args, device, comp_model = None):
     if not torch.isfinite(Wr).all():
         glog.error(f"[NaN] Wr not finite: layer={args.layer_idx} name={args.layer_name}")
         raise RuntimeError(f"Wr became NaN at layer={args.layer_idx} name={args.layer_name}")
-    if not torch.isfinite(Hr).all():
+    if Hr is not None and not torch.isfinite(Hr).all():
         glog.error(f"[NaN] Hr not finite: layer={args.layer_idx} name={args.layer_name}")
     if args.row_normalize and row_std is not None:
-        glog.error(f"[row_std] min={row_std.min().item()} finite={torch.isfinite(row_std).all().item()}")
+        if (not torch.isfinite(row_std).all()) or (row_std == 0).any():
+            glog.error(
+                f"[row_std] layer={args.layer_idx} name={args.layer_name} "
+                f"min={row_std.min().item()} zeros={(row_std == 0).sum().item()} "
+                f"finite={torch.isfinite(row_std).all().item()}"
+            )
 
     return Wr, Hr, metadata
 
@@ -694,6 +744,7 @@ def filter_compression_args(source_args):
     """
     keys_to_extract = [
         'ql', 'ldlq', 'direction', 'comp_batch_size', 'ql_invH', 
+        'ql_random_uniform',
         'layer_normalize', 'row_normalize', 'row_normalize2', 'col_normalize', 
         'Q', 'use_codes', 'scaleH', 'scaleHinv', 'scale_cond0', 'scale_cond', 
         'fp_iter', 'fp_iter_max', 'fp_tol',

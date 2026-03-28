@@ -267,10 +267,14 @@ class NWC_ql(CompressionModel, AsinhCompandingMixin):
         
         self.scale_cond = scale_cond
         self.continuous = continuous
-        if not scale_cond and not continuous:
+        self.use_discrete_quality_embedding = (not scale_cond and not continuous and Q > 0)
+        self.use_continuous_quality_embedding = scale_cond or continuous
+        if self.use_discrete_quality_embedding:
             self.quality_embedding = nn.Embedding(Q, dim_encoder)
-        else:
+        elif self.use_continuous_quality_embedding:
             self.quality_embedding = ContinuousEmbedding(dim = dim_encoder)
+        else:
+            self.quality_embedding = None
             
         self.g_a = Encoder(input_size, n_resblock, dim_encoder, M, norm)
         self.g_s = Encoder(M, n_resblock, dim_encoder, input_size, norm)
@@ -296,23 +300,61 @@ class NWC_ql(CompressionModel, AsinhCompandingMixin):
                               learnable_s=learnable_s, per_feature_s=per_feature_s, 
                               s_init=comp_s_init)
 
+    def _neutral_q_embed(self, reference: Tensor) -> Tensor:
+        return torch.ones(
+            *reference.shape[:-1],
+            self.dim_encoder,
+            device=reference.device,
+            dtype=reference.dtype,
+        )
+
+    def _get_q_embed(
+        self,
+        q_input: Optional[Tensor] = None,
+        reference: Optional[Tensor] = None,
+    ) -> Tensor:
+        if self.quality_embedding is None:
+            if reference is None:
+                raise ValueError("reference tensor is required when Q == 0")
+            return self._neutral_q_embed(reference)
+
+        if q_input is None:
+            raise KeyError("Missing quality conditioning input")
+
+        if self.use_continuous_quality_embedding and not torch.is_floating_point(q_input):
+            q_input = q_input.float()
+
+        q_embed = self.quality_embedding(q_input)
+        if reference is not None and q_embed.dtype != reference.dtype:
+            q_embed = q_embed.to(dtype=reference.dtype)
+        return q_embed
+
     # def __getitem__(self, key: str) -> LatentCodec:
     #     return self.latent_codec[key]
 
     def forward(self, data, scale = None, shift = None, y_in = None):
+        q_embed = None
         if y_in is not None:
             y = y_in
+            if not self.scale_cond:
+                q_level = data.get('q_level')
+                q_embed = self._get_q_embed(q_input=q_level, reference=y)
+                scale = scale if scale is not None else self.scale
+                shift = shift if shift is not None else self.shift
+            else:
+                scale_cond = data['scale_cond']
+                q_embed = self._get_q_embed(q_input=scale_cond, reference=y)
         else:
             x = data['weight_block']  # (B, -1, input_size)            
             if not self.scale_cond:
-                q_level = data['q_level'] # (B, -1)
-                q_embed = self.quality_embedding(q_level) # (B, -1, encdim)
+                q_level = data.get('q_level') # (B, -1)
+                q_embed = self._get_q_embed(q_input=q_level, reference=x)
                 scale = scale if scale is not None else self.scale # scalar or (B, -1, 1)
                 shift = shift if shift is not None else self.shift # scalar or (B, -1, 1)
                 x_shift = (x - shift) / scale
             else : 
                 scale_cond = data['scale_cond'] # (B, -1), dataset이면 (B, 1)
-                q_embed = self.quality_embedding(scale_cond) # (B, -1, encdim)
+                q_embed = self._get_q_embed(q_input=scale_cond, reference=x)
                 x_shift = x / scale_cond.unsqueeze(-1)
             
             if self.pe:
@@ -415,14 +457,14 @@ class NWC_ql(CompressionModel, AsinhCompandingMixin):
         # x_shift = (x - shift) / scale
         
         if not self.scale_cond:
-            q_level = data['q_level'] # (B, -1)
-            q_embed = self.quality_embedding(q_level) # (B, -1, encdim)            
+            q_level = data.get('q_level') # (B, -1)
+            q_embed = self._get_q_embed(q_input=q_level, reference=x)
             scale = scale if scale is not None else self.scale # scalar or (B, -1, 1)
             shift = shift if shift is not None else self.shift # scalar or (B, -1, 1)
             x_shift = (x - shift) / scale
         else : 
             scale_cond = data['scale_cond'] # (B, -1), dataset이면 (B, 1)
-            q_embed = self.quality_embedding(scale_cond) # (B, -1, encdim)
+            q_embed = self._get_q_embed(q_input=scale_cond, reference=x)
             x_shift = x / scale_cond.unsqueeze(-1)
                 
         x_shift = self._compand(x_shift)
@@ -433,9 +475,9 @@ class NWC_ql(CompressionModel, AsinhCompandingMixin):
             enc_data = self.compress_with_hyperprior(y)
         else:
             enc_data = self.compress_without_hyperprior(y)
-        if not self.scale_cond:
+        if not self.scale_cond and self.use_discrete_quality_embedding:
             enc_data["q_level"] = q_level
-        else:
+        elif self.scale_cond:
             enc_data["scale_cond"] = scale_cond
             
         return enc_data
@@ -484,14 +526,16 @@ class NWC_ql(CompressionModel, AsinhCompandingMixin):
     def decompress(self, enc_data, scale= None, shift= None):
         strings = enc_data["strings"]
         shape = enc_data["shape"]
+        q_embed = None
         if not self.scale_cond:
-            q_level = enc_data["q_level"]
             scale = scale if scale is not None else self.scale # scalar or (B, -1, 1)
             shift = shift if shift is not None else self.shift # scalar or (B, -1, 1)
-            q_embed = self.quality_embedding(q_level)
+            if self.use_discrete_quality_embedding:
+                q_level = enc_data["q_level"]
+                q_embed = self._get_q_embed(q_input=q_level)
         else:
             scale_cond = enc_data['scale_cond'] # (B, -1), dataset이면 (B, 1)
-            q_embed = self.quality_embedding(scale_cond) # (B, -1, encdim)
+            q_embed = self._get_q_embed(q_input=scale_cond) # (B, -1, encdim)
             
         if self.use_hyper == True:
             x_hat = self.decompress_with_hyperprior(strings, shape, q_embed)
@@ -528,6 +572,9 @@ class NWC_ql(CompressionModel, AsinhCompandingMixin):
         perm = list(range(y_hat.dim()))
         perm[-1], perm[1] = perm[1], perm[-1]
         y_hat = y_hat.permute(*perm).contiguous()
+
+        if q_embed is None:
+            q_embed = self._get_q_embed(reference=y_hat)
         
         x_hat = self.g_s(y_hat, q_embed)
         
@@ -540,6 +587,9 @@ class NWC_ql(CompressionModel, AsinhCompandingMixin):
         perm = list(range(y_hat.dim()))
         perm[-1], perm[1] = perm[1], perm[-1]
         y_hat = y_hat.permute(*perm).contiguous()
+
+        if q_embed is None:
+            q_embed = self._get_q_embed(reference=y_hat)
         
         x_hat = self.g_s(y_hat, q_embed)
         
@@ -608,19 +658,28 @@ class NWC_ql(CompressionModel, AsinhCompandingMixin):
         # 1. Encoding 시작
         starter.record()
 
+        q_embed = None
         if y_in is not None:
             y = y_in
+            if not self.scale_cond:
+                q_level = data.get('q_level')
+                q_embed = self._get_q_embed(q_input=q_level, reference=y)
+                scale = scale if scale is not None else self.scale
+                shift = shift if shift is not None else self.shift
+            else:
+                scale_cond = data['scale_cond']
+                q_embed = self._get_q_embed(q_input=scale_cond, reference=y)
         else:
             x = data['weight_block']  # (B, -1, input_size)            
             if not self.scale_cond:
-                q_level = data['q_level'] # (B, -1)
-                q_embed = self.quality_embedding(q_level) # (B, -1, encdim)
+                q_level = data.get('q_level') # (B, -1)
+                q_embed = self._get_q_embed(q_input=q_level, reference=x)
                 scale = scale if scale is not None else self.scale 
                 shift = shift if shift is not None else self.shift 
                 x_shift = (x - shift) / scale
             else : 
                 scale_cond = data['scale_cond'] 
-                q_embed = self.quality_embedding(scale_cond) 
+                q_embed = self._get_q_embed(q_input=scale_cond, reference=x)
                 x_shift = x / scale_cond.unsqueeze(-1)
             
             if self.pe:
@@ -759,7 +818,7 @@ class NWC_ql(CompressionModel, AsinhCompandingMixin):
             
             # scale_cond 로직 추가 (기존 fast_decompress의 버그 수정)
             if not self.scale_cond:
-                q_level = enc_data["q_level"]
+                q_level = enc_data.get("q_level")
             else:
                 scale_cond = enc_data['scale_cond']
             timings['parse_input_ms'] = (time.perf_counter() - parse_start) * 1000
@@ -865,9 +924,9 @@ class NWC_ql(CompressionModel, AsinhCompandingMixin):
             # 4. 품질 임베딩 생성
             embedding_start = time.perf_counter()
             if not self.scale_cond:
-                q_embed = self.quality_embedding(q_level)
+                q_embed = self._get_q_embed(q_input=q_level, reference=y_hat)
             else:
-                q_embed = self.quality_embedding(scale_cond)
+                q_embed = self._get_q_embed(q_input=scale_cond, reference=y_hat)
             timings['quality_embedding_ms'] = (time.perf_counter() - embedding_start) * 1000
 
             # 5. Synthesis (Decoder) 네트워크 통과
@@ -901,7 +960,8 @@ class NWC_ql(CompressionModel, AsinhCompandingMixin):
             setup_start = time.perf_counter()
             strings_list = enc_data["strings"][0]
             spatial_shape = enc_data["shape"]
-            q_level = enc_data["q_level"]
+            q_level = enc_data.get("q_level")
+            scale_cond = enc_data.get("scale_cond")
             eb = self.entropy_bottleneck
             output_size = (len(strings_list), eb._quantized_cdf.size(0), *spatial_shape)
             timings['setup_ms'] += (time.perf_counter() - setup_start) * 1000
@@ -981,9 +1041,13 @@ class NWC_ql(CompressionModel, AsinhCompandingMixin):
             perm[-1], perm[1] = perm[1], perm[-1] # [0, 2, 1] for (B, L, C) -> (B, C, L)
             y_hat = y_hat.permute(*perm).contiguous()
             
-            q_embed = self.quality_embedding(q_level)
+            q_input = scale_cond if self.scale_cond else q_level
+            q_embed = self._get_q_embed(q_input=q_input, reference=y_hat)
             x_hat = self.g_s(y_hat, q_embed)
-            x_hat = self.scale * x_hat + self.shift
+            if not self.scale_cond:
+                x_hat = self.scale * x_hat + self.shift
+            else:
+                x_hat = x_hat * scale_cond.unsqueeze(-1)
             timings['synthesis_g_s_ms'] = (time.perf_counter() - synthesis_start) * 1000
             timings['total_decompress_ms'] = (time.perf_counter() - total_start_time) * 1000
             
@@ -1018,7 +1082,11 @@ class NWC_ql_LTC(CompressionModel):
         self.input_size = input_size
         self.dim_encoder = dim_encoder
         
-        self.quality_embedding = nn.Embedding(Q, dim_encoder)
+        self.use_discrete_quality_embedding = Q > 0
+        if self.use_discrete_quality_embedding:
+            self.quality_embedding = nn.Embedding(Q, dim_encoder)
+        else:
+            self.quality_embedding = None
         
         self.g_a = Encoder(input_size, n_resblock, dim_encoder, M, norm)
         self.g_s = Encoder(M, n_resblock, dim_encoder, input_size, norm)
@@ -1039,6 +1107,32 @@ class NWC_ql_LTC(CompressionModel):
         if pe:
             self.depth_embedding = nn.Embedding(pe_n_depth, input_size)
             self.ltype_embedding = nn.Embedding(pe_n_ltype, input_size)
+
+    def _neutral_q_embed(self, reference: Tensor) -> Tensor:
+        return torch.ones(
+            *reference.shape[:-1],
+            self.dim_encoder,
+            device=reference.device,
+            dtype=reference.dtype,
+        )
+
+    def _get_q_embed(
+        self,
+        q_level: Optional[Tensor] = None,
+        reference: Optional[Tensor] = None,
+    ) -> Tensor:
+        if self.quality_embedding is None:
+            if reference is None:
+                raise ValueError("reference tensor is required when Q == 0")
+            return self._neutral_q_embed(reference)
+
+        if q_level is None:
+            raise KeyError("Missing q_level for quality embedding")
+
+        q_embed = self.quality_embedding(q_level)
+        if reference is not None and q_embed.dtype != reference.dtype:
+            q_embed = q_embed.to(dtype=reference.dtype)
+        return q_embed
 
     def _voronoi_volume(self):
         return torch.sqrt(torch.linalg.det((self.quantizer.G @ self.quantizer.G.T)))
@@ -1081,12 +1175,12 @@ class NWC_ql_LTC(CompressionModel):
         return y_hat
 
     def forward(self, data, scale = None, shift = None, y_in = None):
-        q_level = data['q_level'] # (B, -1)
-        q_embed = self.quality_embedding(q_level) # (B, -1, encdim)
+        q_level = data.get('q_level') # (B, -1)
         scale = scale if scale is not None else self.scale # scalar or (B, -1, 1)
         shift = shift if shift is not None else self.shift # scalar or (B, -1, 1)
         if y_in is not None:
             y = y_in
+            q_embed = None
         else:
             x = data['weight_block']  # (B, -1, input_size)            
             x_shift = (x - shift) / scale
@@ -1096,6 +1190,7 @@ class NWC_ql_LTC(CompressionModel):
                 l_embed = self.ltype_embedding(data['ltype']) # (B, 1, 16)
                 x_shift = x_shift + d_embed + l_embed
             
+            q_embed = self._get_q_embed(q_level=q_level, reference=x_shift)
             y = self.g_a(x_shift, q_embed)
 
         y_hat, y_shape = self._flatten(y)
@@ -1104,6 +1199,8 @@ class NWC_ql_LTC(CompressionModel):
         
         y_hat = self._unflatten(y_hat, y_shape)
         y_likelihoods = self._unflatten(y_likelihoods, y_shape)
+        if q_embed is None:
+            q_embed = self._get_q_embed(q_level=q_level, reference=y_hat)
         
         x_hat = self.g_s(y_hat, q_embed)
         x_hat = scale * x_hat + shift
@@ -1118,14 +1215,14 @@ class NWC_ql_LTC(CompressionModel):
         }
 
     def forward_eval(self, data, scale = None, shift = None, y_in = None):
-        q_level = data['q_level'] # (B, -1)
-        q_embed = self.quality_embedding(q_level) # (B, -1, encdim)
+        q_level = data.get('q_level') # (B, -1)
         scale = scale if scale is not None else self.scale # scalar or (B, -1, 1)
         shift = shift if shift is not None else self.shift # scalar or (B, -1, 1)
         
         with torch.no_grad():
             if y_in is not None:
                 y = y_in
+                q_embed = None
             else:
                 x = data['weight_block']  # (B, -1, input_size)            
                 x_shift = (x - shift) / scale
@@ -1135,6 +1232,7 @@ class NWC_ql_LTC(CompressionModel):
                     l_embed = self.ltype_embedding(data['ltype']) # (B, 1, 16)
                     x_shift = x_shift + d_embed + l_embed
                 
+                q_embed = self._get_q_embed(q_level=q_level, reference=x_shift)
                 y = self.g_a(x_shift, q_embed)
 
             y_hat, y_shape = self._flatten(y)
@@ -1143,6 +1241,8 @@ class NWC_ql_LTC(CompressionModel):
             
             y_hat = self._unflatten(y_hat, y_shape)
             y_likelihoods = self._unflatten(y_likelihoods, y_shape)
+            if q_embed is None:
+                q_embed = self._get_q_embed(q_level=q_level, reference=y_hat)
             
             x_hat = self.g_s(y_hat, q_embed)
             x_hat = scale * x_hat + shift

@@ -7,12 +7,13 @@
 MODELS_TO_RUN=(
     # "mixtral"
     # "qwen3moe"
-    "gemma3_4b"
+    # "gemma3_4b"
+    "llama3_8b"
 )
 
 # 각 모델에 대해 수행할 실험 타입 목록
 EXP_TYPES_TO_RUN=(
-    "ft1"
+    # "ft1"
     "noft"
 )
 
@@ -39,6 +40,9 @@ export HF_HOME=/home/jgryu/.cache/huggingface
 
 declare -A MODEL_PATHS
 MODEL_PATHS=(
+    ["llama2_7b"]="../Wparam_dataset/hf_model/meta-llama--Llama-2-7b-hf"
+    ["llama2_13b"]="../Wparam_dataset/hf_model/meta-llama--Llama-2-13b-hf"
+    ["llama3_8b"]="../Wparam_dataset/hf_model/meta-llama--Meta-Llama-3-8B"
     ["mixtral"]="mistralai/Mixtral-8x7B-v0.1"
     ["qwen3moe"]="/workspace/Weight_compression/Wparam_dataset/hf_model/models--Qwen--Qwen3-30B-A3B/snapshots/ad44e777bcd18fa416d9da3bd8f70d33ebb85d39"
     ["gemma3_4b"]="google/gemma-3-4b-pt"
@@ -46,6 +50,9 @@ MODEL_PATHS=(
 
 declare -A HESS_PATHS
 HESS_PATHS=(
+    ["llama2_7b"]="../Wparam_dataset/quip_hess/Hessians-Llama-2-7b-6144"
+    ["llama2_13b"]="../Wparam_dataset/quip_hess/Hessians-Llama-2-13b-6144"
+    ["llama3_8b"]="../Wparam_dataset/quip_hess/llama3_8b_6144"
     ["mixtral"]="/home/jgryu/workspace/weight_compression/Wparam_dataset/quip_hess/Mixtral-8x7B-v0.1_256"
     ["qwen3moe"]="../Wparam_dataset/quip_hess/Qwen3-30B-A3B"
     ["gemma3_4b"]="../Wparam_dataset/quip_hess/google/gemma-3-4b-pt_1024"
@@ -86,9 +93,9 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
             (
                 export CUDA_VISIBLE_DEVICES=$gpu_id
                 
-                NAME="${model_key}/${exp_type}/${K}bit"
+                NAME="${model_key}/${exp_type}_identity_hessian/${K}bit"
                 SAVE_PATH="$CKPT/$NAME"
-                LOG_FILE="${LOG}/${NAME}_eval.log"
+                LOG_FILE="${LOG}/${NAME}.log"
                 HF_PATH="$HF/$NAME"
 
                 mkdir -p $SAVE_PATH
@@ -99,16 +106,18 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
                 # -------------------------------------------------------
                 # [Stage: Quantize] (Commented out as requested)
                 # -------------------------------------------------------
-                # echo "### [Stage: Quantize | K=$K] ###" > $LOG_FILE
-                # python -m quantize_llama.quantize_finetune_llama \
-                #     --save_path $SAVE_PATH \
-                #     --codebook bitshift \
-                #     --base_model $base_model \
-                #     --in_hess_path $HESS \
-                #     --scale_override 0.9 \
-                #     --ft_epochs $ft_epochs \
-                #     --td_x 16 --td_y 16 --L 16 --K $K --V 2 \
-                #     --decode_mode quantlut_sym --tlut_bits 9 2>&1 | tee -a $LOG_FILE
+                echo "### [Stage: Quantize | K=$K] ###" > $LOG_FILE
+                python -m quantize_llama.quantize_finetune_llama \
+                    --save_path $SAVE_PATH \
+                    --codebook bitshift \
+                    --base_model $base_model \
+                    --in_hess_path $HESS \
+                    --scale_override 0.9 \
+                    --ft_epochs $ft_epochs \
+                    --td_x 16 --td_y 16 --L 16 --K $K --V 2 \
+                    --decode_mode quantlut_sym --tlut_bits 9 \
+                    --use_identity_hessian \
+                    2>&1 | tee -a $LOG_FILE
 
                 # -------------------------------------------------------
                 # [Stage: Hfize] (Commented out as requested)
@@ -127,12 +136,12 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
                 # -------------------------------------------------------
                 # [Stage: Eval PPL]
                 # -------------------------------------------------------
-                # echo "### [Stage: Eval PPL | K=$K] ###" >> "$LOG_FILE" 2>&1
-                # python -m eval.eval_ppl \
-                #     --hf_path "${HF_PATH}" \
-                #     --output_path "${RES}/${NAME}" \
-                #     --seqlen 2048 \
-                #     $MANIFEST_FLAG >> "$LOG_FILE" 2>&1
+                echo "### [Stage: Eval PPL | K=$K] ###" >> "$LOG_FILE" 2>&1
+                python -m eval.eval_ppl \
+                    --hf_path "${HF_PATH}" \
+                    --output_path "${RES}/${NAME}" \
+                    --seqlen 2048 \
+                    $MANIFEST_FLAG >> "$LOG_FILE" 2>&1
 
                 # -------------------------------------------------------
                 # [Stage: Eval Zero-shot]
