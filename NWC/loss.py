@@ -2,6 +2,27 @@ import torch
 import torch.nn as nn
 import math
 
+QL_COEFFICIENTS = {
+    2: (3.4, 0.05),
+    4: (3.4, 1.2, 0.1, 0.05),
+    8: (4.000, 1.707, 0.724, 0.307, 0.130, 0.055, 0.024, 0.010),
+    16: (
+        4.000, 2.301, 1.324, 0.761, 0.438, 0.252, 0.145, 0.083,
+        0.048, 0.028, 0.016, 0.009, 0.005, 0.003, 0.0017, 0.001,
+    ),
+}
+
+
+def get_ql_coefficients(Q, device=None):
+    if Q not in QL_COEFFICIENTS:
+        raise ValueError(f"Unsupported Q for qlevel coefficients: {Q}")
+
+    coff = torch.tensor(QL_COEFFICIENTS[Q], dtype=torch.float32)
+    if device is not None:
+        coff = coff.to(device)
+    return coff
+
+
 class ElementwiseNormalizedMSELoss(nn.Module):
     def __init__(self, epsilon=1e-8):
         super(ElementwiseNormalizedMSELoss, self).__init__()
@@ -546,14 +567,7 @@ def get_loss_fn(args, std=None, device = None):
             return RateDistortionLoss(std, lmbda= args.lmbda, args = args)
     elif args.loss in ["rdloss_ql", 'rdloss_ql_patch', 'rateloss_ql']:
         # assert 'clip' in args.dataset_path.lower()
-        if args.Q == 2:
-            coff = torch.tensor([3.4, 0.05]).to(device)
-        if args.Q == 4:
-            coff = torch.tensor([3.4, 1.2, 0.1, 0.05]).to(device)
-        if args.Q == 8:
-            coff = torch.tensor([4.000, 1.707, 0.724, 0.307, 0.130, 0.055, 0.024, 0.010]).to(device)
-        if args.Q == 16:
-            coff = torch.tensor([4.000, 2.301, 1.324, 0.761, 0.438, 0.252, 0.145, 0.083, 0.048, 0.028, 0.016, 0.009, 0.005, 0.003, 0.0017, 0.001]).to(device)
+        coff = get_ql_coefficients(args.Q, device=device)
 
         if args.loss == "rdloss_ql":
             if args.use_hyper:
@@ -577,7 +591,7 @@ def get_loss_fn(args, std=None, device = None):
         return RateDistortionLoss_ql_mse(std, coff, lmbda = args.lmbda)
     elif args.loss == "rdloss_ql_code_opt":
         if args.Q == 4:
-            coff = torch.tensor([3.4, 1.2, 0.1, 0.05]).to(device)
+            coff = get_ql_coefficients(args.Q, device=device)
         return RateDistortionLoss_ql_code_opt(std, coff, lmbda = args.lmbda)
     elif args.loss == "proxy_hess":
         return ProxyHessLoss(std, lmbda = args.lmbda)

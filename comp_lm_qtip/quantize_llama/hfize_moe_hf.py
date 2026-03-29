@@ -246,15 +246,21 @@ def main(args):
     if isinstance(comp_result['bpp'], torch.Tensor):
         comp_result['bpp'] = comp_result['bpp'].item()
         
+    glog.info(f'Saving restored model to {args.hf_output_path}...')
+    output_parent = os.path.dirname(args.hf_output_path)
+    if output_parent:
+        os.makedirs(output_parent, exist_ok=True)
+    model.save_pretrained(args.hf_output_path, safe_serialization=True)
+    tokenizer.save_pretrained(args.hf_output_path)
+
     file_path = f'{args.hf_output_path}_result.json'
+    file_parent = os.path.dirname(file_path)
+    if file_parent:
+        os.makedirs(file_parent, exist_ok=True)
     if os.path.exists(file_path):
         os.rename(file_path, f'{args.hf_output_path}_result_.json')
     with open(file_path, 'w') as f:
         json.dump(comp_result, f, indent=2)
-
-    glog.info(f'Saving restored model to {args.hf_output_path}...')
-    model.save_pretrained(args.hf_output_path, safe_serialization=True)
-    tokenizer.save_pretrained(args.hf_output_path)
     glog.info('Done.')
 
 if __name__ == '__main__':

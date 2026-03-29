@@ -16,6 +16,16 @@ except ImportError:
     pearsonr = None
     spearmanr = None
 
+QL_COEFFICIENTS = {
+    4: np.array([3.4, 1.2, 0.1, 0.05], dtype=np.float64),
+    8: np.array([4.000, 1.707, 0.724, 0.307, 0.130, 0.055, 0.024, 0.010], dtype=np.float64),
+    16: np.array(
+        [4.000, 2.301, 1.324, 0.761, 0.438, 0.252, 0.145, 0.083, 0.048, 0.028, 0.016, 0.009, 0.005, 0.003, 0.0017, 0.001],
+        dtype=np.float64,
+    ),
+}
+QLEVEL_REF_TOP_PERCENTAGES = np.array([10.0, 1.0, 0.1], dtype=np.float64)
+
 
 def flat_to_sym(v: torch.Tensor, n: int) -> torch.Tensor:
     a = torch.zeros(n, n, dtype=v.dtype, device=v.device)
@@ -32,13 +42,69 @@ def regularize_h2(h: torch.Tensor, n: int, sigma_reg: float) -> torch.Tensor:
     return h
 
 
+def compute_qlevel_log_cells(coeffs: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    log_coeffs = np.log(coeffs)
+    upper = 0.5 * (log_coeffs[:-1] + log_coeffs[1:])
+    lower = np.empty_like(upper)
+    lower[:-1] = 0.5 * (log_coeffs[1:-1] + log_coeffs[2:])
+    lower[-1] = 2 * log_coeffs[-1] - upper[-1]
+    return lower, upper
+
+
+def get_qlevel_percentages_for_q(Q: int) -> np.ndarray:
+    if Q == 4:
+        return QLEVEL_REF_TOP_PERCENTAGES.copy()
+    if Q not in QL_COEFFICIENTS:
+        raise ValueError(f"Unsupported Q for qlevel percentages: {Q}")
+
+    ref_coeffs = QL_COEFFICIENTS[4]
+    coeffs = QL_COEFFICIENTS[Q]
+    level_coeffs = coeffs[1:]
+    lower, upper = compute_qlevel_log_cells(coeffs)
+    level_percentages = np.zeros(Q - 1, dtype=np.float64)
+
+    group_masks = (
+        level_coeffs >= ref_coeffs[1],
+        (level_coeffs < ref_coeffs[1]) & (level_coeffs >= ref_coeffs[2]),
+        level_coeffs < ref_coeffs[2],
+    )
+    high_group_indices = np.flatnonzero(group_masks[0])
+    low_group_indices = np.flatnonzero(group_masks[2])
+    group_bounds = (
+        (np.log(ref_coeffs[1]), upper[high_group_indices[0]]) if high_group_indices.size else None,
+        (np.log(ref_coeffs[2]), np.log(ref_coeffs[1])),
+        (lower[low_group_indices[-1]], np.log(ref_coeffs[2])) if low_group_indices.size else None,
+    )
+
+    for mask, total_percentage, bounds in zip(group_masks, QLEVEL_REF_TOP_PERCENTAGES, group_bounds):
+        group_indices = np.flatnonzero(mask)
+        if group_indices.size == 0 or bounds is None:
+            continue
+
+        group_lo, group_hi = bounds
+        widths = np.minimum(upper[group_indices], group_hi) - np.maximum(lower[group_indices], group_lo)
+        widths = np.clip(widths, a_min=0.0, a_max=None)
+        if widths.sum() <= 0:
+            widths = np.full(group_indices.shape, 1 / group_indices.size, dtype=np.float64)
+        else:
+            widths = widths / widths.sum()
+        level_percentages[group_indices] = total_percentage * widths
+
+    return level_percentages
+
+
+def get_top_percentages_and_qlevels(Q: int) -> tuple[np.ndarray, np.ndarray]:
+    level_percentages = get_qlevel_percentages_for_q(Q)
+    qlevels = np.arange(1, Q, dtype=np.int32)
+    return level_percentages[::-1], qlevels[::-1]
+
+
 def get_ql_from_h(h: torch.Tensor, comp_model, args) -> torch.Tensor:
     qlevel = torch.zeros((h.shape[1],), dtype=torch.int32, device=h.device)
 
     if getattr(args, "ql_random_uniform", False):
-        if args.Q == 4:
-            top = np.array([0.1, 1, 10])
-            qlevels = [3, 2, 1]
+        if args.Q in (4, 8, 16):
+            top, qlevels = get_top_percentages_and_qlevels(args.Q)
         elif args.Q == 2:
             if args.ql_search_r is None:
                 raise ValueError("ql_random_uniform with Q=2 requires ql_search_r")
@@ -67,9 +133,8 @@ def get_ql_from_h(h: torch.Tensor, comp_model, args) -> torch.Tensor:
         return qlevel
 
     if args.ql is True:
-        if args.Q == 4:
-            top = np.array([0.1, 1, 10])
-            qlevels = [3, 2, 1]
+        if args.Q in (4, 8, 16):
+            top, qlevels = get_top_percentages_and_qlevels(args.Q)
             in_norm = torch.diag(h)
             topk = (top * len(in_norm) / 100).astype(int)
             qlevel = torch.zeros_like(in_norm, dtype=torch.int32)

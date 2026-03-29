@@ -417,7 +417,16 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
                 args.row_normalize = rnorm
                 args.col_normalize = cnorm
 
-                res = _run_compress_and_eval(W, HR, tag)
+                try:
+                    res = _run_compress_and_eval(W, HR, tag)
+                except RuntimeError as exc:
+                    if '[NaN]' not in str(exc):
+                        raise
+                    glog.warning(
+                        'normalization_search candidate failed: '
+                        f'tag={tag} row_norm={rnorm} col_norm={cnorm} err={exc}'
+                    )
+                    continue
 
                 if (best is None) or (res["proxy_err"] < best["proxy_err"]):
                     best = res
@@ -426,6 +435,10 @@ def compress_finetune_decoder_layer(mixed_layer, quant_order, idx, comp_model, q
                 # 둘 다 실패하면 원래 설정으로 1회 실행
                 args.row_normalize = orig_row_norm
                 args.col_normalize = orig_col_norm
+                glog.warning(
+                    'normalization_search: all candidates failed; '
+                    'falling back to original normalization settings'
+                )
                 best = _run_compress_and_eval(W, HR, "fallback_orig")
 
             # 선택된 설정을 args에 반영(이후 저장/로깅/후처리가 선택 결과 기준으로 진행됨)

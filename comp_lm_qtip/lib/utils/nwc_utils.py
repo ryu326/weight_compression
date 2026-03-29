@@ -29,6 +29,7 @@ if project_root not in sys.path:
     sys.path.append(project_root)
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from NWC.models import get_model
+from NWC.loss import get_ql_coefficients
 
 class Config:
     def __init__(self, **entries):
@@ -311,14 +312,73 @@ def plot_ft_comp_result(ft_result, args, idx, name):
     with open(f'{args.save_path}/jsons/{idx}_{name}_ft_result.json', 'w') as f:
         json.dump(ft_result, f)
         
-        
+_QLEVEL_REF_Q = 4
+_QLEVEL_REF_TOP_PERCENTAGES = np.array([10.0, 1.0, 0.1], dtype=np.float64)
+
+
+def _compute_qlevel_log_cells(coeffs):
+    log_coeffs = np.log(np.asarray(coeffs, dtype=np.float64))
+    upper = 0.5 * (log_coeffs[:-1] + log_coeffs[1:])
+    lower = np.empty_like(upper)
+    lower[:-1] = 0.5 * (log_coeffs[1:-1] + log_coeffs[2:])
+    lower[-1] = 2 * log_coeffs[-1] - upper[-1]
+    return lower, upper
+
+
+def _get_qlevel_percentages_for_Q(Q):
+    if Q == 4:
+        return _QLEVEL_REF_TOP_PERCENTAGES.copy()
+    if Q not in (8, 16):
+        raise ValueError(f"Unsupported Q for qlevel percentages: {Q}")
+
+    ref_coeffs = get_ql_coefficients(_QLEVEL_REF_Q).cpu().numpy().astype(np.float64)
+    coeffs = get_ql_coefficients(Q).cpu().numpy().astype(np.float64)
+    level_coeffs = coeffs[1:]
+    lower, upper = _compute_qlevel_log_cells(coeffs)
+    level_percentages = np.zeros(Q - 1, dtype=np.float64)
+
+    group_masks = (
+        level_coeffs >= ref_coeffs[1],
+        (level_coeffs < ref_coeffs[1]) & (level_coeffs >= ref_coeffs[2]),
+        level_coeffs < ref_coeffs[2],
+    )
+    high_group_indices = np.flatnonzero(group_masks[0])
+    low_group_indices = np.flatnonzero(group_masks[2])
+    group_bounds = (
+        (np.log(ref_coeffs[1]), upper[high_group_indices[0]]) if high_group_indices.size else None,
+        (np.log(ref_coeffs[2]), np.log(ref_coeffs[1])),
+        (lower[low_group_indices[-1]], np.log(ref_coeffs[2])) if low_group_indices.size else None,
+    )
+
+    for mask, total_percentage, bounds in zip(group_masks, _QLEVEL_REF_TOP_PERCENTAGES, group_bounds):
+        group_indices = np.flatnonzero(mask)
+        if group_indices.size == 0 or bounds is None:
+            continue
+
+        group_lo, group_hi = bounds
+        widths = np.minimum(upper[group_indices], group_hi) - np.maximum(lower[group_indices], group_lo)
+        widths = np.clip(widths, a_min=0.0, a_max=None)
+        if widths.sum() <= 0:
+            widths = np.full(group_indices.shape, 1 / group_indices.size, dtype=np.float64)
+        else:
+            widths = widths / widths.sum()
+        level_percentages[group_indices] = total_percentage * widths
+
+    return level_percentages
+
+
+def _get_top_percentages_and_qlevels(args):
+    level_percentages = _get_qlevel_percentages_for_Q(args.Q)
+    qlevels = np.arange(1, args.Q, dtype=np.int32)
+    return level_percentages[::-1], qlevels[::-1]
+
+
 def get_ql_from_H(H, comp_model, args):
     Qlevel = torch.zeros((H.shape[1],), dtype=torch.int32, device=H.device)
 
     if getattr(args, "ql_random_uniform", False):
-        if args.Q == 4:
-            top = np.array([0.1, 1, 10])
-            qlevels = [3, 2, 1]
+        if args.Q in (4, 8, 16):
+            top, qlevels = _get_top_percentages_and_qlevels(args)
         elif args.Q == 2:
             if args.ql_search_r is None:
                 raise ValueError("ql_random_uniform with Q=2 requires ql_search_r")
@@ -347,9 +407,8 @@ def get_ql_from_H(H, comp_model, args):
         return Qlevel
 
     if args.ql == True:
-        if args.Q == 4:
-            top = np.array([0.1, 1, 10])
-            qlevels = [3, 2, 1]
+        if args.Q in (4, 8, 16):
+            top, qlevels = _get_top_percentages_and_qlevels(args)
             in_norm = torch.diag(H)
             topk = (top * len(in_norm)/100).astype(int)
             Qlevel = torch.zeros_like(in_norm, dtype=torch.int32)
@@ -582,12 +641,18 @@ def standardize_W(W, H, args, device, comp_model = None):
         Wr /= row_std
         
     if args.col_normalize:
-        col_std = Wr.std(dim=0, keepdim=True).to(torch.float16)
+        col_std_eps = 1e-8
+        col_std = Wr.std(dim=0, keepdim=True).to(torch.float32)
+        if not torch.isfinite(col_std).all():
+            glog.error(f"[col_std] layer={args.layer_idx} name={args.layer_name} "
+                    f"min={col_std.min().item()} max={col_std.max().item()} finite=False")
+        small_col_ct = (col_std < col_std_eps).sum().item()
+        if small_col_ct > 0:
+            glog.warning(f"[col_std clamp] layer={args.layer_idx} name={args.layer_name} "
+                    f"min={col_std.min().item()} small_cols={small_col_ct} eps={col_std_eps}")
+        col_std = col_std.clamp_min(col_std_eps)
         Wr /= col_std
         
-        if not torch.isfinite(col_std).all() or (col_std == 0).any():
-            glog.error(f"[col_std] layer={args.layer_idx} name={args.layer_name} "
-                    f"min={col_std.min().item()} zeros={(col_std==0).sum().item()}")
         _check("Wr(col_normalize)", Wr, args)
         
         
