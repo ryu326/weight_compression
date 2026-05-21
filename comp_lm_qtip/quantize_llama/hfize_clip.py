@@ -7,7 +7,7 @@ from transformers import AutoModel as OriCLIP
 import json
 
 from lib import utils
-from lib.utils.unsafe_import import model_from_hf_path
+# from lib.utils.unsafe_import import model_from_hf_path
 
 torch.set_grad_enabled(False)
 

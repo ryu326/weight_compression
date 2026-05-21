@@ -173,8 +173,13 @@ def main(args):
     # args.model_name 으로 "openai/clip-vit-large-patch14" 같은거 넣으면 됨
     processor = AutoProcessor.from_pretrained(args.model_id)
 
-    with open('/workspace/Weight_compression/qtip/eval/imagenet_class_index.json', 'r') as f:
-        imagenet_class_index = json.load(f)    
+    _idx_candidates = [
+        '/home/jgryu/workspace/weight_compression/qtip/eval/imagenet_class_index.json',
+        '/workspace/Weight_compression/qtip/eval/imagenet_class_index.json',
+    ]
+    _idx_path = next(p for p in _idx_candidates if os.path.exists(p))
+    with open(_idx_path, 'r') as f:
+        imagenet_class_index = json.load(f)
     
     imagenet = ImageNet_valid_dataset(
         imagenet_class_index,

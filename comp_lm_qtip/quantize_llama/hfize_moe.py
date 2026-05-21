@@ -39,6 +39,16 @@ parser.add_argument('--W_key', type=str, default='')
 parser.add_argument('--sep_rnorm', action='store_true')
 
 
+def _as_float(value, default: float = 0.0) -> float:
+    if isinstance(value, torch.Tensor):
+        if value.numel() == 1:
+            return float(value.detach().item())
+        return default
+    if isinstance(value, (int, float)):
+        return float(value)
+    return default
+
+
 def get_model_specific_structure(model_type, layer, layer_idx):
     """
     모델 타입에 따라 로딩해야 할 가중치 리스트를 반환합니다.
@@ -149,9 +159,15 @@ def main(args):
     comp_result = {
         'bpp_loss': 0,
         'bpp': 0,
+        'metadata_total': 0,
+        'bpp_with_metadata': 0,
+        'bpp_loss_with_metadata': 0,
+        'decoder_total': 0,
         'ppl': 0,
         'num_pixels': 0
     }
+    metadata_total_raw_sum = 0.0
+    decoder_total_raw_sum = 0.0
     try:
         with open(os.path.join(args.quantized_path, 'config.json'), 'r') as f:
             saved_config_json = json.load(f)
@@ -204,20 +220,43 @@ def main(args):
             # Skip 리스트에 없고 파일이 존재하면 로드
             if skip_key not in skip_list:
                 file_path = f'{args.quantized_path}/{skip_key}.pt'
-                
+
                 if not os.path.exists(file_path):
-                    continue
+                    raise FileNotFoundError(
+                        f'Target module file not found: {file_path}'
+                    )
 
                 saved_layer = torch.load(file_path, map_location=cpu, weights_only=False)
                 proj_layer = getattr(submodule, proj_name)
                 
                 # 결과 통계 수집
                 if isinstance(saved_layer, dict):
-                    comp_result[f'{skip_key}.pt'] = {k: v for k, v in saved_layer.items() 
-                                                    if not isinstance(v, torch.Tensor) and k not in ['codes', 'metadata']}
-                    comp_result['bpp_loss'] += saved_layer.get('bpp_loss_sum' + args.W_key, 0)
-                    comp_result['num_pixels'] += saved_layer.get('num_pixels', 0)
-                    comp_result['bpp'] += saved_layer.get('bpp_sum', 0)
+                    comp_result[f'{skip_key}.pt'] = {
+                        k: v
+                        for k, v in saved_layer.items()
+                        if (
+                            not isinstance(v, torch.Tensor)
+                            and k not in {
+                                'codes',
+                                'metadata',
+                                'metadata_total_raw',
+                                'bpp_with_metadata_sum',
+                                'bpp_loss_with_metadata_sum',
+                                'decoder_total_raw',
+                            }
+                        )
+                    }
+                    bpp_loss_sum = _as_float(saved_layer.get('bpp_loss_sum' + args.W_key, 0.0))
+                    bpp_sum = _as_float(saved_layer.get('bpp_sum', 0.0))
+                    num_pixels = _as_float(saved_layer.get('num_pixels', 0.0))
+                    metadata_total_raw = _as_float(saved_layer.get('metadata_total_raw', 0.0))
+                    decoder_total_raw = _as_float(saved_layer.get('decoder_total_raw', 0.0))
+
+                    comp_result['bpp_loss'] += bpp_loss_sum
+                    comp_result['num_pixels'] += num_pixels
+                    comp_result['bpp'] += bpp_sum
+                    metadata_total_raw_sum += metadata_total_raw
+                    decoder_total_raw_sum += decoder_total_raw
                 
                 # 가중치 복원
                 if args.sep_rnorm:
@@ -266,14 +305,37 @@ def main(args):
         glog.info(f'loaded layer {ii}')
         
     if comp_result['num_pixels'] > 0:
+        bpp_loss_sum_total = _as_float(comp_result['bpp_loss'])
+        bpp_sum_total = _as_float(comp_result['bpp'])
         comp_result['bpp_loss'] = comp_result['bpp_loss'] / comp_result['num_pixels']
         comp_result['bpp'] = comp_result['bpp'] / comp_result['num_pixels']
+        comp_result['metadata_total'] = metadata_total_raw_sum / comp_result['num_pixels']
+        comp_result['bpp_with_metadata'] = (
+            bpp_sum_total + metadata_total_raw_sum
+        ) / comp_result['num_pixels']
+        comp_result['bpp_loss_with_metadata'] = (
+            bpp_loss_sum_total + metadata_total_raw_sum
+        ) / comp_result['num_pixels']
+        comp_result['decoder_total'] = decoder_total_raw_sum / comp_result['num_pixels']
+    else:
+        comp_result['metadata_total'] = 0
+        comp_result['bpp_with_metadata'] = 0
+        comp_result['bpp_loss_with_metadata'] = 0
+        comp_result['decoder_total'] = 0
     
     # 텐서를 스칼라로 변환
     if isinstance(comp_result['bpp_loss'], torch.Tensor):
         comp_result['bpp_loss'] = comp_result['bpp_loss'].item()
     if isinstance(comp_result['bpp'], torch.Tensor):
         comp_result['bpp'] = comp_result['bpp'].item()
+    if isinstance(comp_result['metadata_total'], torch.Tensor):
+        comp_result['metadata_total'] = comp_result['metadata_total'].item()
+    if isinstance(comp_result['bpp_with_metadata'], torch.Tensor):
+        comp_result['bpp_with_metadata'] = comp_result['bpp_with_metadata'].item()
+    if isinstance(comp_result['bpp_loss_with_metadata'], torch.Tensor):
+        comp_result['bpp_loss_with_metadata'] = comp_result['bpp_loss_with_metadata'].item()
+    if isinstance(comp_result['decoder_total'], torch.Tensor):
+        comp_result['decoder_total'] = comp_result['decoder_total'].item()
 
     glog.info(f'saving model to {args.hf_output_path}...')
     model.save_pretrained(args.hf_output_path, safe_serialization=True)

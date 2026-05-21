@@ -130,7 +130,7 @@ def load_comp_model(args, model):
             raise NotImplementedError(f'Not implemented nic model {args.nic_model}')
         comp_model.eval()
         comp_model.update()
-    elif args.handcraft_mode is not None or args.ecsq:
+    elif args.handcraft_mode is not None or args.ecsq or args.ec_linear:
         comp_model = None
         
     return comp_model
@@ -613,7 +613,7 @@ def standardize_W(W, H, args, device, comp_model = None):
         Wr = (Wr @ U) * sqrtLam                                              # [out, k]
         scale_cond = Wr.std(dim = 0, keepdim=True)
         
-    if args.global_normalize and args.patch:
+    if getattr(args, 'global_normalize', False) and getattr(args, 'patch', False):
         assert comp_model.scale.item() != 1
         assert comp_model.scale.item() != 0
         assert comp_model.shift.item() != 0
@@ -751,7 +751,7 @@ def de_standardize_Wr(W_hat, metadata, args, comp_model = None):
     if args.layer_normalize and layer_std is not None and layer_mean is not None:
         W_hat = W_hat * layer_std + layer_mean
 
-    if args.global_normalize and args.patch:
+    if getattr(args, 'global_normalize', False) and getattr(args, 'patch', False):
         assert comp_model.scale.item() != 1
         assert comp_model.scale.item() != 0
         assert comp_model.shift.item() != 0

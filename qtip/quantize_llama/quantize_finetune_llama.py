@@ -76,6 +76,16 @@ def _is_gemma3_model(config):
     return getattr(config, "model_type", "") in ("gemma3", "gemma3_text")
 
 
+def _needs_explicit_position_embeddings(model_or_layer) -> bool:
+    """Newer transformers models (Qwen3, etc.) require attention to receive
+    pre-computed `position_embeddings=(cos,sin)` instead of computing rotary
+    inside the attention module."""
+    cfg = getattr(model_or_layer, "config", None)
+    if cfg is None:
+        return False
+    return getattr(cfg, "model_type", "") in {"qwen3", "qwen3_moe"}
+
+
 def _bidirectional_window_overlay(sliding_window):
     def inner_mask(batch_idx, head_idx, q_idx, kv_idx):
         return abs(q_idx - kv_idx) < sliding_window
@@ -292,13 +302,19 @@ def main(args):
                             position_embeddings_local=position_embeddings_local,
                             output_attentions=False)[0].cpu()
                 else:
+                    layer_input = orig_emb_cache[cur_device][args.batch_size * j : args.batch_size * (j + 1)].to(cur_device)
+                    extra_kwargs = {}
+                    if _needs_explicit_position_embeddings(text_model):
+                        extra_kwargs["position_embeddings"] = text_model.rotary_emb(
+                            layer_input, position_ids)
                     orig_emb_cache[cur_device + 1][args.batch_size * j : args.batch_size * (j + 1)] = \
                         text_model.layers[i](
-                            orig_emb_cache[cur_device][args.batch_size * j : args.batch_size * (j + 1)].to(cur_device),
+                            layer_input,
                             position_ids=position_ids,
                             attention_mask=attention_mask,
                             use_cache=False,
-                            output_attentions=False)[0].cpu()
+                            output_attentions=False,
+                            **extra_kwargs)[0].cpu()
         else:
             orig_emb_cache[cur_device + 1] = torch.zeros_like(orig_emb_cache[cur_device])
             # orig_emb_cache[cur_device + 1] = orig_emb_cache[cur_device]

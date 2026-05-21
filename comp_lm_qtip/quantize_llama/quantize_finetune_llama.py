@@ -4,7 +4,7 @@ import time
 
 import glog, json
 
-os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:512'
+# os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:512,expandable_segments:True'
 
 import torch
 import torch.multiprocessing as mp
@@ -41,6 +41,7 @@ parser.add_argument('--batch_size', default=16, type=int)
 parser.add_argument('--devset_size', default=384, type=int)
 parser.add_argument('--ctx_size', default=4096, type=int)
 parser.add_argument('--save_path', type=str)
+parser.add_argument('--res_path', type=str, default=None)
 parser.add_argument('--in_hess_path', type=str)
 parser.add_argument('--in_hess_eig_path', type=str)
 parser.add_argument('--whiten', action='store_true', default=False)
@@ -163,13 +164,115 @@ parser.add_argument('--initialize_codec', action='store_true', default=False)
 parser.add_argument("--loss", type=str, default='rdloss_ql')
 parser.add_argument("--use_hyper", action='store_true', default=False)
 parser.add_argument('--patch', action='store_true', default=False)
+parser.add_argument('--ec_linear', action='store_true', default=False)
+parser.add_argument('--ecft_decoder', action='store_true', default=False)
 parser.add_argument('--ecsq', action='store_true', default=False)
 parser.add_argument('--R_target', type=float, default=None)
 parser.add_argument('--normalization_search', action='store_true', default=False)
+parser.add_argument('--ecft_epochs', type=int, default=None)
+parser.add_argument('--ecft_lmbda', type=float, default=None)
+parser.add_argument(
+    '--ecft_mode',
+    type=str,
+    default='noise',
+    choices=['noise', 'ste'],
+    help="Quantization mode used by EntropyConstrainedLinear during training/eval",
+)
+parser.add_argument(
+    '--ec_decoder_type',
+    type=str,
+    default='rht',
+    choices=['rht', 'dft', 'identity'],
+)
+parser.add_argument("--ecft_learning_rate", default=1e-3, type=float)
+parser.add_argument("--ecft_aux_learning_rate", default=1e-3)
+parser.add_argument("--ecft_aux_warmup_step", type=int, default=0)
+parser.add_argument("--ecft_adaptive_lambda", action='store_true', default=False)
+parser.add_argument("--ecft_lambda_lr", type=float, default=0.1)
+parser.add_argument("--ecft_lambda_min", type=float, default=0.0)
+parser.add_argument("--ecft_lambda_max", type=float, default=1e8)
+parser.add_argument("--ecft_rate_ema_beta", type=float, default=0.0)
+parser.add_argument("--ecft_rate_tolerance", type=float, default=0.0)
+parser.add_argument("--ec_entropy_chunk_rows", type=int, default=0)
+parser.add_argument("--verbose", action="store_true", default=False,
+                    help="Print per-step/per-epoch ECFT progress logs")
+parser.add_argument("--use_wandb", action="store_true", default=False,
+                    help="Log ECFT decoder fine-tune losses to wandb (per-layer runs)")
+parser.add_argument("--wandb_project", type=str, default="ecft_decoder")
+parser.add_argument("--wandb_group", type=str, default=None)
+parser.add_argument(
+    "--ecft_entropy_model",
+    type=str,
+    default="compressai",
+    choices=["compressai", "parametric", "lattice_eb"],
+    help=(
+        "Entropy model: 'compressai' (EntropyBottleneck channels=1), "
+        "'parametric' (GMM+Laplacian mixture), or "
+        "'lattice_eb' (OLVQ lattice quantization + EntropyBottleneck channels=lattice_dim)"
+    ),
+)
+parser.add_argument("--ecft_num_gaussian", type=int, default=3)
+parser.add_argument("--ecft_num_laplacian", type=int, default=3)
+# lattice_eb options (only consumed when --ecft_entropy_model lattice_eb)
+parser.add_argument("--ecft_lattice_dim", type=int, default=4,
+                    help="Lattice dimension n for OLVQ Babai rounding (lattice_eb).")
+parser.add_argument("--ecft_lambda_ortho", type=float, default=0.0,
+                    help="Weight of OLVQ column-orthogonality regularizer on B (lattice_eb).")
+parser.add_argument("--ecft_B_init", type=str, default="identity",
+                    choices=["identity", "orthogonal", "uniform"],
+                    help="Initialization of the learnable lattice basis B (lattice_eb).")
+parser.add_argument("--ecft_B_init_scale", type=float, default=None,
+                    help="Optional scale/bound for B init (lattice_eb).")
+parser.add_argument("--ec_pretrained_path", type=str, default=None,
+                    help=(
+                        "Path to a Gaussian-pretrained EC state dict (from "
+                        "pretrain_ec_gaussian.py). If set, initializes qs / "
+                        "entropy_bottleneck / (lattice) B in each ec_linear "
+                        "layer and skips the per-latent qs binary search."
+                    ))
+
+DECODER_QUANT_SPECS = [
+    ('self_attn.v_proj', 'v', 'qkv', 'v', 'col'),
+    ('self_attn.q_proj', 'q', 'qkv', 'q', 'col'),
+    ('self_attn.k_proj', 'k', 'qkv', 'k', 'col'),
+    ('self_attn.o_proj', 'o', 'o', 'o', 'row'),
+    ('mlp.up_proj', 'up', 'up', 'up', 'col'),
+    ('mlp.gate_proj', 'gate', 'up', 'gate', 'col'),
+    ('mlp.down_proj', 'down', 'down', 'down', 'row'),
+]
 
 
-def check_exist(idx, args):
-    suffix = ['q', 'k', 'v', 'o', 'up', 'down', 'layernorm']
+def _build_layer_quant_order(idx, skip_list):
+    skip_set = set(skip_list or [])
+    quant_order = []
+    for thing in DECODER_QUANT_SPECS:
+        if f'{idx}_{thing[1]}' not in skip_set:
+            quant_order.append(thing)
+    return quant_order
+
+
+def _quant_order_to_tags(quant_order):
+    tags = []
+    seen = set()
+    for thing in quant_order:
+        tag = thing[1]
+        if tag not in seen:
+            seen.add(tag)
+            tags.append(tag)
+    return tags
+
+
+def check_exist(idx, args, target_tags=None):
+    if getattr(args, "ecft_decoder", False):
+        return os.path.exists(f'{args.save_path}/{idx}_decoder_ft.pt')
+
+    if target_tags is None:
+        # Legacy full-layer check.
+        suffix = ['q', 'k', 'v', 'o', 'up', 'down']
+    else:
+        suffix = list(target_tags)
+    suffix.append('layernorm')
+
     for _ in suffix:
         test = f'{args.save_path}/{idx}_{_}.pt'
         if not os.path.exists(test):
@@ -179,6 +282,19 @@ def check_exist(idx, args):
 
 def _is_gemma3_model(config):
     return getattr(config, "model_type", "") in ("gemma3", "gemma3_text")
+
+
+def _needs_explicit_position_embeddings(model_or_layer) -> bool:
+    """Newer transformers models (Qwen3, etc.) require attention to receive
+    pre-computed `position_embeddings=(cos,sin)` instead of computing rotary
+    inside the attention module. Detect via model_type on the available config."""
+    cfg = getattr(model_or_layer, "config", None)
+    if cfg is None:
+        return False
+    mt = getattr(cfg, "model_type", "")
+    # Llama-3+/Qwen3+/etc. all use the externalized rotary API. Keep the list
+    # tight to avoid breaking older Llama runs on transformers 4.46.
+    return mt in {"qwen3", "qwen3_moe"}
 
 
 def _bidirectional_window_overlay(sliding_window):
@@ -218,27 +334,24 @@ def _build_gemma3_attention_masks(text_model, input_embeds, position_ids,
 
 def compress_llama_decoder(layer, idx, comp_model, q_level, args, device, pre_orig_emb,
                            orig_emb, model_config, skip_list):
-    if check_exist(idx, args):
-        return
-
     if skip_list is None:
         skip_list = []
 
+    quant_order = _build_layer_quant_order(idx, skip_list)
+    target_tags = _quant_order_to_tags(quant_order)
+
+    if len(quant_order) == 0:
+        glog.info(f'layer {idx}: skip all decoder blocks by skip_list')
+        return
+
+    if check_exist(idx, args, target_tags=target_tags):
+        return
+
     ql_i =  q_level[idx] if q_level is not None else None
 
-    # layer name, save_name, input hessian file, output hessian file
-    quant_order = []
-    for thing in [
-                    ('self_attn.v_proj', 'v', 'qkv', 'v', 'col'),
-                  ('self_attn.q_proj', 'q', 'qkv', 'q', 'col'),
-                  ('self_attn.k_proj', 'k', 'qkv', 'k', 'col'),
-                  ('self_attn.o_proj', 'o', 'o', 'o', 'row'),
-                  ('mlp.up_proj', 'up', 'up', 'up', 'col'),
-                  ('mlp.gate_proj', 'gate', 'up', 'gate', 'col'),
-                  ('mlp.down_proj', 'down', 'down', 'down', 'row')
-                ]:
+    for thing in DECODER_QUANT_SPECS:
         if f'{idx}_{thing[1]}' not in skip_list:
-            quant_order.append(thing)
+            continue
         else:
             attrgetter(thing[0])(layer).weight.requires_grad = False
             print(f'skipping {idx}_{thing[1]}')
@@ -327,6 +440,25 @@ def main(args):
         q_level = torch.load(args.ql_path, weights_only=False)
     glog.info('loaded compression model')
 
+    active_layer_indices = []
+    pending_layer_indices = []
+    for layer_idx in range(len(text_model.layers)):
+        layer_quant_order = _build_layer_quant_order(layer_idx, args.skip_list)
+        if len(layer_quant_order) == 0:
+            continue
+        active_layer_indices.append(layer_idx)
+        layer_tags = _quant_order_to_tags(layer_quant_order)
+        if not check_exist(layer_idx, args, target_tags=layer_tags):
+            pending_layer_indices.append(layer_idx)
+
+    glog.info(
+        f'active decoder layers: {len(active_layer_indices)}/{len(text_model.layers)} '
+        f'pending compression layers: {len(pending_layer_indices)}'
+    )
+    if len(pending_layer_indices) == 0:
+        glog.info('no pending decoder layer after skip_list/existing files; exiting.')
+        return
+
     devset = utils.sample_rp1t(tokenizer, args.devset_size, args.ctx_size,
                                args.sample_proc)
     glog.info('loaded dataset and devset')
@@ -367,9 +499,20 @@ def main(args):
             None, (args.batch_size, args.ctx_size),
             orig_emb_cache[0][:args.batch_size], 0)
 
+    pending_layer_set = set(pending_layer_indices)
+    if args.ft_epochs > 0:
+        iter_layer_indices = list(range(max(pending_layer_indices) + 1))
+    else:
+        iter_layer_indices = list(pending_layer_indices)
+    glog.info(
+        f'loop layers: {len(iter_layer_indices)} (ft_epochs={args.ft_epochs}, '
+        f'max_pending_layer={max(pending_layer_indices)})'
+    )
+
     cur_device = 0
     proc_list = [None for _ in range(nproc)]
-    for i in range(len(text_model.layers)):
+    for i in iter_layer_indices:
+        needs_compress = i in pending_layer_set
         glog.info(f'layer {i} gpu {cur_device}')
         if proc_list[cur_device] is not None:
             proc_list[cur_device][0].join()
@@ -386,18 +529,18 @@ def main(args):
 
         utils.clean()
         st = time.time()
-        position_ids = position_ids.to(cur_device)
-        if is_gemma3:
-            cache_position = cache_position.to(cur_device)
-            layer_attention_mask = causal_mask_mapping[
-                text_model.layers[i].attention_type]
-            if layer_attention_mask is not None:
-                layer_attention_mask = layer_attention_mask.to(cur_device)
-        else:
-            attention_mask = attention_mask.to(cur_device)
-        text_model.layers[i].to(cur_device)
-        
         if args.ft_epochs > 0:
+            position_ids = position_ids.to(cur_device)
+            if is_gemma3:
+                cache_position = cache_position.to(cur_device)
+                layer_attention_mask = causal_mask_mapping[
+                    text_model.layers[i].attention_type]
+                if layer_attention_mask is not None:
+                    layer_attention_mask = layer_attention_mask.to(cur_device)
+            else:
+                attention_mask = attention_mask.to(cur_device)
+            text_model.layers[i].to(cur_device)
+
             for j in range(args.devset_size // args.batch_size):
                 utils.clean()
                 if is_gemma3:
@@ -421,46 +564,57 @@ def main(args):
                             position_embeddings_local=position_embeddings_local,
                             output_attentions=False)[0].cpu()
                 else:
+                    layer_input = orig_emb_cache[cur_device][args.batch_size * j : args.batch_size * (j + 1)].to(cur_device)
+                    extra_kwargs = {}
+                    if _needs_explicit_position_embeddings(text_model):
+                        extra_kwargs["position_embeddings"] = text_model.rotary_emb(
+                            layer_input, position_ids)
                     orig_emb_cache[cur_device + 1][args.batch_size * j : args.batch_size * (j + 1)] = \
                         text_model.layers[i](
-                            orig_emb_cache[cur_device][args.batch_size * j : args.batch_size * (j + 1)].to(cur_device),
+                            layer_input,
                             position_ids=position_ids,
                             attention_mask=attention_mask,
                             use_cache=False,
-                            output_attentions=False)[0].cpu()
+                            output_attentions=False,
+                            **extra_kwargs)[0].cpu()
+            text_model.layers[i].cpu()
+            position_ids = position_ids.cpu()
+            if is_gemma3:
+                cache_position = cache_position.cpu()
+                if layer_attention_mask is not None:
+                    layer_attention_mask = layer_attention_mask.cpu()
+            else:
+                attention_mask = attention_mask.cpu()
         else:
-            orig_emb_cache[cur_device + 1] = torch.zeros_like(orig_emb_cache[cur_device])
-
-        text_model.layers[i].cpu()
-        position_ids = position_ids.cpu()
-        if is_gemma3:
-            cache_position = cache_position.cpu()
-            if layer_attention_mask is not None:
-                layer_attention_mask = layer_attention_mask.cpu()
-        else:
-            attention_mask = attention_mask.cpu()
+            orig_emb_cache[cur_device + 1] = torch.zeros_like(
+                orig_emb_cache[cur_device]
+            )
         utils.clean()
         glog.info('computed original embedding for layer {} in {}s'.format(i, time.time() - st))
 
-        proc_list[cur_device] = (mp.Process(target=compress_llama_decoder,
-                                            args=(
-                                                text_model.layers[i],
-                                                i,
-                                                comp_model,
-                                                q_level,
-                                                args,
-                                                cur_device,
-                                                orig_emb_cache[cur_device],
-                                                orig_emb_cache[cur_device + 1],
-                                                all_config['model_config'],
-                                                args.skip_list
-                                            )), i)
-        proc_list[cur_device][0].start()
+        if needs_compress:
+            proc_list[cur_device] = (mp.Process(target=compress_llama_decoder,
+                                                args=(
+                                                    text_model.layers[i],
+                                                    i,
+                                                    comp_model,
+                                                    q_level,
+                                                    args,
+                                                    cur_device,
+                                                    orig_emb_cache[cur_device],
+                                                    orig_emb_cache[cur_device + 1],
+                                                    all_config['model_config'],
+                                                    args.skip_list
+                                                )), i)
+            proc_list[cur_device][0].start()
+        else:
+            glog.info(f'layer {i}: skip compression process spawn')
 
         cur_device = (cur_device + 1) % nproc
 
     for p in proc_list:
-        p[0].join()
+        if p is not None:
+            p[0].join()
 
 
 if __name__ == '__main__':

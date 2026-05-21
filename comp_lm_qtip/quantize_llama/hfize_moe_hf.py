@@ -69,7 +69,7 @@ def load_proj_or_restore(module, attr_name, idx, layer_suffix, path_prefix, skip
              if target_layer.bias is not None:
                  target_layer.bias.data.copy_(saved['bias'].to(target_layer.bias.dtype))
                  
-        if orig_module is not None:
+        if orig_module is not None and target_layer.bias is not None:
             orig_layer = getattr(orig_module, attr_name)
             target_layer.bias.data.copy_(orig_layer.bias.data.to(target_layer.bias.dtype))   
     else:
@@ -212,6 +212,7 @@ def main(args):
                 
                 # --- [B] Experts 복원 ---
                 # GPT-OSS는 experts 모듈 안에 다시 experts 리스트가 있음 (mlp.experts.experts)
+                orig_experts_list = None
                 if is_gpt_oss:
                     experts_container = moe_block.experts
                     experts_list = experts_container.experts if hasattr(experts_container, 'experts') else experts_container

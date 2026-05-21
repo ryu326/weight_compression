@@ -5,12 +5,18 @@
 # echo "Running with explicit python: $PYTHON_BIN"
 
 quantize_flags=(
-    "--ecsq --normalization_search --scaleH"
+    # "--ecsq --normalization_search --scaleH"
     # "--ecsq --row_normalize --scaleH"
     # "--ecsq --row_normalize"
+    # "--ec_linear --row_normalize --scaleHinv --ecft_epochs 1000"
+    "--ec_linear --row_normalize --scaleHinv --ecft_epochs 0 --ecft_aux_warmup_step 500"
+    # "--ec_linear --row_normalize --scaleHinv --ecft_epochs 200 --ecft_aux_warmup_step 100"
 )
 experiment_names=(
-    'ecsq_normalization_search_scaleH'
+    'eclinear2_rnorm_scaleHiv_ep0_warmup500_target3'    
+    # 'eclinear2_rnorm_scaleHiv_ep200_warmup100'    
+    # 'eclinear2_rnorm_scaleHiv_ep1000'    
+    # 'ecsq_normalization_search_scaleH'
     # 'ecsq_rnorm_scaleH'
     # 'ecsq_rnorm'
 )
@@ -43,7 +49,7 @@ mkdir -p $CKPT
 mkdir -p $HF
 mkdir -p $LOG
 mkdir -p $RES
-export CUDA_VISIBLE_DEVICES=7
+export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 # export HF_HOME=/workspace/hf_cache/huggingface_nwc
 export HF_HOME=/home/jgryu/.cache/huggingface
 
@@ -52,7 +58,8 @@ export HF_HOME=/home/jgryu/.cache/huggingface
 # export HF_METRICS_CACHE=$HF_HOME/metrics
 
 # 모든 실험에 공통으로 적용될 Lambda 값
-R_targets=(2.3 2.5)
+R_targets=3
+ecft_lmbda=(10 50 100)
 ##########################################################################
 ##                        MAIN EXECUTION LOOP                           ##
 ##########################################################################
@@ -80,7 +87,7 @@ for j in "${!model_names[@]}"; do
         echo "========================================================================"
         
         # 3. 내부 루프: 설정된 모든 Lambda 값을 순회
-        for R in "${R_targets[@]}"; do
+        for ld in "${ecft_lmbda[@]}"; do
             SAVE_NAME=${model_name}/${exp_name}/lmbda${R}
 
             echo "################## Running compression | R_target=${R} | Exp: ${exp_name} | Model: ${model_name} ##################" | tee $LOG/$SAVE_NAME.log
@@ -89,12 +96,16 @@ for j in "${!model_names[@]}"; do
             # taskset -c 0-63 \
             python -m quantize_llama.quantize_finetune_llama --save_path $CKPT/$SAVE_NAME \
                 --base_model $lm_model_path \
-                --R_target $R \
+                --ecft_lmbda $ld \
                 --in_hess_path $HESS \
                 --devset_size 384 --ft_valid_size 128 --batch_size 8 \
+                --res_path ${RES}/${SAVE_NAME} \
+                --R_target $R_targets \
                 ${current_quantize_flags} \
                 2>&1 | tee -a $LOG/$SAVE_NAME.log
+                
 
+                # --R_target $R \
                 # --perlayer_ft_lmbda $lmbda \
                 # --devset_size 48 --ft_valid_size 16 --batch_size 1 \
                 # --devset_size 384 --ft_valid_size 128 --batch_size 8 \

@@ -19,8 +19,8 @@ EXP_TYPES_TO_RUN=(
 
 # 병렬 실행 설정 (K값과 GPU 매핑)
 # 예: K=2는 GPU 4번, K=3은 GPU 5번 사용
-K_VALUES=(2 3 4 5 6)
-GPU_LIST=(0 1 2 3 4)
+K_VALUES=(6)
+GPU_LIST=(7)
 
 CKPT="../hf_model_comp/qtip/ckpt"
 HF="../hf_model_comp/qtip/hf"
@@ -30,7 +30,7 @@ RES="../hf_model_comp_results_v2/qtip"
 # --- 환경 변수 설정 ---
 # GPU는 루프 내부에서 개별 할당하므로 여기서는 제거하거나 주석 처리
 # export CUDA_VISIBLE_DEVICES=4,5 
-export WANDB_SILENT=true
+# export WANDB_SILENT=true
 # export HF_HOME=/workspace/Weight_compression/hf_cache/
 export HF_HOME=/home/jgryu/.cache/huggingface
 
@@ -93,7 +93,8 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
             (
                 export CUDA_VISIBLE_DEVICES=$gpu_id
                 
-                NAME="${model_key}/${exp_type}_identity_hessian/${K}bit"
+                # NAME="${model_key}/${exp_type}_identity_hessian/${K}bit"
+                NAME="${model_key}/${exp_type}/${K}bit"
                 SAVE_PATH="$CKPT/$NAME"
                 LOG_FILE="${LOG}/${NAME}.log"
                 HF_PATH="$HF/$NAME"
@@ -106,18 +107,18 @@ for model_key in "${MODELS_TO_RUN[@]}"; do
                 # -------------------------------------------------------
                 # [Stage: Quantize] (Commented out as requested)
                 # -------------------------------------------------------
-                echo "### [Stage: Quantize | K=$K] ###" > $LOG_FILE
-                python -m quantize_llama.quantize_finetune_llama \
-                    --save_path $SAVE_PATH \
-                    --codebook bitshift \
-                    --base_model $base_model \
-                    --in_hess_path $HESS \
-                    --scale_override 0.9 \
-                    --ft_epochs $ft_epochs \
-                    --td_x 16 --td_y 16 --L 16 --K $K --V 2 \
-                    --decode_mode quantlut_sym --tlut_bits 9 \
-                    --use_identity_hessian \
-                    2>&1 | tee -a $LOG_FILE
+                # echo "### [Stage: Quantize | K=$K] ###" > $LOG_FILE
+                # python -m quantize_llama.quantize_finetune_llama \
+                #     --save_path $SAVE_PATH \
+                #     --codebook bitshift \
+                #     --base_model $base_model \
+                #     --in_hess_path $HESS \
+                #     --scale_override 0.9 \
+                #     --ft_epochs $ft_epochs \
+                #     --td_x 16 --td_y 16 --L 16 --K $K --V 2 \
+                #     --decode_mode quantlut_sym --tlut_bits 9 \
+                #     --use_identity_hessian \ !!!!!!!!!!!!
+                #     2>&1 | tee -a $LOG_FILE
 
                 # -------------------------------------------------------
                 # [Stage: Hfize] (Commented out as requested)

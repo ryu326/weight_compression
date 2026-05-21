@@ -55,6 +55,7 @@ parser.add_argument('--ft_valid_size', default=128, type=float)
 parser.add_argument('--ft_early_stop', default=5, type=int)
 parser.add_argument('--ft_grad_ckpt', action='store_true')
 parser.add_argument('--skip_list', default=None, type=str)
+parser.add_argument('--attn_implementation', default=None, type=str)
 
 parser.add_argument("--bundle", action='store_true', default = True)
 parser.add_argument("--ql", action='store_true')
@@ -86,12 +87,15 @@ parser.add_argument('--ft_comp_ep', type=int, default=None)
 parser.add_argument('--ft_comp_steps', type=int, default=None)
 parser.add_argument("--ft_comp_learning_rate", default=1e-4, type=float)
 parser.add_argument("--ft_comp_aux_learning_rate", default=1e-3,)
+parser.add_argument("--ft_train", action='store_true', default=False)
 parser.add_argument("--ft_train_dec", action='store_true', default=False)
+parser.add_argument("--ql_random_uniform", action='store_true', default=False)
 parser.add_argument("--ql_search", action='store_true', default=False)
 parser.add_argument("--ql_search_layer_name", type=str, default=None)
 # parser.add_argument("--ql_search_layer_idx", type=str, default='0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31')
 parser.add_argument("--ql_search_layer_idx", type=str, default='')
 parser.add_argument("--ql_search_value", type=int, default=None)
+parser.add_argument("--ql_search_r", type=float, default=None)
 parser.add_argument("--ql_tuned", action='store_true', default=False)
 parser.add_argument('--layerwise_scale', action='store_true', default=False)
 parser.add_argument('--layer_normalize', action='store_true', default=False)
@@ -100,6 +104,8 @@ parser.add_argument('--optim_code', action='store_true', default=False)
 parser.add_argument('--row_normalize', action='store_true', default=False)
 parser.add_argument('--row_normalize2', action='store_true', default=False)
 parser.add_argument('--col_normalize', action='store_true', default=False)
+parser.add_argument('--global_normalize', action='store_true', default=False)
+parser.add_argument('--normalization_search', action='store_true', default=False)
 parser.add_argument('--code_optim', action='store_true', default=False)
 parser.add_argument('--code_optim_it', type=int, default=False)
 parser.add_argument('--code_optim_lr', type=float, default=5e-3)
@@ -148,6 +154,14 @@ parser.add_argument('--scale_cond', action='store_true', default=False)
 parser.add_argument('--fp_iter', action='store_true', default=False)
 parser.add_argument('--fp_iter_max', type=int, default=None)
 parser.add_argument('--fp_tol', type=float, default=1e-5)
+parser.add_argument('--perlayer_ft_epochs', type=int, default=0)
+parser.add_argument('--perlayer_ft_bs', type=int, default=0)
+parser.add_argument('--perlayer_ft_lmbda', type=float, default=0)
+parser.add_argument('--initialize_codec', action='store_true', default=False)
+parser.add_argument("--use_hyper", action='store_true', default=False)
+parser.add_argument('--patch', action='store_true', default=False)
+parser.add_argument('--ecsq', action='store_true', default=False)
+parser.add_argument('--R_target', type=float, default=None)
 
 def check_exist(idx, args):
     suffix = ['q', 'k', 'v', 'o', 'fc1', 'fc2', 'layernorm']
@@ -217,6 +231,14 @@ def main(args):
 
     # save configs
     all_config = {'quant_args': args, 'model_config': model.config}
+    comp_params = {
+        'ft_rnorm': args.ft_rnorm,
+        'row_normalize': args.row_normalize,
+        'col_normalize': args.col_normalize,
+        'normalization_search': args.normalization_search,
+    }
+    if hasattr(all_config['model_config'], '__dict__'):
+        all_config['model_config'].__dict__.update({'comp_params': comp_params})
     torch.save(all_config, os.path.join(args.save_path, 'config.pt'))
 
     all_config = {'quant_args': vars(args), 'model_config': model.config.to_dict()}
@@ -226,38 +248,7 @@ def main(args):
     glog.info('loaded model')
 
     ## load comp model
-    config = os.path.join(os.path.dirname(args.comp_model_path), 'config.json')
-    with open(config, 'r', encoding='utf-8') as file:
-        config = json.load(file)
-    config = Config(**config)
-    
-    shift, scale = None, None
-    if config.architecture == 'nwc_ql' and not hasattr(config, "Q"):
-        config.Q = 4
-    comp_model = get_model(config.architecture, config, scale=scale, shift=shift)      
-    ckpt = torch.load(args.comp_model_path, weights_only=False)
-    
-    if (args.use_train_scale or args.layerwise_cdt or args.layer_normalize \
-            or args.row_normalize or args.col_normalize or args.scaleH):
-        try:
-            scale = ckpt["state_dict"]["scale"]
-            shift = ckpt["state_dict"]["shift"]
-            print('Use train scale and shift')
-        except:
-            scale, shift  = torch.zeros(1), torch.zeros(1)
-    else:
-        if 'scale' in ckpt["state_dict"]:
-            del ckpt["state_dict"]['scale']
-        if 'shift' in ckpt["state_dict"]:
-            del ckpt["state_dict"]['shift']
-        shift, scale = utils.get_model_weight_stats(model, args, config.input_size)
-    print(shift, scale)
-
-    comp_model.load_state_dict(ckpt["state_dict"], strict = False)
-    comp_model.scale = scale
-    comp_model.shift = shift
-    comp_model.update()
-    print(comp_model.scale, comp_model.shift)
+    comp_model = utils.load_comp_model(args, model)
     
     q_level = None
     if args.ql_path is not None:

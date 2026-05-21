@@ -10,14 +10,14 @@ shopt -s nullglob
 
 comp_model_bases=(
     # "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16"
-    "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16_seed2_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
+    # "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16_seed2_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
     "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16_seed2_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
     "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16_seed3_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed3.0"
     "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16_seed3_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed3.0"
 )
 quantize_flags=(
     # "--direction col --ql --Q 4 --normalization_search --ldlq --comp_batch_size 64 --ft_epochs 0"
-    "--direction col --ql --Q 4 --normalization_search --ldlq --comp_batch_size 64 --ft_epochs 0"
+    # "--direction col --ql --Q 4 --normalization_search --ldlq --comp_batch_size 64 --ft_epochs 0"
     "--direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 64 --ft_epochs 0"
     "--direction col --ql --Q 4 --normalization_search --ldlq --comp_batch_size 64 --ft_epochs 0"
     "--direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 64 --ft_epochs 0"
@@ -26,7 +26,7 @@ quantize_flags=(
 )
 experiment_names=(
     # "ql_ldlq64_normalization_search"
-    "ql_ldlq64_normalization_search_seed2"
+    # "ql_ldlq64_normalization_search_seed2"
     "ql_ldlq64_rnorm_seed2"
     "ql_ldlq64_normalization_search_seed3"
     "ql_ldlq64_rnorm_seed3"

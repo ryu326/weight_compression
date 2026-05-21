@@ -420,16 +420,15 @@ def main(args):
             "use_cache": False,
             "output_attentions": False,
         }
-        # Qwen 모델인 경우에만 position_embeddings 계산 및 추가
-        rotary_emb = None
-        model_type_lower = all_config['model_config'].model_type.lower()
-        if "qwen" in model_type_lower or "gpt_oss" in model_type_lower:
-            position_embeddings = model.model.rotary_emb(
-                orig_emb_cache[cur_device][0:1].to(cur_device), 
+        # 모델 레벨 rotary_emb가 있으면 position_embeddings를 계산해 layer에 전달
+        # (최신 transformers의 Qwen/GPT-OSS/Mixtral 등은 모델 레벨 rotary_emb를 사용)
+        rotary_emb = getattr(model.model, 'rotary_emb', None)
+        if rotary_emb is not None:
+            position_embeddings = rotary_emb(
+                orig_emb_cache[cur_device][0:1].to(cur_device),
                 position_ids
             )
             layer_kwargs["position_embeddings"] = position_embeddings
-            rotary_emb = model.model.rotary_emb
         
         
         if args.ft_epochs > 0:

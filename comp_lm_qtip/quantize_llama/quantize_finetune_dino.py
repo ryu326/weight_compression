@@ -98,6 +98,7 @@ parser.add_argument('--layer_normalize', action='store_true', default=False)
 parser.add_argument('--channelwise_scale', action='store_true', default=False)
 parser.add_argument('--optim_code', action='store_true', default=False)
 parser.add_argument('--row_normalize', action='store_true', default=False)
+parser.add_argument('--normalization_search', action='store_true', default=False)
 parser.add_argument('--row_normalize2', action='store_true', default=False)
 parser.add_argument('--col_normalize', action='store_true', default=False)
 parser.add_argument('--code_optim', action='store_true', default=False)
@@ -164,6 +165,46 @@ class Config:
 
 def compress_clip_decoder(layer, idx, comp_model, q_level,  args, device, pre_orig_emb,
                           orig_emb, model_config, skip_list):
+    args.R_target = getattr(args, 'R_target', None)
+    args.attn_implementation = getattr(args, 'attn_implementation', None)
+    args.ec_entropy_chunk_rows = getattr(args, 'ec_entropy_chunk_rows', 0)
+    args.ec_linear = getattr(args, 'ec_linear', False)
+    args.ec_pretrained_path = getattr(args, 'ec_pretrained_path', None)
+    args.ecft_B_init = getattr(args, 'ecft_B_init', "identity")
+    args.ecft_B_init_scale = getattr(args, 'ecft_B_init_scale', None)
+    args.ecft_adaptive_lambda = getattr(args, 'ecft_adaptive_lambda', False)
+    args.ecft_aux_learning_rate = getattr(args, 'ecft_aux_learning_rate', 1e-3)
+    args.ecft_aux_warmup_step = getattr(args, 'ecft_aux_warmup_step', 0)
+    args.ecft_decoder = getattr(args, 'ecft_decoder', False)
+    args.ecft_epochs = getattr(args, 'ecft_epochs', None)
+    args.ecft_lambda_lr = getattr(args, 'ecft_lambda_lr', 0.1)
+    args.ecft_lambda_max = getattr(args, 'ecft_lambda_max', 1e8)
+    args.ecft_lambda_min = getattr(args, 'ecft_lambda_min', 0.0)
+    args.ecft_lambda_ortho = getattr(args, 'ecft_lambda_ortho', 0.0)
+    args.ecft_lattice_dim = getattr(args, 'ecft_lattice_dim', 4)
+    args.ecft_learning_rate = getattr(args, 'ecft_learning_rate', 1e-3)
+    args.ecft_lmbda = getattr(args, 'ecft_lmbda', None)
+    args.ecft_num_gaussian = getattr(args, 'ecft_num_gaussian', 3)
+    args.ecft_num_laplacian = getattr(args, 'ecft_num_laplacian', 3)
+    args.ecft_rate_ema_beta = getattr(args, 'ecft_rate_ema_beta', 0.0)
+    args.ecft_rate_tolerance = getattr(args, 'ecft_rate_tolerance', 0.0)
+    args.ecsq = getattr(args, 'ecsq', False)
+    args.ft_train = getattr(args, 'ft_train', False)
+    args.global_normalize = getattr(args, 'global_normalize', False)
+    args.initialize_codec = getattr(args, 'initialize_codec', False)
+    args.normalization_search = getattr(args, 'normalization_search', False)
+    args.patch = getattr(args, 'patch', False)
+    args.perlayer_ft_bs = getattr(args, 'perlayer_ft_bs', 0)
+    args.perlayer_ft_epochs = getattr(args, 'perlayer_ft_epochs', 0)
+    args.perlayer_ft_lmbda = getattr(args, 'perlayer_ft_lmbda', 0)
+    args.ql_random_uniform = getattr(args, 'ql_random_uniform', False)
+    args.ql_search_r = getattr(args, 'ql_search_r', None)
+    args.res_path = getattr(args, 'res_path', None)
+    args.use_hyper = getattr(args, 'use_hyper', False)
+    args.use_wandb = getattr(args, 'use_wandb', False)
+    args.verbose = getattr(args, 'verbose', False)
+    args.wandb_group = getattr(args, 'wandb_group', None)
+    args.wandb_project = getattr(args, 'wandb_project', None)
     if check_exist(idx, args):
         return
 
@@ -239,13 +280,17 @@ def main(args):
     ckpt = torch.load(args.comp_model_path, weights_only=False)
     
     if (args.use_train_scale or args.layerwise_cdt or args.layer_normalize \
-            or args.row_normalize or args.col_normalize or args.scaleH):
-        try:
-            scale = ckpt["state_dict"]["scale"]
-            shift = ckpt["state_dict"]["shift"]
-            print('Use train scale and shift')
-        except:
-            scale, shift  = torch.zeros(1), torch.zeros(1)
+            or args.row_normalize or args.col_normalize or args.scaleH \
+            or args.normalization_search):
+        if args.use_train_scale:
+            try:
+                scale = ckpt["state_dict"]["scale"]
+                shift = ckpt["state_dict"]["shift"]
+                print('Use train scale and shift')
+            except:
+                scale, shift = torch.ones(1), torch.zeros(1)
+        else:
+            scale, shift = torch.ones(1), torch.zeros(1)
     else:
         if 'scale' in ckpt["state_dict"]:
             del ckpt["state_dict"]['scale']

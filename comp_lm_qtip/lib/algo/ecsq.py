@@ -8,6 +8,40 @@ import glog
 # from nvidia import nvcomp
 # import cupy as cp
 
+def binary_search_qs(
+    Z,
+    target_rate,
+    low=0.001,
+    high=10.0,
+    num_iters=15,
+    max_sample_size=50000,
+):
+    data = Z.flatten()
+
+    best_step = 1.0
+    if data.numel() < max_sample_size:
+        sample_for_ent = data
+    else:
+        indices = torch.randint(0, data.numel(), (max_sample_size,), device=data.device)
+        sample_for_ent = data[indices]
+
+    for _ in range(num_iters):
+        mid = (low + high) / 2
+        q_vals_sample = torch.round(sample_for_ent / mid)
+        h = calc_entropy_torch(q_vals_sample).item()
+        if h > target_rate:
+            low = mid
+        else:
+            high = mid
+            best_step = mid
+
+    q_vals_full = torch.round(data / best_step)
+    ecsq_recon = q_vals_full * best_step
+    ecsq_mse = torch.mean((data - ecsq_recon) ** 2).item()
+    theory_rate = calc_entropy_torch(q_vals_full).item()
+
+    return best_step, theory_rate, ecsq_mse
+
 def uniform_ecsq_gpu(W, H, args, device = 'cpu'):
     
     W = W.to(device)
@@ -15,34 +49,16 @@ def uniform_ecsq_gpu(W, H, args, device = 'cpu'):
     (m, n) = W.shape
     Wr, Hr, metadata = utils.standardize_W(W, H, args, device)
     
+    if not hasattr(args, "R_target") or args.R_target is None:
+        raise ValueError("uniform_ecsq_gpu requires args.R_target")
+
     data = Wr.flatten()
-    
-    low, high = 0.001, 10.0
-    best_step = 1.0
-    if data.numel() < 50000:
-        sample_for_ent = data
-    else:
-        indices = torch.randint(0, data.numel(), (50000,), device=data.device)
-        sample_for_ent = data[indices]
-    
-    for _ in range(15): 
-        mid = (low + high) / 2
-        q_vals = torch.round(sample_for_ent / mid)
-        q_vals = torch.round(data / mid)
-        h = calc_entropy_torch(q_vals).item()
-        if h > args.R_target:
-            low = mid
-        else:
-            high = mid
-            best_step = mid
-    
+    best_step, theory_rate, ecsq_mse = binary_search_qs(
+        Wr, target_rate=float(args.R_target)
+    )
     q_vals_full = torch.round(data / best_step)
     ecsq_recon = q_vals_full * best_step
-    ecsq_mse = torch.mean((data - ecsq_recon) ** 2).item()
-    
-    theory_rate = calc_entropy_torch(q_vals_full).item()
-    
-    # rans_rate = theory_rate
+
     rans_rate = run_actual_rans(data.detach().cpu().numpy(), best_step)
     # rans_rate = run_actual_rans_gpu(data, best_step, device) ## rate가 안 맞음 왜?
     

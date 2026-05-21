@@ -33,8 +33,25 @@ def _is_gemma3_config(config):
     return getattr(config, 'model_type', '') in ('gemma3', 'gemma3_text')
 
 
+def _needs_automodel(config):
+    """Models whose config is incompatible with the LlamaForCausalLM weight
+    schema (e.g. Qwen3 has q_norm/k_norm and no `mlp_bias`). Use AutoModel."""
+    mt = getattr(config, 'model_type', '')
+    return mt in ('qwen3', 'qwen3_moe')
+
+
 def _get_text_model(model):
     return model.language_model if hasattr(model, 'language_model') else model.model
+
+
+def _as_float(value, default: float = 0.0) -> float:
+    if isinstance(value, torch.Tensor):
+        if value.numel() == 1:
+            return float(value.detach().item())
+        return default
+    if isinstance(value, (int, float)):
+        return float(value)
+    return default
 
 
 def main(args):
@@ -47,7 +64,8 @@ def main(args):
     _name_or_path = args.base_model
     tokenizer = AutoTokenizer.from_pretrained(_name_or_path)
     is_gemma3 = _is_gemma3_config(model_config)
-    if is_gemma3:
+    use_automodel = is_gemma3 or _needs_automodel(model_config)
+    if use_automodel:
         model = AutoModelForCausalLM.from_pretrained(
             _name_or_path,
             torch_dtype='auto',
@@ -80,9 +98,16 @@ def main(args):
     comp_result = {
         'bpp_loss': 0,
         'bpp': 0,
+        'metadata_total': 0,
+        'bpp_with_metadata': 0,
+        'bpp_loss_with_metadata': 0,
+        'decoder_total': 0,
         'ppl': 0,
         'num_pixels': 0
-    }    
+    }
+    metadata_total_raw_sum = 0.0
+    decoder_total_raw_sum = 0.0
+
     try:
         with open(os.path.join(args.quantized_path, 'config.json'), 'r') as f:
             saved_config = json.load(f)
@@ -146,10 +171,32 @@ def main(args):
                 submodule = getattr(layer, submodule_name)
                 proj_layer = getattr(submodule, proj_name)
                 
-                comp_result[f'{skip_key}.pt'] = {k: v for k, v in saved_layer.items() if not isinstance(v, torch.Tensor) and k != 'codes' and k != 'metadata'}
-                comp_result['bpp_loss'] += saved_layer['bpp_loss_sum' + args.W_key]
-                comp_result['num_pixels'] += saved_layer['num_pixels']
-                comp_result['bpp'] += saved_layer['bpp_sum']
+                comp_result[f'{skip_key}.pt'] = {
+                    k: v
+                    for k, v in saved_layer.items()
+                    if (
+                        not isinstance(v, torch.Tensor)
+                        and k not in {
+                            'codes',
+                            'metadata',
+                            'metadata_total_raw',
+                            'bpp_with_metadata_sum',
+                            'bpp_loss_with_metadata_sum',
+                            'decoder_total_raw',
+                        }
+                    )
+                }
+                bpp_loss_sum = _as_float(saved_layer.get('bpp_loss_sum' + args.W_key, 0.0))
+                bpp_sum = _as_float(saved_layer.get('bpp_sum', 0.0))
+                num_pixels = _as_float(saved_layer.get('num_pixels', 0.0))
+                metadata_total_raw = _as_float(saved_layer.get('metadata_total_raw', 0.0))
+
+                comp_result['bpp_loss'] += bpp_loss_sum
+                comp_result['num_pixels'] += num_pixels
+                comp_result['bpp'] += bpp_sum
+                metadata_total_raw_sum += metadata_total_raw
+                decoder_total_raw = _as_float(saved_layer.get('decoder_total_raw', 0.0))
+                decoder_total_raw_sum += decoder_total_raw
                 
                 if args.sep_rnorm:
                     try:
@@ -177,13 +224,36 @@ def main(args):
         glog.info(f'loaded layer {ii}')
         
     if comp_result['num_pixels'] > 0:
+        bpp_loss_sum_total = _as_float(comp_result['bpp_loss'])
+        bpp_sum_total = _as_float(comp_result['bpp'])
         comp_result['bpp_loss'] = comp_result['bpp_loss'] / comp_result['num_pixels']
         comp_result['bpp'] = comp_result['bpp'] / comp_result['num_pixels']
-    
+        comp_result['metadata_total'] = metadata_total_raw_sum / comp_result['num_pixels']
+        comp_result['bpp_with_metadata'] = (
+            bpp_sum_total + metadata_total_raw_sum
+        ) / comp_result['num_pixels']
+        comp_result['bpp_loss_with_metadata'] = (
+            bpp_loss_sum_total + metadata_total_raw_sum
+        ) / comp_result['num_pixels']
+        comp_result['decoder_total'] = decoder_total_raw_sum / comp_result['num_pixels']
+    else:
+        comp_result['metadata_total'] = 0
+        comp_result['bpp_with_metadata'] = 0
+        comp_result['bpp_loss_with_metadata'] = 0
+        comp_result['decoder_total'] = 0
+
     if isinstance(comp_result['bpp_loss'], torch.Tensor):
         comp_result['bpp_loss'] = comp_result['bpp_loss'].item()
     if isinstance(comp_result['bpp'], torch.Tensor):
         comp_result['bpp'] = comp_result['bpp'].item()
+    if isinstance(comp_result['metadata_total'], torch.Tensor):
+        comp_result['metadata_total'] = comp_result['metadata_total'].item()
+    if isinstance(comp_result['bpp_with_metadata'], torch.Tensor):
+        comp_result['bpp_with_metadata'] = comp_result['bpp_with_metadata'].item()
+    if isinstance(comp_result['bpp_loss_with_metadata'], torch.Tensor):
+        comp_result['bpp_loss_with_metadata'] = comp_result['bpp_loss_with_metadata'].item()
+    if isinstance(comp_result['decoder_total'], torch.Tensor):
+        comp_result['decoder_total'] = comp_result['decoder_total'].item()
 
     glog.info(f'saving model...')
     model.save_pretrained(args.hf_output_path, safe_serialization=True)

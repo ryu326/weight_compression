@@ -13,20 +13,36 @@ def save_linear(module, path):
     torch.save(saved_layer, path)
 
 
+def _maybe_qwen3_rotary(layer, device):
+    """Build a Qwen3RotaryEmbedding if `layer` is a Qwen3DecoderLayer.
+    Newer transformers (>=4.51) require attention to receive
+    position_embeddings=(cos,sin); older Llama did not."""
+    cfg = getattr(getattr(layer, "self_attn", None), "config", None)
+    if cfg is None:
+        cfg = getattr(layer, "config", None)
+    if getattr(cfg, "model_type", "") not in ("qwen3", "qwen3_moe"):
+        return None
+    from transformers.models.qwen3.modeling_qwen3 import Qwen3RotaryEmbedding
+    return Qwen3RotaryEmbedding(config=cfg, device=device)
+
+
 def calculate_mse_loss(layer, dataloader, device):
     layer.eval()
     total_loss = 0
     ct = 0
     position_ids = None
+    qwen3_rotary = _maybe_qwen3_rotary(layer, device)
     with torch.no_grad():
         for source, target in dataloader:
             if position_ids is None:
                 position_ids = torch.arange(source.shape[1],
                                             device=device).unsqueeze(0)
             target = target.to(device, non_blocking=True)
-            total_loss += nn.MSELoss()(layer(source.to(device),
-                                             position_ids=position_ids)[0],
-                                       target)
+            inp = source.to(device)
+            kwargs = {"position_ids": position_ids}
+            if qwen3_rotary is not None:
+                kwargs["position_embeddings"] = qwen3_rotary(inp, position_ids)
+            total_loss += nn.MSELoss()(layer(inp, **kwargs)[0], target)
             ct += 1
     layer.train()
     return (total_loss / ct).cpu().item()

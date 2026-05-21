@@ -349,7 +349,7 @@ class LlamaMLP(nn.Module):
                 bias=False,
             )
         else:
-            self.down_proj = nn.Linear(self.intermediate_size, self.hidden_Size, dtype=config.torch_dtype, bias=False)
+            self.down_proj = nn.Linear(self.intermediate_size, self.hidden_size, dtype=config.torch_dtype, bias=False)
 
         self.act_fn = ACT2FN[config.hidden_act]
 

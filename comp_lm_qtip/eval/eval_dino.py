@@ -71,7 +71,7 @@ def main(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
 
-    model_name = args.hf_path
+    model_name = os.path.abspath(args.hf_path) if args.hf_path and not args.hf_path.startswith('/') else args.hf_path
     # processor = AutoImageProcessor.from_pretrained(model_name)
     model = AutoModelForImageClassification.from_pretrained(model_name)
     model.to(device)

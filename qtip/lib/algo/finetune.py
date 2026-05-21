@@ -38,6 +38,29 @@ def _is_gemma3_layer(layer):
                    "") in ("gemma3", "gemma3_text")
 
 
+def _qwen3_layer_config(layer):
+    """Qwen3DecoderLayer doesn't store config on itself; pull it from
+    layer.self_attn.config (set by Qwen3Attention's __init__)."""
+    cfg = getattr(getattr(layer, "self_attn", None), "config", None)
+    if cfg is None:
+        cfg = getattr(layer, "config", None)
+    return cfg
+
+
+def _is_qwen3_layer(layer):
+    cfg = _qwen3_layer_config(layer)
+    return getattr(cfg, "model_type", "") in ("qwen3", "qwen3_moe")
+
+
+def _build_qwen3_rotary_emb(layer, device):
+    from transformers.models.qwen3.modeling_qwen3 import Qwen3RotaryEmbedding
+    cfg = _qwen3_layer_config(layer)
+    if cfg is None:
+        raise RuntimeError(
+            "Could not locate Qwen3 config on the decoder layer for rotary build.")
+    return Qwen3RotaryEmbedding(config=cfg, device=device)
+
+
 def _bidirectional_window_overlay(sliding_window):
     def inner_mask(batch_idx, head_idx, q_idx, kv_idx):
         return abs(q_idx - kv_idx) < sliding_window
@@ -93,7 +116,9 @@ def finetune_decoder_layer(layer, name, device, train_dl, valid_dl, orig_dtype,
         source = next(iter(train_dl))[0]
         position_ids = torch.arange(source.shape[1], device=device).unsqueeze(0)
         is_gemma3 = _is_gemma3_layer(layer)
+        is_qwen3 = _is_qwen3_layer(layer)
         gemma3_ctx = None
+        qwen3_rotary = None
         layer_dtype = next(layer.parameters()).dtype
         if is_gemma3:
             try:
@@ -125,11 +150,17 @@ def finetune_decoder_layer(layer, name, device, train_dl, valid_dl, orig_dtype,
                 "causal_mask_mapping": causal_mask_mapping,
             }
 
+        if is_qwen3:
+            qwen3_rotary = _build_qwen3_rotary_emb(layer, device)
+
         def _forward_layer(input_states):
             input_states = input_states.to(device=device, dtype=layer_dtype)
             if not is_gemma3:
-                return layer(input_states,
-                             position_ids=position_ids)[0]
+                kwargs = {"position_ids": position_ids}
+                if is_qwen3:
+                    kwargs["position_embeddings"] = qwen3_rotary(
+                        input_states, position_ids)
+                return layer(input_states, **kwargs)[0]
             layer_attention_mask = gemma3_ctx["causal_mask_mapping"][
                 layer.attention_type]
             return layer(

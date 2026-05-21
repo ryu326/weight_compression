@@ -120,13 +120,6 @@ def compress_linear(W, H, comp_model, Qlevel, args, device='cpu'):
 
     res['metadata'] = metadata
 
-    total_metadata_bpp = utils.calculate_metadata_bpp(metadata, W.shape, args)
-    # bpp_keys = ['bpp_loss_sum', 'bpp_loss_sum_init', 'bpp_loss_sum_sga', 'bpp_loss_sum_round', 'bpp_sum']
-    bpp_keys = ['bpp_loss_sum', 'bpp_sum']
-    for key in bpp_keys:
-        if res.get(key) is not None:
-            res[key] += total_metadata_bpp
-    
     mse =  torch.mean((Wr - res['hatWr']) ** 2).item()        
     res['mse_normed'] = mse/comp_model.scale.item() 
     # res['mse_normed'] = mse
@@ -257,29 +250,33 @@ def model_foward_one_batch(w, model, args, one_batch = True, **kwargs):
     # assert (m if args.direction == 'col' else n) % blks == 0
     original_m, original_n = m, n
     pad_len = 0    
-    # if args.direction == 'col':
-    #     # Col 방향일 때는 m(행)이 blks의 배수여야 함
-    #     if m % blks != 0:
-    #         pad_len = blks - (m % blks)
-    #         # w shape: (m, n) -> pad bottom rows: (last_dim_left, last_dim_right, 2nd_last_left, 2nd_last_right)
-    #         # (0, 0, 0, pad_len)
-    #         if w is not None:
-    #             w = F.pad(w, (0, 0, 0, pad_len))
-    #         m = m + pad_len  # m 업데이트
-    # else:
-    #     # Row 방향일 때는 n(열)이 blks의 배수여야 함
-    #     if n % blks != 0:
-    #         pad_len = blks - (n % blks)
-    #         # w shape: (m, n) -> pad right cols
-    #         if w is not None:
-    #             w = F.pad(w, (0, pad_len))
-    #         n = n + pad_len  # n 업데이트
+    if args.direction == 'col':
+        # Col 방향일 때는 m(행)이 blks의 배수여야 함
+        if m % blks != 0:
+            pad_len = blks - (m % blks)
+            # w shape: (m, n) -> pad bottom rows: (last_dim_left, last_dim_right, 2nd_last_left, 2nd_last_right)
+            # (0, 0, 0, pad_len)
+            if w is not None:
+                w = F.pad(w, (0, 0, 0, pad_len))
+            m = m + pad_len  # m 업데이트
+    else:
+        # Row 방향일 때는 n(열)이 blks의 배수여야 함
+        if n % blks != 0:
+            pad_len = blks - (n % blks)
+            # w shape: (m, n) -> pad right cols
+            if w is not None:
+                w = F.pad(w, (0, pad_len))
+            n = n + pad_len  # n 업데이트
     
     sc = kwargs.get('sc', None)  # (1, n)
+    if sc is not None and not args.patch and args.direction != 'col' and pad_len > 0:
+        sc = F.pad(sc, (0, pad_len), mode='replicate')
     sc = sc.repeat(m, 1) if sc is not None else None #(m, n)
     
     if ql is not None:
         ql = ql.reshape(-1)
+        if not args.patch and args.direction != 'col' and pad_len > 0 and ql.numel() > 1:
+            ql = torch.cat([ql, ql[-1:].expand(pad_len)])
         if not args.patch and ql.numel() > 0 and torch.all(ql == ql[0]):
             ql = ql[:1]
         elif args.patch:
@@ -344,7 +341,7 @@ def model_foward_one_batch(w, model, args, one_batch = True, **kwargs):
             assert sc.shape == (1, m*n//blks)
         data['scale_cond'] = sc
         
-    num_pixels = m*n
+    num_pixels = original_m * original_n
     bpp_loss_sum = torch.tensor(0)
     nbits = 0
     out_enc = None
@@ -397,15 +394,13 @@ def model_foward_one_batch(w, model, args, one_batch = True, **kwargs):
         w_hat = w_hat.T if (w_hat is not None and transpose) else w_hat
     else:
         if args.direction == 'col':
-            # 현재 w_hat은 (n, m) 형태 (padding 포함)
             w_hat = w_hat.reshape(n, m).transpose(0, 1).contiguous()
-            # 복원된 w_hat은 (m, n). 여기서 m은 패딩된 크기.
-            # if pad_len > 0:
-            #     w_hat = w_hat[:original_m, :]
+            if pad_len > 0:
+                w_hat = w_hat[:original_m, :]
         else:
             w_hat = w_hat.reshape(m, n)
-            # if pad_len > 0:
-            #     w_hat = w_hat[:, :original_n]
+            if pad_len > 0:
+                w_hat = w_hat[:, :original_n]
 
     # if args.use_codes:
     #     del out_dec['x_hat']

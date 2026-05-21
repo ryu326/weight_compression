@@ -150,11 +150,17 @@ class ImageNet_valid_dataset(Dataset):
         return input_data['pixel_values'].squeeze(0), self.label_idx_list[idx]
 
 def main(args):
-    model = SiglipModel.from_pretrained(args.hf_path, force_download=False).to('cuda')
+    hf_path = os.path.abspath(args.hf_path) if args.hf_path and not args.hf_path.startswith('/') else args.hf_path
+    model = SiglipModel.from_pretrained(hf_path, force_download=False).to('cuda')
     processor = SiglipProcessor.from_pretrained(args.model_id, force_download=False)
 
-    with open('/workspace/Weight_compression/qtip/eval/imagenet_class_index.json', 'r') as f:
-        imagenet_class_index = json.load(f)    
+    _idx_candidates = [
+        '/home/jgryu/workspace/weight_compression/qtip/eval/imagenet_class_index.json',
+        '../qtip/eval/imagenet_class_index.json',
+    ]
+    _idx_path = next(p for p in _idx_candidates if os.path.exists(p))
+    with open(_idx_path, 'r') as f:
+        imagenet_class_index = json.load(f)
     
     imagenet = ImageNet_valid_dataset(
         imagenet_class_index,

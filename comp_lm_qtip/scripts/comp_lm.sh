@@ -8,7 +8,8 @@ export PATH="/opt/conda/bin:$PATH"  # PATH의 맨 앞에 base 경로 강제 삽�
 echo "Running with explicit python: $PYTHON_BIN"
 
 comp_model_bases=(
-    '/home/jgryu/workspace/weight_compression/NWC/checkpoint2/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/rdloss_ql_size16_encdim512_M16_Q4_nRB4R0_m0_batch_size2048_total_iter20000_lr0.0001_seed100'
+    '/home/jgryu/workspace/weight_compression/NWC/checkpoint2/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/rdloss_ql_size16_encdim512_M16_Q4_nRB4R0_m0_batch_size2048_total_iter200000_lr0.0001_seed4.0/seed4'
+    # '/home/jgryu/workspace/weight_compression/NWC/checkpoint2/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/rdloss_ql_size16_encdim512_M16_Q4_nRB4R0_m0_batch_size2048_total_iter20000_lr0.0001_seed100'
     # '/home/jgryu/workspace/weight_compression/NWC/checkpoint2/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/rdloss_ql_size16_encdim512_M16_Q4_nRB4R0_m0_batch_size2048_total_iter20000_lr0.0001_seed100'
     # '/home/jgryu/workspace/weight_compression/NWC/checkpoint2/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/rdloss_ql_size4_encdim64_M4_Q4_R0_m0_batch_size8192_total_iter200000_lr0.0001_seed100'
     # '/home/jgryu/workspace/weight_compression/NWC/checkpoint2/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/rdloss_ql_size16_encdim512_M16_Q4_nRB4R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100'
@@ -25,8 +26,7 @@ comp_model_bases=(
     # "/home/jgryu/workspace/weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/n_res_1_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
     # "/home/jgryu/workspace/weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16_seed3_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed3.0"
     # "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16"
-    # "../NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16"
-    # "/home/jgryu/workspace/weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16_seed2_rdloss_ql_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
+    # '../NWC/checkpoint2/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/M16'
     # "/home/jgryu/workspace/weight_compression/NWC/checkpoint/nwc_id/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/rateloss_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
     # '/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Meta-Llama-3-8B__scaleH_sig0.0001_std_rnormed_with_col_std_lidx_row_1024.pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100'
     # '/workspace/Weight_compression/NWC/checkpoint/nwc_scale_cond/block_seq_scale_cond_scaler_meta-llama--Llama-2-7b-hf__row_256_scaleH0.0001_rnormed_scale_cond(col_std).pt/rdloss_size128_encdim1024_M256_Q0_R0_m0_batch_size8192_total_iter200000_lr0.0001_seed100'
@@ -35,7 +35,9 @@ comp_model_bases=(
     # "/workspace/Weight_compression/NWC/checkpoint/nwc_ql/block_seq_ql_random_scaler_meta-llama--Meta-Llama-3-8B__col_1024_gaussian_padding.pt/ablation_ql_rdloss_ql_v2_size16_encdim512_M16_Q4_R0_m0_batch_size2048_total_iter200000_lr0.0001_seed100"
 )
 quantize_flags=(
-    "--direction row --ql --Q 4 --normalization_search --ldlq --comp_batch_size 128"
+    "--direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 128 --ft_epochs 5"
+    # "--direction col --ql --Q 4 --row_normalize --ldlq --comp_batch_size 128 --ft_epochs 5"
+    # "--direction row --ql --Q 4 --normalization_search --ldlq --comp_batch_size 128"
     # "--direction row --ql --Q 4 --normalization_search --ldlq --comp_batch_size 128"
     # "--direction row --ql --Q 4 --patch --row_normalize --ldlq --comp_batch_size 128"
     # "--direction row --ql --Q 4 --patch --comp_batch_size 1024 --row_normalize"
@@ -104,7 +106,8 @@ quantize_flags=(
     # "--direction row --comp_batch_size 4096 --whiten --in_hess_eig_path /workspace/Weight_compression/Wparam_dataset/quip_hess_eig_reg0.0001/llama3_8b_6144"
 )
 experiment_names=(
-    "ql_ldlq128_normalization_search"
+    'ql_ldlq128_rnorm_ft_seed4'
+    # "ql_ldlq128_normalization_search"
     # 'ql_patch_row_noLN/(rnorm)_rnorm_ldlq128_ft'
     # 'ql_patch_row_noLN/rnorm_ldlq128_ft'
     # 'ql_patch_row_noLN_TEST/(rnorm)_rnorm'
@@ -159,7 +162,7 @@ mkdir -p $CKPT
 mkdir -p $HF
 mkdir -p $LOG
 mkdir -p $RES
-export CUDA_VISIBLE_DEVICES=7
+export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6
 # export HF_HOME=/workspace/hf_cache/huggingface_nwc
 export HF_HOME=/home/jgryu/.cache/huggingface
 
@@ -168,7 +171,8 @@ export HF_HOME=/home/jgryu/.cache/huggingface
 # export HF_METRICS_CACHE=$HF_HOME/metrics
 
 # 모든 실험에 공통으로 적용될 Lambda 값
-lmbda_values=(1500 1600 1700)
+lmbda_values=(100 300 1000 10000 50 30)
+# lmbda_values=(1500 1600 1700)
 ##########################################################################
 ##                        MAIN EXECUTION LOOP                           ##
 ##########################################################################
@@ -230,23 +234,23 @@ for j in "${!model_names[@]}"; do
             # SAVE_NAME=${model_name}/${exp_name}/lmbda${lmbda}_skip1down
 
 
-            # echo "################## Running PPL evaluation | lmbda=${lmbda} | Exp: ${exp_name} | Model: ${model_name} ##################"
-            # echo "Running evaluation for directory: $HF/$SAVE_NAME"
-            # python -m eval.eval_ppl_hf \
-            #     --hf_path $HF/${SAVE_NAME} \
-            #     --seqlen 2048 \
-            #     --output_path ${RES}/${SAVE_NAME} \
-            #     --datasets wikitext2,c4 \
-            #     --no_use_cuda_graph 2>&1 | tee -a $LOG/$SAVE_NAME.log
+            echo "################## Running PPL evaluation | lmbda=${lmbda} | Exp: ${exp_name} | Model: ${model_name} ##################"
+            echo "Running evaluation for directory: $HF/$SAVE_NAME"
+            python -m eval.eval_ppl_hf \
+                --hf_path $HF/${SAVE_NAME} \
+                --seqlen 2048 \
+                --output_path ${RES}/${SAVE_NAME} \
+                --datasets wikitext2,c4 \
+                --no_use_cuda_graph 2>&1 | tee -a $LOG/$SAVE_NAME.log
 
                 # --datasets wikitext2,c4 \
 
-            # echo "################## Running benchmark evaluation | lmbda=${lmbda} | Exp: ${exp_name} | Model: ${model_name} ##################"
-            # python -m eval.eval_zeroshot_hf \
-            #     --tasks arc_challenge,arc_easy,piqa,winogrande,boolq,hellaswag,mmlu \
-            #     --hf_path $HF/$SAVE_NAME \
-            #     --output_path $RES/${SAVE_NAME}_common_mmlu \
-            #     2>&1 | tee -a $LOG/$SAVE_NAME.log
+            echo "################## Running benchmark evaluation | lmbda=${lmbda} | Exp: ${exp_name} | Model: ${model_name} ##################"
+            python -m eval.eval_zeroshot_hf \
+                --tasks arc_challenge,arc_easy,piqa,winogrande,boolq,hellaswag,mmlu \
+                --hf_path $HF/$SAVE_NAME \
+                --output_path $RES/${SAVE_NAME}_common_mmlu \
+                2>&1 | tee -a $LOG/$SAVE_NAME.log
 
                 # --tasks arc_challenge,arc_easy,piqa,winogrande,boolq,hellaswag,mmlu \
                 # --tasks arc_challenge,arc_easy,piqa,winogrande,hellaswag,mmlu \

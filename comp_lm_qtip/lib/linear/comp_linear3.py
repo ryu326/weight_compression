@@ -62,12 +62,6 @@ class CompLinear3(Module):
         
         res = comp_W_from_y(self.Wshape, self.y_in_list, self.y_in_idx, comp_model, self.args, qlevel = self.qlevel, **metadata)
 
-        total_metadata_bpp = utils.calculate_metadata_bpp(metadata, self.Wshape, self.args)
-        bpp_keys = ['bpp_loss_sum', 'bpp_sum']
-        for key in bpp_keys:
-            if res.get(key) is not None:
-                res[key] += total_metadata_bpp
-        
         # {'hatWr': W_hat,
         #     'bpp_loss_sum': bpp_loss_sum.item(),
         #     'bpp_loss': bpp_loss_sum.item() / num_pixels,
