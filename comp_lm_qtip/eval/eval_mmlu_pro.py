@@ -78,7 +78,8 @@ def main() -> None:
     p.add_argument("--n-per-cat",   type=int, default=143,
                    help="Samples per category (143 × 14 = 2002 total)")
     p.add_argument("--seed",        type=int, default=42)
-    p.add_argument("--max-tokens",  type=int, default=4096)
+    p.add_argument("--max-tokens",  type=int, default=8192,
+                   help="Max generation tokens. 8192 cuts only 4%% of correct answers.")
     p.add_argument("--overwrite",   action="store_true")
     args = p.parse_args()
 
