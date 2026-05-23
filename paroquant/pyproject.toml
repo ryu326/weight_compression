@@ -1,0 +1,72 @@
+[project]
+name = "paroquant"
+version = "0.1.14"
+requires-python = ">=3.11"
+description = "ParoQuant — Pairwise Rotation Quantization for LLMs"
+readme = "README.md"
+license = "MIT"
+authors = [{ name = "Z Lab" }]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "rich",
+]
+
+[project.urls]
+Homepage = "https://paroquant.z-lab.ai"
+Paper = "https://arxiv.org/abs/2511.10645"
+Models = "https://huggingface.co/collections/z-lab/paroquant"
+
+[project.entry-points."vllm.general_plugins"]
+paroquant = "paroquant.inference.backends.vllm:register"
+
+[project.optional-dependencies]
+transformers = [
+    "torch>=2.8",
+    "torchvision",
+    "transformers>=4.55",
+    "autoawq",
+    "ninja",
+]
+vllm = [
+    "vllm>=0.19.1,<0.20",
+    "accelerate",
+]
+mlx = [
+    "mlx",
+    "mlx-lm",
+    "mlx-vlm",
+    "torchvision",
+]
+optim = [
+    "paroquant[transformers]",
+    "datasets",
+    "simple_parsing",
+    "tqdm",
+    "wandb",
+]
+eval = [
+    "lm_eval",
+    "zstandard",
+]
+dev = [
+    "pytest",
+    "pre-commit",
+]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["paroquant*"]
+
+[tool.setuptools.package-data]
+"paroquant.kernels.cuda" = ["*.cu", "*.cpp", "*.cuh"]
+"paroquant.kernels.metal" = ["*.metal"]
+
+[tool.black]
+line-length = 120
+target-version = ["py311"]

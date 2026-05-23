@@ -1,0 +1,87 @@
+{% set model_name = base_model.split("/")[-1] -%}
+{% set paro_model_path = "z-lab/" + base_model.split("/")[-1] + "-PARO" -%}
+
+---
+library_name: transformers
+license: {{ license }}
+{% if pipeline_tag -%} pipeline_tag: {{ pipeline_tag }} {%- endif %}
+base_model:
+- {{ base_model }}
+---
+
+# {{ paro_model_path }}
+
+**Pairwise Rotation Quantization for Efficient Reasoning LLM Inference**
+
+<p>
+  <a href="https://arxiv.org/abs/2511.10645"><img src="https://img.shields.io/badge/arXiv-2511.10645-b31b1b.svg" alt="Paper"></a>
+  <a href="https://paroquant.z-lab.ai"><img src="https://img.shields.io/badge/Blog-ParoQuant-blue" alt="Blog"></a>
+  <a href="https://huggingface.co/collections/z-lab/paroquant"><img src="https://img.shields.io/badge/%F0%9F%A4%97-Models-yellow" alt="Models"></a>
+  <a href="https://pypi.org/project/paroquant/"><img src="https://img.shields.io/pypi/v/paroquant" alt="PyPI"></a>
+</p>
+
+ParoQuant is the state-of-the-art INT4 quantization for LLMs. It closes the accuracy gap with FP16 while running at near-AWQ speed. Supports NVIDIA GPUs (vLLM, Transformers) and Apple Silicon (MLX). For more information, see https://github.com/z-lab/paroquant.
+
+{{ paro_model_path }} is a 4-bit [{{ base_model }}](https://huggingface.co/{{ base_model }}) quantized with ParoQuant. Check out other ParoQuant models from the Hugging Face [collection](https://huggingface.co/collections/z-lab/paroquant).
+
+
+## Quick Start
+
+### Installation
+
+```bash
+# NVIDIA GPU (CUDA 12.9)
+pip install "paroquant[vllm]"
+
+# NVIDIA GPU (CUDA 13.0)
+pip install "paroquant[vllm]" "vllm==0.19.1" \
+  --extra-index-url https://wheels.vllm.ai/0.19.1/cu130 \
+  --extra-index-url https://download.pytorch.org/whl/cu130
+
+# Apple Silicon
+pip install "paroquant[mlx]"
+```
+
+### Interactive Chat
+
+```bash
+python -m paroquant.cli.chat --model {{ paro_model_path }}
+```
+
+### OpenAI-Compatible API Server
+
+```bash
+python -m paroquant.cli.serve --model {{ paro_model_path }} --port 8000
+```
+
+For vLLM, the arguments are passed to the vLLM server directly. See [vLLM docs](https://docs.vllm.ai/en/latest/configuration/serve_args/) for more details.
+
+For MLX, add `--vlm` if you wish to load the VLM components and use the model's multimodal features. For vLLM, VLM components are loaded by default and can be skipped with the server argument `--language-model-only`.
+
+### Docker (NVIDIA GPU)
+
+> [!NOTE]
+> The following commands map the local cache directory to the container in order to persist kernel cache across runs. Remove `-v ...` to disable this behaviour.
+
+```bash
+# Interactive chat
+docker run --pull=always --rm -it --gpus all --ipc=host \
+  -v $HOME/.cache/paroquant:/root/.cache/paroquant \
+  ghcr.io/z-lab/paroquant:chat --model {{ paro_model_path }}
+
+# API server (port 8000)
+docker run --pull=always --rm -it --gpus all --ipc=host -p 8000:8000 \
+  -v $HOME/.cache/paroquant:/root/.cache/paroquant \
+  ghcr.io/z-lab/paroquant:serve --model {{ paro_model_path }}
+```
+
+## Citation
+
+```bibtex
+@inproceedings{liang2026paroquant,
+  title     = {% raw %}{{ParoQuant: Pairwise Rotation Quantization for Efficient Reasoning LLM Inference}}{% endraw %},
+  author    = {Liang, Yesheng and Chen, Haisheng and Zhang, Zihan and Han, Song and Liu, Zhijian},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2026}
+}
+```

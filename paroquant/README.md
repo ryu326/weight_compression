@@ -1,0 +1,165 @@
+# ParoQuant
+
+**Pairwise Rotation Quantization for Efficient Reasoning LLM Inference**
+
+<p>
+  <a href="https://arxiv.org/abs/2511.10645"><img src="https://img.shields.io/badge/arXiv-2511.10645-b31b1b.svg" alt="Paper"></a>
+  <a href="https://paroquant.z-lab.ai"><img src="https://img.shields.io/badge/Blog-ParoQuant-blue" alt="Blog"></a>
+  <a href="https://huggingface.co/collections/z-lab/paroquant"><img src="https://img.shields.io/badge/%F0%9F%A4%97-Models-yellow" alt="Models"></a>
+  <a href="https://pypi.org/project/paroquant/"><img src="https://img.shields.io/pypi/v/paroquant" alt="PyPI"></a>
+</p>
+
+State-of-the-art INT4 quantization for LLMs. ParoQuant uses learned pairwise rotations to suppress weight outliers, closing the accuracy gap with FP16 while running at near-AWQ speed. Supports NVIDIA GPUs (vLLM, Transformers) and Apple Silicon (MLX).
+
+## Quick Start
+
+### Installation
+
+```bash
+# NVIDIA GPU (CUDA 12.9)
+pip install "paroquant[vllm]"
+
+# NVIDIA GPU (CUDA 13.0)
+pip install "paroquant[vllm]" "vllm==0.19.1" \
+  --extra-index-url https://wheels.vllm.ai/0.19.1/cu130 \
+  --extra-index-url https://download.pytorch.org/whl/cu130
+
+# Apple Silicon
+pip install "paroquant[mlx]"
+```
+
+Pick a model from our [Hugging Face collection](https://huggingface.co/collections/z-lab/paroquant):
+
+```bash
+export MODEL=z-lab/Qwen3.5-4B-PARO
+```
+
+### Interactive Chat
+
+```bash
+python -m paroquant.cli.chat --model $MODEL
+```
+
+### OpenAI-Compatible API Server
+
+For vLLM, you can directly use `vllm serve` to serve ParoQuant models:
+
+```bash
+vllm serve $MODEL --port 8000
+```
+
+For other frameworks:
+
+```bash
+python -m paroquant.cli.serve --model $MODEL --port 8000
+```
+
+For MLX, add `--vlm` if you wish to load the VLM components and use the model's multimodal features. For vLLM, VLM components are loaded by default and can be skipped with the server argument `--language-model-only`.
+
+### Docker (NVIDIA GPU)
+
+> [!NOTE]
+> The following commands map the local cache directory to the container in order to persist kernel cache across runs. Remove `-v ...` to disable this behaviour.
+
+```bash
+# Interactive chat
+docker run --pull=always --rm -it --gpus all --ipc=host \
+  -v $HOME/.cache/paroquant:/root/.cache/paroquant \
+  ghcr.io/z-lab/paroquant:chat --model $MODEL
+
+# API server (port 8000)
+docker run --pull=always --rm -it --gpus all --ipc=host -p 8000:8000 \
+  -v $HOME/.cache/paroquant:/root/.cache/paroquant \
+  ghcr.io/z-lab/paroquant:serve --model $MODEL
+```
+
+## Models
+
+All models are available on [Hugging Face](https://huggingface.co/collections/z-lab/paroquant). Swap the model name in the commands above to try any of them.
+
+**Gemma 4**
+
+| Model          | Checkpoint                                                                      |
+| -------------- | ------------------------------------------------------------------------------- |
+| gemma-4-31B-it | [`z-lab/gemma-4-31B-it-PARO`](https://huggingface.co/z-lab/gemma-4-31B-it-PARO) |
+| gemma-4-E2B-it | [`z-lab/gemma-4-E2B-it-PARO`](https://huggingface.co/z-lab/gemma-4-E2B-it-PARO) |
+
+**Qwen3.6**
+
+| Model       | Checkpoint                                                                |
+| ----------- | ------------------------------------------------------------------------- |
+| Qwen3.6-27B | [`z-lab/Qwen3.6-27B-PARO`](https://huggingface.co/z-lab/Qwen3.6-27B-PARO) |
+
+**Qwen3.5**
+
+| Model | Checkpoint |
+|---|---|
+| Qwen3.5-0.8B | [`z-lab/Qwen3.5-0.8B-PARO`](https://huggingface.co/z-lab/Qwen3.5-0.8B-PARO) |
+| Qwen3.5-2B | [`z-lab/Qwen3.5-2B-PARO`](https://huggingface.co/z-lab/Qwen3.5-2B-PARO) |
+| Qwen3.5-4B | [`z-lab/Qwen3.5-4B-PARO`](https://huggingface.co/z-lab/Qwen3.5-4B-PARO) |
+| Qwen3.5-9B | [`z-lab/Qwen3.5-9B-PARO`](https://huggingface.co/z-lab/Qwen3.5-9B-PARO) |
+| Qwen3.5-27B | [`z-lab/Qwen3.5-27B-PARO`](https://huggingface.co/z-lab/Qwen3.5-27B-PARO) |
+| Qwen3.5-35B-A3B | [`z-lab/Qwen3.5-35B-A3B-PARO`](https://huggingface.co/z-lab/Qwen3.5-35B-A3B-PARO) |
+
+**Qwen3**
+
+| Model | Checkpoint |
+|---|---|
+| Qwen3-0.6B | [`z-lab/Qwen3-0.6B-PARO`](https://huggingface.co/z-lab/Qwen3-0.6B-PARO) |
+| Qwen3-1.7B | [`z-lab/Qwen3-1.7B-PARO`](https://huggingface.co/z-lab/Qwen3-1.7B-PARO) |
+| Qwen3-4B | [`z-lab/Qwen3-4B-PARO`](https://huggingface.co/z-lab/Qwen3-4B-PARO) |
+| Qwen3-8B | [`z-lab/Qwen3-8B-PARO`](https://huggingface.co/z-lab/Qwen3-8B-PARO) |
+| Qwen3-14B | [`z-lab/Qwen3-14B-PARO`](https://huggingface.co/z-lab/Qwen3-14B-PARO) |
+
+**Llama**
+
+| Model | Checkpoint |
+|---|---|
+| Llama-2-7B | [`z-lab/Llama-2-7b-hf-PARO`](https://huggingface.co/z-lab/Llama-2-7b-hf-PARO) |
+| Llama-3-8B | [`z-lab/Meta-Llama-3-8B-PARO`](https://huggingface.co/z-lab/Meta-Llama-3-8B-PARO) |
+| Llama-3.1-8B-Instruct | [`z-lab/Llama-3.1-8B-Instruct-PARO`](https://huggingface.co/z-lab/Llama-3.1-8B-Instruct-PARO) |
+
+Want a model that's not listed? [Open an issue](https://github.com/z-lab/paroquant/issues/new) and let us know.
+
+## Reproduction
+
+> [!NOTE]
+> The main branch of this repository is under active development, and reproducibility is not guaranteed.
+> Please use the [`legacy`](https://github.com/z-lab/paroquant/tree/legacy) branch to reproduce results from the paper.
+
+## Quantize Your Own Model
+
+```bash
+git clone https://github.com/z-lab/paroquant && cd paroquant
+pip install -e ".[optim,eval]"
+
+# 1. Optimize rotation parameters
+experiments/optimize/4bit.sh Qwen/Qwen3-8B
+
+# 2. Export to HF checkpoint (--mode real for INT4, --mode pseudo for FP16)
+python -m paroquant.cli.convert \
+  --model Qwen/Qwen3-8B \
+  --result-dir output/Qwen3-8B \
+  --output-path models/Qwen3-8B-PARO
+```
+
+## Docker Images
+
+| Image | Purpose |
+|---|---|
+| `ghcr.io/z-lab/paroquant:chat` | Interactive chat |
+| `ghcr.io/z-lab/paroquant:chat-cu129` | Interactive chat (CUDA 12.9) |
+| `ghcr.io/z-lab/paroquant:serve` | OpenAI-compatible API server |
+| `ghcr.io/z-lab/paroquant:latest` | Optimization & evaluation |
+| `ghcr.io/z-lab/paroquant:eval` | Reasoning task evaluation |
+
+## Citation
+
+```bibtex
+@inproceedings{liang2026paroquant,
+  title     = {{ParoQuant: Pairwise Rotation Quantization for Efficient Reasoning LLM Inference}},
+  author    = {Liang, Yesheng and Chen, Haisheng and Zhang, Zihan and Han, Song and Liu, Zhijian},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2026}
+}
+```
